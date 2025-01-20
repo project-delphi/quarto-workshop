@@ -1,0 +1,378 @@
+
+---
+title: "Quarto Workshop"
+author: "Ravi Kalia"
+date: "2025-01-22"
+format: 
+  revealjs:
+    chalkboard: true
+    theme: black
+    transition: slide
+---
+
+# The Wonderful World of Quarto!
+
+![](https://static.wixstatic.com/media/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg/v1/fill/w_568,h_676,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg)
+
+## Prerequisites {.smaller}
+
+### Installed and Configured
+- GitHub account
+- Linux-like environment
+- VSCode installed
+- Git Configured
+- Conda installed
+
+### Skills
+- Creating conda environments
+- Comfort with Git & GitHub
+- Branching (GitHub Flow)
+
+
+
+## What is Quarto?
+**Quarto** is a modern, interactive publishing system built on **pandoc**:
+
+- Converts Markdown files to multiple formats:
+  - html/rmarkdown/pdf
+  - Reveal.js (slides, pptx)
+  - Jupyter Notebooks (ipynb)
+  - ePub, Typst, LaTex and more
+
+
+origin: `org-mode` (Emacs) => `Sweave` / `knitr` => `RMarkdown` 
+
+
+
+## Why Use Quarto?
+
+- Focus on reproducibility
+- Easy interactivity
+- Flexible output formats
+- Good processing of code blocks:
+    * R
+    * Python
+    * Julia
+    * ObservableJS
+
+
+
+## Quarto Example Gallery
+
+1. Open the [Quarto Examples Gallery](https://quarto.org/docs/gallery/).
+2. Browse through the examples of:
+   - Scientific reports
+   - Data visualizations
+   - Blogs
+   - Interactive web apps
+
+### Exercise
+Identify one example to recreate during the workshop.
+
+
+
+## Underlying Technology
+
+Quarto: A transpiler that converts markdown to various formats. The foundational technologies are:
+
+* Javascript (interactivity)
+* HTML (markdown)
+* CSS (fence divs)
+
+
+
+## Installation
+
+1. Install Quarto Binary [Quarto](https://quarto.org/docs/get-started/)
+2. Install the Quarto extension for VSCode:
+   - Extensions > Search "Quarto" > Install
+3. command line install of quarto cli 
+### Exercise
+One, Two and Three.
+
+
+Warning: Quarto is under active development!
+
+
+
+## Setting Up Your Environment
+
+1. Create a new directory for the workshop:
+   ```bash
+   mkdir quarto-workshop
+   cd quarto-workshop
+   ```
+
+2. Create a Conda environment:
+   ```bash
+   conda create -n quarto-env python=3.10 -y
+   conda activate quarto-env
+   ```
+
+3. Initialize Git:
+   ```bash
+   git init
+   ```
+
+
+
+## Write Markdown 
+
+1. Write a small `example.md` file:
+   ```markdown
+   # Big Hello, Quarto!
+   ## Smaller hello, quarto!
+   ###### smallest hello, quarto!
+   This is a demo of Markdown features:
+   - **Bold text**
+   - *Italic text*
+   - [Links](https://quarto.org)
+   - ![Image](https://picsum.photos/200/300)
+   ```
+
+
+## Markdown Code Blocks
+
+Code blocks can be formatted but not executed in markdown.
+
+
+Python
+
+   ```python
+   def greet(name):
+      print(f"Hello, {name}!")
+   ```
+R
+
+   ```r
+   greet <- function(name) {
+      print(paste("Hello", name))
+   }
+   ```
+
+Javascript
+
+   ```javascript
+   function greet(name) {
+      console.log(`Hello, ${name}!`);
+   }
+   ```
+
+## Convert Markdown
+
+Command line:
+
+   ```bash
+   quarto render example.md --to pdf
+   quarto render example.md --to html
+   quarto render example.md --to ipynb
+   ```
+
+### Exercise
+Write and convert a markdown file to other format.
+
+
+
+## Introducing qmd {.smaller}
+
+Basic features:
+
+* document metadata block at the top of file:
+
+   ```yaml
+   
+   title: "blah"
+   format: "html"
+   date: "2025-01-22"
+   
+   ```
+
+* `#|` hash-pipe blocks to configure code blocks
+* `:::` fence blocks are used for quarto & custom [`css`](https://web.dev/learn/css) divs and classes
+  - `::: {.class}`
+  - `::: {#id}`
+  - `::: {.class #id}`
+
+
+
+## Example qmd {.smaller}
+
+1. Write a small `example.qmd` file:
+   ```markdown
+   ---   
+   title: "Demo"
+   format: html
+   ---
+   # Hello, Quarto!
+   ::: {.panel-tabset}
+   ### Tab 1
+   Content for tab 1.
+   ### Tab 2
+   Content for tab 2.
+   :::
+   ```
+
+2. Render the file:
+   ```bash
+   quarto render example.qmd
+   ```
+
+
+### Exercise
+Write a `.qmd` file with fenced divs.
+
+
+
+## Simple qmd Code Blocks
+
+Quarto supports executing code blocks in markdown files.
+
+Python
+
+```{python}
+#| echo: true
+def greet(name):
+    print(f"Hello, {name}!")
+greet("Quarto")
+```
+
+Javascript
+
+```{javascript}
+#| echo: true
+console.log("Hello, Quarto!")
+```
+
+### Exercise  
+Create a `.qmd` file with a Python and R code block.
+
+
+
+## Enhanced Code Blocks: Hash Pipe (`#|`) {.smaller}
+
+You can control the behavior of code blocks using the hash pipe (`#|`) syntax. 
+This allows you to specify options like displaying code, showing output, or even setting execution parameters.
+
+   ```python
+      #| echo: true
+      #| warning: false
+      def greet(name):
+         print(f"Hello, {name}!")
+   ```
+
+
+The `#|` syntax adds more control over the execution and display of the code block.
+
+### Exercise
+- Create a `.qmd` file with a Python code block using the `#|` options like `echo`, `warning`, and `eval`.
+
+
+
+## Create a Blog Project {.smaller}
+
+1. Create a Quarto blog project:
+   ```bash
+   quarto create-project blog --type website
+   ```
+
+2. Initialize Git and create branches:
+   ```bash
+   git init
+   git checkout -b blog-setup
+   ```
+
+3. Write an environment file:
+   ```yaml
+   name: blog-env
+   channels:
+     - conda-forge
+   dependencies:
+     - python=3.10
+     - quarto
+   ```
+
+4. Activate the environment:
+   ```bash
+   conda env create -f environment.yml
+   conda activate blog-env
+   ```
+
+Exercise: Create a blog project and explain the directory structure.
+
+
+
+## Writing a Blog Post
+
+1. Create a new `.qmd` file in the `posts` folder:
+   ```markdown
+   
+   title: "My First Blog Post"
+   date: 2025-01-20
+   
+
+   # Welcome!
+
+   This is my first post using **Quarto**!
+   ```
+
+2. Render and preview:
+   ```bash
+   quarto preview
+   ```
+
+
+
+## Configure GitHub Pages
+
+1. Configure `_quarto.yml`:
+   
+   ```yaml
+   project:
+     type: website
+   publish:
+     gh-pages:
+       branch: gh-pages
+   ```
+
+2. configure repo settings to publish from `gh-pages` branch
+
+3. Push to GitHub:
+   ```bash
+   git add .
+   git commit -m "Initial blog setup"
+   git push origin blog-setup
+   ```
+
+4. Merge to `main` and deploy.
+
+
+
+## Group Exercise
+
+### Collaborate on a Blog
+
+1. Form groups of 3–4 persons, have one person who is advanced in github flow.
+2. Each group member creates a branch:
+   ```bash
+   git checkout -b member_initials/feature-branch-name
+   ```
+3. Write posts in the `posts/` directory.
+4. Merge branches to `main`.
+5. Push and share your blog URL.
+
+
+
+## Recap
+
+- **Quarto** combines flexibility and reproducibility.
+- Create professional blogs, reports, and more.
+- Practice collaborative workflows with GitHub.
+
+**Next Steps:**
+- Explore advanced Quarto features.
+- Build your personal portfolio site!
+
+
+
+## Questions?
+
