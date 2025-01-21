@@ -12,10 +12,27 @@ format:
     footer: "Quarto Workshop"
 ---
 
-# Quality Quarto Quest!
+# Quality Quarto Quest!{.smaller}
+
+::: {.columns}
+
+::: {.column width="50%"}
+::: {.fragment .fade-in}
+<a href="https://static.wixstatic.com/media/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg">
+    <img src="https://static.wixstatic.com/media/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg" alt="Click to enlarge" style="width: 70%; height: auto;">
+</a>
+:::
+:::
+
+::: {.column width="50%"}
+> Objective: Learn to create professional blogs, reports, and more with Quarto.
+
+Excellent documentation at [Quarto Guide](https://quarto.org/docs/guide/).
+:::
+
+:::
 
 
-[![Click to enlarge](https://static.wixstatic.com/media/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg/v1/fill/w_568,h_676,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg)](https://static.wixstatic.com/media/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg){.fragment .fade-in}
 
 
 ## Prerequisites {.smaller}
@@ -97,19 +114,21 @@ WARNING: Quarto is under active development!
 
 1. Create a new directory for the workshop:
    ```bash
-   mkdir quarto-workshop
-   cd quarto-workshop
+   mkdir -p ~/code/delete-me/quarto-play
+   cd ~/code/delete-me/quarto-play
    ```
 
 2. Create a Conda environment:
    ```bash
-   conda env create -p "$PWD/.conda" python=3.10 -y
+   curl -o environment.yml `https://shorturl.at/dZII6`
+   conda env create -f environment.yml -p "$PWD/.conda" 
    conda activate "$PWD/.conda"
    ```
 
 3. Initialize Git:
    ```bash
    git init
+   git switch -c basic-markdown
    ```
 
 
@@ -128,6 +147,9 @@ WARNING: Quarto is under active development!
    - ![Image](https://picsum.photos/200/300)
    ```
 
+### Exercise
+
+Write some markdown in a file.
 
 ## Markdown Code Blocks{.smaller}
 
@@ -173,6 +195,8 @@ Transpile `example.md` using quarto:
 ### Exercise
 
 Write and convert a markdown file to other format.
+Commit changes
+
 
 ## Introducing qmd {.smaller}
 
@@ -188,7 +212,7 @@ Basic features:
    
    ```
 
-* `:::` fence blocks are used for quarto & custom [`css`](https://web.dev/learn/css) divs and classes
+* `:::` fenced blocks are used for quarto & custom [`css`](https://web.dev/learn/css) divs and classes
   - `::: {.class}`
   - `::: {#id}`
   - `::: {.class #id}`
@@ -197,7 +221,10 @@ Basic features:
 
 ## Example qmd {.smaller}
 
-1. Write a small `example.qmd` file:
+
+1. new branch `git switch -c qmd-demo`
+
+2. Write a small `example.qmd` file:
    ```markdown
    ---   
    title: "Demo"
@@ -212,19 +239,21 @@ Basic features:
    :::
    ```
 
-2. Render the file:
+3. Render the file:
    ```bash
    quarto render example.qmd
    ```
 
 
 ### Exercise
-Write a `.qmd` file with fenced divs.
+Write a `.qmd` file with fenced blocks.
 
 
-## Simple qmd Code Blocks
+## Simple qmd Code Blocks{.smaller}
 
 Quarto supports executing code blocks in markdown files.
+
+Use curly braces `{}` to specify the language: {python}, {r}, {julia}.
 
 Python
 
@@ -235,12 +264,17 @@ def greet(name):
 greet("Quarto")
 ```
 
-Javascript
+R
 
-```{javascript}
+```{.r}
 #| echo: true
-console.log("Hello, Quarto!")
+#| warning: false
+greet <- function(name) {
+    print(paste("Hello", name))
+}
+greet("Quarto") 
 ```
+> "Quarto"
 
 ### Exercise  
 Create a `.qmd` file with a Python and R code block.
@@ -295,30 +329,13 @@ Create a `.qmd` file with a Python code block using the `#|` options like `echo`
 - What is  `style.css`?
 
 ## Create a Blog Conda Environment {.smaller}
-1. Write an `environment.yml` file:
+Make and activate a conda environment for the blog project:
 
-```yaml
- name: quarto-blog-conda
-channels:
-  - conda-forge
-  - nodefaults
-dependencies:
-  - python=3.10
-  - jupyter
-  - matplotlib
-  - numpy
-  - scikit-learn
-  - pandas
-  - pip
-  - pip:
-      - quarto-cli
-```
-
-2. Activate the environment:
-   ```bash
-   conda env create -f environment.yml -p "$PWD/.conda"
+```bash
+   curl -o environment.yml `https://shorturl.at/dZII6`
+   conda env create -f environment.yml -p "$PWD/.conda" 
    conda activate "$PWD/.conda"
-   ```
+```
 
 ### Exercise
 Verify that the conda environment is active.
@@ -326,7 +343,8 @@ Verify that the conda environment is active.
 
 ## Writing a Blog Post{.smaller}
 
-1. Create a new `welcome.qmd` file in the `posts/` folder:
+Create a new `welcome.qmd` file in the `posts/` folder:
+
    ```markdown
    ---
    title: "My First Blog Post"
@@ -337,21 +355,20 @@ Verify that the conda environment is active.
    
    This is my first blog post using Quarto. Here's a dummy classifer on breast cancer data.
    
-   ```python
-   import urllib.request
+      ```{python}
+      import urllib.request
 
-   gist_url = ("https://gist.githubusercontent.com/project-delphi/" 
-   + 
-   "aac6c2614e3ab4e07b5f41012e9f30e4/raw/")
+      gist_url = "https://shorturl.at/WZ8hR"
 
-   try:
-      with urllib.request.urlopen(gist_url) as response:
-         script_content = response.read().decode('utf-8')
-      
-      print("Executing the script...")
-      exec(script_content)  # Execute the script
-   except Exception as e:
-      print(f"An error occurred: {e}")
+      try:
+         with urllib.request.urlopen(gist_url) as response:
+            script_content = response.read().decode('utf-8')
+         
+         print("Executing the script...")
+         exec(script_content)  # Execute the script
+      except Exception as e:
+         print(f"An error occurred: {e}")
+      ```
    ```
 
 ## Preview & Render Blog Post
@@ -367,6 +384,17 @@ The preview is a live preview of the blog post in the browser. The render comman
    ```bash
    quarto render posts/welcome.qmd
    ```
+
+## Using Jupyter To Blog
+
+* Convert a jupyter notebook to a blogpost using quarto.
+* Quarto first converts the notebook to qmd, and from there to the desired format.
+* Just put YAML metadata at the top of the notebook in raw text format.
+* Save the notebook in the `posts/` directory.
+
+### Exercise
+
+Write and convert a jupyter notebook to a blog post.
 
 ## Configure GitHub Pages
 
