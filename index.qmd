@@ -9,11 +9,14 @@ format:
     chalkboard: false
     theme: black
     transition: slide
+    footer: "Quarto Workshop"
 ---
 
-# The Wonderful World of Quarto!
+# Quest for Quality Quarto!
 
-![](https://static.wixstatic.com/media/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg/v1/fill/w_568,h_676,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg)
+
+[![Click to enlarge](https://static.wixstatic.com/media/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg/v1/fill/w_568,h_676,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg)](https://static.wixstatic.com/media/1b4916_3bf27c6d0fbb463d8afdd5cd72867019~mv2.jpg){.fragment .fade-in}
+
 
 ## Prerequisites {.smaller}
 
@@ -28,7 +31,7 @@ format:
 - Creating conda environments
 - Comfort with Git & GitHub
 - Branching (GitHub Flow)
-
+- Posts answers and links in chat
 
 
 ## What is Quarto?
@@ -84,17 +87,15 @@ Quarto: A transpiler that converts markdown to various formats. The foundational
 
 ## Installation
 
-1. Install Quarto Binary [Quarto](https://quarto.org/docs/get-started/)
+1. Install [Quarto](https://quarto.org/docs/get-started/) binary program 
 2. Install the Quarto extension for VSCode:
    - Extensions > Search "Quarto" > Install
-3. command line install of quarto cli 
+3. Command line install of quarto cli 
+
 ### Exercise
 One, Two and Three.
 
-
-Warning: Quarto is under active development!
-
-
+WARNING: Quarto is under active development!
 
 ## Setting Up Your Environment
 
@@ -106,8 +107,8 @@ Warning: Quarto is under active development!
 
 2. Create a Conda environment:
    ```bash
-   conda create -n quarto-env python=3.10 -y
-   conda activate quarto-env
+   conda env create -p "$PWD/.conda" python=3.10 -y
+   conda activate "$PWD/.conda"
    ```
 
 3. Initialize Git:
@@ -134,7 +135,7 @@ Warning: Quarto is under active development!
 
 ## Markdown Code Blocks
 
-Code blocks can be formatted but not executed in markdown.
+Add code blocks: formatted but not executed in markdown.
 
 
 Python
@@ -161,7 +162,7 @@ Javascript
 
 ## Convert Markdown
 
-Command line:
+Transpile `example.md` using quarto:
 
    ```bash
    quarto render example.md --to pdf
@@ -169,7 +170,9 @@ Command line:
    quarto render example.md --to ipynb
    ```
 
+
 ### Exercise
+
 Write and convert a markdown file to other format.
 
 
@@ -178,7 +181,7 @@ Write and convert a markdown file to other format.
 
 Basic features:
 
-* document metadata block at the top of file:
+* document metadata YAML format file header:
 
    ```yaml
    
@@ -188,7 +191,6 @@ Basic features:
    
    ```
 
-* `#|` hash-pipe blocks to configure code blocks
 * `:::` fence blocks are used for quarto & custom [`css`](https://web.dev/learn/css) divs and classes
   - `::: {.class}`
   - `::: {#id}`
@@ -265,7 +267,7 @@ This allows you to specify options like displaying code, showing output, or even
 The `#|` syntax adds more control over the execution and display of the code block.
 
 ### Exercise
-- Create a `.qmd` file with a Python code block using the `#|` options like `echo`, `warning`, and `eval`.
+Create a `.qmd` file with a Python code block using the `#|` options like `echo`, `warning`, and `eval`.
 
 
 
@@ -273,7 +275,7 @@ The `#|` syntax adds more control over the execution and display of the code blo
 
 1. Create a Quarto blog project:
    ```bash
-   quarto create-project blog --type website
+   quarto create-project quarto-blog 
    ```
 
 2. Initialize Git and create branches:
@@ -282,45 +284,71 @@ The `#|` syntax adds more control over the execution and display of the code blo
    git checkout -b blog-setup
    ```
 
-3. Write an environment file:
-   ```yaml
-   name: blog-env
-   channels:
-     - conda-forge
-   dependencies:
-     - python=3.10
-     - quarto
-   ```
+### Exercise
 
-4. Activate the environment:
+- Create a blog project and explain the directory structure.
+- What is  `_quarto.yml`?
+- What is `posts` directory?
+- What is  `style.css`?
+
+## Create a Blog Conda Environment {.smaller}
+1. Write an `environment.yml` file:
+
+```yaml
+ name: quarto-blog-conda
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.10
+  - jupyter
+  - matplotlib
+  - numpy
+  - scikit-learn
+  - pandas
+  - pip
+  - pip:
+      - quarto-cli
+```
+
+2. Activate the environment:
    ```bash
-   conda env create -f environment.yml
-   conda activate blog-env
+   conda env create -f environment.yml -p "$PWD/.conda"
+   conda activate "$PWD/.conda"
    ```
 
-Exercise: Create a blog project and explain the directory structure.
+### Exercise
+Verify that your conda environment is active.
 
 
+## Writing a Blog Post{.no-footer}
 
-## Writing a Blog Post
-
-1. Create a new `.qmd` file in the `posts` folder:
+1. Create a new `welcome.qmd` file in the `posts` folder:
    ```markdown
-   
+   ---
    title: "My First Blog Post"
    date: 2025-01-20
-   
+   ---
 
    # Welcome!
+   
+   This is my first blog post using Quarto. Here's mean and sd of a random vector:
+   
+   ```python
+   import numpy as np
+   random_vector = np.random.randn(100)
+   mean = np.mean(random_vector)
+   sd = np.std(random_vector)
+   print(f"Mean: {mean}, SD: {sd}")
 
-   This is my first post using **Quarto**!
    ```
 
 2. Render and preview:
    ```bash
-   quarto preview
+   quarto preview posts/welcome.qmd
    ```
-
+:::footer
+:::
 
 
 ## Configure GitHub Pages
@@ -335,7 +363,7 @@ Exercise: Create a blog project and explain the directory structure.
        branch: gh-pages
    ```
 
-2. configure repo settings to publish from `gh-pages` branch
+2. Configure repo UI settings to publish from `gh-pages` branch
 
 3. Push to GitHub:
    ```bash
@@ -369,7 +397,7 @@ Exercise: Create a blog project and explain the directory structure.
 - Create professional blogs, reports, and more.
 - Practice collaborative workflows with GitHub.
 
-**Next Steps:**
+### Next Steps
 - Explore advanced Quarto features.
 - Build your personal portfolio site!
 
