@@ -101,7 +101,6 @@ Quarto: A transpiler that converts markdown to various formats. The foundational
 * CSS (fence divs)
 
 
-
 ## Installation
 
 1. Install [Quarto](https://quarto.org/docs/get-started/) binary program 
@@ -114,7 +113,7 @@ One, Two & Three.
 
 WARNING: Quarto is under active development!
 
-## Setting Up Your Environment
+## Setting Up Your Environment{.smaller}
 
 1. Create a new directory for the workshop:
    ```{.bash code-line-numbers="1|2"}
@@ -124,18 +123,22 @@ WARNING: Quarto is under active development!
 
 2. Create a Conda environment:
    ```{.bash code-line-numbers="1|2|3"}
-   curl -o environment.yml `https://shorturl.at/dZII6`
+   curl -L -o environment.yml https://shorturl.at/dZII6
    conda env create -f environment.yml -p "$PWD/.conda" 
    conda activate "$PWD/.conda"
    ```
 
-3. Initialize Git:
+3. Create .gitignore file:
    ```{.bash code-line-numbers="1|2"}
-   git init
+   curl -o .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
+   echo -e "\n# Custom ignores\n.conda/\n.env/" >> .gitignore
+   ``` 
+
+4. Initialize Git:
+   ```{.bash code-line-numbers="1|2"}
+   git init --initial-branch=main
    git switch -c basic-markdown
    ```
-
-
 
 ## Write Markdown 
 
@@ -257,7 +260,9 @@ Write a `.qmd` file with fenced blocks.
 
 Quarto supports executing code blocks in markdown files.
 
-Use curly braces `{}` to specify the language: {python}, {r}, {julia}.
+Use curly braces `{}` to specify the execution language: {python}, {r}, {julia}.
+
+Use curly braces with a period `{.}` to specify formatting options, no execution: {.python}, {.r}, {.julia}.
 
 Python
 
@@ -297,52 +302,57 @@ The `#|` syntax adds control over code block execution & display.
    ```
 
 
-| Option   | Description                                                                                          |
-|----------|------------------------------------------------------------------------------------------------------|
-| `#|eval`     | Evaluate the code chunk.                             |
+| Option       | Description                                                                                          |
+|--------------|------------------------------------------------------------------------------------------------------|
+| `#|eval`     | Evaluate the code chunk.                                                                             |
 | `#|echo`     | Include the source code in output.                                                                   |
-| `#|output`   | Include the results of executing the code in the output (true, false, or asis). |
+| `#|output`   | Include the results of executing the code in the output (true, false, or asis).                      |
 | `#|warning`  | Include warnings in the output.                                                                      |
-| `#|error`    | Include errors in the output. |
-| `#|include`  | Catch all for preventing any output (code or results) from being included. |
+| `#|error`    | Include errors in the output.                                                                        |
+| `#|include`  | Catch all for preventing any output (code or results) from being included.                           |
 
 
 ### Exercise
 Create a `.qmd` file with a Python code block using the `#|` options like `echo`, `warning`, and `eval`.
 
-
-
 ## Create a Blog Project {.smaller}
 
 1. Create a Quarto blog project:
    ```bash
-   quarto create-project quarto-blog 
-   ```
-
-2. Initialize Git and create branches:
-   ```bash
-   git init
-   git checkout -b blog-setup
+   quarto create project blog ~/code/delete-me/quarto-blog
+   cd ~/code/delete-me/quarto-blog 
    ```
 
 ### Exercise
 
-- Create a blog project and explain the directory structure.
+- Create a blog project & explain the directory structure.
 - What is  `_quarto.yml`?
 - What is `posts/` directory?
 - What is  `style.css`?
 
 ## Create a Blog Conda Environment {.smaller}
-Make and activate a conda environment for the blog project:
 
-```bash
-   curl -o environment.yml `https://shorturl.at/dZII6`
+1. Create a Conda environment:
+   ```{.bash code-line-numbers="1|2|3"}
+   curl -L -o environment.yml https://shorturl.at/dZII6
    conda env create -f environment.yml -p "$PWD/.conda" 
    conda activate "$PWD/.conda"
-```
+   ```
+
+2. Create .gitignore file:
+   ```{.bash code-line-numbers="1|2"}
+   curl -o .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
+   echo -e "\n# Custom ignores\n.conda/\n.env/" >> .gitignore
+   ``` 
+
+3. Initialize Git:
+   ```{.bash code-line-numbers="1|2"}
+   git init --initial-branch=main
+   git switch -c basic-markdown
+   ```
 
 ### Exercise
-Verify that the conda environment is active.
+Verify that the conda blog environment is active.
 
 
 ## Writing a Blog Post{.smaller}
@@ -424,6 +434,18 @@ Write and convert a jupyter notebook to a blog post.
 4. Merge to `main` and deploy.
 
 
+## Blog with RStudio{.smaller}
+
+1. Run which R after conda activated environment
+2. Open RStudio and go to Tools > Global Options.
+3. Under the General tab, locate the "R version" section.
+4. Click Change and then Browse.
+5. Navigate to the R executable path you found in Step 2 and select it.
+6. Open RStudio and create a new project.
+7. Select Quarto Blog project type.
+8. Create a new post and render it.
+9. Push to GitHub.
+
 
 ## Group Exercise: Collaborative Blog
 
@@ -435,8 +457,6 @@ Write and convert a jupyter notebook to a blog post.
 3. Write posts in the `posts/` directory.
 4. Merge branches to `main`.
 5. Push and share your blog URL.
-
-
 
 ## Recap
 
