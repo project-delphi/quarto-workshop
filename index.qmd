@@ -41,12 +41,14 @@ Please read excellent [Quarto Guide](https://quarto.org/docs/guide/).
 
 ## Prerequisites {.smaller}
 
-### Tools
+### Tools — install these **before** the workshop
 - GitHub account
-- POSIX Compliant environment (not git bash, powershell or cygwin)
-- VSCode installed
-- Git Configured
+- [Quarto](https://quarto.org/docs/get-started/) binary
+- [GitHub CLI](https://cli.github.com) (`gh`) — used to create the repo and publish
+- VSCode + the Quarto extension
+- Git configured
 - Conda installed
+- POSIX shell — macOS, Linux, or **WSL2** on Windows (not git bash, PowerShell or cygwin)
 
 ### Skills
 - Creating conda environments
@@ -54,6 +56,32 @@ Please read excellent [Quarto Guide](https://quarto.org/docs/guide/).
 - Branching (GitHub Flow)
 - Posts answers and links in chat
 
+### Verify
+```bash
+quarto --version && gh auth status && conda --version
+```
+
+## Windows: Set Up WSL2 {.smaller}
+
+Every command in this workshop assumes a POSIX shell. On Windows, get one via WSL2.
+
+1. In PowerShell **as administrator**, then reboot:
+   ```powershell
+   wsl --install
+   ```
+
+2. Open the "Ubuntu" terminal and install conda **inside WSL**, not on Windows:
+   ```{.bash code-line-numbers="1|2"}
+   curl -fsSL -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+   bash miniconda.sh -b && ~/miniconda3/bin/conda init bash
+   ```
+
+3. Install Quarto and `gh` inside WSL too.
+
+::: {.callout-important}
+Work from the Linux home directory (`~/code/...`), **not** `/mnt/c/...`.
+Rendering across the Windows filesystem boundary is slow and hits permission errors.
+:::
 
 ## What is Quarto?
 **Quarto** is a modern, interactive publishing system built on [pandoc](https://pandoc.org/):
@@ -482,7 +510,8 @@ Publish your blog and post the URL in chat.
 
 ## Blog with RStudio{.smaller}
 
-**Optional section.** R is not in the main environment — create it first:
+**Optional section.** Needs RStudio Desktop installed, plus the R environment
+(not in the main one) — create it first:
 
 ```{.bash code-line-numbers="1-2|3"}
 curl -fsSL -o environment-r.yml \
@@ -491,7 +520,9 @@ conda env create -f environment-r.yml -p "$PWD/.conda-r" && conda activate "$PWD
 ```
 
 1. Run which R after conda activated environment
-2. If all good in 1, then open using `open -na rstudio`
+2. Launch RStudio from the activated shell so it inherits the environment:
+   - macOS: `open -na rstudio`
+   - Linux / WSL2: `rstudio &`  (requires RStudio Desktop installed)
 3. Create new project from RStudio UI
 4. Select Quarto Blog project type.
 5. Create a new post and render it.
@@ -501,6 +532,25 @@ conda env create -f environment-r.yml -p "$PWD/.conda-r" && conda activate "$PWD
 ### Exercise
 
 Create a quarto blog post using RStudio.
+
+## When It Breaks {.smaller}
+
+| You see | It means | Do this |
+|---|---|---|
+| `quarto: command not found` | Not installed, or env not activated | `which quarto`, then `quarto check` |
+| `CondaError: Run 'conda init'` | Shell not set up for conda | `conda init "$(basename $SHELL)"`, restart shell |
+| `conda env create` fails parsing YAML | You downloaded an error page, not the file | `head -3 environment.yml` — expect `name:` |
+| `ModuleNotFoundError` for a package you *know* is installed | A user-level Jupyter kernel is shadowing your env | `jupyter kernelspec list`; prefix with `JUPYTER_PATH="$PWD/.conda/share/jupyter"` |
+| `which R` points outside your env | R env not created or not activated | R is optional — see the RStudio section |
+| `Address already in use` on preview | An old preview is still running | `quarto preview --port 4201` |
+| `gh: please run: gh auth login` | Not authenticated | `gh auth login` |
+| Site published but 404s | Pages is still building | Wait a minute; check the repo's Actions tab |
+
+The fourth row is the sneaky one: the package really is installed, just not in the
+interpreter Quarto is using.
+
+### Exercise
+Post the exact error text in chat — not a screenshot of your whole screen.
 
 ## Group Exercise: Collaborative Blog
 
