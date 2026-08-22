@@ -53,3 +53,11 @@ skips them silently. Use `git add -f` if they genuinely need updating.
 Commit messages are `type(scope): lowercase description`; the repo uses `feat`, `fix`, `chore`, `refactor`,
 plus local types `update` and `cruft` (removing dead files). Work on branches (`rk/slides` style), never
 directly on `main`.
+
+`main` is a protected branch, enforced for admins: no direct pushes, no force pushes, no deletion. Changes
+reach it through a PR (self-merge is fine, no approval required). `.claude/settings.json` denies the
+matching git commands locally as a first line of defence, but GitHub is what actually enforces it.
+
+When several PRs are stacked, merge them strictly bottom-up. Merging a child into its stacked parent after
+the parent has already merged to `main` silently strands the child's work on a branch no longer in `main`'s
+path — verify by diffing branch contents, not by trusting merged/closed status.
