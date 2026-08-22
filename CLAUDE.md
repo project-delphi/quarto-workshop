@@ -18,6 +18,10 @@ quarto preview index.qmd    # live-reload while editing slides
 quarto render               # writes docs/ (output-dir set in _quarto.yml)
 ```
 
+`_quarto.yml` carries a `render:` list limiting the build to `index.qmd`. Without it the website
+project also renders `README.md` and `CLAUDE.md` into `docs/`. A failed render (usually: env not
+activated) leaves `docs/` deleted rather than untouched — `git checkout -- docs` to recover.
+
 There are no tests or linters.
 
 ## Build output
