@@ -325,49 +325,71 @@ The `#|` syntax adds control over code block execution & display.
 ### Exercise
 Create a `.qmd` file with a Python code block using the `#|` options like `echo`, `warning`, and `eval`.
 
-## Create a Blog Project {.smaller}
+## Blog: Set Up the Environment First {.smaller}
 
-1. Create a Quarto blog project:
-   ```bash
-   quarto create project blog ~/code/delete-me/quarto-blog
-   cd ~/code/delete-me/quarto-blog 
-   ```
+The environment provides the toolchain, so build it **before** creating the project.
 
-### Exercise
-
-- Create a blog project & explain the directory structure.
-- What is  `_quarto.yml`?
-- What is `posts/` directory?
-- What is  `style.css`?
-
-## Create a Blog Conda Environment {.smaller}
-
-1. Create a Conda environment for blog:
-   ```{.bash code-line-numbers="1-2|3|4|5"}
+1. Make a directory and get the environment file:
+   ```{.bash code-line-numbers="1-2|3-4|5"}
+   mkdir -p ~/code/delete-me/quarto-blog && cd ~/code/delete-me/quarto-blog
    curl -fsSL -o environment.yml \
      https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml
    head -3 environment.yml   # must start with "name:", not "<!DOCTYPE html>"
    conda env create -f environment.yml -p "$PWD/.conda"
+   ```
+
+2. Activate it:
+   ```bash
    conda activate "$PWD/.conda"
    ```
 
-   `curl -f` fails loudly on an HTTP error instead of saving the error page.
+::: {.callout-note}
+The Python-only environment solves in a couple of minutes. R is a **separate,
+optional** environment used later — see the RStudio section.
+:::
 
-2. .gitignore file for environment:
-   ```{.bash code-line-numbers="1|2"}
-   curl -o .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
-   echo -e "\n# Custom ignores\n.conda/\n.env/" >> .gitignore
-   ``` 
+## Checkpoint: Is Your Toolchain Right? {.smaller}
 
-3. Initialize Git:
-   ```{.bash code-line-numbers="1|2"}
-   git init --initial-branch=main
-   git switch -c blog-setup
-   ```
+Run all four. Do not move on until each one is right.
+
+```{.bash code-line-numbers="1|2|3|4"}
+which quarto                 # expect a path, not "not found"
+quarto check                 # expect Python + Jupyter both OK
+which python                 # expect .../quarto-blog/.conda/bin/python
+jupyter kernelspec list      # expect python3 -> your .conda, NOT some other project
+```
+
+The last one catches the sneakiest failure: an old user-level kernel can shadow
+your environment, so `import matplotlib` fails even though it is installed.
+If `python3` points elsewhere, prefix commands with
+`JUPYTER_PATH="$PWD/.conda/share/jupyter"`.
 
 ### Exercise
-Verify that the conda blog environment is active.
+Post your `quarto check` output in chat if anything looks off.
 
+## Create the Blog Project {.smaller}
+
+```{.bash code-line-numbers="1|2"}
+quarto create project blog . --no-open --no-prompt
+git init --initial-branch=main && git switch -c blog-setup
+```
+
+`--no-open` skips launching an editor, `--no-prompt` skips the confirmation —
+without them the command stops and waits for input.
+
+Quarto generates:
+
+| Path | What it is |
+|---|---|
+| `_quarto.yml` | Site config: title, navbar, theme. **Edit this — never replace it.** |
+| `index.qmd` | The listing page that indexes your posts |
+| `posts/` | One folder per post, each with an `index.qmd` |
+| `posts/_metadata.yml` | Defaults applied to every post |
+| `styles.css` | Your CSS overrides (note: `styles`, not `style`) |
+| `about.qmd` | An about page wired into the navbar |
+
+### Exercise
+Open `_quarto.yml` and change the site title. Re-render and find your change.
 
 ## Writing a Blog Post{.smaller}
 
@@ -459,6 +481,14 @@ and prints your URL. No repo settings to click through.
 Publish your blog and post the URL in chat.
 
 ## Blog with RStudio{.smaller}
+
+**Optional section.** R is not in the main environment — create it first:
+
+```{.bash code-line-numbers="1-2|3"}
+curl -fsSL -o environment-r.yml \
+  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment-r.yml
+conda env create -f environment-r.yml -p "$PWD/.conda-r" && conda activate "$PWD/.conda-r"
+```
 
 1. Run which R after conda activated environment
 2. If all good in 1, then open using `open -na rstudio`

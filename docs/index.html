@@ -1273,7 +1273,7 @@ Ravi Kalia
 <p>Use curly braces <code>{}</code> to specify the execution language: {python}, {r}, {julia}.</p>
 <p>Use curly braces with a period <code>{.}</code> to specify formatting options, no execution: {.python}, {.r}, {.julia}.</p>
 <p>Python</p>
-<div id="05b9b349" class="cell" data-execution_count="1">
+<div id="52fb6f93" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a></a><span class="kw">def</span> greet(name):</span>
 <span id="cb13-2"><a></a>    <span class="bu">print</span>(<span class="ss">f&quot;Hello, </span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">!&quot;</span>)</span>
 <span id="cb13-3"><a></a>greet(<span class="st">&quot;Quarto&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1340,40 +1340,90 @@ Ravi Kalia
 <h3 id="exercise-7">Exercise</h3>
 <p>Create a <code>.qmd</code> file with a Python code block using the <code>#|</code> options like <code>echo</code>, <code>warning</code>, and <code>eval</code>.</p>
 </section>
-<section id="create-a-blog-project" class="slide level2 smaller">
-<h2>Create a Blog Project</h2>
+<section id="blog-set-up-the-environment-first" class="slide level2 smaller">
+<h2>Blog: Set Up the Environment First</h2>
+<p>The environment provides the toolchain, so build it <strong>before</strong> creating the project.</p>
 <ol type="1">
-<li><p>Create a Quarto blog project:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a></a><span class="ex">quarto</span> create project blog ~/code/delete-me/quarto-blog</span>
-<span id="cb17-2"><a></a><span class="bu">cd</span> ~/code/delete-me/quarto-blog </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
+<li><p>Make a directory and get the environment file:</p>
+<div class="sourceCode" id="cb17" data-code-line-numbers="1-2|3-4|5"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/code/delete-me/quarto-blog <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/code/delete-me/quarto-blog</span>
+<span id="cb17-2"><a></a><span class="ex">curl</span> <span class="at">-fsSL</span> <span class="at">-o</span> environment.yml <span class="dt">\</span></span>
+<span id="cb17-3"><a></a>  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml</span>
+<span id="cb17-4"><a></a><span class="fu">head</span> <span class="at">-3</span> environment.yml   <span class="co"># must start with &quot;name:&quot;, not &quot;&lt;!DOCTYPE html&gt;&quot;</span></span>
+<span id="cb17-5"><a></a><span class="ex">conda</span> env create <span class="at">-f</span> environment.yml <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$PWD</span><span class="st">/.conda&quot;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
+<li><p>Activate it:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a></a><span class="ex">conda</span> activate <span class="st">&quot;</span><span class="va">$PWD</span><span class="st">/.conda&quot;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
 </ol>
-<h3 id="exercise-8">Exercise</h3>
-<ul>
-<li>Create a blog project &amp; explain the directory structure.</li>
-<li>What is <code>_quarto.yml</code>?</li>
-<li>What is <code>posts/</code> directory?</li>
-<li>What is <code>style.css</code>?</li>
-</ul>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Note</strong></p>
+</div>
+<div class="callout-content">
+<p>The Python-only environment solves in a couple of minutes. R is a <strong>separate, optional</strong> environment used later — see the RStudio section.</p>
+</div>
+</div>
+</div>
 </section>
-<section id="create-a-blog-conda-environment" class="slide level2 smaller">
-<h2>Create a Blog Conda Environment</h2>
-<ol type="1">
-<li><p>Create a Conda environment for blog:</p>
-<div class="sourceCode" id="cb18" data-code-line-numbers="1-2|3|4|5"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a></a><span class="ex">curl</span> <span class="at">-fsSL</span> <span class="at">-o</span> environment.yml <span class="dt">\</span></span>
-<span id="cb18-2"><a></a>  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml</span>
-<span id="cb18-3"><a></a><span class="fu">head</span> <span class="at">-3</span> environment.yml   <span class="co"># must start with &quot;name:&quot;, not &quot;&lt;!DOCTYPE html&gt;&quot;</span></span>
-<span id="cb18-4"><a></a><span class="ex">conda</span> env create <span class="at">-f</span> environment.yml <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$PWD</span><span class="st">/.conda&quot;</span></span>
-<span id="cb18-5"><a></a><span class="ex">conda</span> activate <span class="st">&quot;</span><span class="va">$PWD</span><span class="st">/.conda&quot;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><code>curl -f</code> fails loudly on an HTTP error instead of saving the error page.</p></li>
-<li><p>.gitignore file for environment:</p>
-<div class="sourceCode" id="cb19" data-code-line-numbers="1|2"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a></a><span class="ex">curl</span> <span class="at">-o</span> .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore</span>
-<span id="cb19-2"><a></a><span class="bu">echo</span> <span class="at">-e</span> <span class="st">&quot;\n# Custom ignores\n.conda/\n.env/&quot;</span> <span class="op">&gt;&gt;</span> .gitignore</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
-<li><p>Initialize Git:</p>
-<div class="sourceCode" id="cb20" data-code-line-numbers="1|2"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a></a><span class="fu">git</span> init <span class="at">--initial-branch</span><span class="op">=</span>main</span>
-<span id="cb20-2"><a></a><span class="fu">git</span> switch <span class="at">-c</span> blog-setup</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
-</ol>
+<section id="checkpoint-is-your-toolchain-right" class="slide level2 smaller">
+<h2>Checkpoint: Is Your Toolchain Right?</h2>
+<p>Run all four. Do not move on until each one is right.</p>
+<div class="sourceCode" id="cb19" data-code-line-numbers="1|2|3|4"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a></a><span class="fu">which</span> quarto                 <span class="co"># expect a path, not &quot;not found&quot;</span></span>
+<span id="cb19-2"><a></a><span class="ex">quarto</span> check                 <span class="co"># expect Python + Jupyter both OK</span></span>
+<span id="cb19-3"><a></a><span class="fu">which</span> python                 <span class="co"># expect .../quarto-blog/.conda/bin/python</span></span>
+<span id="cb19-4"><a></a><span class="ex">jupyter</span> kernelspec list      <span class="co"># expect python3 -&gt; your .conda, NOT some other project</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The last one catches the sneakiest failure: an old user-level kernel can shadow your environment, so <code>import matplotlib</code> fails even though it is installed. If <code>python3</code> points elsewhere, prefix commands with <code>JUPYTER_PATH=&quot;$PWD/.conda/share/jupyter&quot;</code>.</p>
+<h3 id="exercise-8">Exercise</h3>
+<p>Post your <code>quarto check</code> output in chat if anything looks off.</p>
+</section>
+<section id="create-the-blog-project" class="slide level2 smaller">
+<h2>Create the Blog Project</h2>
+<div class="sourceCode" id="cb20" data-code-line-numbers="1|2"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a></a><span class="ex">quarto</span> create project blog . <span class="at">--no-open</span> <span class="at">--no-prompt</span></span>
+<span id="cb20-2"><a></a><span class="fu">git</span> init <span class="at">--initial-branch</span><span class="op">=</span>main <span class="kw">&amp;&amp;</span> <span class="fu">git</span> switch <span class="at">-c</span> blog-setup</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>--no-open</code> skips launching an editor, <code>--no-prompt</code> skips the confirmation — without them the command stops and waits for input.</p>
+<p>Quarto generates:</p>
+<table class="caption-top">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>_quarto.yml</code></td>
+<td>Site config: title, navbar, theme. <strong>Edit this — never replace it.</strong></td>
+</tr>
+<tr class="even">
+<td><code>index.qmd</code></td>
+<td>The listing page that indexes your posts</td>
+</tr>
+<tr class="odd">
+<td><code>posts/</code></td>
+<td>One folder per post, each with an <code>index.qmd</code></td>
+</tr>
+<tr class="even">
+<td><code>posts/_metadata.yml</code></td>
+<td>Defaults applied to every post</td>
+</tr>
+<tr class="odd">
+<td><code>styles.css</code></td>
+<td>Your CSS overrides (note: <code>styles</code>, not <code>style</code>)</td>
+</tr>
+<tr class="even">
+<td><code>about.qmd</code></td>
+<td>An about page wired into the navbar</td>
+</tr>
+</tbody>
+</table>
 <h3 id="exercise-9">Exercise</h3>
-<p>Verify that the conda blog environment is active.</p>
+<p>Open <code>_quarto.yml</code> and change the site title. Re-render and find your change.</p>
 </section>
 <section id="writing-a-blog-post" class="slide level2 smaller">
 <h2>Writing a Blog Post</h2>
@@ -1445,6 +1495,10 @@ Ravi Kalia
 </section>
 <section id="blog-with-rstudio" class="slide level2 smaller">
 <h2>Blog with RStudio</h2>
+<p><strong>Optional section.</strong> R is not in the main environment — create it first:</p>
+<div class="sourceCode" id="cb28" data-code-line-numbers="1-2|3"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb28-1"><a></a><span class="ex">curl</span> <span class="at">-fsSL</span> <span class="at">-o</span> environment-r.yml <span class="dt">\</span></span>
+<span id="cb28-2"><a></a>  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment-r.yml</span>
+<span id="cb28-3"><a></a><span class="ex">conda</span> env create <span class="at">-f</span> environment-r.yml <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$PWD</span><span class="st">/.conda-r&quot;</span> <span class="kw">&amp;&amp;</span> <span class="ex">conda</span> activate <span class="st">&quot;</span><span class="va">$PWD</span><span class="st">/.conda-r&quot;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <ol type="1">
 <li>Run which R after conda activated environment</li>
 <li>If all good in 1, then open using <code>open -na rstudio</code></li>
@@ -1461,7 +1515,7 @@ Ravi Kalia
 <ol type="1">
 <li><p>Form groups of 3–4 persons, have one person who is advanced in github flow.</p></li>
 <li><p>Each group member creates a branch:</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb28-1"><a></a><span class="fu">git</span> checkout <span class="at">-b</span> member_initials/feature-branch-name</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
+<div class="sourceCode" id="cb29"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb29-1"><a></a><span class="fu">git</span> checkout <span class="at">-b</span> member_initials/feature-branch-name</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
 <li><p>Write posts in the <code>posts/</code> directory.</p></li>
 <li><p>Merge branches to <code>main</code>.</p></li>
 <li><p>Push and share your blog URL.</p></li>
