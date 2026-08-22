@@ -46,7 +46,7 @@
     "href": "index.html#setting-up-your-environment",
     "title": "Quarto Workshop",
     "section": "Setting Up Your Environment",
-    "text": "Setting Up Your Environment\n\nCreate a new directory for the workshop:\nmkdir -p ~/code/delete-me/quarto-play\ncd ~/code/delete-me/quarto-play\nCreate a Conda environment:\ncurl -L -o environment.yml https://shorturl.at/dZII6\nconda env create -f environment.yml -p \"$PWD/.conda\" \nconda activate \"$PWD/.conda\"\n.gitignore file to git ignore conda environment:\ncurl -o .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore\necho -e \"\\n# Custom ignores\\n.conda/\\n.env/\" &gt;&gt; .gitignore\nInitialize Git:\ngit init --initial-branch=main\ngit switch -c basic-markdown"
+    "text": "Setting Up Your Environment\n\nCreate a new directory for the workshop:\nmkdir -p ~/code/delete-me/quarto-play\ncd ~/code/delete-me/quarto-play\nCreate a Conda environment:\ncurl -fsSL -o environment.yml \\\n  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml\nhead -3 environment.yml   # must start with \"name:\", not \"&lt;!DOCTYPE html&gt;\"\nconda env create -f environment.yml -p \"$PWD/.conda\"\nconda activate \"$PWD/.conda\"\ncurl -f fails loudly on an HTTP error instead of saving the error page.\n.gitignore file to git ignore conda environment:\ncurl -o .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore\necho -e \"\\n# Custom ignores\\n.conda/\\n.env/\" &gt;&gt; .gitignore\nInitialize Git:\ngit init --initial-branch=main\ngit switch -c basic-markdown"
   },
   {
     "objectID": "index.html#write-markdown",
@@ -109,14 +109,14 @@
     "href": "index.html#create-a-blog-conda-environment",
     "title": "Quarto Workshop",
     "section": "Create a Blog Conda Environment",
-    "text": "Create a Blog Conda Environment\n\nCreate a Conda environment for blog:\ncurl -L -o environment.yml https://shorturl.at/dZII6\nconda env create -f environment.yml -p \"$PWD/.conda\" \nconda activate \"$PWD/.conda\"\n.gitignore file for environment:\ncurl -o .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore\necho -e \"\\n# Custom ignores\\n.conda/\\n.env/\" &gt;&gt; .gitignore\nInitialize Git:\ngit init --initial-branch=main\ngit switch -c basic-markdown\n\nExercise\nVerify that the conda blog environment is active."
+    "text": "Create a Blog Conda Environment\n\nCreate a Conda environment for blog:\ncurl -fsSL -o environment.yml \\\n  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml\nhead -3 environment.yml   # must start with \"name:\", not \"&lt;!DOCTYPE html&gt;\"\nconda env create -f environment.yml -p \"$PWD/.conda\"\nconda activate \"$PWD/.conda\"\ncurl -f fails loudly on an HTTP error instead of saving the error page.\n.gitignore file for environment:\ncurl -o .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore\necho -e \"\\n# Custom ignores\\n.conda/\\n.env/\" &gt;&gt; .gitignore\nInitialize Git:\ngit init --initial-branch=main\ngit switch -c blog-setup\n\nExercise\nVerify that the conda blog environment is active."
   },
   {
     "objectID": "index.html#writing-a-blog-post",
     "href": "index.html#writing-a-blog-post",
     "title": "Quarto Workshop",
     "section": "Writing a Blog Post",
-    "text": "Writing a Blog Post\nCreate a new welcome.qmd file in the posts/ folder:\n---\ntitle: \"My First Blog Post\"\ndate: 2025-01-20\n---\n\n# Welcome!\n\nThis is my first blog post using Quarto. Here's a dummy classifer on breast cancer data.\n\n   ```{.python}\n   import urllib.request\n\n   gist_url = \"https://shorturl.at/WZ8hR\"\n\n   try:\n      with urllib.request.urlopen(gist_url) as response:\n         script_content = response.read().decode('utf-8')\n      \n      print(\"Executing the script...\")\n      exec(script_content)  # Execute the script\n   except Exception as e:\n      print(f\"An error occurred: {e}\")\n   ```"
+    "text": "Writing a Blog Post\nPosts live in their own folder. Create posts/my-first-post/index.qmd (the template already ships a posts/welcome/, so pick a new name):\n---\ntitle: \"My First Blog Post\"\ndate: 2025-01-20\n---\n\n# Welcome!\n\nMy first Quarto post. The chart below is generated when the post renders.\n\n```{python}\nimport matplotlib.pyplot as plt\n\nyears = [2021, 2022, 2023, 2024]\nposts = [1, 4, 9, 16]\n\nplt.plot(years, posts, marker=\"o\")\nplt.title(\"Posts per year\")\nplt.show()\n```\n{python} has no dot — so the code runs and its output is part of the post. Write {.python} and you get syntax highlighting and nothing else."
   },
   {
     "objectID": "index.html#preview-render-blog-post",
@@ -165,6 +165,13 @@
     "href": "index.html#questions",
     "title": "Quarto Workshop",
     "section": "Questions?",
-    "text": "Questions?\n\n\n\nQuarto Workshop"
+    "text": "Questions?"
+  },
+  {
+    "objectID": "index.html#publish-to-github-pages",
+    "href": "index.html#publish-to-github-pages",
+    "title": "Quarto Workshop",
+    "section": "Publish to GitHub Pages",
+    "text": "Publish to GitHub Pages\nPublishing is a command, not configuration. There is no publish: key in _quarto.yml.\n\nCommit your work:\ngit add .\ngit commit -m \"Initial blog setup\"\nCreate the GitHub repo — this also creates the origin remote:\ngh auth status || gh auth login\ngh repo create my-blog --public --source=. --push\nPublish:\nquarto publish gh-pages\n\nQuarto renders the site, creates the gh-pages branch, adds .nojekyll, pushes, and prints your URL. No repo settings to click through.\n\nFold your work back into main (GitHub flow):\ngit switch main && git merge blog-setup\ngit push -u origin main\n\nExercise\nPublish your blog and post the URL in chat."
   }
 ]

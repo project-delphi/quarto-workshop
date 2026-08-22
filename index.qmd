@@ -122,11 +122,15 @@ WARNING: Quarto is under active development!
    ```
 
 2. Create a Conda environment:
-   ```{.bash code-line-numbers="1|2|3"}
-   curl -L -o environment.yml https://shorturl.at/dZII6
-   conda env create -f environment.yml -p "$PWD/.conda" 
+   ```{.bash code-line-numbers="1-2|3|4|5"}
+   curl -fsSL -o environment.yml \
+     https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml
+   head -3 environment.yml   # must start with "name:", not "<!DOCTYPE html>"
+   conda env create -f environment.yml -p "$PWD/.conda"
    conda activate "$PWD/.conda"
    ```
+
+   `curl -f` fails loudly on an HTTP error instead of saving the error page.
 
 3. .gitignore file to git ignore conda environment:
    ```{.bash code-line-numbers="1|2"}
@@ -339,11 +343,15 @@ Create a `.qmd` file with a Python code block using the `#|` options like `echo`
 ## Create a Blog Conda Environment {.smaller}
 
 1. Create a Conda environment for blog:
-   ```{.bash code-line-numbers="1|2|3"}
-   curl -L -o environment.yml https://shorturl.at/dZII6
-   conda env create -f environment.yml -p "$PWD/.conda" 
+   ```{.bash code-line-numbers="1-2|3|4|5"}
+   curl -fsSL -o environment.yml \
+     https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml
+   head -3 environment.yml   # must start with "name:", not "<!DOCTYPE html>"
+   conda env create -f environment.yml -p "$PWD/.conda"
    conda activate "$PWD/.conda"
    ```
+
+   `curl -f` fails loudly on an HTTP error instead of saving the error page.
 
 2. .gitignore file for environment:
    ```{.bash code-line-numbers="1|2"}
@@ -354,7 +362,7 @@ Create a `.qmd` file with a Python code block using the `#|` options like `echo`
 3. Initialize Git:
    ```{.bash code-line-numbers="1|2"}
    git init --initial-branch=main
-   git switch -c basic-markdown
+   git switch -c blog-setup
    ```
 
 ### Exercise
@@ -363,33 +371,33 @@ Verify that the conda blog environment is active.
 
 ## Writing a Blog Post{.smaller}
 
-Create a new `welcome.qmd` file in the `posts/` folder:
+Posts live in their own folder. Create `posts/my-first-post/index.qmd`
+(the template already ships a `posts/welcome/`, so pick a new name):
 
-   ```markdown
-   ---
-   title: "My First Blog Post"
-   date: 2025-01-20
-   ---
+````markdown
+---
+title: "My First Blog Post"
+date: 2025-01-20
+---
 
-   # Welcome!
-   
-   This is my first blog post using Quarto. Here's a dummy classifer on breast cancer data.
-   
-      ```{.python}
-      import urllib.request
+# Welcome!
 
-      gist_url = "https://shorturl.at/WZ8hR"
+My first Quarto post. The chart below is generated when the post renders.
 
-      try:
-         with urllib.request.urlopen(gist_url) as response:
-            script_content = response.read().decode('utf-8')
-         
-         print("Executing the script...")
-         exec(script_content)  # Execute the script
-      except Exception as e:
-         print(f"An error occurred: {e}")
-      ```
-   ```
+```{{python}}
+import matplotlib.pyplot as plt
+
+years = [2021, 2022, 2023, 2024]
+posts = [1, 4, 9, 16]
+
+plt.plot(years, posts, marker="o")
+plt.title("Posts per year")
+plt.show()
+```
+````
+
+`{python}` has **no dot** — so the code runs and its output is part of the post.
+Write `{.python}` and you get syntax highlighting and nothing else.
 
 ## Preview & Render Blog Post
 
@@ -417,29 +425,38 @@ The preview is a live preview of the blog post in the browser. The render comman
 
 Write and convert a jupyter notebook to a blog post.
 
-## Configure GitHub Pages
+## Publish to GitHub Pages {.smaller}
 
-1. Configure `_quarto.yml`:
-   
-   ```yaml
-   project:
-     type: website
-   publish:
-     gh-pages:
-       branch: gh-pages
-   ```
+Publishing is a **command**, not configuration. There is no `publish:` key in `_quarto.yml`.
 
-2. Configure repo UI settings to publish from `gh-pages` branch
-
-3. Push to GitHub:
-   ```bash
+1. Commit your work:
+   ```{.bash code-line-numbers="1|2"}
    git add .
    git commit -m "Initial blog setup"
-   git push origin blog-setup
    ```
 
-4. Merge to `main` and deploy.
+2. Create the GitHub repo — this also creates the `origin` remote:
+   ```{.bash code-line-numbers="1|2"}
+   gh auth status || gh auth login
+   gh repo create my-blog --public --source=. --push
+   ```
 
+3. Publish:
+   ```bash
+   quarto publish gh-pages
+   ```
+
+Quarto renders the site, creates the `gh-pages` branch, adds `.nojekyll`, pushes,
+and prints your URL. No repo settings to click through.
+
+4. Fold your work back into `main` (GitHub flow):
+   ```{.bash code-line-numbers="1|2"}
+   git switch main && git merge blog-setup
+   git push -u origin main
+   ```
+
+### Exercise
+Publish your blog and post the URL in chat.
 
 ## Blog with RStudio{.smaller}
 
