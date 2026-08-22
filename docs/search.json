@@ -144,7 +144,7 @@
     "href": "index.html#blog-with-rstudio",
     "title": "Quarto Workshop",
     "section": "Blog with RStudio",
-    "text": "Blog with RStudio\n\nRun which R after conda activated environment\nIf all good in 1, then open using open -na rstudio\nCreate new project from RStudio UI\nSelect Quarto Blog project type.\nCreate a new post and render it.\nPush to GitHub.\n\nExercise\nCreate a quarto blog post using RStudio."
+    "text": "Blog with RStudio\nOptional section. R is not in the main environment — create it first:\ncurl -fsSL -o environment-r.yml \\\n  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment-r.yml\nconda env create -f environment-r.yml -p \"$PWD/.conda-r\" && conda activate \"$PWD/.conda-r\"\n\nRun which R after conda activated environment\nIf all good in 1, then open using open -na rstudio\nCreate new project from RStudio UI\nSelect Quarto Blog project type.\nCreate a new post and render it.\nPush to GitHub.\n\nExercise\nCreate a quarto blog post using RStudio."
   },
   {
     "objectID": "index.html#group-exercise-collaborative-blog",
@@ -173,5 +173,26 @@
     "title": "Quarto Workshop",
     "section": "Publish to GitHub Pages",
     "text": "Publish to GitHub Pages\nPublishing is a command, not configuration. There is no publish: key in _quarto.yml.\n\nCommit your work:\ngit add .\ngit commit -m \"Initial blog setup\"\nCreate the GitHub repo — this also creates the origin remote:\ngh auth status || gh auth login\ngh repo create my-blog --public --source=. --push\nPublish:\nquarto publish gh-pages\n\nQuarto renders the site, creates the gh-pages branch, adds .nojekyll, pushes, and prints your URL. No repo settings to click through.\n\nFold your work back into main (GitHub flow):\ngit switch main && git merge blog-setup\ngit push -u origin main\n\nExercise\nPublish your blog and post the URL in chat."
+  },
+  {
+    "objectID": "index.html#blog-set-up-the-environment-first",
+    "href": "index.html#blog-set-up-the-environment-first",
+    "title": "Quarto Workshop",
+    "section": "Blog: Set Up the Environment First",
+    "text": "Blog: Set Up the Environment First\nThe environment provides the toolchain, so build it before creating the project.\n\nMake a directory and get the environment file:\nmkdir -p ~/code/delete-me/quarto-blog && cd ~/code/delete-me/quarto-blog\ncurl -fsSL -o environment.yml \\\n  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml\nhead -3 environment.yml   # must start with \"name:\", not \"&lt;!DOCTYPE html&gt;\"\nconda env create -f environment.yml -p \"$PWD/.conda\"\nActivate it:\nconda activate \"$PWD/.conda\"\n\n\n\n\n\n\n\nNote\n\n\nThe Python-only environment solves in a couple of minutes. R is a separate, optional environment used later — see the RStudio section."
+  },
+  {
+    "objectID": "index.html#checkpoint-is-your-toolchain-right",
+    "href": "index.html#checkpoint-is-your-toolchain-right",
+    "title": "Quarto Workshop",
+    "section": "Checkpoint: Is Your Toolchain Right?",
+    "text": "Checkpoint: Is Your Toolchain Right?\nRun all four. Do not move on until each one is right.\nwhich quarto                 # expect a path, not \"not found\"\nquarto check                 # expect Python + Jupyter both OK\nwhich python                 # expect .../quarto-blog/.conda/bin/python\njupyter kernelspec list      # expect python3 -&gt; your .conda, NOT some other project\nThe last one catches the sneakiest failure: an old user-level kernel can shadow your environment, so import matplotlib fails even though it is installed. If python3 points elsewhere, prefix commands with JUPYTER_PATH=\"$PWD/.conda/share/jupyter\".\nExercise\nPost your quarto check output in chat if anything looks off."
+  },
+  {
+    "objectID": "index.html#create-the-blog-project",
+    "href": "index.html#create-the-blog-project",
+    "title": "Quarto Workshop",
+    "section": "Create the Blog Project",
+    "text": "Create the Blog Project\nquarto create project blog . --no-open --no-prompt\ngit init --initial-branch=main && git switch -c blog-setup\n--no-open skips launching an editor, --no-prompt skips the confirmation — without them the command stops and waits for input.\nQuarto generates:\n\n\n\n\n\n\n\nPath\nWhat it is\n\n\n\n\n_quarto.yml\nSite config: title, navbar, theme. Edit this — never replace it.\n\n\nindex.qmd\nThe listing page that indexes your posts\n\n\nposts/\nOne folder per post, each with an index.qmd\n\n\nposts/_metadata.yml\nDefaults applied to every post\n\n\nstyles.css\nYour CSS overrides (note: styles, not style)\n\n\nabout.qmd\nAn about page wired into the navbar\n\n\n\nExercise\nOpen _quarto.yml and change the site title. Re-render and find your change."
   }
 ]
