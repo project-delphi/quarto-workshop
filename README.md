@@ -1,9 +1,11 @@
 # Quarto Workshop
 
-Build technical documents, Reveal.js slides, sites, and blogs with Quarto, Claude Code, and Codex.
+Build technical documents, Reveal.js slides, sites, and blogs by asking Codex in plain English.
+Learn the Quarto commands and source syntax alongside the requests. Claude Code users can
+follow the same task prompts with their agent.
 
-- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — Markdown, executable cells, blogs, and publishing.
-- **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — agent installation, the directory method, scientific review, and a graduate lab.
+- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — a continuing Codex conversation that builds a document, adds executable content, creates a blog, and prepares publication.
+- **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a graduate research conversation covering evidence, an executable report, eight slides, and verified revisions.
 
 ## For attendees
 
@@ -18,17 +20,35 @@ Environment setup used to be a workshop bottleneck. Now the coding agent handles
 and verifies the build; attendees focus on the source material and the resulting publication.
 The existing environment recipes remain available for reproducibility.
 
+### Learning through a conversation
+
+Each major activity pairs **Ask Codex**, **Commands** (or a source pattern), and a
+**Check**. Enter the prompt in a Codex session opened in the exercise folder. Codex can
+edit files and run tools there, subject to its permissions. Commands show what performs
+the work and provide a manual route; do not rerun a scaffold command the agent already ran.
+
+For example, ask: “Create hello.qmd, a short HTML page introducing Quarto. Render it,
+fix build errors, and tell me which file to open.” Then inspect both files and follow up:
+“Add a reading list with a link to the Quarto guide. Render it again.”
+
+The foundations session takes 165 minutes including exercises and discussion. The
+60-minute graduate lab uses eight conversation turns, from inspecting evidence to
+reviewing the complete deliverable. Website and blog adaptations are optional extensions.
+Prompt examples are suggested tasks, not transcripts or guarantees of an agent's output.
+See [official Codex prompting guidance](https://developers.openai.com/codex/prompting/)
+and [CLI documentation](https://developers.openai.com/codex/cli/) (checked 2026-10-06).
+
 ### The directory method
 
 1. Create a new local directory for one question or publication.
 2. Move selected working copies of notes, raw data, and references into `context/`.
-3. Write `brief.md`: audience, question, inputs, outputs, and acceptance criteria.
-4. Launch `claude` or `codex` **inside that directory** and name the files to read.
+3. Launch `codex` or `claude` **inside that directory** and ask it to read the selected files.
+4. Ask it to write `brief.md`: audience, question, inputs, outputs, and acceptance criteria. Review the brief.
 5. Have the agent implement, render, inspect, and revise. Audit the evidence yourself.
 
 The [sample context bundle](examples/ai-context/) contains synthetic paired runtimes, design
 notes, and a bibliography. It supports the graduate lab without downloading research data.
-The new module is designed for 60 minutes; use it independently or after the foundations deck.
+Use the graduate module independently or after the foundations deck.
 
 ### Publishing your own blog
 
@@ -42,6 +62,8 @@ quarto publish gh-pages
 
 Use these in **your blog's directory**. Check the repository's Pages settings and deployment
 status if needed. This workshop repository uses a different publishing mechanism, described below.
+The foundations deck also shows how to ask Codex to prepare publication, review the destination,
+then explicitly authorize the commit, remote creation, push, and publication.
 
 ## For instructors and contributors
 
