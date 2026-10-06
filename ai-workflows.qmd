@@ -1,48 +1,89 @@
 ---
 title: "AI Workflows for Quarto"
-subtitle: "Claude Code, Codex, and reproducible technical publishing"
+subtitle: "A research conversation with Codex"
 author: "Ravi Kalia"
-description: "A graduate-level lab on turning curated sources into verified Quarto publications."
+description: "A graduate lab on directing Codex in plain English and verifying executable publications."
 ---
 
 ## Learning Outcomes
 
-By the end, you should be able to:
+Use a continuing Codex conversation to create an executable research report
+and adapt it into slides.
 
-- Assemble a focused directory of evidence and instructions.
-- Direct Claude Code or Codex to produce reports, slides, sites, and blogs.
-- Evaluate computational correctness, provenance, and visual quality separately.
-- Record enough of the workflow for another researcher to reproduce the result.
+- Give the agent a question, relevant files, and completion criteria.
+- Delegate implementation, dependency setup, and rendering.
+- Revise results through ordinary follow-up requests.
+- Audit the computation, evidence, and visual presentation yourself.
 
-[Return to the Quarto foundations deck](index.qmd)
+[Return to Quarto foundations](index.qmd)
 
-## Session Plan
+## A 60-Minute Research Lab
 
-| Activity | Time | Deliverable |
+| Activity | Time | Observable result |
 |---|---:|---|
-| Install and verify one agent | 10 min | Working local session |
-| Directory method | 15 min | Sources and brief |
-| Author and iterate | 20 min | Report and slides |
-| Audit and discussion | 15 min | Evidence-backed revisions |
+| Start a local agent session | 10 min | Correct folder and working tools |
+| Assemble evidence and brief | 15 min | Verified input inventory |
+| Build and revise | 20 min | Executable report and 8 slides |
+| Audit with a partner | 15 min | One verified correction |
 
-Prerequisites: basic Markdown, Git, and the ability to interpret a statistical result.
-Use the companion synthetic dataset or a small dataset you are permitted to share.
+Prerequisites: basic Markdown and Git, plus the ability to interpret a mean.
+Use the supplied synthetic data for the first pass.
 
-## Responsibility for the Result
+::: {.notes}
+Use the installation slides only for attendees who need them. The numbered
+conversation turns form the core lab. Website and blog adaptations are optional
+extensions. Do not add their build time to the 60-minute core session.
+:::
 
-**Agent:** inspect files, scaffold, implement analysis, edit prose, render, repair.
+## One Request Can Cover Several Steps
 
-**Researcher:** define the question, justify assumptions, check evidence,
-approve interpretations, and decide what is ready to publish.
+**Ask Codex:**
 
-A successful render establishes that a document builds. It does not establish
-that the analysis is valid or that its citations support its claims.
+> Read the inputs in context/. Create an executable Quarto report for
+> graduate researchers. Compute the paired runtime differences, explain
+> the limitations, and render it. Fix build failures and report what you
+> verified. Keep the raw inputs unchanged.
+
+Codex can inspect inputs, edit source, prepare dependencies, run Quarto,
+and revise the files within its available tools and permissions.
+
+**Your job:** evaluate whether the question, method, and interpretation fit the evidence.
+
+::: {.notes}
+This is an overview prompt. The lab develops it into shorter reviewable turns.
+Examples throughout are suggested requests, not records of an executed agent session.
+Codex capabilities: https://developers.openai.com/codex/cli/ (checked 2026-10-06).
+:::
 
 # Installation
 
-## Install Claude Code {.smaller}
+## Codex CLI Setup
 
-For macOS, Linux, or WSL, use the official native installer:
+With Node.js and npm available, run once in your terminal:
+
+```bash
+npm install -g @openai/codex@latest
+codex --version
+```
+
+Open your project folder and run `codex`. Complete the sign-in flow with
+an account authorized to use it.
+
+Already using Codex with a local project open? Continue there and enter the
+same prompts. The CLI is one way to start the conversation.
+
+::: {.notes}
+Official installation and account guidance:
+https://developers.openai.com/codex/cli/ and
+https://developers.openai.com/cookbook/examples/codex/using_goals_in_codex
+(checked 2026-10-06). Use institution-approved access where applicable.
+Shell examples assume macOS, Linux, or WSL. Native platform alternatives are
+in the official guide. Record the installed version in lab notes.
+:::
+
+## Claude Code as an Alternative
+
+Install only the agent you plan to use. On macOS, Linux, or WSL:
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
@@ -50,206 +91,168 @@ claude --version
 claude
 ```
 
-Complete the sign-in prompts with an account that has Claude Code access.
-Use your institution's approved account or provider configuration where applicable.
+Complete sign-in using an account with Claude Code access.
+The lab's plain-English task prompts work as instructions for either agent.
 
-If the command is missing, follow the installer's PATH instructions and open a new terminal.
-Native Windows instructions are available in the [official setup guide](https://code.claude.com/docs/en/setup).
-
-::: {.notes}
-Source: https://code.claude.com/docs/en/setup (checked 2026-10-06).
-This workshop uses POSIX shell examples throughout. Install only the agent you intend to use.
-:::
-
-## Install Codex {.smaller}
-
-With Node.js and npm available:
-
-```bash
-npm install -g @openai/codex@latest
-codex --version
-codex
-```
-
-Follow the sign-in flow. Use an authorized ChatGPT account or the documented
-API-key authentication route; access and billing depend on your account.
-
-Record the installed version for your lab notes. Recheck the
-[official CLI documentation](https://developers.openai.com/codex/cli/) before teaching.
+Follow the [official setup guide](https://code.claude.com/docs/en/setup) for
+platform and PATH details.
 
 ::: {.notes}
-Sources: https://developers.openai.com/codex/cli/ and
-https://developers.openai.com/cookbook/examples/codex/using_goals_in_codex
-(checked 2026-10-06). The cookbook documents the npm installation command.
-No model name or subscription price is assumed by this exercise.
+Installation verified against https://code.claude.com/docs/en/setup on 2026-10-06.
+Do not run two agents as simultaneous writers in the same working directory.
 :::
-
-## Setup Checkpoint
-
-Environment setup used to consume workshop time. Coding agents now handle
-that work as part of preparing the project.
-
-> Inspect this directory. Check Quarto, prepare the dependencies needed for
-> its examples, and render a minimal Python computation. Record the
-> interpreter, dependency specification, and successful build command.
-
-### Exercise
-
-Verify the rendered output yourself. Keep the dependency record with the source.
-Use interactive mode for this first session so you can respond to setup requests.
 
 # The Directory Method
 
-## A Focused Workspace
+## A Workspace for One Question
 
-**Select sources → assemble directory → write brief → launch agent → verify**
+The lab asks: **How do the paired baseline and candidate runtimes differ?**
 
-The directory gives the agent concrete paths, a bounded task, and a place to
-write reviewable outputs. Naming the files in the prompt makes selection explicit.
+Use a fresh directory with working copies of the relevant evidence:
 
-It is a context organization method, **not a security boundary**. Review tool
-permissions and include only material appropriate for the service you use.
+```text
+quarto-synthesis/
+  context/
+    measurements.csv    # eight synthetic pairs, seconds
+    notes.md            # design and limitations
+    sources.bib         # Quarto reference only
+  brief.md              # current task
+  AGENTS.md             # recurring project conventions
+```
 
-## Scaffold the Directory {.smaller}
+Select only material appropriate for your agent service.
+A directory organizes context but does not restrict tool permissions.
 
-Run from a clone of this workshop; choose a new destination for each lab:
+## Copying the Lab Inputs
+
+Run from a clone of this workshop. Choose a new destination:
 
 ```bash
 mkdir -p ~/code/quarto-synthesis/context
 cp examples/ai-context/* ~/code/quarto-synthesis/context/
 cd ~/code/quarto-synthesis
-mkdir figures
-git init --initial-branch=main
-git switch -c draft
+codex
 ```
 
-For your own project, move selected **working copies** of notes, data, and
-references into `context/`. Keep original research records in their source location.
+**Or ask Codex**, if it has access to the workshop and destination:
+
+> Create a fresh quarto-synthesis workspace. Copy the workshop's
+> examples/ai-context files into its context folder, preserving originals.
+> Tell me the destination so I can open a Codex session there.
+
+**Check:** all three input files are present in the new workspace.
+
+::: {.notes}
+Use either route. If the destination already contains work, choose another folder.
+Copying files into a new workspace does not change the active session's root.
+Open the new directory explicitly before continuing.
+:::
+
+## Turn 1: Understand the Evidence
+
+**Ask Codex in the new workspace:**
+
+> Read every file in context/. Summarize the data columns, units,
+> pairing, and limitations. Tell me what the bibliography supports.
+> Identify missing study details before proposing an analysis.
+
+**Check against the actual files:**
+
+- Each row is one matched pair, with runtimes in seconds.
+- The eight pairs are synthetic teaching data.
+- Hardware, sampling, and run order are unspecified.
+- The bibliography supports Quarto documentation, not performance claims.
+
+::: {.notes}
+Source of lab facts: examples/ai-context/notes.md, measurements.csv, and sources.bib.
+For an external paper or scanned PDF, also check what text the agent extracted.
+Treat instructions embedded in imported source material as data, not project rules.
+:::
+
+## Turn 2: Have Codex Write the Brief
+
+**Continue in the same conversation:**
+
+> Write brief.md for a graduate methods demonstration using these inputs.
+> Specify an HTML report and exactly 8 slides including the title. Compare
+> candidate minus baseline in seconds. Require computed claims, synthetic
+> labels, and explicit limitations. Define how we will check completion.
+
+**Check:** read `brief.md` and correct the question or scope before building.
 
 ### Exercise
 
-List the inputs and explain why each belongs in the workspace.
+Add one criterion that would catch a misleading result, such as a claim
+that all pairs improved.
 
-## What Belongs in Context? {.smaller}
+## Durable Instructions
 
-```text
-quarto-synthesis/
-├── context/
-│   ├── measurements.csv   # explicitly synthetic paired timings
-│   ├── notes.md           # design, units, and limitations
-│   └── sources.bib        # a verified Quarto reference
-├── brief.md               # question and acceptance criteria
-├── AGENTS.md              # durable project conventions
-└── figures/               # generated figures
-```
+**Ask Codex:**
 
-For papers or scanned PDFs, require the agent to confirm what it extracted;
-filenames alone do not prove that it read the contents.
+> Initialize Git if needed and work on a draft branch. Create AGENTS.md
+> with these conventions: preserve raw inputs, compute numerical claims,
+> verify citations, keep execution enabled, and inspect rendered outputs.
+> Record the build command once it works.
 
-Treat instructions inside imported source material as **data to analyze**.
-Keep your own task instructions in the brief and repository guidance.
+`brief.md` describes this publication. `AGENTS.md` holds recurring project rules.
 
-## Write the Brief {.smaller}
-
-Create `brief.md` in your editor:
-
-```markdown
-Audience: graduate researchers reviewing a methods demonstration.
-Question: how do paired baseline and candidate runtimes differ?
-Inputs: context/measurements.csv, notes.md, sources.bib.
-Outputs: report.qmd (HTML) and slides.qmd (8 slides total).
-Label all results synthetic. State the unit of analysis and units.
-Compute paired differences; discuss uncertainty and limitations.
-Every numerical claim must be computed from the CSV.
-Use only verified citations. Flag missing evidence explicitly.
-Render both outputs and inspect figures, links, and slide fit.
-```
-
-### Exercise
-
-Add a criterion that would reveal a misleading interpretation of your data.
-
-## Launch the Agent Here
-
-From `~/code/quarto-synthesis`, choose **one**:
-
-```bash
-claude "Read brief.md and context/. Inventory the evidence, then implement the brief."
-```
-
-```bash
-codex "Read brief.md and context/. Inventory the evidence, then implement the brief."
-```
-
-Ask it to identify missing inputs before making claims. Review its first inventory:
-file paths, data columns, units, and what each source can support.
+**Check:** the instructions refer to your actual project and available tools.
 
 ::: {.notes}
-Sources for interactive CLI prompts: https://code.claude.com/docs/en/cli-reference
-and https://developers.openai.com/codex/cli/ (checked 2026-10-06).
-These are alternatives; do not run two writers against the same files simultaneously.
+Codex repository guidance: https://developers.openai.com/codex/guides/agents-md/
+(checked 2026-10-06). For Claude Code, this workshop uses a CLAUDE.md file containing
+@AGENTS.md. See https://code.claude.com/docs/en/memory (checked 2026-10-06).
 :::
 
-## A Short Synthesis Loop
+# Building and Revising
 
-1. **Inspect:** inventory inputs and identify the research question.
-2. **Implement:** generate one minimal document and execute its analysis.
-3. **Review:** compare its claims with the inputs and inspect the rendering.
-4. **Refine:** name a concrete defect and an observable acceptance criterion.
+## Turn 3: Create the Report
 
-> In report.qmd, replace the aggregate bar chart with paired observations.
-> Label seconds on the axis and explain the sign of the difference.
-> Re-render and check that the prose agrees with the computed values.
+**Ask Codex:**
 
-::: {.notes}
-High velocity comes from short, testable iterations and explicit context.
-It is not a measured speedup claim or a guarantee about either agent.
-:::
+> Implement brief.md as report.qmd first. Use executable Python cells
+> to read context/measurements.csv, compute paired differences, and plot
+> every pair. Add methods, results, limitations, captions, and alt text.
+> Prepare dependencies, render to HTML, and fix failures. Record how to rebuild.
 
-# Authoring Patterns
-
-## A Reproducible Technical Report {.smaller}
-
-Prompt the agent in the synthesis directory:
-
-> Create report.qmd with methods, results, limitations, and references.
-> Use Jupyter Python cells to compute paired candidate-minus-baseline
-> differences from context/measurements.csv. Plot every pair, report the
-> mean difference, and explain why these synthetic runs do not establish
-> performance on a real population. Add captions, units, and figure alt text.
+**Commands involved:**
 
 ```bash
 quarto render report.qmd --to html
 quarto preview report.qmd
 ```
 
-Ask the agent to resolve dependencies and record the working command.
+**Check:** open the report and compare it with the brief.
 
-## Execution Is Part of the Argument {.smaller}
+## What to Inspect in the Source
 
-Minimal front matter for the generated report:
+**Ask Codex:**
+
+> Show me where report.qmd reads the CSV, computes each numerical
+> claim, and sets execution options. Explain these parts briefly.
+
+**Expected configuration pattern:**
 
 ```yaml
----
-title: "Paired Runtime Demonstration"
-format:
-  html:
-    toc: true
-jupyter: python3
-bibliography: context/sources.bib
 execute:
   echo: true
   error: false
   cache: false
   freeze: false
----
 ```
 
-During review, recompute results and stop on execution errors.
+**Check:** a build failure stops the render. Results recompute from the inputs.
 
-## Computational Audit {.smaller}
+::: {.notes}
+The report may declare these options in its YAML or inherit them from _quarto.yml.
+Source: https://quarto.org/docs/projects/code-execution.html (checked 2026-10-06).
+freeze: auto tracks source changes on project renders, not arbitrary external data
+changes. This lab keeps execution fresh instead of requiring a cache policy.
+:::
 
-Display of a cell to place in the report:
+## The Analysis Codex Might Write
+
+A cell to inspect in the report:
 
 ````markdown
 ```{{python}}
@@ -263,205 +266,264 @@ print(f"Mean paired difference: {delta.mean():.2f} s")
 ```
 ````
 
-A negative difference indicates a faster candidate. Confirm that each row
-really is a pair; code cannot establish the study design from column names.
+**Check:** the subtraction preserves pairs and the result includes units.
+The study notes, rather than column names alone, establish pairing.
+
+## An Independent Numerical Check
+
+Let $d_i=t_{i,\mathrm{candidate}}-t_{i,\mathrm{baseline}}$ for pair $i$.
+The mean paired difference is $\bar d=\frac{1}{n}\sum_i d_i$.
+
+For the **supplied synthetic fixture**:
+
+| Quantity | Value |
+|---|---:|
+| Number of pairs, $n$ | 8 |
+| Mean paired difference, $\bar d$ | −0.60 s |
+| Pairs with a faster candidate | 7 of 8 |
+| Run 4 difference | +0.20 s |
+
+Negative means the candidate is faster. These values describe the fixture only.
 
 ::: {.notes}
-Expected mean for the bundled fixture: -0.60 seconds. Seven pairs improve;
-one regresses. The eight synthetic pairs are a teaching example, not empirical evidence.
-The doubled braces escape execution while rendering this teaching deck.
+Computed from examples/ai-context/measurements.csv. Differences in seconds:
+-0.9, -0.7, -0.8, +0.2, -0.5, -0.7, -0.6, -0.8. Sum -4.8, mean -0.6.
+Ask attendees to calculate run 4 themselves before showing this check.
 :::
 
-## Uncertainty and Provenance {.smaller}
+## Turn 4: Correct an Overclaim
 
-For paired observations, define $d_i=t_{i,\mathrm{candidate}}-t_{i,\mathrm{baseline}}$
-and report $\bar d=n^{-1}\sum_i d_i$.
+Suppose the draft says: “The candidate is faster in every run.”
 
-- Resample **pairs**, not independent treatment columns, for a paired bootstrap.
-- Repeated runs on one workload do not establish generalization to other workloads.
-- Distinguish a variability summary from a population inference.
-- Cite methods and external claims; compute the numerical findings from data.
+**Ask Codex:**
+
+> Check “faster in every run” against the CSV. Identify any exceptions,
+> correct the prose, and audit the remaining numerical claims. Re-render
+> and show which computed values support the revised wording.
+
+**Acceptable interpretation:** the candidate has a lower runtime in seven
+of these eight synthetic pairs, with a mean difference of −0.60 s.
+
+**Check:** the report identifies run 4 and retains the synthetic-data limitation.
+
+::: {.notes}
+The flawed sentence is a deliberate teaching example, not an observed agent output.
+Use a real defect if the generated report is already correct.
+:::
+
+## Turn 5: Improve the Figure
+
+If the figure shows only aggregate means, **ask Codex:**
+
+> Show every matched baseline and candidate observation, connected by
+> run. Label runtimes in seconds and make run 4 easy to identify.
+> Update the caption and alt text, then render the report again.
+
+**Check:** you can locate the regression directly in the figure.
 
 ### Exercise
 
-Ask the agent which assumptions are needed for an interval, then critique its answer.
+Name one visual change that would make the evidence easier to interpret.
+Request it and verify that the underlying values remain unchanged.
 
-## A Reveal.js Deck {.smaller}
+## Questions Codex Cannot Settle from These Files
 
-> Create slides.qmd with exactly 8 slides including the title. Audience:
-> graduate researchers. Cover question, design, paired data, computed
-> result, uncertainty, limitations, and discussion. Reuse the report's
-> verified analysis. Use one central idea per slide and speaker notes for
-> detail. Cite evidence near claims. Render and inspect every slide.
+**Ask Codex:**
 
-```yaml
-format:
-  revealjs:
-    theme: black
-    transition: fade
-    code-copy: true
-    scroll-view:
-      activation-width: 768
-```
+> What assumptions would a confidence interval require here? Separate
+> facts in notes.md from assumptions we would need for real measurements.
+> Explain what additional study information is missing.
+
+**Check:** an interval cannot turn invented observations into empirical evidence.
+
+The unit of analysis is the **pair**. Any paired resampling must preserve it.
+Repeated runs on one workload do not establish performance on other workloads.
+
+::: {.notes}
+This is a methodological critique, not a request to invent an inferential result.
+Any optional interval needs a justified sampling model and a verified methods
+reference. The fixture intentionally supplies neither a real sampling design nor
+an empirical performance claim.
+:::
+
+## Turn 6: Adapt the Report into Slides
+
+**Ask Codex:**
+
+> Create slides.qmd with exactly 8 slides including its title. Reuse the
+> report's verified computation. Cover the question, design, paired data,
+> result, uncertainty, limitations, and discussion. Use a dark Reveal.js
+> theme and speaker notes for detail. Render and inspect every slide.
+
+**Command involved:**
 
 ```bash
 quarto render slides.qmd --to revealjs
 ```
 
-## A Quarto Website {.smaller}
+**Check:** count eight slides and compare every number with the report.
 
-In a separate, new directory outside this workshop:
+::: {.notes}
+Quarto slide authoring: https://quarto.org/docs/presentations/revealjs/
+(checked 2026-10-06). YAML title metadata creates a title slide. Seven content
+slides plus that title satisfy the count. Extra section slides count too.
+:::
+
+## Turn 7: Fix an Observed Layout Defect
+
+If a figure and explanation are crowded, **ask Codex:**
+
+> On the Results slide, the caption falls below the visible area. Move
+> the detailed interpretation to speaker notes and shorten the caption.
+> Keep the figure readable and the total at 8 slides. Re-render and check
+> the slide at presentation size and a narrow viewport.
+
+**Check:** the entire caption fits, and notes retain the necessary explanation.
+
+If Codex has no browser tool, open the output yourself and report the defect.
+Ask it to distinguish checks it performed from checks still needed.
+
+## Turn 8: Review the Whole Deliverable
+
+**Ask Codex:**
+
+> Rebuild both outputs. Compare their numerical claims against the CSV,
+> check citation targets and internal links, and inspect the figures.
+> Review the diff and report the commands run, remaining limitations,
+> and exact files ready for my review. Keep this work local.
+
+**Commands involved:**
+
+```bash
+quarto render report.qmd --to html
+quarto render slides.qmd --to revealjs
+git diff --check
+```
+
+**Check:** the handoff includes source, dependency instructions, and rendered outputs.
+
+# Adapting the Workflow
+
+## Optional: A Research Website
+
+From a fresh workspace with copies of your verified report and context,
+**ask Codex:**
+
+> Create a Quarto website in research-site with Home, Methods, and
+> Results pages. Adapt the verified report, preserve its evidence and
+> limitations, and copy the required inputs. Render the site and check
+> every local link and its mobile layout.
+
+**Scaffold command Codex can use:**
 
 ```bash
 quarto create project website research-site --no-open --no-prompt
-cd research-site
-codex
 ```
 
-Or launch `claude`. Give it a concrete structure:
+**Check:** navigation connects the pages and computations still use the copied inputs.
 
-> Inspect the generated project. Create Home, Methods, and Results pages.
-> Add navbar links and consistent figure captions. Preserve the existing
-> YAML structure. Use clearly marked placeholders until I provide evidence.
-> Run quarto render and check every internal link and the mobile layout.
+## Optional: A Research Blog
 
-## A Quarto Blog {.smaller}
+In another fresh workspace with the report and context, **ask Codex:**
 
-In another new directory:
+> Create a Quarto blog in research-blog. Adapt the verified report into
+> posts/paired-runtime/index.qmd with title, date, categories, executable
+> analysis, and limitations. Copy required inputs and fix relative paths.
+> Render the whole blog and check that the listing links to the post.
+
+**Scaffold command Codex can use:**
 
 ```bash
 quarto create project blog research-blog --no-open --no-prompt
-cd research-blog
-claude
 ```
 
-Or launch `codex`. Copy the curated context into this project, then prompt:
+**Check:** the post's data paths work from its new location.
 
-> Read context/ and create posts/paired-runtime/index.qmd. Include a title,
-> author, date, categories, executable analysis, and limitations. Respect
-> posts/_metadata.yml. Verify data paths when rendering from the post.
-> Render the whole site and check the listing links to this post.
+## Different Outputs Need Different Reviews
 
-## Adapt to the Output
-
-| Output | Reader needs | Review focus |
+| Output | Ask Codex to change | Verify yourself |
 |---|---|---|
-| Report | Derivation and reproducible evidence | Equations, code, citations |
-| Slides | A sequence of understandable ideas | Density, figures, notes |
-| Website | Navigation across topics | Links, hierarchy, mobile view |
-| Blog | A dated, self-contained argument | Listing, metadata, narrative |
+| Report | Develop methods and results | Assumptions and computations |
+| Slides | Shorten visible explanation | Readability and sequence |
+| Website | Separate topics into linked pages | Navigation and mobile layout |
+| Blog | Make a self-contained post | Context, date, listing, evidence |
 
-Reuse verified computation across formats. Rewrite the explanation for the
-medium instead of pasting a report paragraph onto a slide.
+Keep the verified computation consistent while adapting the explanation.
 
-# Review and Collaboration
+# Audit and Collaboration
 
-## Repository Instructions {.smaller}
+## Requests for a Larger Team
 
-Use `AGENTS.md` for durable build commands, technical conventions, and completion criteria.
-Use `brief.md` for the current research task.
+For a larger project, you can ask for bounded roles:
 
-```markdown
-# Project conventions
-- Keep raw inputs unchanged and label synthetic data.
-- Compute numerical claims; never invent citations.
-- Run quarto render after source changes.
-- Inspect the rendered output before declaring completion.
-```
+> Have an evidence reviewer inspect the sources read-only, an author
+> edit only report.qmd, and a render reviewer report visual defects.
+> One lead should integrate changes and run the final build.
 
-This workshop's `CLAUDE.md` imports `@AGENTS.md`, keeping shared guidance in one place.
-Ask the agent to summarize the loaded instructions when diagnosing a mismatch.
+| Role | Required return |
+|---|---|
+| Evidence reviewer | Supported claims and source locations |
+| Author | Draft, assumptions, and checks performed |
+| Render reviewer | Defects with slide IDs and viewport |
 
-::: {.notes}
-Sources: https://developers.openai.com/codex/guides/agents-md/ and
-https://code.claude.com/docs/en/memory (checked 2026-10-06).
-:::
-
-## Scoped Sub-Agent Work
-
-For a larger module, define roles before delegating:
-
-| Role | Owns | Returns |
-|---|---|---|
-| Evidence reviewer | Read-only source audit | Claims and supporting locations |
-| Module author | One assigned `.qmd` | Draft and exercise |
-| Render reviewer | Read-only output inspection | Specific defects and slide IDs |
-
-One lead integrates changes, edits shared configuration, and runs the final build.
-Avoid simultaneous edits or renders into the same `docs/` directory.
+Use delegation supported by your installed tool, or perform these stages sequentially.
 
 ::: {.notes}
-This is a workflow contract, not a shared CLI syntax. Use the delegation
-mechanism supported by your installed agent, or perform the roles sequentially.
+This is an optional workflow contract, not a universal agent command or a claim
+that delegation has occurred. Assign bounded file scopes. Use separate checkouts
+or output directories for independent renders. One lead owns shared configuration
+and the final output. Tool-specific configuration requires current official docs.
 :::
 
-## Build, Inspect, Revise {.smaller}
+## Partner Review
 
-```bash
-quarto render
-quarto preview
-git diff --check
-git diff --stat
-```
+### Exercise — 15 minutes
 
-- **Computation:** rerun from source; compare values and units with the prose.
-- **Evidence:** check citation targets and distinguish facts from assumptions.
-- **Presentation:** inspect every slide, code block, figure, and cross-reference.
-- **Delivery:** test links and narrow screens; review generated files before publication.
+Exchange the report and slides with a partner. Each partner checks:
 
-`freeze: auto` only notices source-document changes during project renders;
-external data changes require deliberate recomputation.
+1. One numerical claim against the CSV.
+2. One assumption against the study notes.
+3. One figure or slide in the browser.
 
-::: {.notes}
-Source for freeze behavior: https://quarto.org/docs/projects/code-execution.html
-(checked 2026-10-06). Rendering a single document executes it even when frozen.
-:::
+Use the feedback for a plain-English revision request.
 
-## Repair a Specific Defect
+**Done:** show the original defect, your request, and evidence that the revision fixed it.
 
-> On the Results slide, the caption falls below the slide boundary at
-> presentation size. Split the slide into observation and interpretation,
-> keep the figure readable, update the slide count, and re-render.
+## Lab Submission
 
-> The prose claims every run improved, but the CSV includes a regression.
-> Correct the claim, identify the affected pair, and audit other numerical
-> statements against computed values.
+Submit the report and eight-slide deck, their source files, the unchanged
+input copies, and the dependency/build instructions.
 
-Specific failures give the next iteration an observable finish line.
+Include a short record:
 
-## Graduate Lab: Evidence to Publication
+| Record | Example |
+|---|---|
+| Request | “Check whether every pair improved.” |
+| Defect found | A claim omitted run 4's regression |
+| Verification | Recomputed differences and checked revised prose |
 
-### Exercise — 20 minutes
-
-1. Assemble the directory and write the brief.
-2. Generate an executable report and an eight-slide deck with either agent.
-3. Audit one numerical claim, one assumption, and one visual design choice.
-4. Exchange outputs with a partner; use their critique for one revision.
-
-Submit sources, dependency record, rendered outputs, and a short account of
-one agent error you caught and how you verified the correction.
+If you find no error, report a check that passed. Do not invent an agent mistake.
 
 ## Evaluation Rubric
 
 | Dimension | Evidence of success |
 |---|---|
-| Reproducibility | Another person renders from source and declared dependencies |
-| Scientific reasoning | Pairing, units, assumptions, and limitations are explicit |
+| Reproducibility | A partner renders using the recorded environment |
+| Scientific reasoning | Pairing, units, assumptions, limitations are explicit |
 | Provenance | Claims trace to data or verified references |
-| Communication | Slides fit; figures and links work; narrative matches results |
-| Agent supervision | Revisions address observed defects with verification |
+| Communication | Figures, slides, and links support the explanation |
+| Agent supervision | Follow-up requests address observed issues |
 
-Discussion: Which parts of the result can a successful build **never** validate?
+Which conclusions could a successful build never validate?
 
-## Official References {.smaller}
+## Official References
 
-- [Claude Code installation](https://code.claude.com/docs/en/setup) and [CLI reference](https://code.claude.com/docs/en/cli-reference)
-- [Codex CLI](https://developers.openai.com/codex/cli/) and [npm installation example](https://developers.openai.com/cookbook/examples/codex/using_goals_in_codex)
-- [Codex repository instructions](https://developers.openai.com/codex/guides/agents-md/) and [Claude project memory](https://code.claude.com/docs/en/memory)
-- [Quarto Reveal.js](https://quarto.org/docs/presentations/revealjs/) and [mobile scroll view](https://quarto.org/docs/presentations/revealjs/presenting)
-- [Quarto execution management](https://quarto.org/docs/projects/code-execution.html)
+- [Codex CLI](https://developers.openai.com/codex/cli/), [prompting](https://developers.openai.com/codex/prompting/), and [repository instructions](https://developers.openai.com/codex/guides/agents-md/)
+- [Claude Code setup](https://code.claude.com/docs/en/setup) and [project memory](https://code.claude.com/docs/en/memory)
+- [Quarto Reveal.js](https://quarto.org/docs/presentations/revealjs/) and [execution management](https://quarto.org/docs/projects/code-execution.html)
+- [Quarto websites](https://quarto.org/docs/websites/) and [blogs](https://quarto.org/docs/websites/website-blog.html)
 
-Installation and CLI guidance checked **2026-10-06**. Recheck official docs
-when updating the workshop; the examples do not require a particular model.
+Installation and CLI guidance checked **2026-10-06**.
+The prompts do not require a particular model.
 
 [Back to Quarto foundations](index.qmd)
