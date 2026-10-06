@@ -3,14 +3,7 @@
 title: "Quarto Workshop"
 author: "Ravi Kalia"
 date: ""
-format: 
-  revealjs:
-    slide-number: true
-    embed-resources: true 
-    chalkboard: false
-    theme: black
-    transition: slide
-    footer: "Quarto Workshop"
+description: "Write, execute, review, and publish with Quarto."
 ---
 
 # Quality Quarto Quest!{.smaller}
@@ -44,7 +37,7 @@ Please read excellent [Quarto Guide](https://quarto.org/docs/guide/).
 | | Section | Time |
 |---|---|---|
 | 1 | Intro: what Quarto is, why, the gallery | 20 min |
-| 2 | Install & environment + **checkpoint** | 25 min |
+| 2 | Agent-assisted setup + **checkpoint** | 10 min |
 | 3 | Markdown → Quarto: `.md`, `.qmd`, code blocks | 40 min |
 | 4 | Build a blog + **checkpoint** | 35 min |
 | 5 | Publish to GitHub Pages | 20 min |
@@ -52,80 +45,41 @@ Please read excellent [Quarto Guide](https://quarto.org/docs/guide/).
 | 7 | Recap & questions | 10 min |
 
 ::: {.callout-tip}
-Two **checkpoints** mark the points where everyone must be working before we move on.
+**Checkpoints** mark the points where everyone must be working before we move on.
 If you are stuck at a checkpoint, say so in chat — do not quietly fall behind. There is
-a "When It Breaks" slide near the end, and the fixes are usually 30 seconds.
+a "When a Build Fails" slide near the end.
 :::
 
-## If You Get Stuck {.smaller}
+## Before You Begin
 
-Setup problems should not cost you the rest of the session. There is a
-known-good blog you can clone at any point to rejoin:
+- Install [Quarto](https://quarto.org/docs/get-started/), Git, and an editor.
+- Set up **Claude Code or Codex** using the [AI workflows module](ai-workflows.qmd#installation).
+- Use a GitHub account and the GitHub CLI (`gh`) for publishing.
+- Commands in this workshop use macOS, Linux, or WSL on Windows.
 
-```{.bash code-line-numbers="1|2|3"}
-git clone https://github.com/project-delphi/quarto-blog-starter my-blog
-cd my-blog && conda env create -f environment.yml -p "$PWD/.conda"
-conda activate "$PWD/.conda" && quarto preview
-```
+Environment setup used to take a substantial part of this workshop.
+Now the coding agent handles dependencies and verifies the build.
 
-It contains a post with an executing `{{python}}` cell, so if it renders a
-chart, your whole toolchain works — Quarto, Python **and** the Jupyter kernel.
+## Agent-Assisted Setup
 
-::: {.callout-tip}
-Use it. Sort your own environment out afterwards, or in the break — do not
-spend the workshop debugging conda while everyone else is writing posts.
-:::
+Launch your agent in the project directory and give it this task:
 
-## Prerequisites {.smaller}
+> Inspect this Quarto project. Set up the dependencies needed for its
+> executable examples using a local environment. Render a Python example,
+> fix any failures, and report the interpreter and commands that worked.
+> Record the dependency specification so another person can reproduce it.
 
-### Tools — install these **before** the workshop
-- GitHub account
-- [Quarto](https://quarto.org/docs/get-started/) binary
-- [GitHub CLI](https://cli.github.com) (`gh`) — used to create the repo and publish
-- VSCode + the Quarto extension
-- Git configured
-- Conda installed
-- POSIX shell — macOS, Linux, or **WSL2** on Windows (not git bash, PowerShell or cygwin)
+### Checkpoint
 
-### Skills
-- Creating conda environments
-- Comfort with Git & GitHub
-- Branching (GitHub Flow)
-- Posts answers and links in chat
-
-### Verify
-```bash
-quarto --version && gh auth status && conda --version
-```
-
-## Windows: Set Up WSL2 {.smaller}
-
-Every command in this workshop assumes a POSIX shell. On Windows, get one via WSL2.
-
-1. In PowerShell **as administrator**, then reboot:
-   ```powershell
-   wsl --install
-   ```
-
-2. Open the "Ubuntu" terminal and install conda **inside WSL**, not on Windows:
-   ```{.bash code-line-numbers="1|2"}
-   curl -fsSL -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-   bash miniconda.sh -b && ~/miniconda3/bin/conda init bash
-   ```
-
-3. Install Quarto and `gh` inside WSL too.
-
-::: {.callout-important}
-Work from the Linux home directory (`~/code/...`), **not** `/mnt/c/...`.
-Rendering across the Windows filesystem boundary is slow and hits permission errors.
-:::
+Open the rendered example and confirm that its code **produced output**.
+An agent saying “setup complete” is not sufficient evidence.
 
 ## What is Quarto?
 **Quarto** is a modern, interactive publishing system built on [pandoc](https://pandoc.org/):
 
 - Converts Markdown files to multiple formats:
   - html/rmarkdown/pdf
-  - Reveal.js (slides, pptx)
+  - Reveal.js (HTML slides) and PowerPoint (pptx)
   - Jupyter Notebooks (ipynb)
   - ePub, Typst, LaTex and more
 
@@ -166,48 +120,22 @@ Quarto: A transpiler that converts markdown to various formats. The foundational
 * CSS (fence divs)
 
 
-## Installation
+## Your Working Directory
 
-1. Install [Quarto](https://quarto.org/docs/get-started/) binary program 
-2. Install the Quarto extension for VSCode:
-   - Extensions > Search "Quarto" > Install
-3. Command line install of quarto cli 
+```bash
+mkdir -p ~/code/quarto-play
+cd ~/code/quarto-play
+git init --initial-branch=main
+git switch -c workshop
+```
+
+Open this directory in your editor and launch `claude` or `codex` here.
+Ask the agent to check Quarto and prepare dependencies as needed.
 
 ### Exercise
-One, Two & Three.
 
-WARNING: Quarto is under active development!
-
-## Setting Up Your Environment{.smaller}
-
-1. Create a new directory for the workshop:
-   ```{.bash code-line-numbers="1|2"}
-   mkdir -p ~/code/delete-me/quarto-play
-   cd ~/code/delete-me/quarto-play
-   ```
-
-2. Create a Conda environment:
-   ```{.bash code-line-numbers="1-2|3|4|5"}
-   curl -fsSL -o environment.yml \
-     https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml
-   head -3 environment.yml   # expect YAML, not "<!DOCTYPE html>"
-   conda env create -f environment.yml -p "$PWD/.conda"
-   conda activate "$PWD/.conda"
-   ```
-
-   `curl -f` fails loudly on an HTTP error instead of saving the error page.
-
-3. .gitignore file to git ignore conda environment:
-   ```{.bash code-line-numbers="1|2"}
-   curl -o .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
-   echo -e "\n# Custom ignores\n.conda/\n.env/" >> .gitignore
-   ``` 
-
-4. Initialize Git:
-   ```{.bash code-line-numbers="1|2"}
-   git init --initial-branch=main
-   git switch -c basic-markdown
-   ```
+Create a short brief: your audience, topic, source files, and intended output.
+You will use it when building your blog.
 
 ## Write Markdown 
 
@@ -390,47 +318,20 @@ The `#|` syntax adds control over code block execution & display.
 ### Exercise
 Create a `.qmd` file with a Python code block using the `#|` options like `echo`, `warning`, and `eval`.
 
-## Blog: Set Up the Environment First {.smaller}
+## Blog: Prepare a Focused Workspace
 
-The environment provides the toolchain, so build it **before** creating the project.
-
-1. Make a directory and get the environment file:
-   ```{.bash code-line-numbers="1-2|3-4|5"}
-   mkdir -p ~/code/delete-me/quarto-blog && cd ~/code/delete-me/quarto-blog
-   curl -fsSL -o environment.yml \
-     https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml
-   head -3 environment.yml   # expect YAML, not "<!DOCTYPE html>"
-   conda env create -f environment.yml -p "$PWD/.conda"
-   ```
-
-2. Activate it:
-   ```bash
-   conda activate "$PWD/.conda"
-   ```
-
-::: {.callout-note}
-The Python-only environment solves in a couple of minutes. R is a **separate,
-optional** environment used later — see the RStudio section.
-:::
-
-## Checkpoint: Is Your Toolchain Right? {.smaller}
-
-Run all four. Do not move on until each one is right.
-
-```{.bash code-line-numbers="1|2|3|4"}
-which quarto                 # expect a path, not "not found"
-quarto check                 # expect Python + Jupyter both OK
-which python                 # expect .../quarto-blog/.conda/bin/python
-jupyter kernelspec list      # expect python3 -> your .conda, NOT some other project
+```bash
+mkdir -p ~/code/quarto-blog
+cd ~/code/quarto-blog
 ```
 
-The last one catches the sneakiest failure: an old user-level kernel can shadow
-your environment, so `import matplotlib` fails even though it is installed.
-If `python3` points elsewhere, prefix commands with
-`JUPYTER_PATH="$PWD/.conda/share/jupyter"`.
+Bring in the notes, data, and references for **one post**. Start `claude` or
+`codex` here and ask it to inventory the files and identify missing context.
 
-### Exercise
-Post your `quarto check` output in chat if anything looks off.
+### Checkpoint
+
+State one claim your post should establish and the evidence needed to support it.
+The [directory method](ai-workflows.qmd#the-directory-method) develops this workflow in detail.
 
 ## Create the Blog Project {.smaller}
 
@@ -492,12 +393,12 @@ The preview is a live preview of the blog post in the browser. The render comman
 
 1. Preview:
    ```bash
-   quarto preview posts/welcome.qmd
+   quarto preview posts/my-first-post/index.qmd
    ```
 
 2. Render:
    ```bash
-   quarto render posts/welcome.qmd
+   quarto render posts/my-first-post/index.qmd
    ```
 
 ## Using Jupyter To Blog
@@ -534,63 +435,46 @@ Publishing is a **command**, not configuration. There is no `publish:` key in `_
    ```
 
 Quarto renders the site, creates the `gh-pages` branch, adds `.nojekyll`, pushes,
-and prints your URL. No repo settings to click through.
+and prints your URL. Check the repository’s Pages deployment status.
 
-4. Fold your work back into `main` (GitHub flow):
-   ```{.bash code-line-numbers="1|2"}
-   git switch main && git merge blog-setup
-   git push -u origin main
-   ```
+## Integrate Your Blog Changes
+
+Fold your work back into `main` (GitHub flow):
+
+```{.bash code-line-numbers="1|2"}
+git switch main && git merge blog-setup
+git push -u origin main
+```
 
 ### Exercise
 Publish your blog and post the URL in chat.
 
-## Blog with RStudio{.smaller}
+## Optional: An R-Based Post
 
-**Optional section.** Needs RStudio Desktop installed, plus the R environment
-(not in the main one) — create it first:
+Ask the agent to prepare R and the packages needed by your analysis.
+`environment-r.yml` remains an optional reproducibility recipe.
 
-```{.bash code-line-numbers="1-2|3"}
-curl -fsSL -o environment-r.yml \
-  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment-r.yml
-conda env create -f environment-r.yml -p "$PWD/.conda-r" && conda activate "$PWD/.conda-r"
-```
-
-1. Run which R after conda activated environment
-2. Launch RStudio from the activated shell so it inherits the environment:
-   - macOS: `open -na rstudio`
-   - Linux / WSL2: `rstudio &`  (requires RStudio Desktop installed)
-3. Create new project from RStudio UI
-4. Select Quarto Blog project type.
-5. Create a new post and render it.
-6. Push to GitHub.
-
+1. Open the blog in RStudio or your preferred editor.
+2. Write an R cell with a figure caption and descriptive alternative text.
+3. Have the agent render the post and record the dependencies it used.
+4. Inspect the figure and interpretation before publishing.
 
 ### Exercise
 
-Create a quarto blog post using RStudio.
+Explain one methodological assumption beside the result it affects.
 
-## When It Breaks {.smaller}
+## When a Build Fails
 
-| You see | It means | Do this |
-|---|---|---|
-| `quarto: command not found` | Not installed, or env not activated | `which quarto`, then `quarto check` |
-| `CondaError: Run 'conda init'` | Shell not set up for conda | `conda init "$(basename $SHELL)"`, restart shell |
-| `conda env create` fails parsing YAML | You downloaded an error page, not the file | `head -3 environment.yml` — expect `name:` |
-| `ModuleNotFoundError` for a package you *know* is installed | A user-level Jupyter kernel is shadowing your env | `jupyter kernelspec list`; prefix with `JUPYTER_PATH="$PWD/.conda/share/jupyter"` |
-| `which R` points outside your env | R env not created or not activated | R is optional — see the RStudio section |
-| `Address already in use` on preview | An old preview is still running | `quarto preview --port 4201` |
-| `gh: please run: gh auth login` | Not authenticated | `gh auth login` |
-| Site published but 404s | Pages is still building | Wait a minute; check the repo's Actions tab |
+Give the agent the **exact command, error text, and relevant source file**.
 
-The fourth row is the sneaky one: the package really is installed, just not in the
-interpreter Quarto is using.
+> Reproduce this failure. Identify the cause, make the smallest fix, and
+> rerun the same command. Report what changed and whether the full project
+> still renders. Keep code execution enabled.
 
-Still stuck after two minutes? Clone `quarto-blog-starter` (see "If You Get
-Stuck") and keep moving — debug afterwards.
+### Checkpoint
 
-### Exercise
-Post the exact error text in chat — not a screenshot of your whole screen.
+Review the diff. A missing figure or disabled cell is not a successful repair.
+If publication fails, inspect the repository's Pages configuration and Actions logs.
 
 ## Group Exercise: Collaborative Blog
 
@@ -612,8 +496,8 @@ Post the exact error text in chat — not a screenshot of your whole screen.
 ### Next Steps
 - Explore advanced Quarto features.
 - Build your personal portfolio site!
+- Continue with [AI workflows: Claude Code and Codex](ai-workflows.qmd).
 
 
 
 ## Questions?
-
