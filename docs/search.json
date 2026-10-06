@@ -1,38 +1,220 @@
 [
   {
+    "objectID": "ai-workflows.html#learning-outcomes",
+    "href": "ai-workflows.html#learning-outcomes",
+    "title": "AI Workflows for Quarto",
+    "section": "Learning Outcomes",
+    "text": "Learning Outcomes\nBy the end, you should be able to:\n\nAssemble a focused directory of evidence and instructions.\nDirect Claude Code or Codex to produce reports, slides, sites, and blogs.\nEvaluate computational correctness, provenance, and visual quality separately.\nRecord enough of the workflow for another researcher to reproduce the result.\n\nReturn to the Quarto foundations deck"
+  },
+  {
+    "objectID": "ai-workflows.html#session-plan",
+    "href": "ai-workflows.html#session-plan",
+    "title": "AI Workflows for Quarto",
+    "section": "Session Plan",
+    "text": "Session Plan\n\n\n\nActivity\nTime\nDeliverable\n\n\n\n\nInstall and verify one agent\n10 min\nWorking local session\n\n\nDirectory method\n15 min\nSources and brief\n\n\nAuthor and iterate\n20 min\nReport and slides\n\n\nAudit and discussion\n15 min\nEvidence-backed revisions\n\n\n\nPrerequisites: basic Markdown, Git, and the ability to interpret a statistical result. Use the companion synthetic dataset or a small dataset you are permitted to share."
+  },
+  {
+    "objectID": "ai-workflows.html#responsibility-for-the-result",
+    "href": "ai-workflows.html#responsibility-for-the-result",
+    "title": "AI Workflows for Quarto",
+    "section": "Responsibility for the Result",
+    "text": "Responsibility for the Result\nAgent: inspect files, scaffold, implement analysis, edit prose, render, repair.\nResearcher: define the question, justify assumptions, check evidence, approve interpretations, and decide what is ready to publish.\nA successful render establishes that a document builds. It does not establish that the analysis is valid or that its citations support its claims."
+  },
+  {
+    "objectID": "ai-workflows.html#install-claude-code",
+    "href": "ai-workflows.html#install-claude-code",
+    "title": "AI Workflows for Quarto",
+    "section": "Install Claude Code",
+    "text": "Install Claude Code\nFor macOS, Linux, or WSL, use the official native installer:\ncurl -fsSL https://claude.ai/install.sh | bash\nclaude --version\nclaude\nComplete the sign-in prompts with an account that has Claude Code access. Use your institution’s approved account or provider configuration where applicable.\nIf the command is missing, follow the installer’s PATH instructions and open a new terminal. Native Windows instructions are available in the official setup guide.\n\nSource: https://code.claude.com/docs/en/setup (checked 2026-10-06). This workshop uses POSIX shell examples throughout. Install only the agent you intend to use."
+  },
+  {
+    "objectID": "ai-workflows.html#install-codex",
+    "href": "ai-workflows.html#install-codex",
+    "title": "AI Workflows for Quarto",
+    "section": "Install Codex",
+    "text": "Install Codex\nWith Node.js and npm available:\nnpm install -g @openai/codex@latest\ncodex --version\ncodex\nFollow the sign-in flow. Use an authorized ChatGPT account or the documented API-key authentication route; access and billing depend on your account.\nRecord the installed version for your lab notes. Recheck the official CLI documentation before teaching.\n\nSources: https://developers.openai.com/codex/cli/ and https://developers.openai.com/cookbook/examples/codex/using_goals_in_codex (checked 2026-10-06). The cookbook documents the npm installation command. No model name or subscription price is assumed by this exercise."
+  },
+  {
+    "objectID": "ai-workflows.html#setup-checkpoint",
+    "href": "ai-workflows.html#setup-checkpoint",
+    "title": "AI Workflows for Quarto",
+    "section": "Setup Checkpoint",
+    "text": "Setup Checkpoint\nEnvironment setup used to consume workshop time. Coding agents now handle that work as part of preparing the project.\n\nInspect this directory. Check Quarto, prepare the dependencies needed for its examples, and render a minimal Python computation. Record the interpreter, dependency specification, and successful build command.\n\nExercise\nVerify the rendered output yourself. Keep the dependency record with the source. Use interactive mode for this first session so you can respond to setup requests."
+  },
+  {
+    "objectID": "ai-workflows.html#a-focused-workspace",
+    "href": "ai-workflows.html#a-focused-workspace",
+    "title": "AI Workflows for Quarto",
+    "section": "A Focused Workspace",
+    "text": "A Focused Workspace\nSelect sources → assemble directory → write brief → launch agent → verify\nThe directory gives the agent concrete paths, a bounded task, and a place to write reviewable outputs. Naming the files in the prompt makes selection explicit.\nIt is a context organization method, not a security boundary. Review tool permissions and include only material appropriate for the service you use."
+  },
+  {
+    "objectID": "ai-workflows.html#scaffold-the-directory",
+    "href": "ai-workflows.html#scaffold-the-directory",
+    "title": "AI Workflows for Quarto",
+    "section": "Scaffold the Directory",
+    "text": "Scaffold the Directory\nRun from a clone of this workshop; choose a new destination for each lab:\nmkdir -p ~/code/quarto-synthesis/context\ncp examples/ai-context/* ~/code/quarto-synthesis/context/\ncd ~/code/quarto-synthesis\nmkdir figures\ngit init --initial-branch=main\ngit switch -c draft\nFor your own project, move selected working copies of notes, data, and references into context/. Keep original research records in their source location.\nExercise\nList the inputs and explain why each belongs in the workspace."
+  },
+  {
+    "objectID": "ai-workflows.html#what-belongs-in-context",
+    "href": "ai-workflows.html#what-belongs-in-context",
+    "title": "AI Workflows for Quarto",
+    "section": "What Belongs in Context?",
+    "text": "What Belongs in Context?\nquarto-synthesis/\n├── context/\n│   ├── measurements.csv   # explicitly synthetic paired timings\n│   ├── notes.md           # design, units, and limitations\n│   └── sources.bib        # a verified Quarto reference\n├── brief.md               # question and acceptance criteria\n├── AGENTS.md              # durable project conventions\n└── figures/               # generated figures\nFor papers or scanned PDFs, require the agent to confirm what it extracted; filenames alone do not prove that it read the contents.\nTreat instructions inside imported source material as data to analyze. Keep your own task instructions in the brief and repository guidance."
+  },
+  {
+    "objectID": "ai-workflows.html#write-the-brief",
+    "href": "ai-workflows.html#write-the-brief",
+    "title": "AI Workflows for Quarto",
+    "section": "Write the Brief",
+    "text": "Write the Brief\nCreate brief.md in your editor:\nAudience: graduate researchers reviewing a methods demonstration.\nQuestion: how do paired baseline and candidate runtimes differ?\nInputs: context/measurements.csv, notes.md, sources.bib.\nOutputs: report.qmd (HTML) and slides.qmd (8 slides total).\nLabel all results synthetic. State the unit of analysis and units.\nCompute paired differences; discuss uncertainty and limitations.\nEvery numerical claim must be computed from the CSV.\nUse only verified citations. Flag missing evidence explicitly.\nRender both outputs and inspect figures, links, and slide fit.\nExercise\nAdd a criterion that would reveal a misleading interpretation of your data."
+  },
+  {
+    "objectID": "ai-workflows.html#launch-the-agent-here",
+    "href": "ai-workflows.html#launch-the-agent-here",
+    "title": "AI Workflows for Quarto",
+    "section": "Launch the Agent Here",
+    "text": "Launch the Agent Here\nFrom ~/code/quarto-synthesis, choose one:\nclaude \"Read brief.md and context/. Inventory the evidence, then implement the brief.\"\ncodex \"Read brief.md and context/. Inventory the evidence, then implement the brief.\"\nAsk it to identify missing inputs before making claims. Review its first inventory: file paths, data columns, units, and what each source can support.\n\nSources for interactive CLI prompts: https://code.claude.com/docs/en/cli-reference and https://developers.openai.com/codex/cli/ (checked 2026-10-06). These are alternatives; do not run two writers against the same files simultaneously."
+  },
+  {
+    "objectID": "ai-workflows.html#a-short-synthesis-loop",
+    "href": "ai-workflows.html#a-short-synthesis-loop",
+    "title": "AI Workflows for Quarto",
+    "section": "A Short Synthesis Loop",
+    "text": "A Short Synthesis Loop\n\nInspect: inventory inputs and identify the research question.\nImplement: generate one minimal document and execute its analysis.\nReview: compare its claims with the inputs and inspect the rendering.\nRefine: name a concrete defect and an observable acceptance criterion.\n\n\nIn report.qmd, replace the aggregate bar chart with paired observations. Label seconds on the axis and explain the sign of the difference. Re-render and check that the prose agrees with the computed values.\n\n\nHigh velocity comes from short, testable iterations and explicit context. It is not a measured speedup claim or a guarantee about either agent."
+  },
+  {
+    "objectID": "ai-workflows.html#a-reproducible-technical-report",
+    "href": "ai-workflows.html#a-reproducible-technical-report",
+    "title": "AI Workflows for Quarto",
+    "section": "A Reproducible Technical Report",
+    "text": "A Reproducible Technical Report\nPrompt the agent in the synthesis directory:\n\nCreate report.qmd with methods, results, limitations, and references. Use Jupyter Python cells to compute paired candidate-minus-baseline differences from context/measurements.csv. Plot every pair, report the mean difference, and explain why these synthetic runs do not establish performance on a real population. Add captions, units, and figure alt text.\n\nquarto render report.qmd --to html\nquarto preview report.qmd\nAsk the agent to resolve dependencies and record the working command."
+  },
+  {
+    "objectID": "ai-workflows.html#execution-is-part-of-the-argument",
+    "href": "ai-workflows.html#execution-is-part-of-the-argument",
+    "title": "AI Workflows for Quarto",
+    "section": "Execution Is Part of the Argument",
+    "text": "Execution Is Part of the Argument\nMinimal front matter for the generated report:\n---\ntitle: \"Paired Runtime Demonstration\"\nformat:\n  html:\n    toc: true\njupyter: python3\nbibliography: context/sources.bib\nexecute:\n  echo: true\n  error: false\n  cache: false\n  freeze: false\n---\nDuring review, recompute results and stop on execution errors."
+  },
+  {
+    "objectID": "ai-workflows.html#computational-audit",
+    "href": "ai-workflows.html#computational-audit",
+    "title": "AI Workflows for Quarto",
+    "section": "Computational Audit",
+    "text": "Computational Audit\nDisplay of a cell to place in the report:\n```{python}\nimport pandas as pd\n\ndf = pd.read_csv(\"context/measurements.csv\")\nassert df[\"run\"].is_unique\nassert df[[\"baseline_s\", \"candidate_s\"]].notna().all().all()\ndelta = df[\"candidate_s\"] - df[\"baseline_s\"]\nprint(f\"Mean paired difference: {delta.mean():.2f} s\")\n```\nA negative difference indicates a faster candidate. Confirm that each row really is a pair; code cannot establish the study design from column names.\n\nExpected mean for the bundled fixture: -0.60 seconds. Seven pairs improve; one regresses. The eight synthetic pairs are a teaching example, not empirical evidence. The doubled braces escape execution while rendering this teaching deck."
+  },
+  {
+    "objectID": "ai-workflows.html#uncertainty-and-provenance",
+    "href": "ai-workflows.html#uncertainty-and-provenance",
+    "title": "AI Workflows for Quarto",
+    "section": "Uncertainty and Provenance",
+    "text": "Uncertainty and Provenance\nFor paired observations, define \\(d_i=t_{i,\\mathrm{candidate}}-t_{i,\\mathrm{baseline}}\\) and report \\(\\bar d=n^{-1}\\sum_i d_i\\).\n\nResample pairs, not independent treatment columns, for a paired bootstrap.\nRepeated runs on one workload do not establish generalization to other workloads.\nDistinguish a variability summary from a population inference.\nCite methods and external claims; compute the numerical findings from data.\n\nExercise\nAsk the agent which assumptions are needed for an interval, then critique its answer."
+  },
+  {
+    "objectID": "ai-workflows.html#a-reveal.js-deck",
+    "href": "ai-workflows.html#a-reveal.js-deck",
+    "title": "AI Workflows for Quarto",
+    "section": "A Reveal.js Deck",
+    "text": "A Reveal.js Deck\n\nCreate slides.qmd with exactly 8 slides including the title. Audience: graduate researchers. Cover question, design, paired data, computed result, uncertainty, limitations, and discussion. Reuse the report’s verified analysis. Use one central idea per slide and speaker notes for detail. Cite evidence near claims. Render and inspect every slide.\n\nformat:\n  revealjs:\n    theme: black\n    transition: fade\n    code-copy: true\n    scroll-view:\n      activation-width: 768\nquarto render slides.qmd --to revealjs"
+  },
+  {
+    "objectID": "ai-workflows.html#a-quarto-website",
+    "href": "ai-workflows.html#a-quarto-website",
+    "title": "AI Workflows for Quarto",
+    "section": "A Quarto Website",
+    "text": "A Quarto Website\nIn a separate, new directory outside this workshop:\nquarto create project website research-site --no-open --no-prompt\ncd research-site\ncodex\nOr launch claude. Give it a concrete structure:\n\nInspect the generated project. Create Home, Methods, and Results pages. Add navbar links and consistent figure captions. Preserve the existing YAML structure. Use clearly marked placeholders until I provide evidence. Run quarto render and check every internal link and the mobile layout."
+  },
+  {
+    "objectID": "ai-workflows.html#a-quarto-blog",
+    "href": "ai-workflows.html#a-quarto-blog",
+    "title": "AI Workflows for Quarto",
+    "section": "A Quarto Blog",
+    "text": "A Quarto Blog\nIn another new directory:\nquarto create project blog research-blog --no-open --no-prompt\ncd research-blog\nclaude\nOr launch codex. Copy the curated context into this project, then prompt:\n\nRead context/ and create posts/paired-runtime/index.qmd. Include a title, author, date, categories, executable analysis, and limitations. Respect posts/_metadata.yml. Verify data paths when rendering from the post. Render the whole site and check the listing links to this post."
+  },
+  {
+    "objectID": "ai-workflows.html#adapt-to-the-output",
+    "href": "ai-workflows.html#adapt-to-the-output",
+    "title": "AI Workflows for Quarto",
+    "section": "Adapt to the Output",
+    "text": "Adapt to the Output\n\n\n\n\n\n\n\n\nOutput\nReader needs\nReview focus\n\n\n\n\nReport\nDerivation and reproducible evidence\nEquations, code, citations\n\n\nSlides\nA sequence of understandable ideas\nDensity, figures, notes\n\n\nWebsite\nNavigation across topics\nLinks, hierarchy, mobile view\n\n\nBlog\nA dated, self-contained argument\nListing, metadata, narrative\n\n\n\nReuse verified computation across formats. Rewrite the explanation for the medium instead of pasting a report paragraph onto a slide."
+  },
+  {
+    "objectID": "ai-workflows.html#repository-instructions",
+    "href": "ai-workflows.html#repository-instructions",
+    "title": "AI Workflows for Quarto",
+    "section": "Repository Instructions",
+    "text": "Repository Instructions\nUse AGENTS.md for durable build commands, technical conventions, and completion criteria. Use brief.md for the current research task.\n# Project conventions\n- Keep raw inputs unchanged and label synthetic data.\n- Compute numerical claims; never invent citations.\n- Run quarto render after source changes.\n- Inspect the rendered output before declaring completion.\nThis workshop’s CLAUDE.md imports @AGENTS.md, keeping shared guidance in one place. Ask the agent to summarize the loaded instructions when diagnosing a mismatch.\n\nSources: https://developers.openai.com/codex/guides/agents-md/ and https://code.claude.com/docs/en/memory (checked 2026-10-06)."
+  },
+  {
+    "objectID": "ai-workflows.html#scoped-sub-agent-work",
+    "href": "ai-workflows.html#scoped-sub-agent-work",
+    "title": "AI Workflows for Quarto",
+    "section": "Scoped Sub-Agent Work",
+    "text": "Scoped Sub-Agent Work\nFor a larger module, define roles before delegating:\n\n\n\n\n\n\n\n\nRole\nOwns\nReturns\n\n\n\n\nEvidence reviewer\nRead-only source audit\nClaims and supporting locations\n\n\nModule author\nOne assigned .qmd\nDraft and exercise\n\n\nRender reviewer\nRead-only output inspection\nSpecific defects and slide IDs\n\n\n\nOne lead integrates changes, edits shared configuration, and runs the final build. Avoid simultaneous edits or renders into the same docs/ directory.\n\nThis is a workflow contract, not a shared CLI syntax. Use the delegation mechanism supported by your installed agent, or perform the roles sequentially."
+  },
+  {
+    "objectID": "ai-workflows.html#build-inspect-revise",
+    "href": "ai-workflows.html#build-inspect-revise",
+    "title": "AI Workflows for Quarto",
+    "section": "Build, Inspect, Revise",
+    "text": "Build, Inspect, Revise\nquarto render\nquarto preview\ngit diff --check\ngit diff --stat\n\nComputation: rerun from source; compare values and units with the prose.\nEvidence: check citation targets and distinguish facts from assumptions.\nPresentation: inspect every slide, code block, figure, and cross-reference.\nDelivery: test links and narrow screens; review generated files before publication.\n\nfreeze: auto only notices source-document changes during project renders; external data changes require deliberate recomputation.\n\nSource for freeze behavior: https://quarto.org/docs/projects/code-execution.html (checked 2026-10-06). Rendering a single document executes it even when frozen."
+  },
+  {
+    "objectID": "ai-workflows.html#repair-a-specific-defect",
+    "href": "ai-workflows.html#repair-a-specific-defect",
+    "title": "AI Workflows for Quarto",
+    "section": "Repair a Specific Defect",
+    "text": "Repair a Specific Defect\n\nOn the Results slide, the caption falls below the slide boundary at presentation size. Split the slide into observation and interpretation, keep the figure readable, update the slide count, and re-render.\n\n\nThe prose claims every run improved, but the CSV includes a regression. Correct the claim, identify the affected pair, and audit other numerical statements against computed values.\n\nSpecific failures give the next iteration an observable finish line."
+  },
+  {
+    "objectID": "ai-workflows.html#graduate-lab-evidence-to-publication",
+    "href": "ai-workflows.html#graduate-lab-evidence-to-publication",
+    "title": "AI Workflows for Quarto",
+    "section": "Graduate Lab: Evidence to Publication",
+    "text": "Graduate Lab: Evidence to Publication\nExercise — 20 minutes\n\nAssemble the directory and write the brief.\nGenerate an executable report and an eight-slide deck with either agent.\nAudit one numerical claim, one assumption, and one visual design choice.\nExchange outputs with a partner; use their critique for one revision.\n\nSubmit sources, dependency record, rendered outputs, and a short account of one agent error you caught and how you verified the correction."
+  },
+  {
+    "objectID": "ai-workflows.html#evaluation-rubric",
+    "href": "ai-workflows.html#evaluation-rubric",
+    "title": "AI Workflows for Quarto",
+    "section": "Evaluation Rubric",
+    "text": "Evaluation Rubric\n\n\n\n\n\n\n\nDimension\nEvidence of success\n\n\n\n\nReproducibility\nAnother person renders from source and declared dependencies\n\n\nScientific reasoning\nPairing, units, assumptions, and limitations are explicit\n\n\nProvenance\nClaims trace to data or verified references\n\n\nCommunication\nSlides fit; figures and links work; narrative matches results\n\n\nAgent supervision\nRevisions address observed defects with verification\n\n\n\nDiscussion: Which parts of the result can a successful build never validate?"
+  },
+  {
+    "objectID": "ai-workflows.html#official-references",
+    "href": "ai-workflows.html#official-references",
+    "title": "AI Workflows for Quarto",
+    "section": "Official References",
+    "text": "Official References\n\nClaude Code installation and CLI reference\nCodex CLI and npm installation example\nCodex repository instructions and Claude project memory\nQuarto Reveal.js and mobile scroll view\nQuarto execution management\n\nInstallation and CLI guidance checked 2026-10-06. Recheck official docs when updating the workshop; the examples do not require a particular model.\nBack to Quarto foundations"
+  },
+  {
     "objectID": "index.html#agenda",
     "href": "index.html#agenda",
     "title": "Quarto Workshop",
     "section": "Agenda",
-    "text": "Agenda\n\n\n\n\nSection\nTime\n\n\n\n\n1\nIntro: what Quarto is, why, the gallery\n20 min\n\n\n2\nInstall & environment + checkpoint\n25 min\n\n\n3\nMarkdown → Quarto: .md, .qmd, code blocks\n40 min\n\n\n4\nBuild a blog + checkpoint\n35 min\n\n\n5\nPublish to GitHub Pages\n20 min\n\n\n6\nGroup exercise: collaborative blog\n30 min\n\n\n7\nRecap & questions\n10 min\n\n\n\n\n\n\n\n\n\nTip\n\n\nTwo checkpoints mark the points where everyone must be working before we move on. If you are stuck at a checkpoint, say so in chat — do not quietly fall behind. There is a “When It Breaks” slide near the end, and the fixes are usually 30 seconds."
+    "text": "Agenda\n\n\n\n\nSection\nTime\n\n\n\n\n1\nIntro: what Quarto is, why, the gallery\n20 min\n\n\n2\nAgent-assisted setup + checkpoint\n10 min\n\n\n3\nMarkdown → Quarto: .md, .qmd, code blocks\n40 min\n\n\n4\nBuild a blog + checkpoint\n35 min\n\n\n5\nPublish to GitHub Pages\n20 min\n\n\n6\nGroup exercise: collaborative blog\n30 min\n\n\n7\nRecap & questions\n10 min\n\n\n\n\n\n\n\n\n\nTip\n\n\nCheckpoints mark the points where everyone must be working before we move on. If you are stuck at a checkpoint, say so in chat — do not quietly fall behind. There is a “When a Build Fails” slide near the end."
   },
   {
-    "objectID": "index.html#if-you-get-stuck",
-    "href": "index.html#if-you-get-stuck",
+    "objectID": "index.html#before-you-begin",
+    "href": "index.html#before-you-begin",
     "title": "Quarto Workshop",
-    "section": "If You Get Stuck",
-    "text": "If You Get Stuck\nSetup problems should not cost you the rest of the session. There is a known-good blog you can clone at any point to rejoin:\ngit clone https://github.com/project-delphi/quarto-blog-starter my-blog\ncd my-blog && conda env create -f environment.yml -p \"$PWD/.conda\"\nconda activate \"$PWD/.conda\" && quarto preview\nIt contains a post with an executing {python} cell, so if it renders a chart, your whole toolchain works — Quarto, Python and the Jupyter kernel.\n\n\n\n\n\n\nTip\n\n\nUse it. Sort your own environment out afterwards, or in the break — do not spend the workshop debugging conda while everyone else is writing posts."
+    "section": "Before You Begin",
+    "text": "Before You Begin\n\nInstall Quarto, Git, and an editor.\nSet up Claude Code or Codex using the AI workflows module.\nUse a GitHub account and the GitHub CLI (gh) for publishing.\nCommands in this workshop use macOS, Linux, or WSL on Windows.\n\nEnvironment setup used to take a substantial part of this workshop. Now the coding agent handles dependencies and verifies the build."
   },
   {
-    "objectID": "index.html#prerequisites",
-    "href": "index.html#prerequisites",
+    "objectID": "index.html#agent-assisted-setup",
+    "href": "index.html#agent-assisted-setup",
     "title": "Quarto Workshop",
-    "section": "Prerequisites",
-    "text": "Prerequisites\nTools — install these before the workshop\n\nGitHub account\nQuarto binary\nGitHub CLI (gh) — used to create the repo and publish\nVSCode + the Quarto extension\nGit configured\nConda installed\nPOSIX shell — macOS, Linux, or WSL2 on Windows (not git bash, PowerShell or cygwin)\n\nSkills\n\nCreating conda environments\nComfort with Git & GitHub\nBranching (GitHub Flow)\nPosts answers and links in chat\n\nVerify\nquarto --version && gh auth status && conda --version"
-  },
-  {
-    "objectID": "index.html#windows-set-up-wsl2",
-    "href": "index.html#windows-set-up-wsl2",
-    "title": "Quarto Workshop",
-    "section": "Windows: Set Up WSL2",
-    "text": "Windows: Set Up WSL2\nEvery command in this workshop assumes a POSIX shell. On Windows, get one via WSL2.\n\nIn PowerShell as administrator, then reboot:\nwsl --install\nOpen the “Ubuntu” terminal and install conda inside WSL, not on Windows:\ncurl -fsSL -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh\nbash miniconda.sh -b && ~/miniconda3/bin/conda init bash\nInstall Quarto and gh inside WSL too.\n\n\n\n\n\n\n\nImportant\n\n\nWork from the Linux home directory (~/code/...), not /mnt/c/.... Rendering across the Windows filesystem boundary is slow and hits permission errors."
+    "section": "Agent-Assisted Setup",
+    "text": "Agent-Assisted Setup\nLaunch your agent in the project directory and give it this task:\n\nInspect this Quarto project. Set up the dependencies needed for its executable examples using a local environment. Render a Python example, fix any failures, and report the interpreter and commands that worked. Record the dependency specification so another person can reproduce it.\n\nCheckpoint\nOpen the rendered example and confirm that its code produced output. An agent saying “setup complete” is not sufficient evidence."
   },
   {
     "objectID": "index.html#what-is-quarto",
     "href": "index.html#what-is-quarto",
     "title": "Quarto Workshop",
     "section": "What is Quarto?",
-    "text": "What is Quarto?\nQuarto is a modern, interactive publishing system built on pandoc:\n\nConverts Markdown files to multiple formats:\n\nhtml/rmarkdown/pdf\nReveal.js (slides, pptx)\nJupyter Notebooks (ipynb)\nePub, Typst, LaTex and more\n\n\norigin: org-mode (Emacs) =&gt; Sweave / knitr =&gt; RMarkdown"
+    "text": "What is Quarto?\nQuarto is a modern, interactive publishing system built on pandoc:\n\nConverts Markdown files to multiple formats:\n\nhtml/rmarkdown/pdf\nReveal.js (HTML slides) and PowerPoint (pptx)\nJupyter Notebooks (ipynb)\nePub, Typst, LaTex and more\n\n\norigin: org-mode (Emacs) =&gt; Sweave / knitr =&gt; RMarkdown"
   },
   {
     "objectID": "index.html#why-use-quarto",
@@ -56,18 +238,11 @@
     "text": "Underlying Technology\nQuarto: A transpiler that converts markdown to various formats. The foundational technologies are:\n\nJavascript (interactivity)\nHTML (markdown)\nCSS (fence divs)"
   },
   {
-    "objectID": "index.html#installation",
-    "href": "index.html#installation",
+    "objectID": "index.html#your-working-directory",
+    "href": "index.html#your-working-directory",
     "title": "Quarto Workshop",
-    "section": "Installation",
-    "text": "Installation\n\nInstall Quarto binary program\nInstall the Quarto extension for VSCode:\n\nExtensions &gt; Search “Quarto” &gt; Install\n\nCommand line install of quarto cli\n\nExercise\nOne, Two & Three.\nWARNING: Quarto is under active development!"
-  },
-  {
-    "objectID": "index.html#setting-up-your-environment",
-    "href": "index.html#setting-up-your-environment",
-    "title": "Quarto Workshop",
-    "section": "Setting Up Your Environment",
-    "text": "Setting Up Your Environment\n\nCreate a new directory for the workshop:\nmkdir -p ~/code/delete-me/quarto-play\ncd ~/code/delete-me/quarto-play\nCreate a Conda environment:\ncurl -fsSL -o environment.yml \\\n  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml\nhead -3 environment.yml   # expect YAML, not \"&lt;!DOCTYPE html&gt;\"\nconda env create -f environment.yml -p \"$PWD/.conda\"\nconda activate \"$PWD/.conda\"\ncurl -f fails loudly on an HTTP error instead of saving the error page.\n.gitignore file to git ignore conda environment:\ncurl -o .gitignore https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore\necho -e \"\\n# Custom ignores\\n.conda/\\n.env/\" &gt;&gt; .gitignore\nInitialize Git:\ngit init --initial-branch=main\ngit switch -c basic-markdown"
+    "section": "Your Working Directory",
+    "text": "Your Working Directory\nmkdir -p ~/code/quarto-play\ncd ~/code/quarto-play\ngit init --initial-branch=main\ngit switch -c workshop\nOpen this directory in your editor and launch claude or codex here. Ask the agent to check Quarto and prepare dependencies as needed.\nExercise\nCreate a short brief: your audience, topic, source files, and intended output. You will use it when building your blog."
   },
   {
     "objectID": "index.html#write-markdown",
@@ -119,18 +294,11 @@
     "text": "#| Code Blocks\nThe #| syntax adds control over code block execution & display.\n   #| echo: true\n   #| warning: false\n   def greet(name):\n      print(f\"Hello, {name}!\")\n\n\n\n\n\n\n\nOption\nDescription\n\n\n\n\n#|eval\nEvaluate the code chunk.\n\n\n#|echo\nInclude the source code in output.\n\n\n#|output\nInclude the results of executing the code in the output (true, false, or asis).\n\n\n#|warning\nInclude warnings in the output.\n\n\n#|error\nInclude errors in the output.\n\n\n#|include\nCatch all for preventing any output (code or results) from being included.\n\n\n\nExercise\nCreate a .qmd file with a Python code block using the #| options like echo, warning, and eval."
   },
   {
-    "objectID": "index.html#blog-set-up-the-environment-first",
-    "href": "index.html#blog-set-up-the-environment-first",
+    "objectID": "index.html#blog-prepare-a-focused-workspace",
+    "href": "index.html#blog-prepare-a-focused-workspace",
     "title": "Quarto Workshop",
-    "section": "Blog: Set Up the Environment First",
-    "text": "Blog: Set Up the Environment First\nThe environment provides the toolchain, so build it before creating the project.\n\nMake a directory and get the environment file:\nmkdir -p ~/code/delete-me/quarto-blog && cd ~/code/delete-me/quarto-blog\ncurl -fsSL -o environment.yml \\\n  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml\nhead -3 environment.yml   # expect YAML, not \"&lt;!DOCTYPE html&gt;\"\nconda env create -f environment.yml -p \"$PWD/.conda\"\nActivate it:\nconda activate \"$PWD/.conda\"\n\n\n\n\n\n\n\nNote\n\n\nThe Python-only environment solves in a couple of minutes. R is a separate, optional environment used later — see the RStudio section."
-  },
-  {
-    "objectID": "index.html#checkpoint-is-your-toolchain-right",
-    "href": "index.html#checkpoint-is-your-toolchain-right",
-    "title": "Quarto Workshop",
-    "section": "Checkpoint: Is Your Toolchain Right?",
-    "text": "Checkpoint: Is Your Toolchain Right?\nRun all four. Do not move on until each one is right.\nwhich quarto                 # expect a path, not \"not found\"\nquarto check                 # expect Python + Jupyter both OK\nwhich python                 # expect .../quarto-blog/.conda/bin/python\njupyter kernelspec list      # expect python3 -&gt; your .conda, NOT some other project\nThe last one catches the sneakiest failure: an old user-level kernel can shadow your environment, so import matplotlib fails even though it is installed. If python3 points elsewhere, prefix commands with JUPYTER_PATH=\"$PWD/.conda/share/jupyter\".\nExercise\nPost your quarto check output in chat if anything looks off."
+    "section": "Blog: Prepare a Focused Workspace",
+    "text": "Blog: Prepare a Focused Workspace\nmkdir -p ~/code/quarto-blog\ncd ~/code/quarto-blog\nBring in the notes, data, and references for one post. Start claude or codex here and ask it to inventory the files and identify missing context.\nCheckpoint\nState one claim your post should establish and the evidence needed to support it. The directory method develops this workflow in detail."
   },
   {
     "objectID": "index.html#create-the-blog-project",
@@ -151,7 +319,7 @@
     "href": "index.html#preview-render-blog-post",
     "title": "Quarto Workshop",
     "section": "Preview & Render Blog Post",
-    "text": "Preview & Render Blog Post\nThe preview is a live preview of the blog post in the browser. The render command generates the output file.\n\nPreview:\nquarto preview posts/welcome.qmd\nRender:\nquarto render posts/welcome.qmd"
+    "text": "Preview & Render Blog Post\nThe preview is a live preview of the blog post in the browser. The render command generates the output file.\n\nPreview:\nquarto preview posts/my-first-post/index.qmd\nRender:\nquarto render posts/my-first-post/index.qmd"
   },
   {
     "objectID": "index.html#using-jupyter-to-blog",
@@ -165,21 +333,28 @@
     "href": "index.html#publish-to-github-pages",
     "title": "Quarto Workshop",
     "section": "Publish to GitHub Pages",
-    "text": "Publish to GitHub Pages\nPublishing is a command, not configuration. There is no publish: key in _quarto.yml.\n\nCommit your work:\ngit add .\ngit commit -m \"Initial blog setup\"\nCreate the GitHub repo — this also creates the origin remote:\ngh auth status || gh auth login\ngh repo create my-blog --public --source=. --push\nPublish:\nquarto publish gh-pages\n\nQuarto renders the site, creates the gh-pages branch, adds .nojekyll, pushes, and prints your URL. No repo settings to click through.\n\nFold your work back into main (GitHub flow):\ngit switch main && git merge blog-setup\ngit push -u origin main\n\nExercise\nPublish your blog and post the URL in chat."
+    "text": "Publish to GitHub Pages\nPublishing is a command, not configuration. There is no publish: key in _quarto.yml.\n\nCommit your work:\ngit add .\ngit commit -m \"Initial blog setup\"\nCreate the GitHub repo — this also creates the origin remote:\ngh auth status || gh auth login\ngh repo create my-blog --public --source=. --push\nPublish:\nquarto publish gh-pages\n\nQuarto renders the site, creates the gh-pages branch, adds .nojekyll, pushes, and prints your URL. Check the repository’s Pages deployment status."
   },
   {
-    "objectID": "index.html#blog-with-rstudio",
-    "href": "index.html#blog-with-rstudio",
+    "objectID": "index.html#integrate-your-blog-changes",
+    "href": "index.html#integrate-your-blog-changes",
     "title": "Quarto Workshop",
-    "section": "Blog with RStudio",
-    "text": "Blog with RStudio\nOptional section. Needs RStudio Desktop installed, plus the R environment (not in the main one) — create it first:\ncurl -fsSL -o environment-r.yml \\\n  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment-r.yml\nconda env create -f environment-r.yml -p \"$PWD/.conda-r\" && conda activate \"$PWD/.conda-r\"\n\nRun which R after conda activated environment\nLaunch RStudio from the activated shell so it inherits the environment:\n\nmacOS: open -na rstudio\nLinux / WSL2: rstudio & (requires RStudio Desktop installed)\n\nCreate new project from RStudio UI\nSelect Quarto Blog project type.\nCreate a new post and render it.\nPush to GitHub.\n\nExercise\nCreate a quarto blog post using RStudio."
+    "section": "Integrate Your Blog Changes",
+    "text": "Integrate Your Blog Changes\nFold your work back into main (GitHub flow):\ngit switch main && git merge blog-setup\ngit push -u origin main\nExercise\nPublish your blog and post the URL in chat."
   },
   {
-    "objectID": "index.html#when-it-breaks",
-    "href": "index.html#when-it-breaks",
+    "objectID": "index.html#optional-an-r-based-post",
+    "href": "index.html#optional-an-r-based-post",
     "title": "Quarto Workshop",
-    "section": "When It Breaks",
-    "text": "When It Breaks\n\n\n\n\n\n\n\n\nYou see\nIt means\nDo this\n\n\n\n\nquarto: command not found\nNot installed, or env not activated\nwhich quarto, then quarto check\n\n\nCondaError: Run 'conda init'\nShell not set up for conda\nconda init \"$(basename $SHELL)\", restart shell\n\n\nconda env create fails parsing YAML\nYou downloaded an error page, not the file\nhead -3 environment.yml — expect name:\n\n\nModuleNotFoundError for a package you know is installed\nA user-level Jupyter kernel is shadowing your env\njupyter kernelspec list; prefix with JUPYTER_PATH=\"$PWD/.conda/share/jupyter\"\n\n\nwhich R points outside your env\nR env not created or not activated\nR is optional — see the RStudio section\n\n\nAddress already in use on preview\nAn old preview is still running\nquarto preview --port 4201\n\n\ngh: please run: gh auth login\nNot authenticated\ngh auth login\n\n\nSite published but 404s\nPages is still building\nWait a minute; check the repo’s Actions tab\n\n\n\nThe fourth row is the sneaky one: the package really is installed, just not in the interpreter Quarto is using.\nStill stuck after two minutes? Clone quarto-blog-starter (see “If You Get Stuck”) and keep moving — debug afterwards.\nExercise\nPost the exact error text in chat — not a screenshot of your whole screen."
+    "section": "Optional: An R-Based Post",
+    "text": "Optional: An R-Based Post\nAsk the agent to prepare R and the packages needed by your analysis. environment-r.yml remains an optional reproducibility recipe.\n\nOpen the blog in RStudio or your preferred editor.\nWrite an R cell with a figure caption and descriptive alternative text.\nHave the agent render the post and record the dependencies it used.\nInspect the figure and interpretation before publishing.\n\nExercise\nExplain one methodological assumption beside the result it affects."
+  },
+  {
+    "objectID": "index.html#when-a-build-fails",
+    "href": "index.html#when-a-build-fails",
+    "title": "Quarto Workshop",
+    "section": "When a Build Fails",
+    "text": "When a Build Fails\nGive the agent the exact command, error text, and relevant source file.\n\nReproduce this failure. Identify the cause, make the smallest fix, and rerun the same command. Report what changed and whether the full project still renders. Keep code execution enabled.\n\nCheckpoint\nReview the diff. A missing figure or disabled cell is not a successful repair. If publication fails, inspect the repository’s Pages configuration and Actions logs."
   },
   {
     "objectID": "index.html#group-exercise-collaborative-blog",
@@ -193,7 +368,7 @@
     "href": "index.html#recap",
     "title": "Quarto Workshop",
     "section": "Recap",
-    "text": "Recap\n\nQuarto combines flexibility and reproducibility.\nCreate professional blogs, reports, and more.\nPractice collaborative workflows with GitHub.\n\nNext Steps\n\nExplore advanced Quarto features.\nBuild your personal portfolio site!"
+    "text": "Recap\n\nQuarto combines flexibility and reproducibility.\nCreate professional blogs, reports, and more.\nPractice collaborative workflows with GitHub.\n\nNext Steps\n\nExplore advanced Quarto features.\nBuild your personal portfolio site!\nContinue with AI workflows: Claude Code and Codex."
   },
   {
     "objectID": "index.html#questions",

@@ -1,162 +1,106 @@
 # Quarto Workshop
 
-A hands-on workshop on [Quarto](https://quarto.org): write markdown, execute code inside it, and publish a
-blog to GitHub Pages.
+Build technical documents, Reveal.js slides, sites, and blogs with Quarto, Claude Code, and Codex.
 
-**Slides:** https://project-delphi.github.io/quarto-workshop/
-
-By the end you will have a live blog, built from `.qmd` source, with a post whose charts are generated from
-code every time it renders.
-
----
+- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — Markdown, executable cells, blogs, and publishing.
+- **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — agent installation, the directory method, scientific review, and a graduate lab.
 
 ## For attendees
 
-### Do this before the workshop
+Install [Quarto](https://quarto.org/docs/get-started/), Git, an editor, and one coding agent.
+The [AI workflows source](ai-workflows.qmd) includes installation commands verified against
+[Claude Code documentation](https://code.claude.com/docs/en/setup) and
+[Codex documentation](https://developers.openai.com/codex/cli/).
+Use a GitHub account and [GitHub CLI](https://cli.github.com/) when you reach publishing.
+Shell examples assume macOS, Linux, or WSL on Windows.
 
-The environment is the slowest part and the most common place to get stuck. Getting it done in advance is
-the single best thing you can do.
+Environment setup used to be a workshop bottleneck. Now the coding agent handles dependencies
+and verifies the build; attendees focus on the source material and the resulting publication.
+The existing environment recipes remain available for reproducibility.
 
-Install:
+### The directory method
 
-| Tool | Notes |
-|---|---|
-| [Quarto](https://quarto.org/docs/get-started/) | The binary, not the pip package |
-| [GitHub CLI](https://cli.github.com) (`gh`) | Used to create the repo and publish; run `gh auth login` |
-| Conda | [Miniconda](https://docs.conda.io/projects/miniconda/) is fine |
-| Git | Configured with your name and email |
-| VSCode | Plus the Quarto extension |
-| A GitHub account | |
+1. Create a new local directory for one question or publication.
+2. Move selected working copies of notes, raw data, and references into `context/`.
+3. Write `brief.md`: audience, question, inputs, outputs, and acceptance criteria.
+4. Launch `claude` or `codex` **inside that directory** and name the files to read.
+5. Have the agent implement, render, inspect, and revise. Audit the evidence yourself.
 
-You need a POSIX shell: macOS, Linux, or **WSL2** on Windows — not git bash, PowerShell or cygwin. On
-Windows, run `wsl --install`, then install everything above *inside* WSL and work from your Linux home
-directory, not `/mnt/c` (rendering across the filesystem boundary is slow and hits permission errors).
+The [sample context bundle](examples/ai-context/) contains synthetic paired runtimes, design
+notes, and a bibliography. It supports the graduate lab without downloading research data.
+The new module is designed for 60 minutes; use it independently or after the foundations deck.
 
-Then check it all worked:
+### Publishing your own blog
 
-```bash
-quarto --version && gh auth status && conda --version
-```
-
-### Set up the environment
-
-```bash
-curl -fsSL -o environment.yml \
-  https://raw.githubusercontent.com/project-delphi/quarto-workshop/main/environment.yml
-head -3 environment.yml   # expect YAML, not "<!DOCTYPE html>"
-conda env create -f environment.yml -p "$PWD/.conda"
-conda activate "$PWD/.conda"
-```
-
-Takes about two minutes. It is Python-only — R is a separate, optional environment
-(`environment-r.yml`) used by the RStudio section, so you do not pay for it unless you want it.
-
-That `head -3` is worth actually running. If a download fails, `curl -o` will happily save the error page
-under the right filename and the next command fails with a confusing YAML error.
-
-### Checkpoint
-
-Do not move past this until all four look right:
+After reviewing and committing your blog, create its remote repository and publish:
 
 ```bash
-which quarto                 # a path, not "not found"
-quarto check                 # Python and Jupyter both OK
-which python                 # .../.conda/bin/python, inside your project
-jupyter kernelspec list      # python3 -> your .conda, not some other project
-```
-
-### If you get stuck
-
-Clone a known-good blog and rejoin the session — sort your environment out afterwards, in the break. Do not
-spend the workshop debugging conda while everyone else is writing posts.
-
-```bash
-git clone https://github.com/project-delphi/quarto-blog-starter my-blog
-cd my-blog
-conda env create -f environment.yml -p "$PWD/.conda"
-conda activate "$PWD/.conda"
-quarto preview
-```
-
-It contains a post with an executing `{python}` cell, so if it renders a chart, your whole toolchain works —
-Quarto, Python **and** the Jupyter kernel.
-
-### Common errors
-
-| You see | It means | Do this |
-|---|---|---|
-| `quarto: command not found` | Not installed, or env not activated | `which quarto`, then `quarto check` |
-| `CondaError: Run 'conda init'` | Shell not set up for conda | `conda init "$(basename $SHELL)"`, restart shell |
-| `conda env create` fails parsing YAML | You downloaded an error page, not the file | `head -3 environment.yml` |
-| `ModuleNotFoundError` for a package you *know* is installed | A user-level Jupyter kernel is shadowing your env | `jupyter kernelspec list`; prefix with `JUPYTER_PATH="$PWD/.conda/share/jupyter"` |
-| `Address already in use` on preview | An old preview is still running | `quarto preview --port 4201` |
-| `gh: please run: gh auth login` | Not authenticated | `gh auth login` |
-| Published but 404s | Pages is still building | Wait a minute, check the repo's Actions tab |
-
-The fourth row is the sneaky one: the package really is installed, just not in the interpreter Quarto is
-using.
-
-### Publishing your blog
-
-Publishing is a **command**, not configuration — there is no `publish:` key in `_quarto.yml`:
-
-```bash
+gh auth login
 gh repo create my-blog --public --source=. --push
 quarto publish gh-pages
 ```
 
-Quarto renders, creates the `gh-pages` branch, adds `.nojekyll`, pushes, and prints your URL.
+Use these in **your blog's directory**. Check the repository's Pages settings and deployment
+status if needed. This workshop repository uses a different publishing mechanism, described below.
 
----
+## For instructors and contributors
 
-## For instructors
-
-### Repo layout
-
-| Path | What it is |
+| Path | Purpose |
 |---|---|
-| `index.qmd` | The entire deck. reveal.js format is set in this file's YAML header, not `_quarto.yml` |
-| `_quarto.yml` | Project type and `output-dir: docs`, plus a `render:` list limiting the build to the deck |
-| `environment.yml` | Slim Python environment, also what attendees download |
-| `environment-r.yml` | Optional R environment for the RStudio section |
-| `docs/` | Rendered output, committed — GitHub Pages serves `main:/docs` |
-| `CLAUDE.md` | Notes for Claude Code |
+| `index.qmd` | Foundations deck |
+| `ai-workflows.qmd` | Graduate module on agent-assisted Quarto authoring |
+| `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
+| `slides.css` | Shared responsive content styling and reduced-motion support |
+| `examples/ai-context/` | Synthetic lab inputs; intentionally outside the render list |
+| `AGENTS.md` | Repository instructions, review criteria, and delegation conventions |
+| `CLAUDE.md` | Imports the shared agent instructions |
+| `environment.yml`, `environment-r.yml` | Optional Python and R environment recipes |
+| `docs/` | Committed rendered output; GitHub Pages serves `main:/docs` |
 
-### Building
+### Build and preview
 
 ```bash
-conda activate "$PWD/.conda"
-quarto render          # writes docs/
-quarto preview         # live reload while editing
+quarto render
+quarto preview
+# Or preview a single module:
+quarto preview ai-workflows.qmd
 ```
 
-The deck contains an executing `{python}` cell, so rendering needs the environment active — a bare
-`quarto render` outside it fails on a missing Jupyter.
+Shared configuration uses fast fade transitions, mobile scroll view below 768px, code copying,
+and explicit execution settings. Computations run on project builds; errors stop the build.
+Preview does not open a browser automatically: open the URL printed in the terminal.
+Quarto 1.6.40 is the locally validated baseline; use a current supported release for teaching.
 
-Re-render and commit `docs/` in the same change as any `index.qmd` edit. Pages serves whatever is in
-`main:/docs`, so an un-rendered edit silently publishes nothing. Note this is a different mechanism from
-the `quarto publish gh-pages` flow the workshop teaches — don't mix them up.
+The foundations deck executes a Python cell. Ask the agent to prepare a local Python/Jupyter
+runtime and record how to use it. If reusing this checkout's existing environment, the explicit
+build invocation is:
 
-### Editing the deck
+```bash
+QUARTO_PYTHON="$PWD/.conda/bin/python" \
+  JUPYTER_PATH="$PWD/.conda/share/jupyter" quarto render
+```
 
-- `##` starts a slide, `#` a section slide; `{.smaller}` after a heading shrinks dense ones.
-- The deck teaches code-block syntax, so it deliberately contains both executed blocks (`` ```{python} ``)
-  and display-only ones (`` ```{.python} ``). The leading dot decides whether code runs — changing one to
-  the other changes behaviour, not just formatting.
-- To *show* cell syntax without executing it, write `{{python}}`. A longer outer fence is not enough;
-  Quarto's cell scanner finds the nested block and runs it anyway.
-- `code-line-numbers="1|2|3"` drives progressive highlighting and refers to *physical* lines. Re-check the
-  ranges after adding or removing a line, including line continuations.
-- Most sections end in an `### Exercise`. Keep that shape.
+This assumes `.conda/` has already been created from `environment.yml`. A virtual environment
+with Jupyter and the required packages works too; no particular environment manager is required.
 
-### Known quirks
+### Editing and verification
 
-- **`.gitignore` and `docs/`** — the inherited Python template has a `dist/` rule that also matches
-  `docs/site_libs/revealjs/dist/`. There is a negation for `docs/site_libs/**` further down; if output
-  files mysteriously will not stage, check `git check-ignore -v <path>`.
-- **A failed render empties `docs/`** — Quarto cleans the output directory before it builds, so if the
-  render dies (most often: environment not activated) you are left with a deleted `docs/`, not the previous
-  build. It is only ever a `git checkout -- docs` away, but do not commit in that state.
-- **`site_libs` churn** — the deck is `embed-resources: true`, so `docs/index.html` is a self-contained
-  ~3.6MB file and is all the published site needs. `docs/site_libs/` is also tracked but vestigial, and
-  renders rewrite parts of it. Incidental churn there is expected.
+- `#` creates a section slide, `##` a content slide, and `### Exercise` an exercise within a slide.
+- Keep one main idea per slide. Split dense content before applying `{.smaller}`.
+- Use executable `{python}` cells only for code that should run during rendering.
+  Use display-only `{.python}` or `python` fences for examples.
+- To display executable cell syntax, use `{{python}}` inside a longer outer Markdown fence.
+  A longer fence alone does not prevent Quarto from executing the nested cell.
+- Recheck progressive `code-line-numbers` ranges after editing examples.
+- Add each new deck to `project.render` and link it from the README and a relevant slide.
+- Render the whole project, inspect both decks at presentation and narrow viewport sizes,
+  check internal links, and run `git diff --check`.
+
+Re-render and include `docs/` alongside source edits. Do not hand-edit generated HTML or switch
+this repository to `quarto publish gh-pages`. A failed clean render can remove existing output;
+fix the failure and complete a successful full render before delivering changes.
+
+`embed-resources: true` bundles deck resources, but Quarto may still emit shared `site_libs/`
+assets. Keep generated dependencies together; external links still require network access.
+The `.gitignore` exception for `docs/site_libs/**` prevents the generic `dist/` rule from hiding
+Reveal.js assets.
