@@ -5,6 +5,23 @@ author: "Ravi Kalia"
 description: "A graduate marketing lab using a real randomized email experiment to build and verify executable publications with a coding agent."
 ---
 
+## Workflow Inputs and Outputs {#workflow-inputs-outputs}
+
+**Input:** Hillstrom's randomized email experiment in `context/`.
+
+| File | What the agent reads |
+|---|---|
+| `hillstrom.csv` | 64,000 customers, assignment and two-week outcomes |
+| `notes.md` | Design, data dictionary, provenance, limitations |
+| `sources.bib` | Experiment and documentation references |
+
+**Output:** one verified analysis in three report formats:
+`report.pdf`, `report.docx`, and `report.ipynb`.
+Also deliver `slides.html`, exactly **8 slides including the title**.
+
+**Decision:** which campaign increases sales per assigned customer?
+Keep `report.qmd`, `slides.qmd`, unchanged inputs, and build instructions.
+
 ## Learning Outcomes
 
 Use a continuing coding agent conversation to analyze a real promotion
@@ -12,7 +29,7 @@ experiment and communicate a campaign recommendation.
 
 - Define a sales outcome and a randomized comparison.
 - Delegate implementation, dependency setup, and rendering.
-- Revise a report and eight slides through follow-up requests.
+- Produce PDF, DOCX, and IPYNB reports plus eight slides.
 - Audit numerical claims, causal reasoning, and visual presentation.
 
 [Return to Quarto foundations](index.qmd)
@@ -23,7 +40,7 @@ experiment and communicate a campaign recommendation.
 |---|---:|---|
 | Start a local agent session | 10 min | Correct folder and working tools |
 | Inspect experiment and brief | 15 min | Question, outcomes, and comparison |
-| Build and revise | 20 min | Executable report and 8 slides |
+| Build and revise | 20 min | Three report formats and 8 slides |
 | Audit with a partner | 15 min | One verified correction or check |
 
 : {tbl-colwidths="[40,14,46]"}
@@ -34,7 +51,7 @@ Audience: graduate students in marketing, business analytics, or research method
 ::: {.notes}
 Use the installation links for attendees who need them. The eight numbered turns
 form the core lab. Website and blog adaptations are optional extensions.
-Completion: a partner can rebuild both outputs, trace claims to the raw data,
+Completion: a partner can rebuild all three report formats and the slides, trace claims to the raw data,
 and explain the recommendation's limits. Do not require a predetermined winner.
 :::
 
@@ -68,8 +85,9 @@ Source and original CSV verified 2026-10-06; provenance in the context notes.
 > Read the inputs in context/. Build an executable Quarto report for a
 > marketing manager. Compare each email campaign with no email on
 > two-week sales per assigned customer and purchase conversion. Explain
-> the experiment and limitations. Render, fix failures, and report what
-> you verified. Preserve the raw inputs.
+> the experiment and limitations. Export report.pdf, report.docx, and
+> report.ipynb from report.qmd. Create exactly 8 slides including the
+> title. Render, fix failures, and report checks. Preserve the raw inputs.
 
 The coding agent can inspect files, write source, prepare dependencies,
 and run Quarto within its tools and permissions.
@@ -222,11 +240,11 @@ is no basis for conditioning on email opens, visitors, or purchasers.
 
 **Continue in the same conversation:**
 
-> Write brief.md for the campaign decision. Require an HTML report and
-> exactly 8 slides including the title. Compare each email with no email
-> on mean sales per assigned customer and conversion in percentage
-> points. Include uncertainty, provenance, and business limitations.
-> Define completion checks. Label any planning assumptions explicitly.
+> Write brief.md using the three context files. Require report.pdf,
+> report.docx, and report.ipynb from report.qmd, plus exactly 8 slides
+> including the title. Compare each email with no email on sales/customer
+> and conversion in percentage points. Include uncertainty, provenance,
+> business limitations, and completion checks. Label planning assumptions.
 
 **Check:** review the question and outcomes before implementation.
 
@@ -261,20 +279,60 @@ Do not assume writing a file alone makes every agent load it.
 
 **Ask your coding agent:**
 
-> Implement brief.md as report.qmd first. Use executable Python cells
-> to read context/hillstrom.csv. Validate row counts, assignments, and
-> outcomes. Compute arm sizes, sales means, conversion, and contrasts
-> with control. Add uncertainty with stated assumptions, labeled figures,
-> captions, alt text, and citations. Render and record how to rebuild.
+> Implement brief.md as report.qmd. Read context/hillstrom.csv in
+> Python and validate rows, assignments, and outcomes. Compute arm
+> sizes, sales means, conversion, and contrasts with control. State
+> uncertainty assumptions. Add labeled figures, captions, alt text, and
+> citations. Export PDF, DOCX, and IPYNB. Prepare dependencies as needed
+> and record working build commands.
 
-**Commands involved:**
+**Check:** the source reads the CSV and computes each result.
+The next slides show how to export and inspect it.
 
-```bash
-quarto render report.qmd --to html
-quarto preview report.qmd
+## One Source, Three Report Formats {#report-formats}
+
+In `report.qmd`, the coding agent selects PDF and Word:
+
+```yaml
+format:
+  pdf: default
+  docx: default
+bibliography: context/sources.bib
+jupyter: python3
 ```
 
-**Check:** open the report and compare it with the brief and CSV.
+The notebook conversion preserves Markdown and executable Python cells.
+Ask the agent to include readable reference links in the notebook.
+
+## Render and Compare the Formats
+
+```bash
+quarto render report.qmd --to pdf
+quarto render report.qmd --to docx
+quarto convert report.qmd --output report.ipynb
+jupyter nbconvert --to notebook --execute --inplace report.ipynb
+```
+
+**PDF:** inspect page breaks, captions, and references.
+**DOCX:** open in Word or LibreOffice and inspect tables and figures.
+**IPYNB:** inspect Markdown, Python cells, and saved results. Restart the
+kernel and run all cells from the lab root to check reproducibility.
+
+::: {.notes}
+PDF requires a working TeX distribution such as TinyTeX. Delegate setup to the
+agent and record the actual environment, including a Python kernel for the
+notebook. Use quarto convert for a runnable notebook, then nbconvert to execute
+and save its outputs. A rendered --to ipynb export may turn code into Markdown
+instead of runnable cells. Inspect the cell types, saved results, and reference
+links. Prefer static Matplotlib figures and ordinary tables that work across
+formats. A single source keeps the analysis consistent; inspect every output.
+Official PDF, Word, notebook conversion, and execution documentation verified 2026-10-07:
+https://quarto.org/docs/output-formats/pdf-basics.html
+https://quarto.org/docs/output-formats/ms-word.html
+https://quarto.org/docs/cli/convert.html
+https://nbconvert.readthedocs.io/en/latest/usage.html
+Do not add browser-only tabsets or widgets to the core report.
+:::
 
 ## What to Inspect in the Source
 
@@ -581,7 +639,7 @@ If a figure and explanation are crowded, **ask your coding agent:**
 > On the Sales Results slide, the caption falls below the visible area.
 > Move the detailed interpretation to speaker notes and shorten the
 > caption. Keep the figure readable and the total at 8 slides. Re-render
-> at presentation size and a narrow viewport.
+> at desktop and laptop presentation sizes.
 
 **Check:** the entire caption fits; notes retain the necessary interpretation.
 
@@ -592,14 +650,15 @@ Ask it to distinguish completed checks from checks still needed.
 
 **Ask your coding agent:**
 
-> Rebuild both outputs. Recompute their sales and conversion claims
-> from the CSV. Check citations, links, figures, and denominators. Audit
-> the recommendation for unsupported profit or targeting claims. Review
-> the diff and report commands run, limitations, and files ready for my
-> review. Keep this work local.
+> Rebuild all three report formats and the slides. Run the notebook
+> from a fresh kernel in the lab root. Recompute claims from the CSV.
+> Audit citations, figures, denominators, and business claims. Review
+> the diff and report commands, limitations, and files ready for review.
+> Keep this work local.
+
+Use the report export commands above, then rebuild the slides:
 
 ```bash
-quarto render report.qmd --to html
 quarto render slides.qmd --to revealjs
 git diff --check
 ```
@@ -615,7 +674,7 @@ From a fresh workspace with the report and context, **ask your coding agent:**
 > Create a Quarto website in campaign-site with Decision, Experiment,
 > and Results pages. Adapt the verified report and copy its inputs.
 > Preserve the outcome definitions and limitations. Render the site and
-> check all local links and its mobile layout.
+> check all local links and its desktop layout.
 
 ```bash
 quarto create project website campaign-site --no-open --no-prompt
@@ -642,9 +701,10 @@ quarto create project blog marketing-blog --no-open --no-prompt
 
 | Output | Ask the coding agent to change | Verify yourself |
 |---|---|---|
-| Report | Develop experiment and results | Denominators and uncertainty |
+| PDF / DOCX | Develop experiment and results | Page layout, figures, references |
+| IPYNB | Retain narrative and executable cells | Run all cells and compare results |
 | Slides | Shorten visible explanation | Readability and recommendation |
-| Website | Link decision and evidence pages | Navigation and mobile layout |
+| Website | Link decision and evidence pages | Navigation and desktop layout |
 | Blog | Make a self-contained case study | Provenance, date, and listing |
 
 Keep the computation consistent while adapting the explanation.
@@ -678,7 +738,7 @@ Tool-specific agent configuration requires current official documentation.
 
 ### Exercise — 15 minutes
 
-Exchange the report and slides. Each partner checks:
+Exchange all three report formats and slides. Each partner checks:
 
 1. One additional-sales estimate against the CSV.
 2. One causal or business assumption against the notes.
@@ -690,8 +750,9 @@ Use the feedback for a plain-English revision request.
 
 ## Lab Submission
 
-Submit the report and eight-slide deck, source files, unchanged input copies,
-and dependency/build instructions.
+Submit `report.pdf`, `report.docx`, `report.ipynb`, and the eight-slide
+`slides.html`, plus both `.qmd` sources, unchanged input copies, and
+dependency/build instructions.
 
 | Record | Example |
 |---|---|
@@ -705,7 +766,7 @@ If no defect is found, report a check that passed. Do not invent an agent mistak
 
 | Dimension | Evidence of success |
 |---|---|
-| Reproducibility | A partner rebuilds both outputs |
+| Reproducibility | A partner rebuilds all formats and reruns the notebook |
 | Experimental reasoning | Assignment, outcomes, units, and assumptions are explicit |
 | Provenance | Claims trace to customer data or verified sources |
 | Communication | Figures and slides support the campaign decision |
@@ -719,7 +780,9 @@ Which business conclusions could a successful build never validate?
 - [Claude Code setup](https://code.claude.com/docs/en/setup) and [project memory](https://code.claude.com/docs/en/memory)
 - [Codex CLI](https://developers.openai.com/codex/cli/) and [repository instructions](https://developers.openai.com/codex/guides/agents-md/)
 - [Quarto Reveal.js](https://quarto.org/docs/presentations/revealjs/) and [execution](https://quarto.org/docs/projects/code-execution.html)
+- Report formats: [PDF](https://quarto.org/docs/output-formats/pdf-basics.html), [Word](https://quarto.org/docs/output-formats/ms-word.html), [notebook conversion](https://quarto.org/docs/cli/convert.html)
 
-Sources and installation guidance checked **2026-10-06**.
+Case and installation sources checked **2026-10-06**.
+Report format documentation checked **2026-10-07**.
 
 [Back to Quarto foundations](index.qmd)

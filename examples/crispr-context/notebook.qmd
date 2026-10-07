@@ -1,0 +1,81 @@
+---
+title: "CRISPR-Cas9 Research Notebook"
+format:
+  html:
+    toc: true
+    embed-resources: true
+bibliography: sources.bib
+jupyter: python3
+execute:
+  echo: true
+  error: false
+  cache: false
+  freeze: false
+---
+
+## Research question
+
+How do target-site indel-bearing read fractions compare between a Cas9 example
+and a control? This notebook uses **synthetic data** for learning Quarto.
+
+Cas9 uses guide RNA to direct DNA cleavage [@jinek2012]. RNA-directed Cas9
+cleavage at genomic loci in mammalian cells was demonstrated by @cong2013.
+These studies provide biological background. Our invented counts illustrate
+how to combine code, research notes, and references in one document.
+
+## Code and descriptive results
+
+One row in `counts.csv` represents one synthetic sample. The denominator is
+all target-site reads in that sample. Report the indel-bearing read fraction
+as a percentage, then calculate a descriptive mean across samples per condition.
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+
+counts = pd.read_csv("counts.csv")
+assert counts["sample"].is_unique
+assert (counts["total_reads"] > 0).all()
+assert counts["indel_reads"].between(0, counts["total_reads"]).all()
+counts["indel_percent"] = 100 * counts.indel_reads / counts.total_reads
+print(counts.to_string(index=False))
+means = counts.groupby("condition")["indel_percent"].mean()
+for condition, mean in means.items():
+    print(f"{condition}: mean indel-bearing reads = {mean:.1f}%")
+```
+
+```{python}
+#| label: fig-indels
+#| fig-cap: "Synthetic target-site indel fractions, three samples per condition."
+#| fig-alt: "Control samples have 2, 3, and 1 percent indel-bearing reads. Cas9 samples have 40, 45, and 50 percent. All six samples have 100 target-site reads."
+fig, ax = plt.subplots(figsize=(7, 4))
+colors = counts["condition"].map({"Control": "#666666", "Cas9": "#287a9b"})
+ax.bar(counts["sample"], counts["indel_percent"], color=colors)
+ax.set_xlabel("Synthetic sample (C: control; T: Cas9)")
+ax.set_ylabel("Indel-bearing reads (%)")
+ax.set_ylim(0, 100)
+fig.tight_layout()
+plt.show()
+```
+
+## Research notes
+
+The group means describe these invented inputs. They provide no evidence about
+biological efficacy. Reads within a sample are not independent biological
+replicates. Equal weighting of samples defines the descriptive group mean here.
+
+An indel-bearing read fraction does not establish an edited-cell percentage,
+a precise intended edit, functional knockout, or off-target specificity.
+A real study would need assay definitions, controls, and independent biological
+replicates. This example supplies no organism, target gene, or guide sequence.
+
+### Exercise
+
+In a separate Python list, use synthetic counts `[40, 45, 60]`, each out of
+100 target-site reads. Compute the mean percentage and explain its change from
+the Cas9 group above. Preserve the CSV.
+
+## References
+
+::: {#refs}
+:::

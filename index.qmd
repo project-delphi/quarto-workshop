@@ -8,8 +8,11 @@ description: "A hands-on path from plain-English requests to executable document
 
 ## What You Will Build
 
-A small Quarto blog with an executable post, created through a continuing
-conversation with a coding agent.
+A **CRISPR-Cas9 research notebook and blog** with executable Python,
+research notes, and primary references, built with a coding agent.
+
+The worked example uses **synthetic target-site read counts** to practice
+reporting an indel fraction. No laboratory results are supplied.
 
 By the end, you can:
 
@@ -194,9 +197,10 @@ The generated source remains yours to read, edit, and version.
 
 **Continue in the same coding agent conversation:**
 
-> Change the title to “My Research Notebook”. Add a section called
-> “What I want to explain” with a placeholder for my topic. Keep the page
-> short and render it again.
+> Change the title to “CRISPR-Cas9 Research Notebook”. Add “Research
+> question”: how do indel-bearing read fractions differ between a Cas9
+> example and a control? Add sections for code, research notes, and
+> references. Label this a synthetic teaching example and render again.
 
 **Check:** both the source title and browser title change.
 
@@ -208,13 +212,13 @@ and show its effect in the browser.
 ## A Useful Request
 
 > In hello.qmd, explain Quarto to first-year biology students. Use a
-> lab-report example and keep the introduction under 100 words. Preserve
+> CRISPR-Cas9 notebook example and keep the introduction under 100 words. Preserve
 > my title. Render the page and check that the example appears.
 
 | Include what matters | In this request |
 |---|---|
 | Context | `hello.qmd`, biology students |
-| Desired result | A short introduction with a lab example |
+| Desired result | A short introduction with a CRISPR-Cas9 example |
 | Constraint | Preserve the title |
 | Completion check | Render and find the example |
 
@@ -247,17 +251,18 @@ feature you would ask your coding agent to add to your project.
 
 **Ask your coding agent:**
 
-> Add a “Reading list” section to hello.qmd with a link to the Quarto
-> guide and one bold phrase. Render it and explain the Markdown you added.
+> Add a “Reading list” to hello.qmd with Jinek et al. (2012),
+> DOI 10.1126/science.1225829, and one bold phrase about RNA-guided
+> DNA cleavage. Verify the reference, render, and explain the Markdown.
 
 **Source pattern:**
 
 ```{.markdown code-line-numbers="1|3|5"}
 ## Reading list
 
-Start with the **Quarto guide**.
+Read about **RNA-guided DNA cleavage**.
 
-[Read the guide](https://quarto.org/docs/guide/)
+[Jinek et al. (2012)](https://doi.org/10.1126/science.1225829)
 ```
 
 **Check:** a heading, bold text, and a working link appear on the page.
@@ -273,7 +278,7 @@ Start with the **Quarto guide**.
 
 ```yaml
 ---
-title: "My Research Notebook"
+title: "CRISPR-Cas9 Research Notebook"
 format:
   html:
     toc: true
@@ -286,17 +291,17 @@ format:
 
 **Ask your coding agent:**
 
-> Add two tabs to hello.qmd: “Question” and “Evidence”. Put a short
-> placeholder in each. Use Quarto's tabset syntax and render the page.
+> Add two tabs to hello.qmd: “Question” and “Evidence”. Put a
+> short CRISPR-Cas9 note in each. Use Quarto's tabset syntax and render.
 
 **Source pattern:**
 
 ```markdown
 ::: {.panel-tabset}
 ## Question
-What am I investigating?
+How do the synthetic indel fractions compare?
 ## Evidence
-What would support the answer?
+Read counts illustrate reporting, not biological efficacy.
 :::
 ```
 
@@ -348,18 +353,20 @@ environment fix. Optional reproducibility recipes are in the workshop repository
 
 ## A Computation in These Slides
 
-This cell executes when this workshop deck renders:
+Three synthetic Cas9 samples, each with **100 target-site reads**.
+This cell executes when the deck renders:
 
 ```{python}
 #| echo: true
-values = [2, 4, 6]
-mean = sum(values) / len(values)
-print(f"Mean: {mean:.1f}")
+# Synthetic: indel-bearing reads out of 100 per sample
+edited_reads = [40, 45, 50]
+percent = [100 * n / 100 for n in edited_reads]
+print(f"Mean indel-bearing reads: {sum(percent) / len(percent):.1f}%")
 ```
 
 ### Exercise
 
-> Add this computation to hello.qmd. Change the last value to 12,
+> Add this computation to hello.qmd. Change the last count to 60,
 > render it, and explain why the output changes.
 
 **Check:** calculate the new mean yourself and compare with the page.
@@ -368,15 +375,16 @@ print(f"Mean: {mean:.1f}")
 
 **Ask your coding agent:**
 
-> Hide the mean calculation's source code in the rendered page, but keep
+> Hide the indel-fraction calculation's code in the page, but keep
 > its output visible and recompute it on render. Explain the option used.
 
 **Source pattern inside the executable cell:**
 
 ```python
 #| echo: false
-values = [2, 4, 12]
-print(sum(values) / len(values))
+edited_reads = [40, 45, 60]  # synthetic, 100 reads each
+percent = [100 * n / 100 for n in edited_reads]
+print(f"Mean indel-bearing reads: {sum(percent) / len(percent):.1f}%")
 ```
 
 `echo: false` hides source. `eval: false` would stop the calculation.
@@ -399,7 +407,7 @@ claude
 
 **Ask your coding agent:**
 
-> Create a Quarto blog in this folder titled “My Research Notebook”.
+> Create a Quarto blog titled “CRISPR-Cas9 Research Notebook”.
 > Initialize Git if needed and work on a blog-setup branch. Render the
 > starter site and tell me how to preview it locally.
 
@@ -429,43 +437,92 @@ new blog folder, and only if your coding agent has not already scaffolded it.
 Source: https://quarto.org/docs/websites/website-blog.html (checked 2026-10-06).
 :::
 
+## CRISPR-Cas9 Context for the Post {#crispr-context}
+
+Copy the supplied teaching inputs from the workshop clone:
+
+```bash
+mkdir -p ~/code/quarto-blog/context
+cp examples/crispr-context/* ~/code/quarto-blog/context/
+```
+
+| Input | Purpose |
+|---|---|
+| `counts.csv` | Six synthetic samples, control and Cas9 |
+| `notes.md` | Question, units, assumptions, limitations |
+| `sources.bib` | Jinek (2012) and Cong (2013), primary studies |
+| `notebook.qmd` | A complete worked notebook to inspect |
+
+**Check:** counts are teaching data. The papers provide biological background.
+
+::: {.notes}
+Run the copy commands from the workshop clone, then return to the blog agent
+session. The bundle stays outside this site's explicit render list. The worked
+notebook can also render on its own in a disposable copy of the bundle.
+:::
+
 ## Your First Executable Post
 
 **Ask your coding agent:**
 
-> Create posts/my-first-post/index.qmd. Explain a synthetic example of
-> annual post counts: 2021: 1, 2022: 4, 2023: 9, 2024: 16. Generate a
-> labeled chart in a Python cell. Add a caption, alt text, and today's
-> date. Label the data synthetic. Render the blog and check the listing.
-
-**Command behind the build:**
+> Read context/notes.md and context/notebook.qmd. Create
+> posts/crispr-cas9/index.qmd with a research question, executable Python
+> reading counts.csv, an indel-fraction chart, research notes, and cited
+> references from sources.bib. Fix paths for the post folder. Include
+> title, date, caption, and alt text. Label all counts synthetic.
+> Render the blog and check its listing.
 
 ```bash
 quarto render
 ```
 
-**Check:** the post appears on the home page and its chart matches the four values.
+**Check:** six samples appear, with indel-bearing reads as a percentage
+of total target-site reads in each sample.
 
 ## A Cell the Coding Agent Might Write
 
-One possible source pattern inside the post:
+One possible source pattern inside `posts/crispr-cas9/index.qmd`:
 
 ````markdown
 ```{{python}}
-#| label: fig-posts
-#| fig-cap: "Synthetic annual post counts, 2021–2024."
-#| fig-alt: "Post counts rise from 1 to 16 across four years."
+#| label: fig-indels
+#| fig-cap: "Synthetic target-site indel fractions by sample."
+#| fig-alt: "Control samples have lower fractions than Cas9 samples."
+import pandas as pd
 import matplotlib.pyplot as plt
-
-plt.plot([2021, 2022, 2023, 2024], [1, 4, 9, 16], marker="o")
-plt.xticks([2021, 2022, 2023, 2024])
-plt.xlabel("Year")
-plt.ylabel("Posts (count)")
+counts = pd.read_csv("../../context/counts.csv")
+percent = 100 * counts.indel_reads / counts.total_reads
+plt.bar(counts["sample"], percent)
+plt.ylabel("Indel-bearing reads (%)")
+plt.ylim(0, 100)
 plt.show()
 ```
 ````
 
-**Check:** the figure comes from the executable cell. It is not an invented image.
+**Check:** each bar uses its own sample's read denominator.
+
+## Research Notes and Primary References {#crispr-notes}
+
+**Ask your coding agent:**
+
+> Explain that Cas9 uses guide RNA to direct DNA cleavage, citing
+> Jinek et al. (2012). Cite Cong et al. (2013) for mammalian genome
+> editing. Distinguish this background from our invented counts.
+> Add research notes: one row is a synthetic sample, reads are not
+> independent biological replicates, and indels do not establish a
+> precise intended edit or off-target specificity. Render the references.
+
+- [Jinek et al. (2012)](https://doi.org/10.1126/science.1225829)
+- [Cong et al. (2013)](https://doi.org/10.1126/science.1231143)
+
+**Check:** source citations resolve, and the notebook states its limits.
+
+::: {.notes}
+Primary references and DOI metadata checked 2026-10-07 against the Science
+record for Jinek and the PubMed abstract for Cong. The synthetic data are not
+extracted from either study. No statistical efficacy claim follows from this
+teaching example. See context/notes.md for the denominator and replicate caveats.
+:::
 
 ## Preview and Render
 
@@ -489,9 +546,9 @@ Neither command publishes the blog to the public web.
 
 **Continue the same conversation after inspecting the post:**
 
-> The chart's year labels show fractional years. Use the four observed
-> years as ticks. Add a sentence below the figure saying these are
-> invented counts for learning Quarto. Re-render the whole blog.
+> The chart hides whether the counts are real. Add “Synthetic” to
+> its caption, label the y-axis “Indel-bearing reads (%)”, and state
+> that the counts illustrate reporting. Re-render the whole blog.
 
 ### Exercise
 
@@ -501,7 +558,7 @@ Find one real defect in your own preview and describe it to your coding agent.
 
 ::: {.notes}
 The example names a possible defect, not an error guaranteed to occur in the
-previous cell. If the ticks are already correct, choose an observed defect.
+previous cell. If the labels are already correct, choose an observed defect.
 :::
 
 ## A Blog Checkpoint
@@ -515,7 +572,7 @@ previous cell. If the ticks are already correct, choose an observed defect.
 ### Exercise
 
 Open the home page, follow the post link, and return using navigation.
-Inspect the chart at a narrow browser width.
+Inspect the chart at a laptop viewport size.
 
 **Done:** the listing works, the figure is readable, and the prose labels the data synthetic.
 
@@ -589,7 +646,7 @@ GitHub CLI reference: https://cli.github.com/manual/gh_repo_create (checked 2026
 
 **Ask your coding agent:** include the failed command, exact error, and file path.
 
-> Running quarto render fails in posts/my-first-post/index.qmd with
+> Running quarto render fails in posts/crispr-cas9/index.qmd with
 > the error below. Reproduce it, identify the cause, fix it, and rerun
 > the full build. Keep execution enabled and preserve the figure.
 > Explain what changed.
@@ -627,7 +684,7 @@ full build, but must review the combined result before publishing.
 
 **A notebook:**
 
-> Adapt my analysis.ipynb into a blog post. Preserve the computations,
+> Adapt my CRISPR-Cas9 analysis.ipynb into a blog post. Preserve the computations,
 > add the missing explanation, and verify that the rendered results agree.
 
 **An R analysis:**
