@@ -1,19 +1,79 @@
 /* Shared additions to Quarto's black Reveal.js theme. */
+:root {
+  --ws-accent: #86cce8;        /* prompts, links, section marks */
+  --ws-exercise: #e9b86e;      /* exercise labels */
+  --ws-muted: #b8c2cc;         /* captions and secondary text */
+  --ws-panel: rgba(134, 204, 232, 0.08);
+}
+
 .reveal .slides section { overflow-wrap: anywhere; }
-.reveal pre code { tab-size: 2; }
-.reveal table { font-size: 0.8em; }
 .reveal img { max-width: 100%; height: auto; }
+
+/* Title and section slides: a short accent rule anchors the heading. */
+.reveal #title-slide .subtitle { color: var(--ws-accent); }
+.reveal #title-slide .quarto-title-author-name { color: var(--ws-muted); }
+.reveal #title-slide h1.title::after,
+.reveal section.level1.title-slide h1::after {
+  content: "";
+  display: block;
+  width: 2.2em;
+  height: 0.09em;
+  margin: 0.25em auto 0;
+  background: var(--ws-accent);
+}
+.reveal section.level1.title-slide h1::after { margin-left: 0; }
+
+/* Slide titles keep a little more room for content. */
+.reveal h2 { margin-bottom: 0.45em; }
+
+/* "### Exercise" becomes a labelled activity marker, not a second title.
+   Quarto gives these headings ids such as exercise, exercise-1, exercise-30-minutes. */
+.reveal h3[id^="exercise"] {
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ws-exercise);
+  margin: 0.55em 0 0.2em;
+}
+.reveal h3[id^="exercise"]::before { content: "\25B8\00A0" / ""; }
+
+/* Prompts to the coding agent read as a chat message. */
 .reveal blockquote {
   width: 94%;
-  margin: 0.65em 0;
-  padding: 0.15em 0 0.15em 0.7em;
-  border-left: 3px solid #86cce8;
-  background: transparent;
+  margin: 0.55em 0;
+  padding: 0.3em 0.75em;
+  border-left: 4px solid var(--ws-accent);
+  border-radius: 0 0.35em 0.35em 0;
+  background: var(--ws-panel);
   box-shadow: none;
   font-style: normal;
 }
 .reveal blockquote p:first-child { margin-top: 0; }
 .reveal blockquote p:last-child { margin-bottom: 0; }
+
+/* Code is read from the back of a room. */
+.reveal pre { font-size: 0.62em; line-height: 1.35; }
+.reveal pre code { tab-size: 2; }
+
+/* Tables: a clear header rule and gentle row separation. */
+.reveal table { font-size: 0.8em; }
+.reveal table th {
+  border-bottom: 2px solid var(--ws-accent);
+  font-weight: 600;
+}
+.reveal table td { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+.reveal table tbody tr:last-child td { border-bottom: none; }
+
+/* Figure captions are secondary to the figure. */
+.reveal figcaption, .reveal .quarto-figure figcaption { color: var(--ws-muted); }
+
+/* Column layouts stack once the deck switches to scroll view on narrow screens. */
+@media (max-width: 768px) {
+  .reveal .columns { flex-direction: column; }
+  .reveal .columns .column { width: 100% !important; }
+}
+
 .reveal a:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
 
 @media (prefers-reduced-motion: reduce) {
