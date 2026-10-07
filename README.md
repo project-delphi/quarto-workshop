@@ -1,16 +1,15 @@
 # Quarto Workshop
 
-Build technical documents, Reveal.js slides, sites, and blogs by asking Codex in plain English.
-Learn the Quarto commands and source syntax alongside the requests. Claude Code users can
-follow the same task prompts with their agent.
+Build technical documents, Reveal.js slides, sites, and blogs by asking a coding agent in plain English.
+Learn the Quarto commands and source syntax alongside the requests. The same prompts work with Claude Code or Codex.
 
-- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — a continuing Codex conversation that builds a document, adds executable content, creates a blog, and prepares publication.
-- **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a graduate research conversation covering evidence, an executable report, eight slides, and verified revisions.
+- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — a continuing coding agent conversation that builds a document, adds executable content, creates a blog, and prepares publication.
+- **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, an executable report, eight slides, and verified revisions.
 
 ## For attendees
 
 Install [Quarto](https://quarto.org/docs/get-started/), Git, an editor, and one coding agent.
-The [AI workflows source](ai-workflows.qmd) includes installation commands verified against
+The [foundations source](index.qmd) shows installation of both agents, verified against
 [Claude Code documentation](https://code.claude.com/docs/en/setup) and
 [Codex documentation](https://developers.openai.com/codex/cli/).
 Use a GitHub account and [GitHub CLI](https://cli.github.com/) when you reach publishing.
@@ -22,8 +21,8 @@ The existing environment recipes remain available for reproducibility.
 
 ### Learning through a conversation
 
-Each major activity pairs **Ask Codex**, **Commands** (or a source pattern), and a
-**Check**. Enter the prompt in a Codex session opened in the exercise folder. Codex can
+Each major activity pairs **Ask your coding agent**, **Commands** (or a source pattern), and a
+**Check**. Enter the prompt in a coding agent session opened in the exercise folder. The coding agent can
 edit files and run tools there, subject to its permissions. Commands show what performs
 the work and provide a manual route; do not rerun a scaffold command the agent already ran.
 
@@ -32,8 +31,11 @@ fix build errors, and tell me which file to open.” Then inspect both files and
 “Add a reading list with a link to the Quarto guide. Render it again.”
 
 The foundations session takes 165 minutes including exercises and discussion. The
-60-minute graduate lab uses eight conversation turns, from inspecting evidence to
+60-minute marketing lab uses eight conversation turns, from inspecting evidence to
 reviewing the complete deliverable. Website and blog adaptations are optional extensions.
+The marketing case uses Kevin Hillstrom's [published randomized email experiment](https://blog.minethatdata.com/2008/03/minethatdata-e-mail-analytics-and-data.html)
+(2008), with two-week customer purchase and spending outcomes. The classroom brief asks for a
+campaign recommendation; campaign cost, margin, and long-term outcomes are unavailable.
 Prompt examples are suggested tasks, not transcripts or guarantees of an agent's output.
 See [official Codex prompting guidance](https://developers.openai.com/codex/prompting/)
 and [CLI documentation](https://developers.openai.com/codex/cli/) (checked 2026-10-06).
@@ -46,8 +48,10 @@ and [CLI documentation](https://developers.openai.com/codex/cli/) (checked 2026-
 4. Ask it to write `brief.md`: audience, question, inputs, outputs, and acceptance criteria. Review the brief.
 5. Have the agent implement, render, inspect, and revise. Audit the evidence yourself.
 
-The [sample context bundle](examples/ai-context/) contains synthetic paired runtimes, design
-notes, and a bibliography. It supports the graduate lab without downloading research data.
+The [sample context bundle](examples/ai-context/) contains an optional synthetic runtime example. The active
+[marketing context bundle](examples/marketing-context/) contains the original 64,000-customer
+Hillstrom email experiment, a data dictionary and provenance notes, and a bibliography.
+The marketing lab runs from this local CSV without downloading data during rendering.
 Use the graduate module independently or after the foundations deck.
 
 ### Publishing your own blog
@@ -62,7 +66,7 @@ quarto publish gh-pages
 
 Use these in **your blog's directory**. Check the repository's Pages settings and deployment
 status if needed. This workshop repository uses a different publishing mechanism, described below.
-The foundations deck also shows how to ask Codex to prepare publication, review the destination,
+The foundations deck also shows how to ask your coding agent to prepare publication, review the destination,
 then explicitly authorize the commit, remote creation, push, and publication.
 
 ## For instructors and contributors
@@ -70,10 +74,11 @@ then explicitly authorize the commit, remote creation, push, and publication.
 | Path | Purpose |
 |---|---|
 | `index.qmd` | Foundations deck |
-| `ai-workflows.qmd` | Graduate module on agent-assisted Quarto authoring |
+| `ai-workflows.qmd` | Marketing experiment lab on agent-assisted Quarto authoring |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
 | `slides.css` | Shared responsive content styling and reduced-motion support |
-| `examples/ai-context/` | Synthetic lab inputs; intentionally outside the render list |
+| `examples/marketing-context/` | Public Hillstrom promotion experiment and provenance; outside the render list |
+| `examples/ai-context/` | Preserved optional synthetic runtime inputs; outside the render list |
 | `AGENTS.md` | Repository instructions, review criteria, and delegation conventions |
 | `CLAUDE.md` | Imports the shared agent instructions |
 | `environment.yml`, `environment-r.yml` | Optional Python and R environment recipes |
