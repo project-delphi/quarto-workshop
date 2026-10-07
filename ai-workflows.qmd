@@ -346,12 +346,17 @@ control_sales = arm_summary.loc["No E-Mail", "sales"]
 arm_summary["sales_se"] = arm_summary["sales_sd"] / arm_summary["n"] ** 0.5
 
 
-def contrast(a, b):
+def contrast(summary, a, b):
     """Difference in mean sales a - b with a 95% normal-approximation interval."""
-    diff = arm_summary.loc[a, "sales"] - arm_summary.loc[b, "sales"]
-    half = 1.96 * (arm_summary.loc[a, "sales_se"] ** 2
-                   + arm_summary.loc[b, "sales_se"] ** 2) ** 0.5
+    diff = summary.loc[a, "sales"] - summary.loc[b, "sales"]
+    half = 1.96 * (summary.loc[a, "sales_se"] ** 2
+                   + summary.loc[b, "sales_se"] ** 2) ** 0.5
     return diff, diff - half, diff + half
+
+
+def signed_dollars(amount):
+    """Format a difference as +$0.77 or -$0.12, sign taken from the value."""
+    return f"{'+' if amount >= 0 else '-'}${abs(amount):.2f}"
 
 
 print("| Assigned arm | Customers | Sales/customer | Conversion |")
@@ -378,13 +383,16 @@ These observations describe this retailer's test and two-week window.
 print("| Campaign | Added sales/customer | 95% interval | Conversion change |")
 print("|---|---:|---:|---:|")
 for arm in ["Mens E-Mail", "Womens E-Mail"]:
-    delta_sales, low, high = contrast(arm, "No E-Mail")
+    delta_sales, low, high = contrast(arm_summary, arm, "No E-Mail")
+    # The prose on this slide and the figure's alt text say both intervals exclude zero.
+    assert low > 0, f"{arm}: interval includes zero; update the slide text"
     delta_conversion = 100 * (arm_summary.loc[arm, "conversion"]
                               - arm_summary.loc["No E-Mail", "conversion"])
-    print(f"| {arm} | +${delta_sales:.2f} | ${low:.2f} to ${high:.2f} | +{delta_conversion:.2f} pp |")
-head_to_head, low, high = contrast("Mens E-Mail", "Womens E-Mail")
+    print(f"| {arm} | {signed_dollars(delta_sales)} | ${low:.2f} to ${high:.2f} | {delta_conversion:+.2f} pp |")
+head_to_head, low, high = contrast(arm_summary, "Mens E-Mail", "Womens E-Mail")
+assert 0 < low < 0.1, "head-to-head interval no longer 'barely excludes zero'; update the slide text"
 print()
-print(f"Men's email minus women's email: **+${head_to_head:.2f}** per assigned customer "
+print(f"Men's email minus women's email: **{signed_dollars(head_to_head)}** per assigned customer "
       f"(95% interval ${low:.2f} to ${high:.2f}).")
 ```
 
@@ -416,7 +424,7 @@ import matplotlib.pyplot as plt
 
 arms = ["Mens E-Mail", "Womens E-Mail"]
 labels = ["Men's email", "Women's email"]
-estimates = [contrast(arm, "No E-Mail") for arm in arms]
+estimates = [contrast(arm_summary, arm, "No E-Mail") for arm in arms]
 gains = [e[0] for e in estimates]
 errors = [[e[0] - e[1] for e in estimates], [e[2] - e[0] for e in estimates]]
 with plt.style.context("dark_background"):
@@ -427,13 +435,14 @@ with plt.style.context("dark_background"):
     ax.errorbar(gains, labels, xerr=errors, fmt="none", ecolor="white",
                 elinewidth=2, capsize=6, capthick=2)
     ax.axvline(0, color="white", linewidth=1)
-    ax.set_xlim(0, 1.3)
+    ax.set_xlim(min(0, min(e[1] for e in estimates)) - 0.05,
+                max(e[2] for e in estimates) + 0.25)
     ax.invert_yaxis()
     ax.set_xlabel("Additional two-week sales (dollars / assigned customer)", fontsize=14)
     ax.tick_params(labelsize=14)
     for bar, (gain, low, high) in zip(bars, estimates):
         ax.text(high + 0.03, bar.get_y() + bar.get_height() / 2,
-                f"+${gain:.2f}", va="center", fontsize=16)
+                signed_dollars(gain), va="center", fontsize=16)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
     plt.show()
