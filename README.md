@@ -3,8 +3,8 @@
 Build technical documents, Reveal.js slides, sites, and blogs by asking a coding agent in plain English.
 Learn the Quarto commands and source syntax alongside the requests. The same prompts work with Claude Code or Codex.
 
-- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — a continuing coding agent conversation that builds a document, adds executable content, creates a blog, and prepares publication.
-- **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, an executable report, eight slides, and verified revisions.
+- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — a continuing coding agent conversation that builds a CRISPR-Cas9 research notebook and blog with executable code, research notes, and primary references, then prepares publication.
+- **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, a report in PDF, DOCX, and IPYNB, eight slides, and verified revisions.
 
 ## For attendees
 
@@ -48,11 +48,39 @@ and [CLI documentation](https://developers.openai.com/codex/cli/) (checked 2026-
 4. Ask it to write `brief.md`: audience, question, inputs, outputs, and acceptance criteria. Review the brief.
 5. Have the agent implement, render, inspect, and revise. Audit the evidence yourself.
 
+The [CRISPR-Cas9 context bundle](examples/crispr-context/) supplies synthetic target-site
+read counts, interpretation notes, two primary references, and a complete executable
+`notebook.qmd`. Copy it into a separate workspace before rendering or adapting it
+into a blog post. The counts illustrate indel-fraction reporting and are not experimental
+results from the cited papers.
+
 The [sample context bundle](examples/ai-context/) contains an optional synthetic runtime example. The active
 [marketing context bundle](examples/marketing-context/) contains the original 64,000-customer
 Hillstrom email experiment, a data dictionary and provenance notes, and a bibliography.
 The marketing lab runs from this local CSV without downloading data during rendering.
 Use the graduate module independently or after the foundations deck.
+
+The marketing workflow states its inputs and outputs on its opening content slide:
+`context/hillstrom.csv`, `notes.md`, and `sources.bib` become `report.pdf`,
+`report.docx`, `report.ipynb`, and an eight-slide `slides.html`, with editable
+`.qmd` sources and build instructions. Create the report from one source and run:
+
+```bash
+quarto render report.qmd --to pdf
+quarto render report.qmd --to docx
+quarto convert report.qmd --output report.ipynb
+jupyter nbconvert --to notebook --execute --inplace report.ipynb
+quarto render slides.qmd --to revealjs
+```
+
+These commands run in the attendee's marketing workspace. Ask the agent to inspect
+available tools and prepare Python/Jupyter and a PDF engine as needed. Inspect
+PDF page layout, DOCX figures and tables, and notebook cells and saved results.
+Use `quarto convert` to preserve runnable cells, then `nbconvert` to execute
+and save the notebook results. Restart its kernel and run all cells from the lab
+root, then compare all formats. Include readable reference links in its Markdown. Format guidance: [PDF](https://quarto.org/docs/output-formats/pdf-basics.html),
+[Word](https://quarto.org/docs/output-formats/ms-word.html), and
+[notebook conversion](https://quarto.org/docs/cli/convert.html), checked 2026-10-07.
 
 ### Publishing your own blog
 
@@ -77,6 +105,7 @@ then explicitly authorize the commit, remote creation, push, and publication.
 | `ai-workflows.qmd` | Marketing experiment lab on agent-assisted Quarto authoring |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
 | `slides.css` | Shared responsive content styling and reduced-motion support |
+| `examples/crispr-context/` | Synthetic CRISPR-Cas9 counts, notes, references, and worked notebook; outside the render list |
 | `examples/marketing-context/` | Public Hillstrom promotion experiment and provenance; outside the render list |
 | `examples/ai-context/` | Preserved optional synthetic runtime inputs; outside the render list |
 | `AGENTS.md` | Repository instructions, review criteria, and delegation conventions |
@@ -93,8 +122,8 @@ quarto preview
 quarto preview ai-workflows.qmd
 ```
 
-Shared configuration uses fast fade transitions, mobile scroll view below 768px, code copying,
-and explicit execution settings. Computations run on project builds; errors stop the build.
+The teaching decks target desktop computers and modern laptops. Shared configuration
+uses fast fade transitions, code copying, and explicit execution settings. Computations run on project builds; errors stop the build.
 Preview does not open a browser automatically: open the URL printed in the terminal.
 Quarto 1.6.40 is the locally validated baseline; use a current supported release for teaching.
 
@@ -120,7 +149,7 @@ with Jupyter and the required packages works too; no particular environment mana
   A longer fence alone does not prevent Quarto from executing the nested cell.
 - Recheck progressive `code-line-numbers` ranges after editing examples.
 - Add each new deck to `project.render` and link it from the README and a relevant slide.
-- Render the whole project, inspect both decks at presentation and narrow viewport sizes,
+- Render the whole project, inspect both decks at desktop and laptop presentation sizes,
   check internal links, and run `git diff --check`.
 
 Re-render and include `docs/` alongside source edits. Do not hand-edit generated HTML or switch

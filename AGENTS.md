@@ -8,6 +8,10 @@ This repository is a Quarto website containing Reveal.js teaching decks. Read `_
 and exercise-driven structure. The main learning path delegates dependency setup to agents;
 do not reintroduce lengthy Conda or kernel troubleshooting lessons.
 
+The workshop audience uses desktop computers and modern laptops. Design and
+validate the teaching decks at desktop and laptop presentation sizes. Mobile
+layout review is not a completion requirement unless explicitly requested.
+
 Shared presentation and execution settings live in `_quarto.yml`; document headers contain
 metadata and only necessary overrides. Keep `project.render` explicit so README, agent
 instructions, and lab inputs never become published pages accidentally.
@@ -26,7 +30,7 @@ quarto preview ai-workflows.qmd
 Preview prints a local URL and does not launch a browser automatically. Open that URL for
 visual inspection. Stop only preview processes you started.
 
-The foundations deck executes Python through Jupyter. Inspect the existing runtime before
+The foundations deck executes Python through Jupyter. Inspect the existing runtime and any required PDF/TeX engine before
 installing dependencies; prepare a local environment if needed and record the commands used.
 `environment.yml` and `environment-r.yml` are optional reproducibility recipes. When the
 existing `.conda/` environment is usable, select it explicitly:
@@ -56,6 +60,41 @@ keep teaching computations fresh. Changes to external data are not automatically
   documentation and record the verification date. Never invent results or references.
 - Give meaningful figures captions and alternative text; inspect code wrapping and tables.
 
+## Worked examples and report deliverables
+
+The foundations researcher notebook and blog use the CRISPR-Cas9 example in
+`examples/crispr-context/`: synthetic read counts, research notes, a worked
+`notebook.qmd`, and primary references. Keep synthetic data visibly labeled.
+Compute indel-bearing read fractions using each sample's total target-site reads.
+Distinguish read fractions from edited-cell percentages, precise intended edits,
+and off-target specificity. The cited studies supply biological background,
+not the teaching counts. Keep this bundle outside `project.render`.
+
+The marketing workflow names inputs and deliverables on its opening content
+slide. Inputs are `context/hillstrom.csv`, `notes.md`, and `sources.bib`.
+Deliverables are `report.pdf`, `report.docx`, a runnable `report.ipynb`, and
+`slides.html` with exactly eight slides including the title, plus sources,
+unchanged inputs, and build instructions. Keep the brief, prompts, commands,
+review criteria, README, and submission checklist consistent with this contract.
+
+Build the reports from one `report.qmd`. Render PDF and DOCX with Quarto. For a
+runnable notebook with saved results, use the tested conversion/execution route:
+
+```bash
+quarto convert report.qmd --output report.ipynb
+jupyter nbconvert --to notebook --execute --inplace report.ipynb
+```
+
+Run from the lab root with the selected Python/Jupyter environment. Do not assume
+`quarto render --to ipynb` preserves executable cells: the locally validated
+Quarto 1.6.40 export can turn analysis code into Markdown. Check notebook cell
+types, saved outputs, and execution from a fresh kernel. Include readable
+reference links in notebook Markdown and verify bibliography rendering in PDF
+and DOCX. Test changed instructional commands in a disposable workspace without
+running a paid agent session. Official [conversion](https://quarto.org/docs/cli/convert.html)
+and [notebook execution](https://nbconvert.readthedocs.io/en/latest/usage.html)
+documentation checked 2026-10-07.
+
 ## New modules and custom sub-agent workflows
 
 Before authoring a module, define audience, prerequisites, objectives, an exercise, and observable
@@ -81,7 +120,9 @@ configuration. This role contract alone does not install or launch custom agents
 ## Validation and generated output
 
 Run `quarto render` and `git diff --check` after source/configuration changes. Inspect every
-changed slide in a browser, including narrow/mobile view, and verify links between both decks.
+changed slide in a browser at desktop and laptop presentation sizes, and verify
+links between both decks. Use a viewport such as 1440 × 1000 for desktop and
+1366 × 768 for laptop, checking code wrapping and caption visibility at both.
 Check executed output, captions, citations, math, and code overflow; a clean render alone is
 insufficient. Test instructional commands in a disposable directory when their behavior changes.
 Never run paid agent sessions merely to test a displayed command.
