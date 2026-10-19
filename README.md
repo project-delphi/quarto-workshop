@@ -3,7 +3,7 @@
 Build technical documents, Reveal.js slides, sites, and blogs by asking a coding agent in plain English.
 Learn the Quarto commands and source syntax alongside the requests. The same prompts work with Claude Code or Codex.
 
-- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — a continuing coding agent conversation that builds a CRISPR-Cas9 research notebook and blog with executable code, research notes, and primary references, then prepares publication.
+- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — four CRISPR-Cas9 tasks: a research Jupyter notebook, introduction slides, a three-page essay, and a separate blog, with explicit outputs and review checks.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, a report in PDF, DOCX, and IPYNB, eight slides, and verified revisions.
 
 ## For attendees
@@ -30,9 +30,10 @@ For example, ask: “Create hello.qmd, a short HTML page introducing Quarto. Ren
 fix build errors, and tell me which file to open.” Then inspect both files and follow up:
 “Add a reading list with a link to the Quarto guide. Render it again.”
 
-The foundations session takes 165 minutes including exercises and discussion. The
-60-minute marketing lab uses eight conversation turns, from inspecting evidence to
-reviewing the complete deliverable. Website and blog adaptations are optional extensions.
+The foundations tasks can span multiple sessions, beginning with short source exercises
+and ending with review and optional blog publication. The 60-minute marketing lab uses
+eight conversation turns, from inspecting evidence to reviewing the complete deliverable.
+Its website and blog adaptations are optional extensions.
 The marketing case uses Kevin Hillstrom's [published randomized email experiment](https://blog.minethatdata.com/2008/03/minethatdata-e-mail-analytics-and-data.html)
 (2008), with two-week customer purchase and spending outcomes. The classroom brief asks for a
 campaign recommendation; campaign cost, margin, and long-term outcomes are unavailable.
@@ -49,10 +50,58 @@ and [CLI documentation](https://developers.openai.com/codex/cli/) (checked 2026-
 5. Have the agent implement, render, inspect, and revise. Audit the evidence yourself.
 
 The [CRISPR-Cas9 context bundle](examples/crispr-context/) supplies synthetic target-site
-read counts, interpretation notes, two primary references, and a complete executable
-`notebook.qmd`. Copy it into a separate workspace before rendering or adapting it
-into a blog post. The counts illustrate indel-fraction reporting and are not experimental
-results from the cited papers.
+read counts, interpretation notes, three primary references, and a worked research
+Jupyter notebook source, `notebook.qmd`. Copy it into `~/code/quarto-play/context/`
+before starting the four tasks. The counts illustrate indel-fraction reporting and
+are not experimental results from the cited papers.
+
+### Four foundations tasks
+
+The early `hello.qmd` / `hello.html` exercises teach source syntax. They do not
+replace the runnable research Jupyter notebook required by Task 1.
+
+| Task | Editable source | Required final output and check |
+|---|---|---|
+| 1. Research Jupyter notebook | `notebook.qmd` | `notebook.ipynb`, executable from a fresh kernel with saved results |
+| 2. CRISPR-Cas9 introduction | `intro.qmd` | `intro.html`, exactly six Reveal.js slides including title and references |
+| 3. Why genomic indel counting and statistical summaries matter | `essay.qmd` | `essay.pdf`, exactly three pages including references, no separate cover |
+| 4. Separate CRISPR-Cas9 blog | Blog configuration and `posts/crispr-cas9/index.qmd` | `_site/index.html` linking to `_site/posts/crispr-cas9/index.html` |
+
+Tasks 1–3 run in `~/code/quarto-play/`. Create the notebook from the worked source
+and fix paths to `context/`. Include all six sample fractions, a captioned chart,
+and each condition's sample count, mean, median, and sample standard deviation.
+State that SD uses percentage points and that samples receive equal weight.
+Add readable reference links in notebook Markdown.
+
+```bash
+quarto convert notebook.qmd --output notebook.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebook.ipynb
+quarto render intro.qmd --to revealjs
+quarto render essay.qmd --to pdf
+```
+
+The introduction addresses first-year biology students: title, guide RNA/PAM,
+cleavage and repair, research value, indel measurement and limits, and references.
+Use the dark Reveal.js theme and inspect all six slides on desktop and laptop.
+
+The essay explains why indel counts inform CRISPR-Cas9 assessment and how
+denominators, control background, and statistical summaries affect interpretation.
+Use A4, 11-point text, and 1-inch margins. Page 1 covers repair and the value of
+measurement; page 2 covers read fractions, controls, and mean/median/sample SD;
+page 3 covers independent replicates, uncertainty, limitations, and references.
+Verify the rendered three-page total rather than inferring it from a word count.
+Keep synthetic illustrations distinct from primary evidence and do not invent
+inferential results from the teaching counts.
+
+Task 4 starts in a separate `~/code/quarto-blog/` project and adapts the same
+context into a website post. The blog does not replace Tasks 1–3. Render it with
+`quarto render` and test the home-page listing and post navigation. Keep sources,
+unchanged context inputs, and build instructions in each workspace. Use a suitable
+local Python/Jupyter runtime and PDF engine, with the agent recording the actual
+commands. Conversion, execution, and PDF guidance checked 2026-10-19 against
+[Quarto conversion](https://quarto.org/docs/cli/convert.html),
+[nbconvert execution](https://nbconvert.readthedocs.io/en/latest/usage.html), and
+[Quarto PDF output](https://quarto.org/docs/output-formats/pdf-basics.html).
 
 The [sample context bundle](examples/ai-context/) contains an optional synthetic runtime example. The active
 [marketing context bundle](examples/marketing-context/) contains the original 64,000-customer

@@ -1,5 +1,5 @@
 ---
-title: "CRISPR-Cas9 Research Notebook"
+title: "CRISPR-Cas9 Research Jupyter Notebook"
 format:
   html:
     toc: true
@@ -25,9 +25,15 @@ how to combine code, research notes, and references in one document.
 
 ## Code and descriptive results
 
-One row in `counts.csv` represents one synthetic sample. The denominator is
-all target-site reads in that sample. Report the indel-bearing read fraction
-as a percentage, then calculate a descriptive mean across samples per condition.
+One row in `counts.csv` represents one synthetic sample, with unequal,
+multi-thousand read depths. These invented counts are not estimates of typical
+Cas9 performance. The denominator is all quality-passing, aligned target-site
+reads assessed in that sample. The numerator counts each read with at least one
+indel in a predefined cut-site window once, not the number of editing events.
+Report the fraction as a percentage, then average sample percentages per condition.
+Report the sample count, median, and sample standard deviation too. Means and
+medians are percentages. The sample SD measures spread in percentage points
+across samples, with denominator `sample count - 1`.
 
 ```{python}
 import pandas as pd
@@ -39,15 +45,16 @@ assert (counts["total_reads"] > 0).all()
 assert counts["indel_reads"].between(0, counts["total_reads"]).all()
 counts["indel_percent"] = 100 * counts.indel_reads / counts.total_reads
 print(counts.to_string(index=False))
-means = counts.groupby("condition")["indel_percent"].mean()
-for condition, mean in means.items():
-    print(f"{condition}: mean indel-bearing reads = {mean:.1f}%")
+summary = counts.groupby("condition")["indel_percent"].agg(
+    samples="count", mean="mean", median="median", sample_sd="std"
+)
+print(summary.to_string(float_format=lambda value: f"{value:.3f}"))
 ```
 
 ```{python}
 #| label: fig-indels
 #| fig-cap: "Synthetic target-site indel fractions, three samples per condition."
-#| fig-alt: "Control samples have 2, 3, and 1 percent indel-bearing reads. Cas9 samples have 40, 45, and 50 percent. All six samples have 100 target-site reads."
+#| fig-alt: "Six synthetic samples with unequal sequencing depths. Control fractions are close to zero; Cas9 fractions are higher. Exact counts and percentages appear in the table above."
 fig, ax = plt.subplots(figsize=(7, 4))
 colors = counts["condition"].map({"Control": "#666666", "Cas9": "#287a9b"})
 ax.bar(counts["sample"], counts["indel_percent"], color=colors)
@@ -63,6 +70,11 @@ plt.show()
 The group means describe these invented inputs. They provide no evidence about
 biological efficacy. Reads within a sample are not independent biological
 replicates. Equal weighting of samples defines the descriptive group mean here.
+It is not the pooled read fraction. Nonzero control counts represent possible
+background variation or assay error, not confirmed Cas9 edits.
+The median describes the middle sample fraction. The sample SD describes their
+spread, not uncertainty in an estimated biological effect. Counting and alignment
+choices require care in real sequencing analysis [@clement2019].
 
 An indel-bearing read fraction does not establish an edited-cell percentage,
 a precise intended edit, functional knockout, or off-target specificity.
@@ -71,11 +83,17 @@ replicates. This example supplies no organism, target gene, or guide sequence.
 
 ### Exercise
 
-In a separate Python list, use synthetic counts `[40, 45, 60]`, each out of
-100 target-site reads. Compute the mean percentage and explain its change from
-the Cas9 group above. Preserve the CSV.
+In separate Python lists, use synthetic indel counts `[3238, 4761, 4300]` and
+read totals `[12860, 15980, 14320]`. Compute each sample's percentage, then their
+mean. Explain its change from the Cas9 group above. Preserve the CSV.
 
 ## References
+
+These links remain readable in the exported Jupyter notebook:
+
+- [Jinek et al. (2012): RNA-guided DNA cleavage](https://doi.org/10.1126/science.1225829)
+- [Cong et al. (2013): mammalian genome editing](https://doi.org/10.1126/science.1231143)
+- [Clement et al. (2019): CRISPResso2 sequencing analysis](https://doi.org/10.1038/s41587-019-0032-3)
 
 ::: {#refs}
 :::
