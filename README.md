@@ -174,6 +174,7 @@ then explicitly authorize the commit, remote creation, push, and publication.
 | `ai-workflows.qmd` | Marketing experiment lab on agent-assisted Quarto authoring |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
 | `slides.css` | Shared responsive content styling and reduced-motion support |
+| `section-progress.html` | Shared colored section/task progress and navigation |
 | `examples/crispr-context/` | Synthetic CRISPR-Cas9 counts, notes, references, and worked notebook; outside the render list |
 | `examples/marketing-context/` | Public Hillstrom promotion experiment and provenance; outside the render list |
 | `examples/ai-context/` | Preserved optional synthetic runtime inputs; outside the render list |
@@ -193,6 +194,13 @@ quarto preview ai-workflows.qmd
 
 The teaching decks target desktop computers and modern laptops. Shared configuration
 uses fast fade transitions, code copying, and explicit execution settings. Computations run on project builds; errors stop the build.
+The bottom bar divides each deck into colored sections, with a white marker for the
+active segment and a label showing the current section/task and its slide count.
+Click a segment or focus it and press Enter to jump to its start. Segment widths
+reflect slide counts, not elapsed time or completed exercises. Level-one section
+headings start segments automatically; `data-progress-label` on a slide heading
+starts a task segment (used for the eight marketing turns). The bar updates when
+navigating backward or opening a slide link directly.
 Preview does not open a browser automatically: open the URL printed in the terminal.
 Quarto 1.6.40 is the locally validated baseline; use a current supported release for teaching.
 
