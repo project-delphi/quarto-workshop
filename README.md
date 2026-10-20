@@ -3,7 +3,7 @@
 Build technical documents, Reveal.js slides, sites, and blogs by asking a coding agent in plain English.
 Learn the Quarto commands and source syntax alongside the requests. The same prompts work with Claude Code or Codex.
 
-- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — four CRISPR-Cas9 tasks: a research Jupyter notebook, introduction slides, a three-page essay, and a separate blog, with explicit outputs and review checks.
+- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — four CRISPR-Cas9 tasks: introduction slides, a three-page essay, a research Jupyter notebook, and a separate blog, with explicit outputs and review checks.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, a report in PDF, DOCX, and IPYNB, eight slides, and verified revisions.
 
 ## For attendees
@@ -58,26 +58,24 @@ are not experimental results from the cited papers.
 ### Four foundations tasks
 
 The early `hello.qmd` / `hello.html` exercises teach source syntax. They do not
-replace the runnable research Jupyter notebook required by Task 1.
+replace the runnable research Jupyter notebook required by Task 3.
 
 | Task | Editable source | Required final output and check |
 |---|---|---|
-| 1. Research Jupyter notebook | `notebook.qmd` | `notebook.ipynb`, executable from a fresh kernel with saved results |
-| 2. CRISPR-Cas9 introduction | `intro.qmd` | `intro.html`, exactly six Reveal.js slides including title and references |
-| 3. Why genomic indel counting and statistical summaries matter | `essay.qmd` | `essay.pdf`, exactly three pages including references, no separate cover |
+| 1. CRISPR-Cas9 introduction | `intro.qmd` | `intro.html`, exactly six Reveal.js slides including title and references |
+| 2. Why genomic indel counting and statistical summaries matter | `essay.qmd` | `essay.pdf`, exactly three pages including references, no separate cover |
+| 3. Research Jupyter notebook | `notebook.qmd` | `notebook.ipynb`, executable from a fresh kernel with saved results |
 | 4. Separate CRISPR-Cas9 blog | Blog configuration and `posts/crispr-cas9/index.qmd` | `_site/index.html` linking to `_site/posts/crispr-cas9/index.html` |
 
-Tasks 1–3 run in `~/code/quarto-play/`. Create the notebook from the worked source
-and fix paths to `context/`. Include all six sample fractions, a captioned chart,
-and each condition's sample count, mean, median, and sample standard deviation.
-State that SD uses percentage points and that samples receive equal weight.
-Add readable reference links in notebook Markdown.
+Tasks 1–3 run in `~/code/quarto-play/` using the shared `context/` inputs.
+The essay uses primary references and, for any computed synthetic illustration,
+`context/counts.csv`. It does not require the later Jupyter notebook.
 
 ```bash
-quarto convert notebook.qmd --output notebook.ipynb
-jupyter nbconvert --to notebook --execute --inplace notebook.ipynb
 quarto render intro.qmd --to revealjs
 quarto render essay.qmd --to pdf
+quarto convert notebook.qmd --output notebook.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebook.ipynb
 ```
 
 The introduction addresses first-year biology students: title, guide RNA/PAM,
@@ -92,6 +90,12 @@ page 3 covers independent replicates, uncertainty, limitations, and references.
 Verify the rendered three-page total rather than inferring it from a word count.
 Keep synthetic illustrations distinct from primary evidence and do not invent
 inferential results from the teaching counts.
+
+For Task 3, create the notebook from the worked source and fix paths to `context/`.
+Include all six sample fractions, a captioned chart, and each condition's sample
+count, mean, median, and sample standard deviation. State that SD uses percentage
+points and that samples receive equal weight. Add readable reference links in
+notebook Markdown.
 
 Task 4 starts in a separate `~/code/quarto-blog/` project and adapts the same
 context into a website post. The blog does not replace Tasks 1–3. Render it with
