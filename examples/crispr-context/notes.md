@@ -3,9 +3,9 @@
 ## Audience and question
 
 For researchers and students learning Quarto: how do target-site indel-bearing
-read fractions compare between a Cas9 example and a control? Task 1 produces
-an executable research Jupyter notebook with saved results. Separate tasks use
-the same context for introduction slides, a three-page essay, and a blog.
+read fractions compare between a Cas9 example and a control? The tasks use the
+same context in this order: introduction slides, a three-page essay, a research
+Jupyter notebook with saved results, and a separate blog.
 
 ## Data provenance and units
 
@@ -53,28 +53,29 @@ and independent biological replicates. These inputs support a Quarto exercise.
 
 ## Completion checks
 
-1. **Research Jupyter notebook:** deliver `notebook.qmd` and `notebook.ipynb`.
+1. **Introduction slides:** deliver `intro.qmd` and `intro.html`, exactly six
+   slides including title and references. Explain guide RNA/PAM, cleavage and
+   repair, research value, and indel measurement limits for first-year students.
+2. **Essay:** deliver `essay.qmd` and `essay.pdf`, exactly three pages total
+   including references, with no separate cover. Explain why genomic indel
+   counting and statistical summaries matter for CRISPR-Cas9. Use A4, 11-point
+   text, and 1-inch margins. Page 1: repair and measurement value. Page 2:
+   fractions, controls, and summaries. Page 3: replicates, uncertainty, limits,
+   and references. Compute any synthetic illustration from `context/counts.csv`
+   and verify page count. This task does not depend on the later notebook.
+3. **Research Jupyter notebook:** deliver `notebook.qmd` and `notebook.ipynb`.
    Use `quarto convert notebook.qmd --output notebook.ipynb`, then
    `jupyter nbconvert --to notebook --execute --inplace notebook.ipynb`.
    Run from the task root with the selected Python/Jupyter environment. Restart
    the kernel and run all cells. Check saved outputs, six sample fractions,
    sample counts, mean/median/sample SD, chart labels, and readable reference links.
-2. **Introduction slides:** deliver `intro.qmd` and `intro.html`, exactly six
-   slides including title and references. Explain guide RNA/PAM, cleavage and
-   repair, research value, and indel measurement limits for first-year students.
-3. **Essay:** deliver `essay.qmd` and `essay.pdf`, exactly three pages total
-   including references, with no separate cover. Explain why genomic indel
-   counting and statistical summaries matter for CRISPR-Cas9. Use A4, 11-point
-   text, and 1-inch margins. Page 1: repair and measurement value. Page 2:
-   fractions, controls, and summaries. Page 3: replicates, uncertainty, limits,
-   and references. Trace synthetic numbers to the notebook and verify page count.
 4. **Separate blog:** deliver editable website sources, an HTML home-page listing,
    and the rendered CRISPR-Cas9 post. Fix paths relative to
    `posts/crispr-cas9/index.qmd` and test navigation in the separate blog project.
 
 Keep context inputs unchanged and record build commands in each workspace's
 README. The worked `notebook.qmd` can also render as HTML for inspection, but
-HTML alone does not satisfy Task 1. Keep all task outputs outside the workshop
+HTML alone does not satisfy Task 3. Keep all task outputs outside the workshop
 site's render list. Check all three references and label synthetic data throughout.
 
 Primary-study titles, authors, years, and DOI metadata verified 2026-10-07 against
