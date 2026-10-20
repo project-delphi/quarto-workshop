@@ -610,6 +610,36 @@ new blog folder, and only if your coding agent has not already scaffolded it.
 Source: https://quarto.org/docs/websites/website-blog.html (checked 2026-10-06).
 :::
 
+## Choose What the Blog Publishes {#blog-render-targets}
+
+**Ask your coding agent:**
+
+> In the blog's _quarto.yml, restrict project.render to the home page,
+> about page, and posts. Keep context/ as source material for the analysis.
+> Preserve the existing site configuration.
+
+```yaml
+project:
+  type: website
+  render:
+    - index.qmd
+    - about.qmd
+    - posts/**/*.qmd
+```
+
+**Check:** after rendering, `_site/context/notes.html` and
+`_site/context/notebook.html` are absent. Add any new public pages to the list.
+
+::: {.notes}
+By default, Quarto renders Markdown and notebook inputs throughout a project.
+The copied context bundle includes notes.md and notebook.qmd, so a default blog
+would turn both into extra public pages. An explicit render list keeps these
+inputs available to the post without rendering them as pages. This controls
+render targets, not access to files explicitly copied as website resources.
+Official render-target documentation checked 2026-10-19:
+https://quarto.org/docs/projects/quarto-projects.html#render-targets.
+:::
+
 ## CRISPR-Cas9 Context for the Post {#crispr-context}
 
 Copy the shared teaching inputs into the separate blog:
@@ -630,7 +660,7 @@ cp ~/code/quarto-play/context/* ~/code/quarto-blog/context/
 
 ::: {.notes}
 Run the copy commands in a terminal, then return to the blog agent session.
-The bundle stays outside this site's explicit render list. The worked
+The preceding slide excludes this bundle from the blog's render list. The worked
 notebook can also render on its own in a disposable copy of the bundle.
 :::
 

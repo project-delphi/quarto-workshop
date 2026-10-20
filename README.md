@@ -98,8 +98,24 @@ points and that samples receive equal weight. Add readable reference links in
 notebook Markdown.
 
 Task 4 starts in a separate `~/code/quarto-blog/` project and adapts the same
-context into a website post. The blog does not replace Tasks 1–3. Render it with
-`quarto render` and test the home-page listing and post navigation. Keep sources,
+context into a website post. The blog does not replace Tasks 1–3. Before rendering,
+restrict the blog's `_quarto.yml` to its intended pages and posts:
+
+```yaml
+project:
+  type: website
+  render:
+    - index.qmd
+    - about.qmd
+    - posts/**/*.qmd
+```
+
+Preserve the rest of the generated configuration. Add any new public pages to
+this list. Run `quarto render` and test the home-page listing and post navigation.
+Check that `_site/context/notes.html` and `_site/context/notebook.html` are absent;
+otherwise the copied context becomes extra website pages. See Quarto's
+[render targets](https://quarto.org/docs/projects/quarto-projects.html#render-targets)
+(checked 2026-10-19). Keep sources,
 unchanged context inputs, and build instructions in each workspace. Use a suitable
 local Python/Jupyter runtime and PDF engine, with the agent recording the actual
 commands. Conversion, execution, and PDF guidance checked 2026-10-19 against
