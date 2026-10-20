@@ -1,0 +1,99 @@
+<script>
+// Shared by both decks. Section headings and explicit task labels mark boundaries.
+// APIs: https://revealjs.com/api/ and https://revealjs.com/events/
+// Quarto include-after-body: https://quarto.org/docs/reference/formats/presentations/revealjs.html
+// Verified 2026-10-20.
+(() => {
+  function initializeProgress() {
+    const deck = window.Reveal;
+    if (!deck) return;
+
+    function buildProgress() {
+      const root = deck.getRevealElement();
+      if (root.querySelector(".workshop-progress")) return;
+      const slides = deck.getSlides();
+      const colors = [
+        "#86cce8", "#e9b86e", "#b9a0ed", "#79d4b2",
+        "#f095a8", "#92b7fa", "#d3cf7c", "#efa578",
+        "#85d4dc", "#d5a3df", "#a9d68b", "#f3c982",
+        "#aab9e8", "#e8afc2"
+      ];
+      const groups = [];
+      const membership = new Map();
+      slides.forEach((slide, index) => {
+        const heading = slide.querySelector(":scope > h1, :scope > h2");
+        const label = slide.dataset.progressLabel;
+        if (!groups.length || label || slide.matches(".level1")) {
+          groups.push({
+            label: label || (index === 0 ? "Welcome and overview" : heading.textContent.trim()),
+            start: index,
+            slides: []
+          });
+        }
+        const group = groups[groups.length - 1];
+        group.slides.push(slide);
+        membership.set(slide, group);
+      });
+
+      const nav = document.createElement("nav");
+      nav.className = "workshop-progress";
+      nav.setAttribute("aria-label", "Workshop sections and tasks");
+      const status = document.createElement("div");
+      status.className = "workshop-progress-status";
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      status.setAttribute("aria-atomic", "true");
+      const track = document.createElement("div");
+      track.className = "workshop-progress-track";
+
+      groups.forEach((group, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "workshop-progress-segment";
+        button.style.flexGrow = group.slides.length;
+        group.color = colors[index % colors.length];
+        button.style.setProperty("--section-color", group.color);
+        button.title = group.label;
+        button.setAttribute("aria-label", `Go to ${group.label}`);
+        button.addEventListener("click", () => {
+          const indices = deck.getIndices(group.slides[0]);
+          deck.slide(indices.h, indices.v);
+        });
+        group.button = button;
+        track.append(button);
+      });
+      nav.append(status, track);
+      root.append(nav);
+      root.classList.add("has-workshop-progress");
+
+      function updateProgress() {
+        const slide = deck.getCurrentSlide();
+        const current = membership.get(slide);
+        if (!current) return;
+        const position = current.slides.indexOf(slide) + 1;
+        groups.forEach(group => {
+          const active = group === current;
+          const passed = group.start < current.start;
+          const fraction = active ? position / group.slides.length : passed ? 1 : 0;
+          group.button.style.setProperty("--section-fill", `${fraction * 100}%`);
+          group.button.classList.toggle("is-current", active);
+          group.button.classList.toggle("is-past", passed);
+          if (active) group.button.setAttribute("aria-current", "step");
+          else group.button.removeAttribute("aria-current");
+        });
+        status.style.setProperty("--section-color", current.color);
+        status.textContent = `${current.label} · ${position} / ${current.slides.length}`;
+      }
+      deck.on("slidechanged", updateProgress);
+      updateProgress();
+    }
+    if (deck.isReady()) buildProgress();
+    else deck.on("ready", buildProgress);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeProgress, { once: true });
+  } else {
+    initializeProgress();
+  }
+})();
+</script>

@@ -618,6 +618,65 @@ font-weight: 600;
 .reveal .columns .column { width: 100% !important; }
 }
 .reveal a:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
+
+.reveal.has-workshop-progress .progress,
+.reveal.has-workshop-progress .footer { display: none !important; }
+.reveal .workshop-progress {
+position: absolute;
+inset: auto 0 0;
+z-index: 30;
+font-family: inherit;
+font-size: 16px;
+line-height: 1.3;
+}
+.reveal .workshop-progress-status {
+position: absolute;
+bottom: 16px;
+left: 70px;
+right: 100px;
+color: var(--section-color);
+text-align: center;
+font-weight: 600;
+pointer-events: none;
+}
+.reveal .workshop-progress-track { display: flex; gap: 3px; }
+.reveal .workshop-progress-segment {
+position: relative;
+flex-basis: 0;
+min-width: 12px;
+height: 18px;
+padding: 0;
+border: 0;
+background: transparent;
+cursor: pointer;
+}
+.reveal .workshop-progress-segment::before,
+.reveal .workshop-progress-segment::after {
+content: "";
+position: absolute;
+bottom: 0;
+left: 0;
+height: 8px;
+background: var(--section-color);
+}
+.reveal .workshop-progress-segment::before { width: 100%; opacity: 0.2; }
+.reveal .workshop-progress-segment::after { width: var(--section-fill, 0%); }
+.reveal .workshop-progress-segment.is-past::after { opacity: 0.55; }
+.reveal .workshop-progress-segment.is-current::before {
+opacity: 0.4;
+box-shadow: 0 -2px 0 #fff;
+}
+.reveal .workshop-progress-segment:hover::before { opacity: 0.65; }
+.reveal .workshop-progress-segment:focus-visible {
+outline: 2px solid #fff;
+outline-offset: -2px;
+}
+.reveal.overview .workshop-progress,
+.reveal.paused .workshop-progress { visibility: hidden; }
+@media print {
+.reveal .workshop-progress { display: none; }
+.reveal.has-workshop-progress .footer { display: block !important; }
+}
 @media (prefers-reduced-motion: reduce) {
 .reveal .slides section,
 .reveal .slides section .fragment,
@@ -1613,7 +1672,7 @@ display:block!important;
 <section id="a-computation-in-these-slides" class="slide level2">
 <h2>A Computation in These Slides</h2>
 <p>Three <strong>synthetic</strong> Cas9 samples with unequal target-site read totals. This cell executes when the deck renders:</p>
-<div id="5114237c" class="cell" data-execution_count="1">
+<div id="c65f61f0" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a></a>indel_reads <span class="op">=</span> [<span class="dv">3238</span>, <span class="dv">4761</span>, <span class="dv">3895</span>]</span>
 <span id="cb11-2"><a></a>total_reads <span class="op">=</span> [<span class="dv">12860</span>, <span class="dv">15980</span>, <span class="dv">14320</span>]</span>
 <span id="cb11-3"><a></a>percent <span class="op">=</span> [<span class="dv">100</span> <span class="op">*</span> indels <span class="op">/</span> total</span>
@@ -3328,6 +3387,105 @@ window.QuartoSupport = function () {
           RevealZoom
         ]
       });
+    </script>
+    <script>
+    // Shared by both decks. Section headings and explicit task labels mark boundaries.
+    // APIs: https://revealjs.com/api/ and https://revealjs.com/events/
+    // Quarto include-after-body: https://quarto.org/docs/reference/formats/presentations/revealjs.html
+    // Verified 2026-10-20.
+    (() => {
+      function initializeProgress() {
+        const deck = window.Reveal;
+        if (!deck) return;
+
+        function buildProgress() {
+          const root = deck.getRevealElement();
+          if (root.querySelector(".workshop-progress")) return;
+          const slides = deck.getSlides();
+          const colors = [
+            "#86cce8", "#e9b86e", "#b9a0ed", "#79d4b2",
+            "#f095a8", "#92b7fa", "#d3cf7c", "#efa578",
+            "#85d4dc", "#d5a3df", "#a9d68b", "#f3c982",
+            "#aab9e8", "#e8afc2"
+          ];
+          const groups = [];
+          const membership = new Map();
+          slides.forEach((slide, index) => {
+            const heading = slide.querySelector(":scope > h1, :scope > h2");
+            const label = slide.dataset.progressLabel;
+            if (!groups.length || label || slide.matches(".level1")) {
+              groups.push({
+                label: label || (index === 0 ? "Welcome and overview" : heading.textContent.trim()),
+                start: index,
+                slides: []
+              });
+            }
+            const group = groups[groups.length - 1];
+            group.slides.push(slide);
+            membership.set(slide, group);
+          });
+
+          const nav = document.createElement("nav");
+          nav.className = "workshop-progress";
+          nav.setAttribute("aria-label", "Workshop sections and tasks");
+          const status = document.createElement("div");
+          status.className = "workshop-progress-status";
+          status.setAttribute("role", "status");
+          status.setAttribute("aria-live", "polite");
+          status.setAttribute("aria-atomic", "true");
+          const track = document.createElement("div");
+          track.className = "workshop-progress-track";
+
+          groups.forEach((group, index) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "workshop-progress-segment";
+            button.style.flexGrow = group.slides.length;
+            group.color = colors[index % colors.length];
+            button.style.setProperty("--section-color", group.color);
+            button.title = group.label;
+            button.setAttribute("aria-label", `Go to ${group.label}`);
+            button.addEventListener("click", () => {
+              const indices = deck.getIndices(group.slides[0]);
+              deck.slide(indices.h, indices.v);
+            });
+            group.button = button;
+            track.append(button);
+          });
+          nav.append(status, track);
+          root.append(nav);
+          root.classList.add("has-workshop-progress");
+
+          function updateProgress() {
+            const slide = deck.getCurrentSlide();
+            const current = membership.get(slide);
+            if (!current) return;
+            const position = current.slides.indexOf(slide) + 1;
+            groups.forEach(group => {
+              const active = group === current;
+              const passed = group.start < current.start;
+              const fraction = active ? position / group.slides.length : passed ? 1 : 0;
+              group.button.style.setProperty("--section-fill", `${fraction * 100}%`);
+              group.button.classList.toggle("is-current", active);
+              group.button.classList.toggle("is-past", passed);
+              if (active) group.button.setAttribute("aria-current", "step");
+              else group.button.removeAttribute("aria-current");
+            });
+            status.style.setProperty("--section-color", current.color);
+            status.textContent = `${current.label} · ${position} / ${current.slides.length}`;
+          }
+          deck.on("slidechanged", updateProgress);
+          updateProgress();
+        }
+        if (deck.isReady()) buildProgress();
+        else deck.on("ready", buildProgress);
+      }
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initializeProgress, { once: true });
+      } else {
+        initializeProgress();
+      }
+    })();
     </script>
     <script id="quarto-html-after-body" type="application/javascript">
     window.document.addEventListener("DOMContentLoaded", function (event) {
