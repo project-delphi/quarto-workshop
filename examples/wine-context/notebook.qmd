@@ -1,0 +1,89 @@
+---
+title: "Can Chemistry Distinguish Wine Cultivars?"
+format:
+  html:
+    toc: true
+    embed-resources: true
+bibliography: sources.bib
+jupyter: python3
+execute:
+  echo: true
+  error: false
+  cache: false
+  freeze: false
+---
+
+## Question and source
+
+Can alcohol and color intensity help describe differences among three anonymous
+wine cultivars? The [UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
+contains chemical measurements for 178 wines from one Italian region [@uci_wine].
+This local CSV was exported from scikit-learn's `load_wine` [@sklearn_wine].
+Each row is one wine sample; cultivar numbers are labels, not quality ratings.
+
+## Load and summarize
+
+The code runs from the folder containing `wine.csv`. If you copied the bundle
+into `context/`, change the path to `context/wine.csv`. The summaries give each
+wine equal weight. Sample standard deviation uses `n - 1` and describes spread
+among wines in this dataset, not uncertainty in a population effect.
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+
+wine = pd.read_csv("wine.csv")
+assert len(wine) == 178 and wine["sample_id"].is_unique
+assert set(wine["cultivar"]) == {1, 2, 3}
+print(wine[["sample_id", "cultivar", "alcohol", "color_intensity"]].head().to_string(index=False))
+
+summary = wine.groupby("cultivar").agg(
+    samples=("sample_id", "count"),
+    alcohol_mean=("alcohol", "mean"),
+    alcohol_median=("alcohol", "median"),
+    alcohol_sd=("alcohol", "std"),
+    color_mean=("color_intensity", "mean"),
+    color_median=("color_intensity", "median"),
+    color_sd=("color_intensity", "std"),
+)
+print(summary.round(2).to_string())
+```
+
+```{python}
+#| label: fig-wine-chemistry
+#| fig-cap: "Alcohol and color intensity for all 178 UCI wine samples, grouped by anonymous cultivar."
+#| fig-alt: "Scatterplot of 178 wines. Cultivar 2 tends toward lower alcohol and color intensity; the groups overlap. Exact group summaries appear above."
+fig, ax = plt.subplots(figsize=(7, 4.5))
+for cultivar, group in wine.groupby("cultivar"):
+    ax.scatter(group["alcohol"], group["color_intensity"],
+               label=f"Cultivar {cultivar}", alpha=0.76, s=32)
+ax.set_xlabel("Alcohol (dataset measurement)")
+ax.set_ylabel("Color intensity (dataset measurement)")
+ax.legend(title="Anonymous label")
+fig.tight_layout()
+plt.show()
+```
+
+## Interpretation and limits
+
+The cultivar averages differ, but individual samples overlap. The chart uses
+only two of 13 features; it is a description, not a fitted classifier. We have
+no tasting scores, named grape varieties, or sampling design that would support
+claims about flavor, quality, causality, or performance on new wines.
+
+### Exercise
+
+Change the chart's horizontal feature to `flavanoids` in a copy of this source.
+Update the axis label, caption, and alt text. Which overlap patterns change?
+Keep the supplied CSV unchanged and explain why the chart alone cannot measure
+classification accuracy.
+
+## References
+
+These links remain readable in the exported Jupyter notebook:
+
+- [UCI Wine dataset and provenance](https://archive.ics.uci.edu/dataset/109/wine)
+- [scikit-learn `load_wine` documentation](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_wine.html)
+
+::: {#refs}
+:::

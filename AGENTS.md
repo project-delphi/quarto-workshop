@@ -62,13 +62,13 @@ keep teaching computations fresh. Changes to external data are not automatically
 
 ## Worked examples and report deliverables
 
-The foundations researcher notebook and blog use the CRISPR-Cas9 example in
-`examples/crispr-context/`: synthetic read counts, research notes, a worked
-`notebook.qmd`, and primary references. Keep synthetic data visibly labeled.
-Compute indel-bearing read fractions using each sample's total target-site reads.
-Distinguish read fractions from edited-cell percentages, precise intended edits,
-and off-target specificity. The cited studies supply biological background,
-not the teaching counts. Keep this bundle outside `project.render`.
+The foundations notebook and blog use the UCI Wine recognition data in
+`examples/wine-context/`: 178 real wine samples, provenance notes, a worked
+`notebook.qmd`, and source records. Keep `wine.csv` unchanged and this bundle
+outside `project.render`. One row is one wine sample; labels 1–3 are anonymous
+cultivars, not quality scores. Compute numerical claims from the CSV. State
+that descriptive group differences and overlap do not establish prediction
+accuracy or generalization to other wines.
 
 The marketing workflow names inputs and deliverables on its opening content
 slide. Inputs are `context/hillstrom.csv`, `notes.md`, and `sources.bib`.

@@ -3,59 +3,87 @@ title: "Quarto Workshop"
 subtitle: "Build with a coding agent, understand with Quarto"
 author: "Ravi Kalia"
 date: ""
-description: "Four CRISPR-Cas9 authoring tasks: introduction slides, a three-page essay, a research Jupyter notebook, and a separate blog."
+description: "Four wine-data authoring tasks: introduction slides, a three-page essay, a runnable Jupyter notebook, and a separate blog."
 ---
 
 ## What You Will Build
 
-Four separate tasks about **CRISPR-Cas9**, built with a coding agent:
+Four connected tasks about **wine chemistry**, built with a coding agent:
 
 | Task | Final output |
 |---|---|
 | 1. Introduction slides | Six-slide `intro.html` presentation |
-| 2. Indel-counting essay | Three-page `essay.pdf` |
-| 3. Research Jupyter notebook | Runnable `notebook.ipynb` with saved results |
-| 4. Blog | HTML home page and a CRISPR-Cas9 post |
+| 2. Evidence essay | Three-page `essay.pdf` |
+| 3. Data notebook | Runnable `notebook.ipynb` with saved results |
+| 4. Blog | HTML home page and a wine-chemistry post |
 
-The worked example uses **synthetic target-site read counts** to practice
-reporting an indel fraction. No laboratory results are supplied.
+The real [UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
+records 13 chemical measurements for 178 wines from three anonymous cultivars.
+The challenge: **what can chemistry tell us, and what can it not?**
 
-Keep editable sources and build instructions for each task.
-The blog is a separate website task, not the Jupyter notebook.
+Keep editable sources and build instructions for each task. The blog is a
+separate website task, not the Jupyter notebook.
 
 ::: {.notes}
-Learning objectives: request an implementation, read the Markdown/YAML/code,
-check rendered results, and request a precise revision. Use the same biological
-context for four different audiences and output formats. The early hello.html
-exercises teach source syntax before Task 3 produces the actual .ipynb file.
+Learning objectives: request an implementation, read Markdown/YAML/code,
+check rendered results, and request a precise revision. Audience: students
+new to Quarto, with basic folder and terminal familiarity. Completion means
+four inspected deliverables from one unchanged source CSV. The dataset is
+classification data, not wine quality or tasting data. Source: UCI Wine dataset,
+checked 2026-10-21.
 :::
 
-## CRISPR-Cas9: Guide, Cut, Repair {#crispr-process}
+## The Wine Question {#wine-question}
 
-1. **Guide:** an RNA pairs with a chosen DNA sequence beside a short
-   recognition motif (PAM).
-2. **Cut:** Cas9 cuts both DNA strands at the target.
-3. **Repair:** the cell rejoins the break, sometimes leaving insertions or
-   deletions (**indels**). A supplied DNA template can enable a specified change.
+Imagine three unlabeled groups of wine bottles. A lab measures each sample's
+chemistry. Could those measurements help identify its cultivar?
 
-**Why it matters:** changing the guide lets researchers target different genes
-to test their function or build disease models.
+| What we have | What we do not have |
+|---|---|
+| 178 samples, three anonymous cultivar labels | Named grapes or tasting scores |
+| 13 measured features per wine | A guarantee about new regions or vintages |
 
-Our read counts measure **indel-bearing sequences**, not edited cells or
-guaranteed gene knockouts.
-
-[Jinek et al. (2012)](https://doi.org/10.1126/science.1225829) ·
-[Cong et al. (2013)](https://doi.org/10.1126/science.1231143)
+We will begin with **alcohol** and **color intensity**, then inspect how
+individual wines overlap even when group averages differ.
 
 ::: {.notes}
-This describes conventional Cas9 nuclease editing in mammalian cells, not base
-or prime editing. PAM means protospacer adjacent motif. Repair can also restore
-the original sequence; cleavage does not guarantee an indel. Template-directed
-repair is a separate outcome from the indels counted in this exercise. Outcomes
-depend on the guide, target, delivery, cell type, and assay. Primary sources
-checked 2026-10-19: Jinek for RNA-guided cleavage and PAM recognition; Cong for
-mammalian editing, end joining, and template-directed repair. These studies do
-not supply the synthetic counts.
+UCI describes samples from one Italian region and three cultivars. Cultivar
+numbers 1–3 are categories, not ranks. Color intensity has no unit specified
+on the UCI page. The local CSV is a scikit-learn copy with added sample IDs.
+UCI and scikit-learn documentation checked 2026-10-21.
+:::
+
+## Can Two Measurements Separate the Cultivars? {#wine-preview}
+
+```{python}
+#| echo: false
+#| label: fig-wine-preview
+#| fig-cap: "Alcohol versus color intensity for 178 UCI wine samples. Colors show anonymous cultivar labels."
+#| fig-alt: "Scatterplot of alcohol and color intensity for 178 wines in three cultivar groups. The groups differ but overlap, especially around the center of the plot."
+import pandas as pd
+import matplotlib.pyplot as plt
+
+wine = pd.read_csv("examples/wine-context/wine.csv")
+with plt.style.context("dark_background"):
+    fig, ax = plt.subplots(figsize=(8, 4))
+    for label, group in wine.groupby("cultivar"):
+        ax.scatter(group.alcohol, group.color_intensity, label=f"Cultivar {label}",
+                   s=34, alpha=0.8)
+    ax.set_xlabel("Alcohol (dataset measurement)")
+    ax.set_ylabel("Color intensity (dataset measurement)")
+    ax.legend(title="Anonymous label", ncol=3, loc="upper center")
+    fig.tight_layout()
+    plt.show()
+```
+
+**Look closely:** where do the colors overlap? This plot describes the supplied
+wines; it is not a test of classification accuracy.
+
+::: {.notes}
+The caption and labels describe a real, local dataset, not invented teaching
+counts. One point is one wine sample. Both axes show the dataset's recorded
+values; UCI does not give physical units for these columns. Ask learners to
+locate overlap before they see group means.
 :::
 
 ## Workshop Route
@@ -63,9 +91,9 @@ not supply the synthetic counts.
 | Stage | Checkpoint |
 |---|---|
 | Setup and source exercises | Practice page `hello.html` |
-| Task 1: CRISPR-Cas9 introduction | Six generated slides |
-| Task 2: indel counting and summaries | Three-page essay |
-| Task 3: research Jupyter notebook | Executed `.ipynb` |
+| Task 1: wine-data introduction | Six generated slides |
+| Task 2: evidence and summaries | Three-page essay |
+| Task 3: data Jupyter notebook | Executed `.ipynb` |
 | Task 4: separate blog | Working home page and post |
 | Review, collaboration, publication | Checked files and approved destination |
 
@@ -74,7 +102,7 @@ not supply the synthetic counts.
 Work through the tasks across sessions. Publication follows review and approval.
 
 ::: {.notes}
-Audience: researchers and students new to Quarto. Prerequisites: opening a folder,
+Audience: students new to Quarto. Prerequisites: opening a folder,
 using an editor, and basic terminal navigation. No environment-manager expertise
 is assumed. Teach the prompts live, then inspect the actual files and browser.
 :::
@@ -236,10 +264,9 @@ The generated source remains yours to read, edit, and version.
 
 **Continue in the same coding agent conversation:**
 
-> Change the title to “CRISPR-Cas9 Research Jupyter Notebook”. Add “Research
-> question”: how do indel-bearing read fractions differ between a Cas9
-> example and a control? Add sections for code, research notes, and
-> references. Label this a synthetic teaching example and render again.
+> Change the title to “Can Chemistry Distinguish Wine Cultivars?”. Add a
+> question about alcohol and color intensity across three anonymous cultivars.
+> Add sections for code, interpretation, and sources. Render again.
 
 **Check:** both titles change. This HTML practice page prepares Task 3's `.ipynb`.
 
@@ -250,21 +277,21 @@ and show its effect in the browser.
 
 ## A Useful Request
 
-> In hello.qmd, explain Quarto to first-year biology students. Use a
-> CRISPR-Cas9 research Jupyter notebook example and keep the introduction under 100 words. Preserve
-> my title. Render the page and check that the example appears.
+> In hello.qmd, explain Quarto to first-year data science students. Use a
+> wine-chemistry notebook example in under 100 words. Preserve my title.
+> Render the page and check that the example appears.
 
 | Include what matters | In this request |
 |---|---|
-| Context | `hello.qmd`, biology students |
-| Desired result | A short introduction with a CRISPR-Cas9 example |
+| Context | `hello.qmd`, first-year data science students |
+| Desired result | A short introduction with a wine-data example |
 | Constraint | Preserve the title |
 | Completion check | Render and find the example |
 
 ::: {.notes}
 These are useful details, not a required prompt template. Short follow-ups work
-when the conversation already contains the relevant context.
-Prompting guidance: https://developers.openai.com/codex/prompting/ (checked 2026-10-06).
+when the conversation already contains the context. Prompting guidance:
+https://developers.openai.com/codex/prompting/ (checked 2026-10-06).
 :::
 
 # Understanding the Source
@@ -290,18 +317,18 @@ feature you would ask your coding agent to add to your project.
 
 **Ask your coding agent:**
 
-> Add a “Reading list” to hello.qmd with Jinek et al. (2012),
-> DOI 10.1126/science.1225829, and one bold phrase about RNA-guided
-> DNA cleavage. Verify the reference, render, and explain the Markdown.
+> Add a “Reading list” to hello.qmd with a link to the UCI Wine dataset
+> and one bold phrase explaining that cultivar labels are anonymous.
+> Verify the link, render, and explain the Markdown.
 
 **Source pattern:**
 
 ```{.markdown code-line-numbers="1|3|5"}
 ## Reading list
 
-Read about **RNA-guided DNA cleavage**.
+The **cultivar labels are anonymous categories**.
 
-[Jinek et al. (2012)](https://doi.org/10.1126/science.1225829)
+[UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
 ```
 
 **Check:** a heading, bold text, and a working link appear on the page.
@@ -317,7 +344,7 @@ Read about **RNA-guided DNA cleavage**.
 
 ```yaml
 ---
-title: "CRISPR-Cas9 Research Jupyter Notebook"
+title: "Can Chemistry Distinguish Wine Cultivars?"
 format:
   html:
     toc: true
@@ -331,16 +358,16 @@ format:
 **Ask your coding agent:**
 
 > Add two tabs to hello.qmd: “Question” and “Evidence”. Put a
-> short CRISPR-Cas9 note in each. Use Quarto's tabset syntax and render.
+> short wine-data note in each. Use Quarto's tabset syntax and render.
 
 **Source pattern:**
 
 ```markdown
 ::: {.panel-tabset}
 ## Question
-How do the synthetic indel fractions compare?
+Can chemistry distinguish the three cultivars?
 ## Evidence
-Read counts illustrate reporting, not biological efficacy.
+Alcohol and color intensity vary, with some overlap.
 :::
 ```
 
@@ -392,99 +419,109 @@ environment fix. Optional reproducibility recipes are in the workshop repository
 
 ## A Computation in These Slides
 
-Three **synthetic** Cas9 samples with unequal target-site read totals.
-This cell executes when the deck renders:
+This cell counts the three cultivar groups from the supplied CSV when the
+deck renders:
 
 ```{python}
 #| echo: true
-indel_reads = [3238, 4761, 3895]
-total_reads = [12860, 15980, 14320]
-percent = [100 * indels / total
-           for indels, total in zip(indel_reads, total_reads)]
-print(f"Mean indel-bearing reads: {sum(percent) / len(percent):.1f}%")
+import csv
+from collections import Counter
+
+with open("examples/wine-context/wine.csv", newline="") as source:
+    group_counts = Counter(row["cultivar"] for row in csv.DictReader(source))
+total = sum(group_counts.values())
+largest_share = 100 * max(group_counts.values()) / total
+print(f"Wine samples: {total}")
+print(f"Largest group share: {largest_share:.1f}%")
 ```
+
+**Check:** the total is 178. The largest group contains 71 wines.
+
+## Revise a Calculation
+
+The `max` function selects the largest cultivar group. What happens if we
+ask for the smallest group instead?
 
 ### Exercise
 
-> Add this computation to hello.qmd. Change the last indel count to 4300,
-> keep the read totals unchanged, render, and explain the change.
+> Add this computation to hello.qmd, adjusting the CSV path to
+> `context/wine.csv`. Change `max` to `min`, render, and explain what changes.
 
-**Check:** divide by each sample's own total, then average the percentages.
+**Check:** the total stays 178 while the reported group share changes.
 
 ## Cell Options Control What Readers See
 
 **Ask your coding agent:**
 
-> Hide the indel-fraction calculation's code in the page, but keep
-> its output visible and recompute it on render. Explain the option used.
+> Hide the group-count calculation's code in the page, but keep its output
+> visible and recompute it on render. Explain the option used.
 
 **Source pattern inside the executable cell:**
 
 ```python
 #| echo: false
-indel_reads = [3238, 4761, 4300]
-total_reads = [12860, 15980, 14320]
-percent = [100 * indels / total
-           for indels, total in zip(indel_reads, total_reads)]
-print(f"Mean indel-bearing reads: {sum(percent) / len(percent):.1f}%")
+import csv
+from collections import Counter
+with open("context/wine.csv", newline="") as source:
+    group_counts = Counter(row["cultivar"] for row in csv.DictReader(source))
+print(f"Wine samples: {sum(group_counts.values())}")
 ```
 
 `echo: false` hides source. `eval: false` would stop the calculation.
 
-**Check:** the result remains visible and agrees with the inputs.
+**Check:** the result remains visible and agrees with the practice inputs.
 
-# Task 1: CRISPR-Cas9 Introduction Slides
+# Task 1: Wine Chemistry Introduction Slides
 
-## Shared Inputs for Tasks 1–3 {#crispr-inputs}
+## Shared Inputs for Tasks 1–3 {#wine-inputs}
 
 From the workshop clone, copy the teaching bundle into your practice folder:
 
 ```bash
 mkdir -p ~/code/quarto-play/context
-cp examples/crispr-context/* ~/code/quarto-play/context/
+cp examples/wine-context/* ~/code/quarto-play/context/
 ```
 
 | Input | Purpose |
 |---|---|
-| `counts.csv` | Six synthetic samples with unequal read totals |
-| `notes.md` | Definitions, assumptions, and task checks |
-| `sources.bib` | Primary biology and sequencing-analysis references |
-| `notebook.qmd` | Worked research Jupyter notebook source |
+| `wine.csv` | 178 real wine samples and 13 measured features |
+| `notes.md` | Provenance, definitions, limits, and task checks |
+| `sources.bib` | UCI and scikit-learn source records |
+| `notebook.qmd` | Worked data notebook source |
 
-**Check:** return to your `quarto-play` agent session. Preserve the inputs.
+**Check:** return to your `quarto-play` agent session. Preserve the CSV.
 
 ## Task 1: A Generated Introduction {#task-slides}
 
 **Ask your coding agent in `quarto-play`:**
 
-> Create intro.qmd for first-year biology students. Generate exactly six
-> Reveal.js slides: title, guide RNA and PAM, Cas9 cleavage and DNA repair,
-> research value, indel measurement and its limits, and references. Use
-> context/sources.bib to support claims. Define technical terms. Keep
-> the dark theme, add speaker notes, and render intro.html.
+> Create intro.qmd for first-year data science students. Generate exactly
+> six Reveal.js slides: title, the mystery-cultivar question, what one row
+> and the labels mean, two chemical features, overlap and limits, and sources.
+> Use context/notes.md and context/sources.bib. Keep the dark theme, add
+> speaker notes, and render intro.html.
 
 ```bash
 quarto render intro.qmd --to revealjs
 ```
 
-**Outputs:** `intro.qmd` and `intro.html`, six slides including title and references.
+**Outputs:** `intro.qmd` and `intro.html`, six slides including title and sources.
 
-**Check:** explain the process without reading the code. Inspect every slide
-at desktop and laptop sizes, including any figure captions and source links.
+**Check:** explain the question without claiming these are wine-quality scores.
+Inspect every slide at desktop and laptop sizes, including links and captions.
 
 # Task 2: A Three-Page Essay
 
-## Task 2: Why Indel Counting Matters {#task-essay}
+## Task 2: What Can Chemistry Tell Us? {#task-essay}
 
 **Ask your coding agent in `quarto-play`:**
 
-> Write essay.qmd for biology students on why genomic indel counting and
-> statistical summaries matter, especially for CRISPR-Cas9. Explain how
-> counting informs editing assessment and comparisons, how denominators
-> and control background affect interpretation, and what summaries reveal
-> or hide. Use context/counts.csv for any computed, labeled synthetic illustration
-> and context/sources.bib for primary evidence. Follow the page plan on
-> the next slide. Render exactly three pages to essay.pdf and inspect them.
+> Write essay.qmd for data science students about what the UCI wine
+> measurements can tell us about three anonymous cultivars. Use
+> context/wine.csv for all numbers and context/sources.bib for provenance.
+> Explain group counts, means, variation, and overlap; distinguish
+> description from prediction. Follow the page plan on the next slide.
+> Render exactly three pages to essay.pdf and inspect them.
 
 ```bash
 quarto render essay.qmd --to pdf
@@ -496,47 +533,42 @@ quarto render essay.qmd --to pdf
 
 | Page | Argument |
 |---|---|
-| 1 | Cas9 repair, indels, and the value of measuring outcomes |
-| 2 | Read fractions, background controls, mean/median and sample SD |
-| 3 | Independent replicates, uncertainty, limitations, and references |
+| 1 | Question, dataset provenance, unit of analysis, cultivar labels |
+| 2 | Alcohol and color intensity: counts, means, spread, overlap |
+| 3 | What the descriptive evidence cannot establish; references |
 
 Use A4 paper, 11-point text, and 1-inch margins. **Three pages total**,
 including references, with no separate cover. Revise prose to fit.
 
 ### Exercise
 
-Check the rendered page count and trace every numerical example to `context/counts.csv`.
-Explain why deeper sequencing cannot replace independent biological replicates.
+Trace each numerical claim to `context/wine.csv`. Find one sentence that
+overstates the evidence and ask your agent to revise it.
 
 ::: {.notes}
-Ask the agent to inspect the available PDF engine and record the actual build
-command. Keep the prose in essay form rather than a list of bullet points.
-Discuss sample SD in percentage points and distinguish the sample mean from
-the pooled read fraction. Describe what a real experiment needs for uncertainty
-estimation without inventing confidence intervals or significance tests for
-the synthetic fixture. Indel fractions do not establish precise intended edits,
-edited-cell percentages, functional knockout, or off-target specificity.
-PDF and page-break guidance checked 2026-10-19:
-https://quarto.org/docs/output-formats/pdf-basics.html and
-https://quarto.org/docs/authoring/markdown-basics.html#page-breaks.
+Ask the agent to inspect the available PDF engine and record the build command.
+Keep the prose in essay form. Group statistics describe these 178 wines, not
+all wine. Color intensity has no unit specified in the source; avoid inventing
+one. PDF guidance checked 2026-10-19:
+https://quarto.org/docs/output-formats/pdf-basics.html.
 :::
 
-# Task 3: Research Jupyter Notebook
+# Task 3: A Data Jupyter Notebook
 
 ## Task 3: Notebook Content {#task-notebook}
 
 **Ask your coding agent in `quarto-play`:**
 
-> Adapt context/notebook.qmd into notebook.qmd here. Keep its title and
-> fix data/bibliography paths to context/. Include the question, six sample
-> fractions, a captioned chart, and each condition's sample count, mean,
-> median, and sample standard deviation. Explain the denominator and units.
-> Label the data synthetic. Add limitations and readable reference links
-> in Markdown. Convert to notebook.ipynb and execute it with saved results.
+> Adapt context/notebook.qmd into notebook.qmd here. Fix data and
+> bibliography paths to context/. Include the question, sample counts,
+> group means, medians, sample standard deviations, and a captioned
+> alcohol-versus-color scatterplot. State what a row represents and what
+> the labels mean. Include limitations and readable source links in
+> Markdown. Convert to notebook.ipynb and execute it with saved results.
 
 **Outputs:** editable `notebook.qmd` and runnable `notebook.ipynb`.
 
-**Check:** each sample uses its own total. Summaries give each sample equal weight.
+**Check:** all 178 rows contribute; summaries and plot agree with the CSV.
 
 ## Task 3: A Runnable Jupyter Notebook
 
@@ -551,14 +583,13 @@ jupyter nbconvert --to notebook --execute --inplace notebook.ipynb
 
 Open `notebook.ipynb`, restart its kernel, and run all cells from the task folder.
 
-**Done:** code cells execute, saved tables and chart agree with the CSV,
-and reference links work. An HTML page alone does not complete this task.
+**Done:** code cells execute, saved table and chart agree with the CSV,
+and source links work. An HTML page alone does not complete this task.
 
 ::: {.notes}
-Quarto conversion preserves executable cells. Do not replace this route with
-quarto render --to ipynb, which can turn analysis code into Markdown in the
-locally validated Quarto 1.6.40. Official conversion and nbconvert execution
-documentation checked 2026-10-19:
+Quarto conversion preserves executable cells. In validated Quarto 1.6.40,
+rendering directly to IPYNB can turn analysis code into Markdown. Official
+conversion and nbconvert guidance checked 2026-10-19:
 https://quarto.org/docs/cli/convert.html and
 https://nbconvert.readthedocs.io/en/latest/usage.html.
 :::
@@ -579,11 +610,11 @@ claude
 
 **Ask your coding agent:**
 
-> Create a Quarto blog titled “CRISPR-Cas9 Research Blog”.
+> Create a Quarto blog titled “Wine Chemistry Notebook”.
 > Initialize Git if needed and work on a blog-setup branch. Render the
 > starter site and tell me how to preview it locally.
 
-**Output:** an HTML website with a home page and a CRISPR-Cas9 post.
+**Output:** an HTML website with a home page and a wine-chemistry post.
 **Check:** the home page lists the starter posts before you add your own.
 
 ## The Scaffold Command
@@ -640,7 +671,7 @@ Official render-target documentation checked 2026-10-19:
 https://quarto.org/docs/projects/quarto-projects.html#render-targets.
 :::
 
-## CRISPR-Cas9 Context for the Post {#crispr-context}
+## Wine Context for the Post {#wine-context}
 
 Copy the shared teaching inputs into the separate blog:
 
@@ -651,17 +682,16 @@ cp ~/code/quarto-play/context/* ~/code/quarto-blog/context/
 
 | Input | Purpose |
 |---|---|
-| `counts.csv` | Six synthetic samples, control and Cas9 |
-| `notes.md` | Question, units, assumptions, limitations |
-| `sources.bib` | Primary biology and sequencing-analysis references |
-| `notebook.qmd` | Worked research Jupyter notebook source to adapt |
+| `wine.csv` | 178 samples and three anonymous cultivars |
+| `notes.md` | Question, provenance, and limits |
+| `sources.bib` | UCI and scikit-learn references |
+| `notebook.qmd` | Worked data notebook to adapt |
 
-**Check:** counts are teaching data. The papers provide biological background.
+**Check:** cultivar numbers are categories, not quality ratings.
 
 ::: {.notes}
 Run the copy commands in a terminal, then return to the blog agent session.
-The preceding slide excludes this bundle from the blog's render list. The worked
-notebook can also render on its own in a disposable copy of the bundle.
+The preceding slide excludes this bundle from the blog's render list.
 :::
 
 ## Your First Executable Post
@@ -669,64 +699,61 @@ notebook can also render on its own in a disposable copy of the bundle.
 **Ask your coding agent:**
 
 > Read context/notes.md and context/notebook.qmd. Create
-> posts/crispr-cas9/index.qmd with a research question, executable Python
-> reading counts.csv, an indel-fraction chart, research notes, and cited
-> references from sources.bib. Fix paths for the post folder. Include
-> title, date, caption, and alt text. Label all counts synthetic.
-> Render the blog and check its listing.
+> posts/wine-chemistry/index.qmd with a question, executable Python reading
+> wine.csv, an alcohol-versus-color scatterplot, interpretation, and cited
+> sources. Fix paths for the post folder. Include title, date, caption, and
+> alt text. Render the blog and check its listing.
 
 ```bash
 quarto render
 ```
 
-**Outputs:** `posts/crispr-cas9/index.qmd`, `_site/posts/crispr-cas9/index.html`,
-and a home-page listing in `_site/index.html`.
+**Outputs:** `posts/wine-chemistry/index.qmd`,
+`_site/posts/wine-chemistry/index.html`, and a listing in `_site/index.html`.
 
-**Check:** six sample fractions appear and the home page links to the post.
+**Check:** the chart shows three labeled groups and the home page links to the post.
 
 ## A Cell the Coding Agent Might Write
 
-One possible source pattern inside `posts/crispr-cas9/index.qmd`:
+One possible source pattern inside `posts/wine-chemistry/index.qmd`:
 
 ````markdown
 ```{{python}}
-#| label: fig-indels
-#| fig-cap: "Synthetic target-site indel fractions by sample."
-#| fig-alt: "Control samples have lower fractions than Cas9 samples."
+#| label: fig-wine
+#| fig-cap: "Alcohol and color intensity in 178 UCI wine samples."
+#| fig-alt: "Scatterplot colored by three anonymous cultivars, with overlap."
 import pandas as pd
 import matplotlib.pyplot as plt
-counts = pd.read_csv("../../context/counts.csv")
-percent = 100 * counts.indel_reads / counts.total_reads
-plt.bar(counts["sample"], percent)
-plt.ylabel("Indel-bearing reads (%)")
-plt.ylim(0, 100)
+wine = pd.read_csv("../../context/wine.csv")
+for label, group in wine.groupby("cultivar"):
+    plt.scatter(group.alcohol, group.color_intensity,
+                label=f"Cultivar {label}", alpha=0.7)
+plt.xlabel("Alcohol (dataset measurement)")
+plt.ylabel("Color intensity (dataset measurement)")
+plt.legend()
 plt.show()
 ```
 ````
 
-**Check:** each bar uses its own sample's read denominator.
+**Check:** each point represents one sample; the labels remain anonymous.
 
-## Research Notes and Primary References {#crispr-notes}
+## Provenance and Limits {#wine-notes}
 
 **Ask your coding agent:**
 
-> Explain that Cas9 uses guide RNA to direct DNA cleavage, citing
-> Jinek et al. (2012). Cite Cong et al. (2013) for mammalian genome
-> editing. Distinguish this background from our invented counts.
-> Add research notes: one row is a synthetic sample, reads are not
-> independent biological replicates, and indels do not establish a
-> precise intended edit or off-target specificity. Render the references.
+> Cite the UCI Wine dataset for the measurements and scikit-learn for
+> the local export. Explain the row and cultivar labels. State that this
+> chart describes the supplied wines; it does not measure prediction
+> accuracy or wine quality. Render the references.
 
-- [Jinek et al. (2012)](https://doi.org/10.1126/science.1225829)
-- [Cong et al. (2013)](https://doi.org/10.1126/science.1231143)
+- [UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
+- [scikit-learn `load_wine`](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_wine.html)
 
-**Check:** source citations resolve, and the blog post states its limits.
+**Check:** the post has working source links and a specific limitation.
 
 ::: {.notes}
-Primary references and DOI metadata checked 2026-10-07 against the Science
-record for Jinek and the PubMed abstract for Cong. The synthetic data are not
-extracted from either study. No statistical efficacy claim follows from this
-teaching example. See context/notes.md for the denominator and replicate caveats.
+UCI and scikit-learn documentation checked 2026-10-21. The labels identify
+three cultivars but supply no named grapes, tasting scores, or sampling design.
 :::
 
 ## Preview and Render
@@ -751,9 +778,9 @@ Neither command publishes the blog to the public web.
 
 **Continue the same conversation after inspecting the post:**
 
-> The chart hides whether the counts are real. Add “Synthetic” to
-> its caption, label the y-axis “Indel-bearing reads (%)”, and state
-> that the counts illustrate reporting. Re-render the whole blog.
+> The chart uses cultivar numbers without explaining them. Add
+> “anonymous cultivar” to its legend and caption, and clarify that
+> these numbers are categories, not quality scores. Re-render the whole blog.
 
 ### Exercise
 
@@ -779,20 +806,20 @@ previous cell. If the labels are already correct, choose an observed defect.
 Open the home page, follow the post link, and return using navigation.
 Inspect the chart at a laptop viewport size.
 
-**Done:** the listing works, the figure is readable, and the prose labels the data synthetic.
+**Done:** the listing works, the figure is readable, and the prose explains the dataset provenance and limits.
 
 ## Four Task Completion Checks {#task-checklist}
 
 - **Introduction slides:** `intro.html` has exactly six readable slides,
   including the title and references.
 - **Essay:** `essay.pdf` has exactly three pages including references
-  and explains why counting and summaries matter.
-- **Research Jupyter notebook:** `notebook.ipynb` runs from a fresh kernel
-  and saves the six fractions, group summaries, and chart.
-- **Separate blog:** the HTML home page links to the rendered CRISPR-Cas9 post.
+  and explains what the descriptive summaries can support.
+- **Data Jupyter notebook:** `notebook.ipynb` runs from a fresh kernel
+  and saves the group summaries and chart for all 178 wines.
+- **Separate blog:** the HTML home page links to the rendered wine-chemistry post.
 
 For every task, keep editable sources, unchanged inputs, and a `README.md`
-with build commands. Check source links and label synthetic examples.
+with build commands. Check source links, provenance, and the unit of analysis.
 
 # Review and Publication
 
@@ -864,7 +891,7 @@ GitHub CLI reference: https://cli.github.com/manual/gh_repo_create (checked 2026
 
 **Ask your coding agent:** include the failed command, exact error, and file path.
 
-> Running quarto render fails in posts/crispr-cas9/index.qmd with
+> Running quarto render fails in posts/wine-chemistry/index.qmd with
 > the error below. Reproduce it, identify the cause, fix it, and rerun
 > the full build. Keep execution enabled and preserve the figure.
 > Explain what changed.
@@ -902,7 +929,7 @@ full build, but must review the combined result before publishing.
 
 **A notebook:**
 
-> Adapt my CRISPR-Cas9 analysis.ipynb into a blog post. Preserve the computations,
+> Adapt my wine-chemistry analysis.ipynb into a blog post. Preserve the computations,
 > add the missing explanation, and verify that the rendered results agree.
 
 **An R analysis:**
