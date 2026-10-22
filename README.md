@@ -3,7 +3,7 @@
 Build technical documents, Reveal.js slides, sites, and blogs by asking a coding agent in plain English.
 Learn the Quarto commands and source syntax alongside the requests. The same prompts work with Claude Code or Codex.
 
-- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — four CRISPR-Cas9 tasks: introduction slides, a three-page essay, a research Jupyter notebook, and a separate blog, with explicit outputs and review checks.
+- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — four UCI wine-data tasks: introduction slides, a three-page essay, a runnable Jupyter notebook, and a separate blog, with explicit outputs and review checks.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, a report in PDF, DOCX, and IPYNB, eight slides, and verified revisions.
 
 ## For attendees
@@ -49,11 +49,13 @@ and [CLI documentation](https://developers.openai.com/codex/cli/) (checked 2026-
 4. Ask it to write `brief.md`: audience, question, inputs, outputs, and acceptance criteria. Review the brief.
 5. Have the agent implement, render, inspect, and revise. Audit the evidence yourself.
 
-The [CRISPR-Cas9 context bundle](examples/crispr-context/) supplies synthetic target-site
-read counts, interpretation notes, three primary references, and a worked research
-Jupyter notebook source, `notebook.qmd`. Copy it into `~/code/quarto-play/context/`
-before starting the four tasks. The counts illustrate indel-fraction reporting and
-are not experimental results from the cited papers.
+The [wine context bundle](examples/wine-context/) supplies a local CSV copy of the
+[UCI Wine recognition dataset](https://archive.ics.uci.edu/dataset/109/wine),
+provenance notes, source records, and a worked notebook source, `notebook.qmd`.
+Copy it into `~/code/quarto-play/context/` before starting the four tasks.
+The 178 rows represent wine samples from three anonymous cultivars. The labels
+are categories, not quality scores. The CSV was exported from scikit-learn 1.6.1
+on 2026-10-21, with sample IDs added and target labels converted to UCI's 1–3.
 
 ### Four foundations tasks
 
@@ -62,14 +64,14 @@ replace the runnable research Jupyter notebook required by Task 3.
 
 | Task | Editable source | Required final output and check |
 |---|---|---|
-| 1. CRISPR-Cas9 introduction | `intro.qmd` | `intro.html`, exactly six Reveal.js slides including title and references |
-| 2. Why genomic indel counting and statistical summaries matter | `essay.qmd` | `essay.pdf`, exactly three pages including references, no separate cover |
-| 3. Research Jupyter notebook | `notebook.qmd` | `notebook.ipynb`, executable from a fresh kernel with saved results |
-| 4. Separate CRISPR-Cas9 blog | Blog configuration and `posts/crispr-cas9/index.qmd` | `_site/index.html` linking to `_site/posts/crispr-cas9/index.html` |
+| 1. Wine chemistry introduction | `intro.qmd` | `intro.html`, exactly six Reveal.js slides including title and sources |
+| 2. Evidence essay | `essay.qmd` | `essay.pdf`, exactly three pages including references, no separate cover |
+| 3. Data Jupyter notebook | `notebook.qmd` | `notebook.ipynb`, executable from a fresh kernel with saved results |
+| 4. Separate wine blog | Blog configuration and `posts/wine-chemistry/index.qmd` | `_site/index.html` linking to `_site/posts/wine-chemistry/index.html` |
 
 Tasks 1–3 run in `~/code/quarto-play/` using the shared `context/` inputs.
-The essay uses primary references and, for any computed synthetic illustration,
-`context/counts.csv`. It does not require the later Jupyter notebook.
+The essay uses `context/wine.csv` for every numerical claim and cites its
+provenance. It does not require the later Jupyter notebook.
 
 ```bash
 quarto render intro.qmd --to revealjs
@@ -78,24 +80,23 @@ quarto convert notebook.qmd --output notebook.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebook.ipynb
 ```
 
-The introduction addresses first-year biology students: title, guide RNA/PAM,
-cleavage and repair, research value, indel measurement and limits, and references.
+The introduction addresses first-year data science students: title, the
+mystery-cultivar question, samples and labels, two chemical features,
+overlap and limits, and sources.
 Use the dark Reveal.js theme and inspect all six slides on desktop and laptop.
 
-The essay explains why indel counts inform CRISPR-Cas9 assessment and how
-denominators, control background, and statistical summaries affect interpretation.
-Use A4, 11-point text, and 1-inch margins. Page 1 covers repair and the value of
-measurement; page 2 covers read fractions, controls, and mean/median/sample SD;
-page 3 covers independent replicates, uncertainty, limitations, and references.
-Verify the rendered three-page total rather than inferring it from a word count.
-Keep synthetic illustrations distinct from primary evidence and do not invent
-inferential results from the teaching counts.
+The essay asks what wine chemistry can tell us about the three cultivars.
+Use A4, 11-point text, and 1-inch margins. Page 1 covers the question,
+provenance, and unit of analysis; page 2 covers alcohol and color intensity,
+group summaries, and overlap; page 3 covers limits and references. Verify the
+rendered three-page total rather than inferring it from a word count. Do not
+present descriptive differences as measured prediction accuracy.
 
 For Task 3, create the notebook from the worked source and fix paths to `context/`.
-Include all six sample fractions, a captioned chart, and each condition's sample
-count, mean, median, and sample standard deviation. State that SD uses percentage
-points and that samples receive equal weight. Add readable reference links in
-notebook Markdown.
+Include all 178 samples in a captioned alcohol-versus-color scatterplot and
+report each cultivar's sample count, mean, median, and sample standard deviation
+for both features. State that each row is one wine sample and explain the labels.
+Add readable source links in notebook Markdown.
 
 Task 4 starts in a separate `~/code/quarto-blog/` project and adapts the same
 context into a website post. The blog does not replace Tasks 1–3. Before rendering,
@@ -175,7 +176,7 @@ then explicitly authorize the commit, remote creation, push, and publication.
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
 | `slides.css` | Shared responsive content styling and reduced-motion support |
 | `section-progress.html` | Shared colored section/task progress and navigation |
-| `examples/crispr-context/` | Synthetic CRISPR-Cas9 counts, notes, references, and worked notebook; outside the render list |
+| `examples/wine-context/` | UCI Wine CSV, provenance notes, references, and worked notebook; outside the render list |
 | `examples/marketing-context/` | Public Hillstrom promotion experiment and provenance; outside the render list |
 | `examples/ai-context/` | Preserved optional synthetic runtime inputs; outside the render list |
 | `AGENTS.md` | Repository instructions, review criteria, and delegation conventions |
