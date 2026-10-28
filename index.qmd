@@ -1,106 +1,75 @@
 ---
 title: "Managing Quarto with AI"
-subtitle: "A three-hour workshop with a coding agent"
+subtitle: "A three-hour workshop for academic teaching and publishing"
 author: "Ravi Kalia"
 date: ""
-description: "A three-hour Quarto workshop covering agent requests, execution, debugging, output formats, and publishing, with wine-data follow-on projects."
+description: "A three-hour Quarto workshop for lecturers: create and review an HTML page and Reveal.js deck with a coding agent, then explore reports and blogs."
 ---
 
 ## What You Will Build
 
-A short Quarto page and a Reveal.js deck, built with a coding agent.
-The supplied wine data gives us a concrete example.
+Use plain-text Quarto sources to create and review two teaching outputs during
+the three-hour workshop. The later projects apply the same workflow to research.
 
-| During the three hours | After the workshop, if useful |
+| During the workshop | After the workshop, if useful |
 |---|---|
-| `hello.qmd` → reviewed `hello.html` | Six-slide wine introduction |
-| Deliberate error → diagnosis → repaired render | Three-page wine essay and runnable notebook |
-| `talk.qmd` → Reveal.js slides → optional Quarto Pub URL | Separate wine-chemistry blog |
+| `hello.qmd` → reviewed `hello.html` | Three-page wine essay as PDF |
+| Deliberate error → diagnosis → repaired render | Runnable wine-analysis notebook |
+| `talk.qmd` → reviewed Reveal.js `talk.html` | Six-slide wine introduction and separate blog |
 
 ::: {.notes}
-Learning objectives: request an implementation, read Markdown/YAML/code,
-check rendered results, diagnose a deliberate failure, change an output
-format, and review publication. Audience: students new to Quarto, with basic
-folder and terminal familiarity. Three-hour completion means an inspected
-HTML page, a repaired render, and a reviewed Reveal.js deck. The dataset is
-classification data, not wine quality or tasting data. Source: UCI Wine dataset,
-checked 2026-10-21.
+Audience: university lecturers and students with basic folder and terminal familiarity.
+Objectives: request a change, read Quarto source, diagnose a failed render, switch
+output formats, and review a publication. Completion means an inspected HTML page,
+a repaired render, and a reviewed Reveal.js deck. PDF reports, notebooks, and
+blogs are follow-on projects. Publishing the core deck to Quarto Pub is optional.
 :::
 
-## The Wine Question {#wine-question}
+## The Scientific Authoring Pipeline {#quarto-pipeline-overview}
 
-Imagine three unlabeled groups of wine bottles. A lab measures each sample's
-chemistry. Could those measurements help identify its cultivar?
-
-| What we have | What we do not have |
-|---|---|
-| 178 samples, three anonymous cultivar labels | Named grapes or tasting scores |
-| 13 measured features per wine | A guarantee about new regions or vintages |
-
-We will begin with **alcohol** and **color intensity**, then inspect how
-individual wines overlap even when group averages differ.
-
-::: {.notes}
-UCI describes samples from one Italian region and three cultivars. Cultivar
-numbers 1–3 are categories, not ranks. Color intensity has no unit specified
-on the UCI page. The local CSV is a scikit-learn copy with added sample IDs.
-UCI and scikit-learn documentation checked 2026-10-21.
-:::
-
-## Can Two Measurements Separate the Cultivars? {#wine-preview}
-
-```{python}
-#| echo: false
-#| label: fig-wine-preview
-#| fig-cap: "Alcohol versus color intensity for 178 UCI wine samples. Colors show anonymous cultivar labels."
-#| fig-alt: "Scatterplot of alcohol and color intensity for 178 wines in three cultivar groups. The groups differ but overlap, especially around the center of the plot."
-import pandas as pd
-import matplotlib.pyplot as plt
-
-wine = pd.read_csv("examples/wine-context/wine.csv")
-with plt.style.context("dark_background"):
-    fig, ax = plt.subplots(figsize=(8, 4))
-    for label, group in wine.groupby("cultivar"):
-        ax.scatter(group.alcohol, group.color_intensity, label=f"Cultivar {label}",
-                   s=34, alpha=0.8)
-    ax.set_xlabel("Alcohol (dataset measurement)")
-    ax.set_ylabel("Color intensity (dataset measurement)")
-    ax.legend(title="Anonymous label", ncol=3, loc="upper center")
-    fig.tight_layout()
-    plt.show()
+```text
+  [ Your Scientific Question & Data ]
+                 │
+                 ▼
+     [ AI Coding Agent Session ]  ◀── "Draft sections and check the source"
+                 │  generates & edits
+                 ▼
+     [ Plain-Text Markdown (.qmd) ]
+                 │
+                 ▼
+       [ Quarto CLI Render ]
+          ┌──────┴──────┐
+          ▼             ▼
+      hello.html     talk.html
+      (web page)     (Reveal.js slides)
 ```
 
-**Look closely:** where do the colors overlap? This plot describes the supplied
-wines; it is not a test of classification accuracy.
+The same source pattern can later produce PDFs, Word documents, notebooks,
+slide decks, websites, and blogs. Check each output before sharing it.
 
 ::: {.notes}
-The caption and labels describe a real, local dataset, not invented teaching
-counts. One point is one wine sample. Both axes show the dataset's recorded
-values; UCI does not give physical units for these columns. Ask learners to
-locate overlap before they see group means.
+The author remains responsible for scientific claims and the reviewed output.
+The agent can draft source and repair build errors; Quarto renders the source.
 :::
 
 ## Three-Hour Workshop Route
 
-| Time | Focus | Checkpoint |
+| Time | Section | Focus & Observable Deliverables |
 |---|---|---|
-| 00:00–01:00 | Anatomy & the agent | Rendered `hello.html` and a precise revision |
+| 00:00–01:00 | **Hour 1 · Anatomy & the Agent** | Prompt agent; render and revise `hello.html` |
 | 01:00–01:10 | Break | |
-| 01:10–02:00 | Execution & formatting | CLI diagnosis and repaired output |
+| 01:10–02:00 | **Hour 2 · Execution & Formatting** | Read Python cells; diagnose and repair a failed render |
 | 02:00–02:10 | Break | |
-| 02:10–03:00 | Outputs & publishing | Reviewed `talk.html`; optional Quarto Pub URL |
+| 02:10–03:00 | **Hour 3 · Outputs & Publishing** | Review `talk.html`; optionally publish to Quarto Pub |
 
-: {tbl-colwidths="[19,41,40]"}
+: {tbl-colwidths="[18,34,48]"}
 
-**Working pattern:** ask the agent → inspect its edits → render → inspect the
-output → revise. The four wine projects later in the deck extend this path.
+**Working rhythm:** ask the agent → inspect its edits → render → inspect the
+output → revise. Follow-on projects later in the deck extend this core path.
 
 ::: {.notes}
-Audience: students new to Quarto. Prerequisites: opening a folder,
-using an editor, and basic terminal navigation. No environment-manager expertise
-is assumed. Allow roughly 15 minutes for orientation, 45 minutes for Hour 1,
-50 minutes for Hour 2, and 50 minutes for Hour 3. Teach prompts live and
-inspect the actual files and browser. Publishing is optional.
+Allow about 15 minutes for orientation, 45 minutes for Hour 1, 50 minutes for
+Hour 2, and 50 minutes for Hour 3. Teach prompts live and inspect actual files.
 :::
 
 ## How to Use These Slides
@@ -1105,6 +1074,117 @@ Inspect the chart at a laptop viewport size.
 
 For every task, keep editable sources, unchanged inputs, and a `README.md`
 with build commands. Check source links, provenance, and the unit of analysis.
+
+# Optional Module: Synthetic Water-Quality Alerts
+
+## What This Example Can Teach {#irca-context}
+
+**Audience:** students who have completed the execution exercise and know a
+train/test split. **Input:** 5,000 invented water-sample rows assigned to
+municipalities in Boyacá, Cundinamarca, and Santander.
+
+[Download the public synthetic CSV](https://gist.githubusercontent.com/project-delphi/e6afb121c1f7dc0d15531494f86bd408/raw/5c7bbf97663a249dbd4c159992057b528ccd4eca/irca_andina_dataset.csv).
+
+The deck renders from the identical CSV bundled in `examples/irca-andina/`.
+
+**Question:** can pH, turbidity (NTU), and free chlorine residual (mg/L)
+predict a *synthetic* risk label generated with additional hidden information?
+
+An operational sensor alert could prompt investigation while microbiology
+results are pending. The label here is **not an official IRCA result** and the
+model is **not a validated early-warning system**.
+
+::: {.notes}
+Prerequisites: basic Python and classification vocabulary. Objective: execute
+a reproducible split, compare accuracy with a baseline, and interpret feature
+importance and missing predictors. One row is an invented sample, not a real
+municipal observation. The generator uses pH, turbidity, chlorine, and an
+invented coliform count to assign a continuous score. It does not implement
+Resolution 2115's weighted calculation. Sensor readings complement, rather
+than replace, microbiological testing. Regulation checked 2026-10-28:
+https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm
+:::
+
+## Fit a Random Forest to the Simulation {#irca-model}
+
+```{python}
+#| echo: true
+#| output: false
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+import pandas as pd
+import matplotlib.pyplot as plt
+
+water = pd.read_csv("examples/irca-andina/irca_andina_dataset.csv")
+features = ["ph", "turbiedad_ntu", "cloro_residual_mg_l"]
+X_train, X_test, y_train, y_test = train_test_split(
+    water[features], water["irca_clasificacion"],
+    test_size=0.20, stratify=water["irca_clasificacion"], random_state=42,
+)
+forest = RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=1)
+forest.fit(X_train, y_train)
+```
+
+**Check:** the split has 4,000 training and 1,000 test rows.
+
+## Test the Simulated Labels {#irca-results}
+
+```{python}
+#| echo: false
+from sklearn.metrics import accuracy_score, balanced_accuracy_score
+
+predicted = forest.predict(X_test)
+print(f"Synthetic test accuracy: {accuracy_score(y_test, predicted):.3f}")
+print(f"Balanced accuracy: {balanced_accuracy_score(y_test, predicted):.3f}")
+print(f"Majority-class baseline: {y_test.value_counts(normalize=True).max():.3f}")
+```
+
+Accuracy measures agreement with simulated labels drawn from the *same
+generator*. The rarest class has just three rows in the whole dataset.
+Which metric makes the limitation clearer?
+
+## Which Sensors Does This Model Use? {#irca-importance}
+
+```{python}
+#| echo: false
+#| label: fig-irca-importance
+#| fig-cap: "Random Forest impurity importance for three predictors of a synthetic risk label; higher bars describe this fitted model, not real-world contamination risk."
+#| fig-alt: "Horizontal bars show synthetic-model importance: turbidity about 0.40, chlorine about 0.33, and pH about 0.27."
+with plt.style.context("dark_background"):
+    fig, ax = plt.subplots(figsize=(8, 3.5))
+    labels = ["pH", "Turbidity (NTU)", "Free chlorine (mg/L)"]
+    ax.barh(labels, forest.feature_importances_, color=["#a8b8cc", "#f5b841", "#55c7d8"])
+    ax.set_xlim(0, 0.5)
+    ax.tick_params(axis="both", labelsize=12)
+    ax.set_xlabel("Impurity-based importance in the synthetic model", fontsize=12)
+    fig.tight_layout()
+    plt.show()
+```
+
+Turbidity and chlorine carry more model importance than pH in this simulation.
+The bars do not give effect direction, causation, or field performance.
+
+::: {.notes}
+The generator assigns larger risk scores to higher turbidity and lower
+chlorine, but it also uses a simulated coliform count omitted from the model.
+The five classes are imbalanced, including only three rows in the rarest
+class. Compare balanced accuracy with ordinary accuracy; neither validates
+an early warning system. A real deployment would need representative measured
+data, time and municipality holdouts, calibration, microbiological validation,
+and a protocol for responding to alerts.
+:::
+
+## Audit the Alert Claim {#irca-exercise}
+
+### Exercise
+
+Using `examples/irca-andina/` in the repository, compare the reported accuracy
+with the majority-class baseline. Identify the
+input used to generate labels that the sensor-only model cannot see. Then
+write one sentence describing a safe use for a sensor alert.
+
+**Done:** explain why accuracy on synthetic rows cannot estimate real IRCA
+classification accuracy or replace laboratory testing.
 
 # Review and Publication
 
