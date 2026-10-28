@@ -1,0 +1,84 @@
+---
+title: "Reported Municipal IRCA in Three Colombian Departments"
+format:
+  html:
+    toc: true
+    embed-resources: true
+bibliography: sources.bib
+jupyter: python3
+execute:
+  echo: true
+  error: false
+  cache: false
+  freeze: false
+---
+
+## Question and source
+
+How did reported municipal IRCA values vary in Boyacá, Cundinamarca, and
+Santander in 2024? The [INS/SIVICAP open-data table](https://www.datos.gov.co/Salud-y-Protecci-n-Social/Calidad-del-Agua-para-Consumo-Humano-en-Colombia/nxt2-39c3)
+contains annual municipal and department summaries from 2007–2024 [@ins_irca].
+One row is a municipality-year or department-year summary, not one water sample.
+
+## Load and summarize
+
+Run this source from its bundle folder. If copied into `context/`, change the
+CSV path. Exclude the `#TODOS` department aggregates before comparing
+municipalities. Each municipality contributes one row to the 2024 summaries.
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+
+water = pd.read_csv(
+    "irca_boyaca_cundinamarca_santander.csv",
+    dtype={"departamentocodigo": str, "municipiocodigo": str},
+)
+municipal = water[water["municipiocodigo"] != "#TODOS"]
+current = municipal[municipal["a_o"] == 2024].copy()
+assert len(current) == 318
+assert current["municipiocodigo"].is_unique
+
+summary = current.groupby("departamento")["irca"].agg(
+    municipalities="count", median="median", minimum="min", maximum="max"
+)
+print(summary.round(1).to_string())
+print("Rural IRCA available:", pd.to_numeric(current["ircarural"], errors="coerce").count())
+```
+
+```{python}
+#| label: fig-municipal-irca
+#| fig-cap: "Reported 2024 municipal IRCA (%) in Boyacá, Cundinamarca, and Santander. Each point is one municipality, not one water sample."
+#| fig-alt: "Dots show the distribution of reported 2024 municipal IRCA percentages across the three departments. Values vary within each department."
+fig, ax = plt.subplots(figsize=(8, 4.5))
+for position, (department, group) in enumerate(current.groupby("departamento")):
+    ax.scatter([position] * len(group), group["irca"], alpha=0.45, s=22,
+               label=department)
+ax.set_xticks(range(3), sorted(current["departamento"].unique()))
+ax.set_ylabel("Reported municipal IRCA (%)")
+ax.set_ylim(0, 100)
+fig.tight_layout()
+plt.show()
+```
+
+## Interpretation and limits
+
+These are reported annual surveillance summaries. The points show variation
+among municipalities, not among individual samples. The chart gives each
+municipality equal weight and cannot estimate population exposure, identify
+causes, or validate alerts for future water quality. Rural IRCA has many `ND`
+entries; treat them as missing rather than zero. [DANE's inventory](https://inventariosen.dane.gov.co/ooee/ooee/97/)
+describes INS's IRCA operation [@dane_irca].
+
+### Exercise
+
+Compare the number of 2024 municipalities with numeric urban and rural IRCA.
+How does missing rural reporting limit a direct urban–rural comparison?
+
+## References
+
+- [INS/SIVICAP open-data table](https://www.datos.gov.co/Salud-y-Protecci-n-Social/Calidad-del-Agua-para-Consumo-Humano-en-Colombia/nxt2-39c3)
+- [DANE inventory of the IRCA statistical operation](https://inventariosen.dane.gov.co/ooee/ooee/97/)
+
+::: {#refs}
+:::
