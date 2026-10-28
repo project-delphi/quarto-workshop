@@ -623,6 +623,41 @@
     "text": "Four Task Completion Checks\n\nIntroduction slides: intro.html has exactly six readable slides, including the title and references.\nEssay: essay.pdf has exactly three pages including references and explains what the descriptive summaries can support.\nData Jupyter notebook: notebook.ipynb runs from a fresh kernel and saves the group summaries and chart for all 178 wines.\nSeparate blog: the HTML home page links to the rendered wine-chemistry post.\n\nFor every task, keep editable sources, unchanged inputs, and a README.md with build commands. Check source links, provenance, and the unit of analysis."
   },
   {
+    "objectID": "index.html#irca-context",
+    "href": "index.html#irca-context",
+    "title": "Managing Quarto with AI",
+    "section": "What This Example Can Teach",
+    "text": "What This Example Can Teach\nAudience: students who have completed the execution exercise and know a train/test split. Input: 5,000 invented water-sample rows assigned to municipalities in Boyacá, Cundinamarca, and Santander.\nDownload the public synthetic CSV.\nQuestion: can pH, turbidity (NTU), and free chlorine residual (mg/L) predict a synthetic risk label generated with additional hidden information?\nAn operational sensor alert could prompt investigation while microbiology results are pending. The label here is not an official IRCA result and the model is not a validated early-warning system.\n\nPrerequisites: basic Python and classification vocabulary. Objective: execute a reproducible split, compare accuracy with a baseline, and interpret feature importance and missing predictors. One row is an invented sample, not a real municipal observation. The generator uses pH, turbidity, chlorine, and an invented coliform count to assign a continuous score. It does not implement Resolution 2115’s weighted calculation. Sensor readings complement, rather than replace, microbiological testing. Regulation checked 2026-10-28: https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm"
+  },
+  {
+    "objectID": "index.html#irca-model",
+    "href": "index.html#irca-model",
+    "title": "Managing Quarto with AI",
+    "section": "Fit a Random Forest to the Simulation",
+    "text": "Fit a Random Forest to the Simulation\n\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.model_selection import train_test_split\n\nwater = pd.read_csv(raw_csv)\nfeatures = [\"ph\", \"turbiedad_ntu\", \"cloro_residual_mg_l\"]\nX_train, X_test, y_train, y_test = train_test_split(\n    water[features], water[\"irca_clasificacion\"],\n    test_size=0.20, stratify=water[\"irca_clasificacion\"], random_state=42,\n)\nforest = RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=1)\nforest.fit(X_train, y_train)\n\nCheck: the split has 4,000 training and 1,000 test rows."
+  },
+  {
+    "objectID": "index.html#irca-results",
+    "href": "index.html#irca-results",
+    "title": "Managing Quarto with AI",
+    "section": "Test the Simulated Labels",
+    "text": "Test the Simulated Labels\n\n\nSynthetic test accuracy: 0.731\nBalanced accuracy: 0.372\nMajority-class baseline: 0.706\n\n\nAccuracy measures agreement with simulated labels drawn from the same generator. The rarest class has just three rows in the whole dataset. Which metric makes the limitation clearer?"
+  },
+  {
+    "objectID": "index.html#irca-importance",
+    "href": "index.html#irca-importance",
+    "title": "Managing Quarto with AI",
+    "section": "Which Sensors Does This Model Use?",
+    "text": "Which Sensors Does This Model Use?\n\n\n\n\n\n\n\n\nFigure 2: Random Forest impurity importance for three predictors of a synthetic risk label; higher bars describe this fitted model, not real-world contamination risk.\n\n\n\n\n\nTurbidity and chlorine carry more model importance than pH in this simulation. The bars do not give effect direction, causation, or field performance.\n\nThe generator assigns larger risk scores to higher turbidity and lower chlorine, but it also uses a simulated coliform count omitted from the model. The five classes are imbalanced, including only three rows in the rarest class. Compare balanced accuracy with ordinary accuracy; neither validates an early warning system. A real deployment would need representative measured data, time and municipality holdouts, calibration, microbiological validation, and a protocol for responding to alerts."
+  },
+  {
+    "objectID": "index.html#irca-exercise",
+    "href": "index.html#irca-exercise",
+    "title": "Managing Quarto with AI",
+    "section": "Audit the Alert Claim",
+    "text": "Audit the Alert Claim\nExercise\nUsing examples/irca-andina/ in the repository, compare the reported accuracy with the majority-class baseline. Identify the input used to generate labels that the sensor-only model cannot see. Then write one sentence describing a safe use for a sensor alert.\nDone: explain why accuracy on synthetic rows cannot estimate real IRCA classification accuracy or replace laboratory testing."
+  },
+  {
     "objectID": "index.html#reviewing-the-files",
     "href": "index.html#reviewing-the-files",
     "title": "Managing Quarto with AI",

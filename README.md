@@ -6,6 +6,14 @@ Learn the Quarto commands and source syntax alongside the requests. The same pro
 - **[Managing Quarto with AI](https://project-delphi.github.io/quarto-workshop/)** — the main three-hour workshop: Quarto anatomy, precise agent requests, execution and debugging, Reveal.js output, and optional Quarto Pub publishing. Four UCI wine-data projects follow as extensions.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, a report in PDF, DOCX, and IPYNB, eight slides, and verified revisions.
 
+The foundations deck also has an optional [synthetic water-quality classification example](index.qmd#irca-context).
+Its [5,000-row classroom dataset and generator](examples/irca-andina/) use invented
+samples assigned to Boyacá, Cundinamarca, and Santander. The exercise score is
+not Colombia's official IRCA calculation, and model accuracy on its random
+test split does not validate alerts for real water systems.
+The optional module loads the [public Gist CSV](https://gist.githubusercontent.com/project-delphi/e6afb121c1f7dc0d15531494f86bd408/raw/5c7bbf97663a249dbd4c159992057b528ccd4eca/irca_andina_dataset.csv)
+when rendering; the same data and generator are preserved locally.
+
 ## Lab Setup (Admin)
 
 English: On each Ubuntu WSL computer, copy this script to a working directory and run `./setup_wsl_es.sh` while connected to the internet, ahead of the workshop. This installs and downloads the main tools and repository before attendees arrive on a slow connection. The final `claude` command starts an interactive session.
@@ -193,6 +201,7 @@ then explicitly authorize the commit, remote creation, push, and publication.
 | `section-progress.html` | Shared colored section/task progress and navigation |
 | `examples/wine-context/` | UCI Wine CSV, provenance notes, references, and worked notebook; outside the render list |
 | `examples/marketing-context/` | Public Hillstrom promotion experiment and provenance; outside the render list |
+| `examples/irca-andina/` | Reproducible synthetic water-quality CSV and generator; outside the render list |
 | `examples/ai-context/` | Preserved optional synthetic runtime inputs; outside the render list |
 | `AGENTS.md` | Repository instructions, review criteria, and delegation conventions |
 | `CLAUDE.md` | Imports the shared agent instructions |

@@ -1106,6 +1106,124 @@ Inspect the chart at a laptop viewport size.
 For every task, keep editable sources, unchanged inputs, and a `README.md`
 with build commands. Check source links, provenance, and the unit of analysis.
 
+# Optional Module: Synthetic Water-Quality Alerts
+
+## What This Example Can Teach {#irca-context}
+
+**Audience:** students who have completed the execution exercise and know a
+train/test split. **Input:** 5,000 invented water-sample rows assigned to
+municipalities in Boyacá, Cundinamarca, and Santander.
+
+[Download the public synthetic CSV](https://gist.githubusercontent.com/project-delphi/e6afb121c1f7dc0d15531494f86bd408/raw/5c7bbf97663a249dbd4c159992057b528ccd4eca/irca_andina_dataset.csv).
+
+```{python}
+#| echo: false
+#| output: false
+raw_csv = (
+    "https://gist.githubusercontent.com/project-delphi/"
+    "e6afb121c1f7dc0d15531494f86bd408/raw/"
+    "5c7bbf97663a249dbd4c159992057b528ccd4eca/"
+    "irca_andina_dataset.csv"
+)
+```
+
+**Question:** can pH, turbidity (NTU), and free chlorine residual (mg/L)
+predict a *synthetic* risk label generated with additional hidden information?
+
+An operational sensor alert could prompt investigation while microbiology
+results are pending. The label here is **not an official IRCA result** and the
+model is **not a validated early-warning system**.
+
+::: {.notes}
+Prerequisites: basic Python and classification vocabulary. Objective: execute
+a reproducible split, compare accuracy with a baseline, and interpret feature
+importance and missing predictors. One row is an invented sample, not a real
+municipal observation. The generator uses pH, turbidity, chlorine, and an
+invented coliform count to assign a continuous score. It does not implement
+Resolution 2115's weighted calculation. Sensor readings complement, rather
+than replace, microbiological testing. Regulation checked 2026-10-28:
+https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm
+:::
+
+## Fit a Random Forest to the Simulation {#irca-model}
+
+```{python}
+#| echo: true
+#| output: false
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
+water = pd.read_csv(raw_csv)
+features = ["ph", "turbiedad_ntu", "cloro_residual_mg_l"]
+X_train, X_test, y_train, y_test = train_test_split(
+    water[features], water["irca_clasificacion"],
+    test_size=0.20, stratify=water["irca_clasificacion"], random_state=42,
+)
+forest = RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=1)
+forest.fit(X_train, y_train)
+```
+
+**Check:** the split has 4,000 training and 1,000 test rows.
+
+## Test the Simulated Labels {#irca-results}
+
+```{python}
+#| echo: false
+from sklearn.metrics import accuracy_score, balanced_accuracy_score
+
+predicted = forest.predict(X_test)
+print(f"Synthetic test accuracy: {accuracy_score(y_test, predicted):.3f}")
+print(f"Balanced accuracy: {balanced_accuracy_score(y_test, predicted):.3f}")
+print(f"Majority-class baseline: {y_test.value_counts(normalize=True).max():.3f}")
+```
+
+Accuracy measures agreement with simulated labels drawn from the *same
+generator*. The rarest class has just three rows in the whole dataset.
+Which metric makes the limitation clearer?
+
+## Which Sensors Does This Model Use? {#irca-importance}
+
+```{python}
+#| echo: false
+#| label: fig-irca-importance
+#| fig-cap: "Random Forest impurity importance for three predictors of a synthetic risk label; higher bars describe this fitted model, not real-world contamination risk."
+#| fig-alt: "Horizontal bars show synthetic-model importance: turbidity about 0.40, chlorine about 0.33, and pH about 0.27."
+with plt.style.context("dark_background"):
+    fig, ax = plt.subplots(figsize=(8, 3.5))
+    labels = ["pH", "Turbidity (NTU)", "Free chlorine (mg/L)"]
+    ax.barh(labels, forest.feature_importances_, color=["#a8b8cc", "#f5b841", "#55c7d8"])
+    ax.set_xlim(0, 0.5)
+    ax.tick_params(axis="both", labelsize=12)
+    ax.set_xlabel("Impurity-based importance in the synthetic model", fontsize=12)
+    fig.tight_layout()
+    plt.show()
+```
+
+Turbidity and chlorine carry more model importance than pH in this simulation.
+The bars do not give effect direction, causation, or field performance.
+
+::: {.notes}
+The generator assigns larger risk scores to higher turbidity and lower
+chlorine, but it also uses a simulated coliform count omitted from the model.
+The five classes are imbalanced, including only three rows in the rarest
+class. Compare balanced accuracy with ordinary accuracy; neither validates
+an early warning system. A real deployment would need representative measured
+data, time and municipality holdouts, calibration, microbiological validation,
+and a protocol for responding to alerts.
+:::
+
+## Audit the Alert Claim {#irca-exercise}
+
+### Exercise
+
+Using `examples/irca-andina/` in the repository, compare the reported accuracy
+with the majority-class baseline. Identify the
+input used to generate labels that the sensor-only model cannot see. Then
+write one sentence describing a safe use for a sensor alert.
+
+**Done:** explain why accuracy on synthetic rows cannot estimate real IRCA
+classification accuracy or replace laboratory testing.
+
 # Review and Publication
 
 ## Reviewing the Files
