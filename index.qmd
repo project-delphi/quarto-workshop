@@ -13,9 +13,9 @@ the three-hour workshop. The later projects apply the same workflow to research.
 
 | During the workshop | After the workshop, if useful |
 |---|---|
-| `hello.qmd` → reviewed `hello.html` | Three-page wine essay as PDF |
-| Deliberate error → diagnosis → repaired render | Runnable wine-analysis notebook |
-| `talk.qmd` → reviewed Reveal.js `talk.html` | Six-slide wine introduction and separate blog |
+| `hello.qmd` → reviewed `hello.html` | Three-page municipal IRCA essay as PDF |
+| Deliberate error → diagnosis → repaired render | Runnable IRCA analysis notebook |
+| `talk.qmd` → reviewed Reveal.js `talk.html` | Six-slide water-quality introduction and separate blog |
 
 ::: {.notes}
 Audience: university lecturers and students with basic folder and terminal familiarity.
@@ -196,10 +196,14 @@ and installation guide were checked 2026-10-28.
 
 ## A Folder for the Workshop
 
-**Terminal, once:** choose a new folder outside this workshop repository.
+**Terminal, once:** from the workshop clone, prepare a practice folder and
+copy the reported IRCA data used in the computation exercise.
 
 ```bash
 mkdir -p ~/code/quarto-play
+mkdir -p ~/code/quarto-play/context
+cp examples/irca-colombia/irca_boyaca_cundinamarca_santander.csv \
+  ~/code/quarto-play/context/
 cd ~/code/quarto-play
 # Start one coding agent:
 claude
@@ -293,8 +297,8 @@ The generated source remains yours to read, edit, and version.
 
 **Continue in the same coding agent conversation:**
 
-> Change the title to “Can Chemistry Distinguish Wine Cultivars?”. Add a
-> question about alcohol and color intensity across three anonymous cultivars.
+> Change the title to “What Do Municipal IRCA Values Show?”. Add a
+> question about reported water-quality risk in Boyacá and nearby departments.
 > Add sections for code, interpretation, and sources. Render again.
 
 **Check:** both titles change. This HTML practice page can later support the
@@ -308,13 +312,13 @@ and show its effect in the browser.
 ## A Useful Request
 
 > In hello.qmd, explain Quarto to first-year data science students. Use a
-> wine-chemistry notebook example in under 100 words. Preserve my title.
+> municipal water-quality notebook example in under 100 words. Preserve my title.
 > Render the page and check that the example appears.
 
 | Include what matters | In this request |
 |---|---|
 | Context | `hello.qmd`, first-year data science students |
-| Desired result | A short introduction with a wine-data example |
+| Desired result | A short introduction with a municipal IRCA example |
 | Constraint | Preserve the title |
 | Completion check | Render and find the example |
 
@@ -398,8 +402,8 @@ Ask learners which file they would edit to change wording in every output.
 
 **Ask your coding agent:**
 
-> Add a “Reading list” to hello.qmd with a link to the UCI Wine dataset
-> and one bold phrase explaining that cultivar labels are anonymous.
+> Add a “Reading list” to hello.qmd with a link to the official Colombian
+> water-quality dataset and one bold phrase stating the unit of analysis.
 > Verify the link, render, and explain the Markdown.
 
 **Source pattern:**
@@ -407,9 +411,9 @@ Ask learners which file they would edit to change wording in every output.
 ```{.markdown code-line-numbers="1|3|5"}
 ## Reading list
 
-The **cultivar labels are anonymous categories**.
+Each row is a **municipality-year summary**, not an individual water sample.
 
-[UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
+[INS/SIVICAP water-quality dataset](https://www.datos.gov.co/Salud-y-Protecci-n-Social/Calidad-del-Agua-para-Consumo-Humano-en-Colombia/nxt2-39c3)
 ```
 
 **Check:** a heading, bold text, and a working link appear on the page.
@@ -425,7 +429,7 @@ The **cultivar labels are anonymous categories**.
 
 ```yaml
 ---
-title: "Can Chemistry Distinguish Wine Cultivars?"
+title: "What Do Municipal IRCA Values Show?"
 format:
   html:
     toc: true
@@ -461,16 +465,16 @@ and https://quarto.org/docs/presentations/revealjs/ (checked 2026-10-28).
 **Ask your coding agent:**
 
 > Add two tabs to hello.qmd: “Question” and “Evidence”. Put a
-> short wine-data note in each. Use Quarto's tabset syntax and render.
+> short municipal IRCA note in each. Use Quarto's tabset syntax and render.
 
 **Source pattern:**
 
 ```markdown
 ::: {.panel-tabset}
 ## Question
-Can chemistry distinguish the three cultivars?
+How do reported IRCA values vary across municipalities?
 ## Evidence
-Alcohol and color intensity vary, with some overlap.
+The official table reports annual municipal IRCA values, with gaps in rural data.
 :::
 ```
 
@@ -524,35 +528,39 @@ environment fix. Optional reproducibility recipes are in the workshop repository
 
 ## A Computation in These Slides
 
-This cell counts the three cultivar groups from the supplied CSV when the
-deck renders:
+This cell counts 2024 municipality records in the three selected departments
+from the bundled official-data extract when the deck renders:
 
 ```{python}
 #| echo: true
 import csv
 from collections import Counter
 
-with open("examples/wine-context/wine.csv", newline="") as source:
-    group_counts = Counter(row["cultivar"] for row in csv.DictReader(source))
+with open("examples/irca-colombia/irca_boyaca_cundinamarca_santander.csv", newline="") as source:
+    group_counts = Counter(
+        row["departamento"] for row in csv.DictReader(source)
+        if row["a_o"] == "2024" and row["municipiocodigo"] != "#TODOS"
+    )
 total = sum(group_counts.values())
 largest_share = 100 * max(group_counts.values()) / total
-print(f"Wine samples: {total}")
+print(f"Municipality records in 2024: {total}")
 print(f"Largest group share: {largest_share:.1f}%")
 ```
 
-**Check:** the total is 178. The largest group contains 71 wines.
+**Check:** the total is 318. Boyacá has the most records (119).
 
 ## Revise a Calculation
 
-The `max` function selects the largest cultivar group. What happens if we
+The `max` function selects the largest department group. What happens if we
 ask for the smallest group instead?
 
 ### Exercise
 
 > Add this computation to hello.qmd, adjusting the CSV path to
-> `context/wine.csv`. Change `max` to `min`, render, and explain what changes.
+> `context/irca_boyaca_cundinamarca_santander.csv`. Change `max` to `min`,
+> render, and explain what changes.
 
-**Check:** the total stays 178 while the reported group share changes.
+**Check:** the total stays 318 while the reported department share changes.
 
 ## Cell Options Control What Readers See
 
@@ -567,9 +575,12 @@ ask for the smallest group instead?
 #| echo: false
 import csv
 from collections import Counter
-with open("context/wine.csv", newline="") as source:
-    group_counts = Counter(row["cultivar"] for row in csv.DictReader(source))
-print(f"Wine samples: {sum(group_counts.values())}")
+with open("context/irca_boyaca_cundinamarca_santander.csv", newline="") as source:
+    group_counts = Counter(
+        row["departamento"] for row in csv.DictReader(source)
+        if row["a_o"] == "2024" and row["municipiocodigo"] != "#TODOS"
+    )
+print(f"Municipality records: {sum(group_counts.values())}")
 ```
 
 `echo: false` hides source. `eval: false` would stop the calculation.
@@ -712,36 +723,36 @@ Show a partner `hello.qmd`, the rendered HTML, the repaired error, and
 Allow the final 10 minutes for this check and questions. Publishing is
 optional; a reviewed local deck and the exact publish command demonstrate the
 workflow without requiring a public account. The next slides are follow-on
-wine-data projects, not required in the three-hour core.
+municipal IRCA projects, not required in the three-hour core.
 :::
 
-# Follow-on Wine Projects
+# Follow-on Municipal IRCA Projects
 
 ## Four Optional Deliverables
 
-The same agent workflow can produce a six-slide wine introduction, a
-three-page essay, a runnable notebook, and a separate blog. Use the supplied
-UCI Wine data and inspect each output before sharing it.
+The same agent workflow can produce a six-slide introduction, a three-page
+essay, a runnable notebook, and a separate blog from the reported INS/SIVICAP
+municipal IRCA table. Inspect each output before sharing it.
 
 These projects extend the workshop; they are not required in three hours.
 
-# Task 1: Wine Chemistry Introduction Slides
+# Task 1: Municipal IRCA Introduction Slides
 
-## Shared Inputs for Tasks 1–3 {#wine-inputs}
+## Shared Inputs for Tasks 1–3 {#irca-inputs}
 
 From the workshop clone, copy the teaching bundle into your practice folder:
 
 ```bash
 mkdir -p ~/code/quarto-play/context
-cp examples/wine-context/* ~/code/quarto-play/context/
+cp examples/irca-colombia/* ~/code/quarto-play/context/
 ```
 
 | Input | Purpose |
 |---|---|
-| `wine.csv` | 178 real wine samples and 13 measured features |
-| `notes.md` | Provenance, definitions, limits, and task checks |
-| `sources.bib` | UCI and scikit-learn source records |
-| `notebook.qmd` | Worked data notebook source |
+| `irca_boyaca_cundinamarca_santander.csv` | Unchanged extract of reported annual IRCA, 2007–2024 |
+| `notes.md` | Question, definitions, limits, and task checks |
+| `sources.bib` | INS and DANE source records |
+| `notebook.qmd` | Worked descriptive notebook source |
 
 **Check:** return to your `quarto-play` agent session. Preserve the CSV.
 
@@ -750,8 +761,8 @@ cp examples/wine-context/* ~/code/quarto-play/context/
 **Ask your coding agent in `quarto-play`:**
 
 > Create intro.qmd for first-year data science students. Generate exactly
-> six Reveal.js slides: title, the mystery-cultivar question, what one row
-> and the labels mean, two chemical features, overlap and limits, and sources.
+> six Reveal.js slides: title, the municipal IRCA question, what one row
+> represents, the three departments in 2024, variation and limits, and sources.
 > Use context/notes.md and context/sources.bib. Keep the dark theme, add
 > speaker notes, and render intro.html.
 
@@ -761,21 +772,22 @@ quarto render intro.qmd --to revealjs
 
 **Outputs:** `intro.qmd` and `intro.html`, six slides including title and sources.
 
-**Check:** explain the question without claiming these are wine-quality scores.
-Inspect every slide at desktop and laptop sizes, including links and captions.
+**Check:** distinguish municipal annual summaries from water samples. Inspect
+every slide at desktop and laptop sizes, including links and captions.
 
 # Task 2: A Three-Page Essay
 
-## Task 2: What Can Chemistry Tell Us? {#task-essay}
+## Task 2: What Do Reported IRCA Values Show? {#task-essay}
 
 **Ask your coding agent in `quarto-play`:**
 
-> Write essay.qmd for data science students about what the UCI wine
-> measurements can tell us about three anonymous cultivars. Use
-> context/wine.csv for all numbers and context/sources.bib for provenance.
-> Explain group counts, means, variation, and overlap; distinguish
-> description from prediction. Follow the page plan on the next slide.
-> Render exactly three pages to essay.pdf and inspect them.
+> Write essay.qmd for data science students about reported 2024 municipal IRCA
+> in Boyacá, Cundinamarca, and Santander. Use
+> context/irca_boyaca_cundinamarca_santander.csv for every number and
+> context/sources.bib for provenance. Exclude `#TODOS` department aggregates
+> from municipality comparisons. Explain counts, medians, variation, and
+> missing rural IRCA. Follow the next slide's page plan. Render exactly
+> three pages to essay.pdf and inspect them.
 
 ```bash
 quarto render essay.qmd --to pdf
@@ -787,23 +799,23 @@ quarto render essay.qmd --to pdf
 
 | Page | Argument |
 |---|---|
-| 1 | Question, dataset provenance, unit of analysis, cultivar labels |
-| 2 | Alcohol and color intensity: counts, means, spread, overlap |
-| 3 | What the descriptive evidence cannot establish; references |
+| 1 | Question, INS/SIVICAP provenance, municipality-year unit of analysis |
+| 2 | 2024 municipality counts and distributions of IRCA (%) by department |
+| 3 | Missing rural reporting, inference limits, and references |
 
 Use A4 paper, 11-point text, and 1-inch margins. **Three pages total**,
 including references, with no separate cover. Revise prose to fit.
 
 ### Exercise
 
-Trace each numerical claim to `context/wine.csv`. Find one sentence that
-overstates the evidence and ask your agent to revise it.
+Trace each numerical claim to the CSV. Find one sentence that treats the
+municipal average as an individual water sample and ask your agent to revise it.
 
 ::: {.notes}
 Ask the agent to inspect the available PDF engine and record the build command.
-Keep the prose in essay form. Group statistics describe these 178 wines, not
-all wine. Color intensity has no unit specified in the source; avoid inventing
-one. PDF guidance checked 2026-10-19:
+The 2024 extract has 318 municipality rows after excluding three department
+aggregates. Rural IRCA is numeric for 152 of those 318 rows. The table does
+not give population exposure or causes. PDF guidance checked 2026-10-28:
 https://quarto.org/docs/output-formats/pdf-basics.html.
 :::
 
@@ -813,16 +825,17 @@ https://quarto.org/docs/output-formats/pdf-basics.html.
 
 **Ask your coding agent in `quarto-play`:**
 
-> Adapt context/notebook.qmd into notebook.qmd here. Fix data and
-> bibliography paths to context/. Include the question, sample counts,
-> group means, medians, sample standard deviations, and a captioned
-> alcohol-versus-color scatterplot. State what a row represents and what
-> the labels mean. Include limitations and readable source links in
-> Markdown. Convert to notebook.ipynb and execute it with saved results.
+> Adapt context/notebook.qmd into notebook.qmd here. Fix data and bibliography
+> paths to context/. Include the question, 2024 municipal counts, medians,
+> ranges, missing rural values, and a captioned IRCA distribution chart by
+> department. State what a row represents. Include limitations and readable
+> source links in Markdown. Convert to notebook.ipynb and execute it with
+> saved results.
 
 **Outputs:** editable `notebook.qmd` and runnable `notebook.ipynb`.
 
-**Check:** all 178 rows contribute; summaries and plot agree with the CSV.
+**Check:** all 318 municipality rows contribute; summaries and chart agree
+with the CSV. `ND` values are missing, not zero.
 
 ## Task 3: A Runnable Jupyter Notebook
 
@@ -837,13 +850,13 @@ jupyter nbconvert --to notebook --execute --inplace notebook.ipynb
 
 Open `notebook.ipynb`, restart its kernel, and run all cells from the task folder.
 
-**Done:** code cells execute, saved table and chart agree with the CSV,
+**Done:** code cells execute, the saved table and chart agree with the CSV,
 and source links work. An HTML page alone does not complete this task.
 
 ::: {.notes}
 Quarto conversion preserves executable cells. In validated Quarto 1.6.40,
 rendering directly to IPYNB can turn analysis code into Markdown. Official
-conversion and nbconvert guidance checked 2026-10-19:
+conversion and nbconvert guidance checked 2026-10-28:
 https://quarto.org/docs/cli/convert.html and
 https://nbconvert.readthedocs.io/en/latest/usage.html.
 :::
@@ -864,11 +877,11 @@ claude
 
 **Ask your coding agent:**
 
-> Create a Quarto blog titled “Wine Chemistry Notebook”.
+> Create a Quarto blog titled “Municipal Water Quality Notebook”.
 > Initialize Git if needed and work on a blog-setup branch. Render the
 > starter site and tell me how to preview it locally.
 
-**Output:** an HTML website with a home page and a wine-chemistry post.
+**Output:** an HTML website with a home page and a water-quality post.
 **Check:** the home page lists the starter posts before you add your own.
 
 ## The Scaffold Command
@@ -925,7 +938,7 @@ Official render-target documentation checked 2026-10-19:
 https://quarto.org/docs/projects/quarto-projects.html#render-targets.
 :::
 
-## Wine Context for the Post {#wine-context}
+## Municipal IRCA Context for the Post {#irca-blog-context}
 
 Copy the shared teaching inputs into the separate blog:
 
@@ -936,79 +949,68 @@ cp ~/code/quarto-play/context/* ~/code/quarto-blog/context/
 
 | Input | Purpose |
 |---|---|
-| `wine.csv` | 178 samples and three anonymous cultivars |
+| `irca_boyaca_cundinamarca_santander.csv` | Annual municipal and department summaries |
 | `notes.md` | Question, provenance, and limits |
-| `sources.bib` | UCI and scikit-learn references |
-| `notebook.qmd` | Worked data notebook to adapt |
+| `sources.bib` | INS and DANE references |
+| `notebook.qmd` | Worked descriptive notebook to adapt |
 
-**Check:** cultivar numbers are categories, not quality ratings.
-
-::: {.notes}
-Run the copy commands in a terminal, then return to the blog agent session.
-The preceding slide excludes this bundle from the blog's render list.
-:::
+**Check:** `#TODOS` rows are department aggregates, not municipalities.
 
 ## Your First Executable Post
 
 **Ask your coding agent:**
 
 > Read context/notes.md and context/notebook.qmd. Create
-> posts/wine-chemistry/index.qmd with a question, executable Python reading
-> wine.csv, an alcohol-versus-color scatterplot, interpretation, and cited
-> sources. Fix paths for the post folder. Include title, date, caption, and
-> alt text. Render the blog and check its listing.
+> posts/municipal-irca/index.qmd with a question, executable Python reading
+> the CSV, a 2024 municipal IRCA distribution chart, interpretation, and cited
+> sources. Exclude `#TODOS` rows, fix paths for the post folder, and include
+> a title, date, caption, and alt text. Render the blog and check its listing.
 
 ```bash
 quarto render
 ```
 
-**Outputs:** `posts/wine-chemistry/index.qmd`,
-`_site/posts/wine-chemistry/index.html`, and a listing in `_site/index.html`.
+**Outputs:** `posts/municipal-irca/index.qmd`,
+`_site/posts/municipal-irca/index.html`, and a listing in `_site/index.html`.
 
-**Check:** the chart shows three labeled groups and the home page links to the post.
+**Check:** the chart uses municipality rows and the home page links to the post.
 
 ## A Cell the Coding Agent Might Write
 
-One possible source pattern inside `posts/wine-chemistry/index.qmd`:
+One possible source pattern inside `posts/municipal-irca/index.qmd`:
 
 ````markdown
 ```{{python}}
-#| label: fig-wine
-#| fig-cap: "Alcohol and color intensity in 178 UCI wine samples."
-#| fig-alt: "Scatterplot colored by three anonymous cultivars, with overlap."
+#| label: fig-irca-municipal
+#| fig-cap: "Reported 2024 municipal IRCA (%) in three Colombian departments."
+#| fig-alt: "Dot plot of 2024 municipal IRCA values grouped by department."
 import pandas as pd
 import matplotlib.pyplot as plt
-wine = pd.read_csv("../../context/wine.csv")
-for label, group in wine.groupby("cultivar"):
-    plt.scatter(group.alcohol, group.color_intensity,
-                label=f"Cultivar {label}", alpha=0.7)
-plt.xlabel("Alcohol (dataset measurement)")
-plt.ylabel("Color intensity (dataset measurement)")
-plt.legend()
+water = pd.read_csv("../../context/irca_boyaca_cundinamarca_santander.csv")
+municipal = water[(water.a_o == 2024) & (water.municipiocodigo != "#TODOS")]
+for department, group in municipal.groupby("departamento"):
+    plt.scatter([department] * len(group), group.irca, alpha=0.4)
+plt.ylabel("Reported municipal IRCA (%)")
+plt.ylim(0, 100)
 plt.show()
 ```
 ````
 
-**Check:** each point represents one sample; the labels remain anonymous.
+**Check:** each point is an annual municipality summary, not a sample.
 
-## Provenance and Limits {#wine-notes}
+## Provenance and Limits {#irca-notes}
 
 **Ask your coding agent:**
 
-> Cite the UCI Wine dataset for the measurements and scikit-learn for
-> the local export. Explain the row and cultivar labels. State that this
-> chart describes the supplied wines; it does not measure prediction
-> accuracy or wine quality. Render the references.
+> Cite INS/SIVICAP for the reported IRCA values and explain the
+> municipality-year unit of analysis. State that the chart describes
+> reported 2024 values; it does not identify causes, measure individual
+> exposure, or predict future water quality. Render the references.
 
-- [UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
-- [scikit-learn `load_wine`](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_wine.html)
+- [INS/SIVICAP open-data table](https://www.datos.gov.co/Salud-y-Protecci-n-Social/Calidad-del-Agua-para-Consumo-Humano-en-Colombia/nxt2-39c3)
+- [DANE inventory of the IRCA statistical operation](https://inventariosen.dane.gov.co/ooee/ooee/97/)
 
 **Check:** the post has working source links and a specific limitation.
-
-::: {.notes}
-UCI and scikit-learn documentation checked 2026-10-21. The labels identify
-three cultivars but supply no named grapes, tasting scores, or sampling design.
-:::
 
 ## Preview and Render
 
@@ -1032,9 +1034,8 @@ Neither command publishes the blog to the public web.
 
 **Continue the same conversation after inspecting the post:**
 
-> The chart uses cultivar numbers without explaining them. Add
-> “anonymous cultivar” to its legend and caption, and clarify that
-> these numbers are categories, not quality scores. Re-render the whole blog.
+> The plot does not explain that points represent annual municipality
+> summaries. Add that to its caption and alt text. Re-render the whole blog.
 
 ### Exercise
 
@@ -1044,7 +1045,7 @@ Find one real defect in your own preview and describe it to your coding agent.
 
 ::: {.notes}
 The example names a possible defect, not an error guaranteed to occur in the
-previous cell. If the labels are already correct, choose an observed defect.
+previous cell. If the caption is already correct, choose an observed defect.
 :::
 
 ## A Blog Checkpoint
@@ -1067,124 +1068,106 @@ Inspect the chart at a laptop viewport size.
 - **Introduction slides:** `intro.html` has exactly six readable slides,
   including the title and references.
 - **Essay:** `essay.pdf` has exactly three pages including references
-  and explains what the descriptive summaries can support.
+  and explains what the reported municipal summaries can support.
 - **Data Jupyter notebook:** `notebook.ipynb` runs from a fresh kernel
-  and saves the group summaries and chart for all 178 wines.
-- **Separate blog:** the HTML home page links to the rendered wine-chemistry post.
+  and saves the 2024 municipal summaries and chart.
+- **Separate blog:** the HTML home page links to the rendered municipal IRCA post.
 
 For every task, keep editable sources, unchanged inputs, and a `README.md`
 with build commands. Check source links, provenance, and the unit of analysis.
 
-# Optional Module: Synthetic Water-Quality Alerts
+# Worked Case Study: Reported Municipal IRCA
 
 ## What This Example Can Teach {#irca-context}
 
-**Audience:** students who have completed the execution exercise and know a
-train/test split. **Input:** 5,000 invented water-sample rows assigned to
-municipalities in Boyacá, Cundinamarca, and Santander.
+**Audience:** students who have completed the execution exercise and can read
+a chart. **Input:** INS/SIVICAP annual municipal IRCA summaries for Boyacá,
+Cundinamarca, and Santander. One row is one municipality-year or department-year.
 
-[Download the public synthetic CSV](https://gist.githubusercontent.com/project-delphi/e6afb121c1f7dc0d15531494f86bd408/raw/5c7bbf97663a249dbd4c159992057b528ccd4eca/irca_andina_dataset.csv).
+[Source: Colombian open-data portal](https://www.datos.gov.co/Salud-y-Protecci-n-Social/Calidad-del-Agua-para-Consumo-Humano-en-Colombia/nxt2-39c3).
+The deck renders from the unchanged extract in `examples/irca-colombia/`.
 
-The deck renders from the identical CSV bundled in `examples/irca-andina/`.
-
-**Question:** can pH, turbidity (NTU), and free chlorine residual (mg/L)
-predict a *synthetic* risk label generated with additional hidden information?
-
-An operational sensor alert could prompt investigation while microbiology
-results are pending. The label here is **not an official IRCA result** and the
-model is **not a validated early-warning system**.
+**Question:** how did reported IRCA (%) vary among the three departments'
+municipalities in 2024? The table has no individual samples or sensor readings.
 
 ::: {.notes}
-Prerequisites: basic Python and classification vocabulary. Objective: execute
-a reproducible split, compare accuracy with a baseline, and interpret feature
-importance and missing predictors. One row is an invented sample, not a real
-municipal observation. The generator uses pH, turbidity, chlorine, and an
-invented coliform count to assign a continuous score. It does not implement
-Resolution 2115's weighted calculation. Sensor readings complement, rather
-than replace, microbiological testing. Regulation checked 2026-10-28:
-https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm
+Prerequisites: basic Python and summary statistics. Objective: select the
+2024 municipality rows, summarize IRCA by department, and identify a limit of
+the data. Completion: a chart and counts tied to the bundled CSV, with a
+correct municipality-year interpretation. Source metadata checked 2026-10-28.
 :::
 
-## Fit a Random Forest to the Simulation {#irca-model}
+## Compare 2024 Municipality Records {#irca-model}
 
 ```{python}
 #| echo: true
-#| output: false
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
 import pandas as pd
 import matplotlib.pyplot as plt
 
-water = pd.read_csv("examples/irca-andina/irca_andina_dataset.csv")
-features = ["ph", "turbiedad_ntu", "cloro_residual_mg_l"]
-X_train, X_test, y_train, y_test = train_test_split(
-    water[features], water["irca_clasificacion"],
-    test_size=0.20, stratify=water["irca_clasificacion"], random_state=42,
+water = pd.read_csv(
+    "examples/irca-colombia/irca_boyaca_cundinamarca_santander.csv",
+    dtype={"departamentocodigo": str, "municipiocodigo": str},
 )
-forest = RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=1)
-forest.fit(X_train, y_train)
+current = water[(water["a_o"] == 2024) & (water["municipiocodigo"] != "#TODOS")]
+summary = current.groupby("departamento")["irca"].agg(
+    municipalities="count", median="median", minimum="min", maximum="max"
+)
+print(summary.round(1).to_string())
 ```
 
-**Check:** the split has 4,000 training and 1,000 test rows.
+**Check:** the three department counts sum to 318 municipality records.
 
-## Test the Simulated Labels {#irca-results}
+## Read the Reported Values {#irca-results}
+
+The median reported municipal IRCA is **7.1% in Boyacá**, **5.0% in
+Cundinamarca**, and **9.6% in Santander** in 2024. These medians give each
+municipality equal weight; they are not population-weighted exposure estimates.
+
+**Question:** what does a municipality with a higher reported value tell us,
+and what can this summary not establish about individual households?
+
+## See Variation Within Departments {#irca-importance}
 
 ```{python}
 #| echo: false
-from sklearn.metrics import accuracy_score, balanced_accuracy_score
-
-predicted = forest.predict(X_test)
-print(f"Synthetic test accuracy: {accuracy_score(y_test, predicted):.3f}")
-print(f"Balanced accuracy: {balanced_accuracy_score(y_test, predicted):.3f}")
-print(f"Majority-class baseline: {y_test.value_counts(normalize=True).max():.3f}")
+#| label: fig-irca-municipal
+#| fig-cap: "Reported 2024 municipal IRCA (%) in Boyacá, Cundinamarca, and Santander. Each point is one municipality; department aggregate rows are excluded."
+#| fig-alt: "Dot plot of annual municipal IRCA percentages across three departments; values vary substantially within departments."
+fig, ax = plt.subplots(figsize=(8, 4))
+for position, (department, group) in enumerate(current.groupby("departamento")):
+    ax.scatter([position] * len(group), group["irca"], alpha=0.45, s=28)
+ax.set_xticks(range(3), sorted(current["departamento"].unique()))
+ax.set_ylabel("Reported 2024 municipal IRCA (%)")
+ax.set_ylim(0, 100)
+fig.tight_layout()
+plt.show()
 ```
 
-Accuracy measures agreement with simulated labels drawn from the *same
-generator*. The rarest class has just three rows in the whole dataset.
-Which metric makes the limitation clearer?
-
-## Which Sensors Does This Model Use? {#irca-importance}
-
-```{python}
-#| echo: false
-#| label: fig-irca-importance
-#| fig-cap: "Random Forest impurity importance for three predictors of a synthetic risk label; higher bars describe this fitted model, not real-world contamination risk."
-#| fig-alt: "Horizontal bars show synthetic-model importance: turbidity about 0.40, chlorine about 0.33, and pH about 0.27."
-with plt.style.context("dark_background"):
-    fig, ax = plt.subplots(figsize=(8, 3.5))
-    labels = ["pH", "Turbidity (NTU)", "Free chlorine (mg/L)"]
-    ax.barh(labels, forest.feature_importances_, color=["#a8b8cc", "#f5b841", "#55c7d8"])
-    ax.set_xlim(0, 0.5)
-    ax.tick_params(axis="both", labelsize=12)
-    ax.set_xlabel("Impurity-based importance in the synthetic model", fontsize=12)
-    fig.tight_layout()
-    plt.show()
-```
-
-Turbidity and chlorine carry more model importance than pH in this simulation.
-The bars do not give effect direction, causation, or field performance.
+The source also reports urban and rural IRCA, but `ND` means unavailable.
+Only **152 of 318** 2024 municipality rows have numeric rural IRCA. Missing
+values cannot be treated as zero.
 
 ::: {.notes}
-The generator assigns larger risk scores to higher turbidity and lower
-chlorine, but it also uses a simulated coliform count omitted from the model.
-The five classes are imbalanced, including only three rows in the rarest
-class. Compare balanced accuracy with ordinary accuracy; neither validates
-an early warning system. A real deployment would need representative measured
-data, time and municipality holdouts, calibration, microbiological validation,
-and a protocol for responding to alerts.
+The underlying INS operation uses surveillance records, but the public table
+here contains annual aggregates. A municipality dot does not represent a
+single measured water sample. Neither the chart nor a simple average shows
+causes, population exposure, or future water quality. The reported IRCA
+category names vary slightly in the historical data; this exercise uses the
+numeric overall IRCA field instead of relabeling categories.
 :::
 
-## Audit the Alert Claim {#irca-exercise}
+## Audit the Claim {#irca-exercise}
 
 ### Exercise
 
-Using `examples/irca-andina/` in the repository, compare the reported accuracy
-with the majority-class baseline. Identify the
-input used to generate labels that the sensor-only model cannot see. Then
-write one sentence describing a safe use for a sensor alert.
+Using `examples/irca-colombia/`, verify the three municipality counts and the
+number of available rural values. Then rewrite this claim:
 
-**Done:** explain why accuracy on synthetic rows cannot estimate real IRCA
-classification accuracy or replace laboratory testing.
+> “The chart shows that individual water samples in Santander will have a
+> higher risk next year.”
+
+**Done:** your statement names the 2024 municipality-level summaries and
+avoids predicting future samples or inferring individual exposure.
 
 # Review and Publication
 
@@ -1256,7 +1239,7 @@ GitHub CLI reference: https://cli.github.com/manual/gh_repo_create (checked 2026
 
 **Ask your coding agent:** include the failed command, exact error, and file path.
 
-> Running quarto render fails in posts/wine-chemistry/index.qmd with
+> Running quarto render fails in posts/municipal-irca/index.qmd with
 > the error below. Reproduce it, identify the cause, fix it, and rerun
 > the full build. Keep execution enabled and preserve the figure.
 > Explain what changed.
@@ -1294,7 +1277,7 @@ full build, but must review the combined result before publishing.
 
 **A notebook:**
 
-> Adapt my wine-chemistry analysis.ipynb into a blog post. Preserve the computations,
+> Adapt my municipal-IRCA analysis.ipynb into a blog post. Preserve the computations,
 > add the missing explanation, and verify that the rendered results agree.
 
 **An R analysis:**

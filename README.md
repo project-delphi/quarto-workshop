@@ -3,16 +3,16 @@
 Build technical documents, Reveal.js slides, sites, and blogs by asking a coding agent in plain English.
 Learn the Quarto commands and source syntax alongside the requests. The same prompts work with Claude Code, Codex, or Antigravity CLI.
 
-- **[Managing Quarto with AI](https://project-delphi.github.io/quarto-workshop/)** — the main three-hour workshop: Quarto anatomy, precise agent requests, execution and debugging, Reveal.js output, and optional Quarto Pub publishing. Four UCI wine-data projects follow as extensions.
+- **[Managing Quarto with AI](https://project-delphi.github.io/quarto-workshop/)** — the main three-hour workshop: Quarto anatomy, precise agent requests, execution and debugging, Reveal.js output, and optional Quarto Pub publishing. Four real municipal water-quality projects follow as extensions.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, a report in PDF, DOCX, and IPYNB, eight slides, and verified revisions.
 
-The foundations deck also has an optional [synthetic water-quality classification example](index.qmd#irca-context).
-Its [5,000-row classroom dataset and generator](examples/irca-andina/) use invented
-samples assigned to Boyacá, Cundinamarca, and Santander. The exercise score is
-not Colombia's official IRCA calculation, and model accuracy on its random
-test split does not validate alerts for real water systems.
-The optional module loads the [public Gist CSV](https://gist.githubusercontent.com/project-delphi/e6afb121c1f7dc0d15531494f86bd408/raw/5c7bbf97663a249dbd4c159992057b528ccd4eca/irca_andina_dataset.csv)
-when rendering; the same data and generator are preserved locally.
+The foundations deck uses a [real INS/SIVICAP municipal IRCA extract](examples/irca-colombia/)
+for Boyacá, Cundinamarca, and Santander. It contains 5,815 reported annual
+municipality or department summaries for 2007–2024. The 2024 exercise uses
+318 municipality records after excluding department aggregates. This table
+does not contain individual water samples or sensor readings. The earlier
+[synthetic classroom generator](examples/irca-andina/) remains archived but
+is not used by the active slides.
 
 ## Lab Setup (Admin)
 
@@ -52,7 +52,7 @@ which file to open.” Then inspect both files and follow up:
 “Add a reading list with a link to the Quarto guide. Render it again.”
 
 The main deck's three-hour path ends with a reviewed Reveal.js deck and optional
-Quarto Pub URL. The four wine-data extensions can span multiple later sessions,
+Quarto Pub URL. The four municipal IRCA extensions can span multiple later sessions,
 ending with review and optional blog publication. The 60-minute marketing lab uses
 eight conversation turns, from inspecting evidence to reviewing the complete deliverable.
 Its website and blog adaptations are optional extensions.
@@ -71,30 +71,31 @@ and [CLI documentation](https://developers.openai.com/codex/cli/) (checked 2026-
 4. Ask it to write `brief.md`: audience, question, inputs, outputs, and acceptance criteria. Review the brief.
 5. Have the agent implement, render, inspect, and revise. Audit the evidence yourself.
 
-The [wine context bundle](examples/wine-context/) supplies a local CSV copy of the
-[UCI Wine recognition dataset](https://archive.ics.uci.edu/dataset/109/wine),
-provenance notes, source records, and a worked notebook source, `notebook.qmd`.
-Copy it into `~/code/quarto-play/context/` before starting the four tasks.
-The 178 rows represent wine samples from three anonymous cultivars. The labels
-are categories, not quality scores. The CSV was exported from scikit-learn 1.6.1
-on 2026-10-21, with sample IDs added and target labels converted to UCI's 1–3.
+The [municipal IRCA context bundle](examples/irca-colombia/) contains an
+unchanged CSV extract of the [INS/SIVICAP public table](https://www.datos.gov.co/Salud-y-Protecci-n-Social/Calidad-del-Agua-para-Consumo-Humano-en-Colombia/nxt2-39c3),
+provenance notes, source records, and a worked `notebook.qmd`. Copy it into
+`~/code/quarto-play/context/` before starting the four tasks. One row is an
+annual municipality or department IRCA summary. `#TODOS` denotes a department
+aggregate; exclude it from municipality comparisons. `ND` means unavailable.
+The CSV has no individual samples or pH, turbidity, or chlorine measurements.
 
 ### Four follow-on foundations tasks
 
 These projects extend the three-hour main workshop. The early `hello.qmd` /
-`hello.html` exercises teach source syntax. They do not
-replace the runnable research Jupyter notebook required by Task 3.
+`hello.html` exercises teach source syntax. They do not replace the runnable
+research Jupyter notebook required by Task 3.
 
 | Task | Editable source | Required final output and check |
 |---|---|---|
-| 1. Wine chemistry introduction | `intro.qmd` | `intro.html`, exactly six Reveal.js slides including title and sources |
+| 1. Municipal IRCA introduction | `intro.qmd` | `intro.html`, exactly six Reveal.js slides including title and sources |
 | 2. Evidence essay | `essay.qmd` | `essay.pdf`, exactly three pages including references, no separate cover |
 | 3. Data Jupyter notebook | `notebook.qmd` | `notebook.ipynb`, executable from a fresh kernel with saved results |
-| 4. Separate wine blog | Blog configuration and `posts/wine-chemistry/index.qmd` | `_site/index.html` linking to `_site/posts/wine-chemistry/index.html` |
+| 4. Separate water-quality blog | Blog configuration and `posts/municipal-irca/index.qmd` | `_site/index.html` linking to `_site/posts/municipal-irca/index.html` |
 
 Tasks 1–3 run in `~/code/quarto-play/` using the shared `context/` inputs.
-The essay uses `context/wine.csv` for every numerical claim and cites its
-provenance. It does not require the later Jupyter notebook.
+The essay uses `context/irca_boyaca_cundinamarca_santander.csv` for every
+numerical claim and cites its provenance. It does not require the later
+Jupyter notebook.
 
 ```bash
 quarto render intro.qmd --to revealjs
@@ -104,26 +105,27 @@ jupyter nbconvert --to notebook --execute --inplace notebook.ipynb
 ```
 
 The introduction addresses first-year data science students: title, the
-mystery-cultivar question, samples and labels, two chemical features,
-overlap and limits, and sources.
-Use the dark Reveal.js theme and inspect all six slides on desktop and laptop.
+municipal IRCA question, the municipality-year unit, the three departments,
+2024 variation and limits, and sources. Use the dark Reveal.js theme and
+inspect all six slides on desktop and laptop.
 
-The essay asks what wine chemistry can tell us about the three cultivars.
-Use A4, 11-point text, and 1-inch margins. Page 1 covers the question,
-provenance, and unit of analysis; page 2 covers alcohol and color intensity,
-group summaries, and overlap; page 3 covers limits and references. Verify the
-rendered three-page total rather than inferring it from a word count. Do not
-present descriptive differences as measured prediction accuracy.
+The essay asks what reported 2024 municipal IRCA values show in Boyacá,
+Cundinamarca, and Santander. Use A4, 11-point text, and 1-inch margins.
+Page 1 covers the question and provenance; page 2 covers counts, medians,
+and variation; page 3 covers missing rural reporting, limits, and references.
+Verify the rendered three-page total. Do not treat the municipal averages as
+individual water samples or predictions of future water quality.
 
-For Task 3, create the notebook from the worked source and fix paths to `context/`.
-Include all 178 samples in a captioned alcohol-versus-color scatterplot and
-report each cultivar's sample count, mean, median, and sample standard deviation
-for both features. State that each row is one wine sample and explain the labels.
-Add readable source links in notebook Markdown.
+For Task 3, create the notebook from the worked source and fix paths to
+`context/`. Include all 318 municipality rows from 2024 in a captioned
+IRCA distribution chart and report department counts, medians, minima, and
+maxima. State that each row is an annual municipal summary after filtering,
+and identify `ND` rural values as missing. Add readable source links in
+notebook Markdown.
 
 Task 4 starts in a separate `~/code/quarto-blog/` project and adapts the same
-context into a website post. The blog does not replace Tasks 1–3. Before rendering,
-restrict the blog's `_quarto.yml` to its intended pages and posts:
+context into a website post. The blog does not replace Tasks 1–3. Before
+rendering, restrict the blog's `_quarto.yml` to its intended pages and posts:
 
 ```yaml
 project:
@@ -134,18 +136,17 @@ project:
     - posts/**/*.qmd
 ```
 
-Preserve the rest of the generated configuration. Add any new public pages to
-this list. Run `quarto render` and test the home-page listing and post navigation.
-Check that `_site/context/notes.html` and `_site/context/notebook.html` are absent;
-otherwise the copied context becomes extra website pages. See Quarto's
-[render targets](https://quarto.org/docs/projects/quarto-projects.html#render-targets)
-(checked 2026-10-19). Keep sources,
-unchanged context inputs, and build instructions in each workspace. Use a suitable
-local Python/Jupyter runtime and PDF engine, with the agent recording the actual
-commands. Conversion, execution, and PDF guidance checked 2026-10-19 against
-[Quarto conversion](https://quarto.org/docs/cli/convert.html),
-[nbconvert execution](https://nbconvert.readthedocs.io/en/latest/usage.html), and
-[Quarto PDF output](https://quarto.org/docs/output-formats/pdf-basics.html).
+Preserve the rest of the generated configuration. Add any new public pages
+to this list. Run `quarto render` and test the home-page listing and post
+navigation. Check that `_site/context/notes.html` and
+`_site/context/notebook.html` are absent; otherwise the copied context
+becomes extra website pages. See Quarto's [render targets](https://quarto.org/docs/projects/quarto-projects.html#render-targets)
+(checked 2026-10-19). Keep sources, unchanged inputs, and build instructions
+in each workspace. Use a suitable local Python/Jupyter runtime and PDF engine,
+with the agent recording the actual commands. Conversion, execution, and PDF
+guidance checked 2026-10-28 against [Quarto conversion](https://quarto.org/docs/cli/convert.html),
+[nbconvert execution](https://nbconvert.readthedocs.io/en/latest/usage.html),
+and [Quarto PDF output](https://quarto.org/docs/output-formats/pdf-basics.html).
 
 The [sample context bundle](examples/ai-context/) contains an optional synthetic runtime example. The active
 [marketing context bundle](examples/marketing-context/) contains the original 64,000-customer
@@ -194,14 +195,15 @@ then explicitly authorize the commit, remote creation, push, and publication.
 
 | Path | Purpose |
 |---|---|
-| `index.qmd` | Main three-hour managing-Quarto-with-AI deck and wine extensions |
+| `index.qmd` | Main three-hour managing-Quarto-with-AI deck and municipal IRCA extensions |
 | `ai-workflows.qmd` | Marketing experiment lab on agent-assisted Quarto authoring |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
 | `slides.css` | Shared responsive content styling and reduced-motion support |
 | `section-progress.html` | Shared colored section/task progress and navigation |
-| `examples/wine-context/` | UCI Wine CSV, provenance notes, references, and worked notebook; outside the render list |
+| `examples/irca-colombia/` | INS/SIVICAP municipal IRCA extract, provenance, references, and worked notebook; outside the render list |
 | `examples/marketing-context/` | Public Hillstrom promotion experiment and provenance; outside the render list |
-| `examples/irca-andina/` | Reproducible synthetic water-quality CSV and generator; outside the render list |
+| `examples/irca-andina/` | Archived synthetic water-quality CSV and generator; outside the render list |
+| `examples/wine-context/` | Archived UCI Wine example; outside the render list |
 | `examples/ai-context/` | Preserved optional synthetic runtime inputs; outside the render list |
 | `AGENTS.md` | Repository instructions, review criteria, and delegation conventions |
 | `CLAUDE.md` | Imports the shared agent instructions |
