@@ -1,34 +1,28 @@
 ---
-title: "Quarto Workshop"
-subtitle: "Build with a coding agent, understand with Quarto"
+title: "Managing Quarto with AI"
+subtitle: "A three-hour workshop with a coding agent"
 author: "Ravi Kalia"
 date: ""
-description: "Four wine-data authoring tasks: introduction slides, a three-page essay, a runnable Jupyter notebook, and a separate blog."
+description: "A three-hour Quarto workshop covering agent requests, execution, debugging, output formats, and publishing, with wine-data follow-on projects."
 ---
 
 ## What You Will Build
 
-Four connected tasks about **wine chemistry**, built with a coding agent:
+A short Quarto page and a Reveal.js deck, built with a coding agent.
+The supplied wine data gives us a concrete example.
 
-| Task | Final output |
+| During the three hours | After the workshop, if useful |
 |---|---|
-| 1. Introduction slides | Six-slide `intro.html` presentation |
-| 2. Evidence essay | Three-page `essay.pdf` |
-| 3. Data notebook | Runnable `notebook.ipynb` with saved results |
-| 4. Blog | HTML home page and a wine-chemistry post |
-
-The real [UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
-records 13 chemical measurements for 178 wines from three anonymous cultivars.
-The challenge: **what can chemistry tell us, and what can it not?**
-
-Keep editable sources and build instructions for each task. The blog is a
-separate website task, not the Jupyter notebook.
+| `hello.qmd` → reviewed `hello.html` | Six-slide wine introduction |
+| Deliberate error → diagnosis → repaired render | Three-page wine essay and runnable notebook |
+| `talk.qmd` → Reveal.js slides → optional Quarto Pub URL | Separate wine-chemistry blog |
 
 ::: {.notes}
 Learning objectives: request an implementation, read Markdown/YAML/code,
-check rendered results, and request a precise revision. Audience: students
-new to Quarto, with basic folder and terminal familiarity. Completion means
-four inspected deliverables from one unchanged source CSV. The dataset is
+check rendered results, diagnose a deliberate failure, change an output
+format, and review publication. Audience: students new to Quarto, with basic
+folder and terminal familiarity. Three-hour completion means an inspected
+HTML page, a repaired render, and a reviewed Reveal.js deck. The dataset is
 classification data, not wine quality or tasting data. Source: UCI Wine dataset,
 checked 2026-10-21.
 :::
@@ -86,25 +80,27 @@ values; UCI does not give physical units for these columns. Ask learners to
 locate overlap before they see group means.
 :::
 
-## Workshop Route
+## Three-Hour Workshop Route
 
-| Stage | Checkpoint |
-|---|---|
-| Setup and source exercises | Practice page `hello.html` |
-| Task 1: wine-data introduction | Six generated slides |
-| Task 2: evidence and summaries | Three-page essay |
-| Task 3: data Jupyter notebook | Executed `.ipynb` |
-| Task 4: separate blog | Working home page and post |
-| Review, collaboration, publication | Checked files and approved destination |
+| Time | Focus | Checkpoint |
+|---|---|---|
+| 00:00–01:00 | Anatomy & the agent | Rendered `hello.html` and a precise revision |
+| 01:00–01:10 | Break | |
+| 01:10–02:00 | Execution & formatting | CLI diagnosis and repaired output |
+| 02:00–02:10 | Break | |
+| 02:10–03:00 | Outputs & publishing | Reviewed `talk.html`; optional Quarto Pub URL |
 
-: {tbl-colwidths="[55,45]"}
+: {tbl-colwidths="[19,41,40]"}
 
-Work through the tasks across sessions. Publication follows review and approval.
+**Working pattern:** ask the agent → inspect its edits → render → inspect the
+output → revise. The four wine projects later in the deck extend this path.
 
 ::: {.notes}
 Audience: students new to Quarto. Prerequisites: opening a folder,
 using an editor, and basic terminal navigation. No environment-manager expertise
-is assumed. Teach the prompts live, then inspect the actual files and browser.
+is assumed. Allow roughly 15 minutes for orientation, 45 minutes for Hour 1,
+50 minutes for Hour 2, and 50 minutes for Hour 3. Teach prompts live and
+inspect the actual files and browser. Publishing is optional.
 :::
 
 ## How to Use These Slides
@@ -227,7 +223,7 @@ Google's [transition announcement](https://github.com/google-gemini/gemini-cli/d
 and installation guide were checked 2026-10-28.
 :::
 
-# Your First Conversation
+# Hour 1 · Anatomy & the Agent
 
 ## A Folder for the Workshop
 
@@ -288,7 +284,8 @@ GitHub before publication without creating or pushing a remote repository.
 
 **Ask your coding agent:**
 
-> Create hello.qmd, a short HTML page for a student new to Quarto. Include a
+> Create hello.qmd, a short HTML page for a student new to Quarto. Set
+> `format: html` in its YAML frontmatter. Include a
 > title, a brief explanation, and two things I can publish. Show Markdown for
 > a heading, bold phrase, and list beside its rendered result. Add a
 > self-contained Mermaid diagram of a .qmd file becoming HTML. Render, fix
@@ -331,7 +328,8 @@ The generated source remains yours to read, edit, and version.
 > question about alcohol and color intensity across three anonymous cultivars.
 > Add sections for code, interpretation, and sources. Render again.
 
-**Check:** both titles change. This HTML practice page prepares Task 3's `.ipynb`.
+**Check:** both titles change. This HTML practice page can later support the
+optional notebook project.
 
 ### Exercise
 
@@ -357,7 +355,7 @@ when the conversation already contains the context. Prompting guidance:
 https://developers.openai.com/codex/prompting/ (checked 2026-10-06).
 :::
 
-# Understanding the Source
+## Understanding the Source
 
 ## Quarto's Job
 
@@ -375,6 +373,34 @@ The coding agent can write the source and run Quarto for you.
 
 Browse the [Quarto gallery](https://quarto.org/docs/gallery/). Describe one
 feature you would ask your coding agent to add to your project.
+
+## The Quarto Rendering Pipeline {#render-pipeline}
+
+```text
+hello.qmd
+   │  executable chunks, if present
+   ▼
+Jupyter (often Python) or Knitr (often R)
+   │  code and results become Markdown
+   ▼
+intermediate .md
+   │  document conversion
+   ▼
+Pandoc
+   ├── HTML page or Reveal.js slides
+   └── PDF (with a PDF engine)
+```
+
+**When a render fails:** locate the source/YAML, code-execution, or output
+conversion stage before asking the agent for a fix.
+
+::: {.notes}
+The execution stage is skipped when there are no executable chunks. Quarto can
+also run filters and format-specific tools around Pandoc; this is a teaching
+model. The intermediate Markdown can be temporary. Source: Quarto's rendering
+overview, https://quarto.org/docs/get-started/hello/positron.html
+(checked 2026-10-28).
+:::
 
 ## One Plain-Text Source, Many Outputs {#quarto-flow}
 
@@ -439,6 +465,28 @@ format:
 
 **Check:** the contents links lead to your section headings.
 
+## Prompt Engineering for Quarto {#prompt-vocabulary}
+
+Name the part to change, the action, and the visible check.
+
+| Precise term | What it identifies |
+|---|---|
+| **YAML frontmatter** | Metadata between the opening `---` lines |
+| **format option** | `html`, `pdf`, or `revealjs` output |
+| **Markdown heading** | A section or slide title in the body |
+| **code chunk** | Executable code in a `{python}` or `{r}` fence |
+| **chunk execution options** | `#|` controls such as `echo` and `fig-cap` |
+
+**Try:** “Change the YAML `format` to `html`; add a caption to the plot chunk;
+render and check that the caption appears.”
+
+::: {.notes}
+Ask learners to point to one of these parts in `hello.qmd`. Precise vocabulary
+helps the agent edit the intended part and helps the learner review the diff.
+Official references: https://quarto.org/docs/computations/execution-options.html
+and https://quarto.org/docs/presentations/revealjs/ (checked 2026-10-28).
+:::
+
 ## Formatting a Comparison
 
 **Ask your coding agent:**
@@ -458,6 +506,8 @@ Alcohol and color intensity vary, with some overlap.
 ```
 
 **Check:** clicking each tab reveals the corresponding text.
+
+# Hour 2 · Execution & Formatting
 
 ## Displayed Code and Executed Code
 
@@ -556,6 +606,155 @@ print(f"Wine samples: {sum(group_counts.values())}")
 `echo: false` hides source. `eval: false` would stop the calculation.
 
 **Check:** the result remains visible and agrees with the practice inputs.
+
+## Controlled Failure {#controlled-failure}
+
+### Exercise
+
+Copy this **deliberately broken** chunk into your practice `hello.qmd`.
+Ask the agent to render **without fixing the chunk first**:
+
+````markdown
+```{{python}}
+# Deliberate error: this name has not been defined.
+print(workshop_total_typo)
+```
+````
+
+Then ask: “Quote the first useful error in the Quarto CLI output. Point to
+the failing chunk, explain the cause, and propose the smallest fix. Do not
+change unrelated text.” Apply the fix, render again, and inspect the output.
+
+::: {.notes}
+Give about 15 minutes. The broken chunk is display-only in this deck; learners
+copy it into their own `hello.qmd`. Have them run `quarto render hello.qmd` or
+ask the agent to run it. Scan the CLI output from the bottom for
+`NameError: name 'workshop_total_typo' is not defined`, then move upward to the
+cell and line. Distinguish this Python exception from the surrounding
+Jupyter/Quarto stack frames. Ask which file and chunk failed before accepting
+the agent's explanation. A minimal repair is to define the intended value
+before printing it or replace the mistaken name with the correct variable.
+If the agent invents a package problem, ask it to quote the CLI evidence.
+Rerender and compare source and output. Exact stack frames vary by version.
+:::
+
+## Check the Diagnosis
+
+| CLI evidence | Request to the agent |
+|---|---|
+| YAML parse error before execution | “Show the frontmatter line and valid indentation.” |
+| Python `NameError` in a chunk | “Trace this name to its definition.” |
+| Pandoc or PDF engine error | “Identify the output stage and missing tool.” |
+
+Require the agent to quote the relevant error and show the smallest source
+change. A successful rerender tests the explanation.
+
+::: {.notes}
+The controlled failure uses the middle row. The other rows connect this
+exercise to the rendering pipeline; they are not additional required failures.
+:::
+
+# Hour 3 · Outputs & Publishing
+
+## Change HTML to Reveal.js {#html-to-revealjs}
+
+Ask the agent to copy the repaired `hello.qmd` to `talk.qmd` and change its
+YAML format from `html` to `revealjs`:
+
+````yaml
+---
+title: "My short talk"
+format: revealjs
+---
+````
+
+Use `##` headings for individual slides. Ask the agent to split long sections
+and keep each result with its meaning. Then render:
+
+```bash
+quarto render talk.qmd
+```
+
+**Check:** open `talk.html` and advance through every slide.
+
+::: {.notes}
+The learner's `hello.qmd` may use the nested `format: html: toc: true` form
+shown earlier. In that case, ask the agent to replace that entire `format`
+block with `format: revealjs`; do not leave an `html`-only option under it.
+Use the copy to compare HTML and slide outputs. Quarto's Reveal.js guide
+confirms the format value and level-two slide headings:
+https://quarto.org/docs/presentations/revealjs/ (checked 2026-10-28).
+:::
+
+## Review the Slides Before Sharing
+
+**Ask your coding agent:**
+
+> Render `talk.qmd`, inspect every slide at desktop and laptop presentation
+> sizes, and report text overflow or missing results. Fix the source and
+> rerender. Tell me which slides changed.
+
+**Check yourself:** Can someone read every slide? Do links work? Is a computed
+result still explained? Is any private note or local path visible by mistake?
+
+::: {.notes}
+Use roughly 1440 × 1000 for desktop and 1366 × 768 for laptop. The learner
+signs off on the deck. Allow about 15 minutes for review and revision.
+:::
+
+## Publish the Reviewed Deck to Quarto Pub {#publish-quarto-pub}
+
+In your **practice folder**, after checking the destination and output:
+
+```bash
+quarto publish quarto-pub talk.qmd
+```
+
+Follow Quarto's interactive account and destination prompts. Open the returned
+URL and confirm the public deck matches your reviewed local `talk.html`.
+
+**Agent request:** “Prepare the publish command and tell me what it will make
+public. Wait for my approval before running it.”
+
+::: {.notes}
+Demonstrate with an instructor-owned example or let participants publish
+their own. Do not publish this workshop repository: its `docs/` directory is
+served from main by GitHub Pages. Quarto documents the command and interactive
+setup at https://quarto.org/docs/cli/publish.html and
+https://quarto.org/docs/publishing/quarto-pub.html (checked 2026-10-28).
+Quarto Pub content is public. Allow about 15 minutes, including URL check.
+:::
+
+## Three-Hour Completion Check
+
+### Exercise
+
+Show a partner `hello.qmd`, the rendered HTML, the repaired error, and
+`talk.html`. If you published, show the Quarto Pub URL too. Explain:
+
+1. Where YAML frontmatter, Markdown, and code each live.
+2. Which CLI line identified the deliberate failure.
+3. What changed when `html` became `revealjs`.
+4. What you reviewed before sharing.
+
+**Done:** your partner can reproduce the render and follow your diagnosis.
+
+::: {.notes}
+Allow the final 10 minutes for this check and questions. Publishing is
+optional; a reviewed local deck and the exact publish command demonstrate the
+workflow without requiring a public account. The next slides are follow-on
+wine-data projects, not required in the three-hour core.
+:::
+
+# Follow-on Wine Projects
+
+## Four Optional Deliverables
+
+The same agent workflow can produce a six-slide wine introduction, a
+three-page essay, a runnable notebook, and a separate blog. Use the supplied
+UCI Wine data and inspect each output before sharing it.
+
+These projects extend the workshop; they are not required in three hours.
 
 # Task 1: Wine Chemistry Introduction Slides
 
@@ -1037,10 +1236,11 @@ Continue with [AI workflows: promotion experiments and sales outcomes](ai-workfl
 ## References and Questions
 
 - [Quarto guide](https://quarto.org/docs/guide/) and [Python computations](https://quarto.org/docs/computations/python.html)
-- [Creating a blog](https://quarto.org/docs/websites/website-blog.html) and [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html)
+- [Creating a blog](https://quarto.org/docs/websites/website-blog.html), [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html), and [Quarto Pub](https://quarto.org/docs/publishing/quarto-pub.html)
 - [Codex CLI](https://developers.openai.com/codex/cli/) and [prompting guidance](https://developers.openai.com/codex/prompting/)
 - [Claude Code installation](https://code.claude.com/docs/en/setup)
 
-CLI and publishing guidance checked **2026-10-06**.
+New Quarto Pub and Reveal.js guidance checked **2026-10-28**;
+other listed CLI and publishing guidance checked **2026-10-06**.
 
 Which part of your next publication would you ask your coding agent to build first?
