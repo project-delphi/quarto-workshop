@@ -6,6 +6,12 @@ Learn the Quarto commands and source syntax alongside the requests. The same pro
 - **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — four UCI wine-data tasks: introduction slides, a three-page essay, a runnable Jupyter notebook, and a separate blog, with explicit outputs and review checks.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, a report in PDF, DOCX, and IPYNB, eight slides, and verified revisions.
 
+## Lab Setup (Admin)
+
+English: On each Ubuntu WSL computer, copy this script to a working directory and run `./setup_wsl_es.sh` while connected to the internet, ahead of the workshop. This installs and downloads the main tools and repository before attendees arrive on a slow connection. The final `claude` command starts an interactive session.
+
+Español: En cada equipo con Ubuntu en WSL, copie el script a un directorio de trabajo y ejecute `./setup_wsl_es.sh` con conexión a internet antes del taller. Así se instalan y descargan las herramientas principales y el repositorio antes de que lleguen los participantes con una conexión lenta. El comando final `claude` inicia una sesión interactiva.
+
 ## For attendees
 
 Install [Quarto](https://quarto.org/docs/get-started/), Git, an editor, and one coding agent.
