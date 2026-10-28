@@ -1,7 +1,7 @@
 # Quarto Workshop
 
 Build technical documents, Reveal.js slides, sites, and blogs by asking a coding agent in plain English.
-Learn the Quarto commands and source syntax alongside the requests. The same prompts work with Claude Code or Codex.
+Learn the Quarto commands and source syntax alongside the requests. The same prompts work with Claude Code, Codex, or Antigravity CLI.
 
 - **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — four UCI wine-data tasks: introduction slides, a three-page essay, a runnable Jupyter notebook, and a separate blog, with explicit outputs and review checks.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, a report in PDF, DOCX, and IPYNB, eight slides, and verified revisions.
@@ -9,10 +9,15 @@ Learn the Quarto commands and source syntax alongside the requests. The same pro
 ## For attendees
 
 Install [Quarto](https://quarto.org/docs/get-started/), Git, an editor, and one coding agent.
-The [foundations source](index.qmd) shows installation of both agents, verified against
+The [foundations source](index.qmd) shows installation of Claude Code, Codex,
+and Google's Antigravity CLI. The instructions were checked against
 [Claude Code documentation](https://code.claude.com/docs/en/setup) and
-[Codex documentation](https://developers.openai.com/codex/cli/).
+[Codex documentation](https://developers.openai.com/codex/cli/) on 2026-10-06,
+and the [Antigravity CLI guide](https://antigravity.google/docs/getting-started?tab=cli)
+on 2026-10-28.
 Use a GitHub account and [GitHub CLI](https://cli.github.com/) when you reach publishing.
+The foundations deck has an early agent-guided `gh auth login` step; verify the
+intended account with `gh auth status` before creating a remote repository.
 Shell examples assume macOS, Linux, or WSL on Windows.
 
 Environment setup used to be a workshop bottleneck. Now the coding agent handles dependencies
@@ -26,8 +31,10 @@ Each major activity pairs **Ask your coding agent**, **Commands** (or a source p
 edit files and run tools there, subject to its permissions. Commands show what performs
 the work and provide a manual route; do not rerun a scaffold command the agent already ran.
 
-For example, ask: “Create hello.qmd, a short HTML page introducing Quarto. Render it,
-fix build errors, and tell me which file to open.” Then inspect both files and follow up:
+For example, ask: “Create hello.qmd, a short HTML page introducing Quarto. Show
+a Markdown source example beside its rendered result and add a simple, self-contained Mermaid
+graphic showing a .qmd file becoming HTML. Render it, fix build errors, and tell me
+which file to open.” Then inspect both files and follow up:
 “Add a reading list with a link to the Quarto guide. Render it again.”
 
 The foundations tasks can span multiple sessions, beginning with short source exercises
