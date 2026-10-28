@@ -3,7 +3,7 @@
 Build technical documents, Reveal.js slides, sites, and blogs by asking a coding agent in plain English.
 Learn the Quarto commands and source syntax alongside the requests. The same prompts work with Claude Code, Codex, or Antigravity CLI.
 
-- **[Quarto foundations](https://project-delphi.github.io/quarto-workshop/)** — four UCI wine-data tasks: introduction slides, a three-page essay, a runnable Jupyter notebook, and a separate blog, with explicit outputs and review checks.
+- **[Managing Quarto with AI](https://project-delphi.github.io/quarto-workshop/)** — the main three-hour workshop: Quarto anatomy, precise agent requests, execution and debugging, Reveal.js output, and optional Quarto Pub publishing. Four UCI wine-data projects follow as extensions.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)** — a real marketing experiment covering email promotions, incremental sales, a report in PDF, DOCX, and IPYNB, eight slides, and verified revisions.
 
 ## Lab Setup (Admin)
@@ -43,8 +43,9 @@ graphic showing a .qmd file becoming HTML. Render it, fix build errors, and tell
 which file to open.” Then inspect both files and follow up:
 “Add a reading list with a link to the Quarto guide. Render it again.”
 
-The foundations tasks can span multiple sessions, beginning with short source exercises
-and ending with review and optional blog publication. The 60-minute marketing lab uses
+The main deck's three-hour path ends with a reviewed Reveal.js deck and optional
+Quarto Pub URL. The four wine-data extensions can span multiple later sessions,
+ending with review and optional blog publication. The 60-minute marketing lab uses
 eight conversation turns, from inspecting evidence to reviewing the complete deliverable.
 Its website and blog adaptations are optional extensions.
 The marketing case uses Kevin Hillstrom's [published randomized email experiment](https://blog.minethatdata.com/2008/03/minethatdata-e-mail-analytics-and-data.html)
@@ -70,9 +71,10 @@ The 178 rows represent wine samples from three anonymous cultivars. The labels
 are categories, not quality scores. The CSV was exported from scikit-learn 1.6.1
 on 2026-10-21, with sample IDs added and target labels converted to UCI's 1–3.
 
-### Four foundations tasks
+### Four follow-on foundations tasks
 
-The early `hello.qmd` / `hello.html` exercises teach source syntax. They do not
+These projects extend the three-hour main workshop. The early `hello.qmd` /
+`hello.html` exercises teach source syntax. They do not
 replace the runnable research Jupyter notebook required by Task 3.
 
 | Task | Editable source | Required final output and check |
@@ -184,7 +186,7 @@ then explicitly authorize the commit, remote creation, push, and publication.
 
 | Path | Purpose |
 |---|---|
-| `index.qmd` | Foundations deck |
+| `index.qmd` | Main three-hour managing-Quarto-with-AI deck and wine extensions |
 | `ai-workflows.qmd` | Marketing experiment lab on agent-assisted Quarto authoring |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
 | `slides.css` | Shared responsive content styling and reduced-motion support |
