@@ -141,12 +141,12 @@ The prompts are workshop examples, not transcripts or guaranteed agent responses
 ## Before You Begin
 
 - Install [Quarto](https://quarto.org/docs/get-started/), Git, and an editor.
-- Install one coding agent using the next two slides, then open your working folder.
+- Install one coding agent using the next three slides, then open your working folder.
 - Sign in with an account that can use your chosen tool.
 - Have a GitHub account and [GitHub CLI](https://cli.github.com/) for publishing.
 
 The terminal examples use macOS, Linux, or WSL on Windows.
-The same prompts work with Claude Code or Codex.
+The same prompts work with Claude Code, Codex, or Antigravity CLI.
 
 ## Install Claude Code {#install-claude}
 
@@ -194,7 +194,37 @@ Verified **2026-10-06**.
 
 ::: {.notes}
 Install only the tool you plan to use. Record its version. Installation and
-sign-in are preparation; later prompts use the term coding agent for either tool.
+sign-in are preparation; later prompts use the term coding agent for any of them.
+:::
+
+## Install Google's Terminal Agent {#install-antigravity}
+
+For an individual Google account, install **Antigravity CLI** on macOS or Linux:
+
+```bash
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+```
+
+Open a new terminal, then check and start it:
+
+```bash
+agy --version
+agy
+```
+
+Complete the interactive setup and sign in with an eligible Google account.
+Choose one coding agent for the exercises.
+
+[Official installation guide](https://antigravity.google/docs/getting-started?tab=cli).
+Verified **2026-10-28**.
+
+::: {.notes}
+Google moved individual free, Pro, and Ultra Gemini CLI access to Antigravity
+CLI in June 2026. Gemini CLI remains supported for certain enterprise licenses
+and paid API key access. Use the official guide for Windows installation.
+The installer command is display-only; never execute it while rendering.
+Google's [transition announcement](https://github.com/google-gemini/gemini-cli/discussions/28017)
+and installation guide were checked 2026-10-28.
 :::
 
 # Your First Conversation
@@ -209,6 +239,7 @@ cd ~/code/quarto-play
 # Start one coding agent:
 claude
 # Or: codex
+# Or: agy
 ```
 
 **Ask your coding agent:**
@@ -226,13 +257,42 @@ depending on a particular app layout. Git equivalents: git init --initial-branch
 and git switch -c workshop. Initial branches can be unborn until the first commit.
 :::
 
+## Connect Your GitHub Account {#connect-github}
+
+**Ask your coding agent in `quarto-play`:**
+
+> Check whether GitHub CLI (`gh`) is available here. If it is missing, help me
+> install it for this terminal. Guide me through signing in to my GitHub account
+> in the browser, then verify the active account. Do not create a repository yet.
+
+**Commands to recognize:**
+
+```bash
+gh auth login
+gh auth status
+```
+
+**Check:** `gh auth status` names the GitHub account you intend to use.
+
+[GitHub CLI login](https://cli.github.com/manual/gh_auth_login) and
+[status](https://cli.github.com/manual/gh_auth_status), checked 2026-10-28.
+
+::: {.notes}
+If learners use WSL, run `gh` in that same WSL terminal. The browser sign-in
+may open outside WSL; learners complete the device-code flow themselves.
+Do not paste tokens into the coding-agent conversation. This step connects
+GitHub before publication without creating or pushing a remote repository.
+:::
+
 ## A Document from One Request {#first-request}
 
 **Ask your coding agent:**
 
-> Create hello.qmd, a short HTML page for a student new to Quarto.
-> Include a title, a paragraph explaining Quarto, and a list of two things
-> I can publish. Render it, fix any build errors, and tell me which file to open.
+> Create hello.qmd, a short HTML page for a student new to Quarto. Include a
+> title, a brief explanation, and two things I can publish. Show Markdown for
+> a heading, bold phrase, and list beside its rendered result. Add a
+> self-contained Mermaid diagram of a .qmd file becoming HTML. Render, fix
+> errors, and tell me which file to open.
 
 **Command behind the render:**
 
@@ -240,7 +300,8 @@ and git switch -c workshop. Initial branches can be unborn until the first commi
 quarto render hello.qmd --to html
 ```
 
-**Check:** open `hello.html` and compare it with `hello.qmd`.
+**Check:** compare `hello.qmd` with `hello.html`. The Markdown example matches
+its rendered result, and the diagram is visible.
 
 ::: {.notes}
 Live demonstration: send the request, show file edits and the actual render
@@ -254,6 +315,8 @@ for the rendered page. If dependencies are missing, use the setup prompt below.
 |---|---|
 | “Create hello.qmd” | A new editable source file |
 | “A short HTML page” | YAML selecting HTML and concise Markdown |
+| “Show a Markdown example” | Source syntax and its rendered result |
+| “Add a simple graphic” | A visible graphic defined in the source |
 | “Render it” | A Quarto command and its output |
 | “Fix any build errors” | Further edits and a successful rerun |
 
@@ -312,6 +375,29 @@ The coding agent can write the source and run Quarto for you.
 
 Browse the [Quarto gallery](https://quarto.org/docs/gallery/). Describe one
 feature you would ask your coding agent to add to your project.
+
+## One Plain-Text Source, Many Outputs {#quarto-flow}
+
+```{mermaid}
+%%| echo: false
+%%| fig-width: 12
+flowchart LR
+    A["Plain-text Markdown<br/>hello.qmd"] --> B["Quarto"]
+    B --> C["HTML page"]
+    B --> D["PDF document"]
+    B --> E["Word document"]
+    B --> F["Reveal.js slides"]
+```
+
+The `.qmd` file stays editable. Quarto renders the requested format; some
+formats need additional tools or document settings.
+
+::: {.notes}
+This graphic shows representative outputs, not a claim that every source
+renders unchanged to every format. Markdown supplies the prose and structure;
+YAML, code cells, and other Quarto features can extend the same source.
+Ask learners which file they would edit to change wording in every output.
+:::
 
 ## Markdown You Can Recognize
 
