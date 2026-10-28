@@ -9,8 +9,8 @@ to reproduce the CSV.
 
 The same CSV is available in a [public GitHub Gist](https://gist.github.com/project-delphi/e6afb121c1f7dc0d15531494f86bd408).
 Its [versioned Raw URL](https://gist.githubusercontent.com/project-delphi/e6afb121c1f7dc0d15531494f86bd408/raw/5c7bbf97663a249dbd4c159992057b528ccd4eca/irca_andina_dataset.csv)
-is the input used by the optional slide module. Rendering that module requires
-network access to GitHub's Gist content service.
+offers a separate download. The optional slide module renders from the bundled
+CSV, so its computation does not depend on network access.
 
 The columns use water-quality parameter names, but `irca_score` is the
 exercise's arbitrary continuous formula with noise. It is **not an official
