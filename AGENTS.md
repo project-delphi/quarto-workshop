@@ -62,16 +62,13 @@ keep teaching computations fresh. Changes to external data are not automatically
 
 ## Worked examples and report deliverables
 
-The foundations notebook and blog use the reported INS/SIVICAP municipal IRCA
-data in `examples/irca-colombia/`: an unchanged public-data extract for Boyacá,
-Cundinamarca, and Santander, provenance notes, a worked `notebook.qmd`, and
-source records. Keep the CSV unchanged and this bundle outside `project.render`.
-One row is an annual municipality or department summary. Exclude `#TODOS`
-department aggregates for municipality comparisons; treat `ND` as missing.
-The table has no individual samples or sensor measurements. Compute numerical
-claims from the CSV, and do not infer individual exposure, causes, or future
-water quality from descriptive municipal differences. Keep the older wine and
-synthetic water bundles archived and out of the active teaching path.
+The foundations notebook and blog use the UCI Wine recognition data in
+`examples/wine-context/`: 178 real wine samples, provenance notes, a worked
+`notebook.qmd`, and source records. Keep `wine.csv` unchanged and this bundle
+outside `project.render`. One row is one wine sample; labels 1–3 are anonymous
+cultivars, not quality scores. Compute numerical claims from the CSV. State
+that descriptive group differences and overlap do not establish prediction
+accuracy or generalization to other wines.
 
 The marketing workflow names inputs and deliverables on its opening content
 slide. Inputs are `context/hillstrom.csv`, `notes.md`, and `sources.bib`.
