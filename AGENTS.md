@@ -80,7 +80,12 @@ prompting a coding assistant.
   lists only what needs the participant: starting the assistant, accounts and sign-in,
   approving the assistant's commands, `quarto preview`, and opening results. Work an
   assistant can run (rendering, git, `gh repo create`, `quarto publish … --no-prompt`)
-  belongs in a prompt.
+  belongs in a prompt. Browser translation translates prompts, so write each literal the
+  assistant must find or match in existing files or data as code (backticks for a bare
+  name such as a column, repo or option; paths, file names, `snake_case` columns, calls,
+  `name=value` need none) or in double quotes (a heading to replace, a data value);
+  `translate-safe.html` keeps those in English. New titles the assistant writes may be
+  translated. Check new prompts with the deck translated.
 - Exercises use `### Exercise · ⏱️ N min` and a `::: {.done}` block whose text completes
   "You're done when …". Each hands-on block ends with a checkpoint in `checkpoints/` whose
   README lists the catch-up steps (back up to a new time-stamped folder, copy, copy water
