@@ -87,7 +87,7 @@ the diff.
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis and outputs |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
-| `assets/` | Hub and publishing diagrams (SVG) |
+| `assets/` | Hub and publishing diagrams (SVG); `cluster-cloud/` builds the three.js bundle for the 3-D cluster slide |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
