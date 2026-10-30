@@ -1,9 +1,1080 @@
-<!-- Part 1 slides, included from index.qmd. Owned by the London module author. -->
+<!-- Part 1 slides, included from index.qmd. Owned by the London module author.
+     Numbers are computed from examples/london/data/*.csv (the deck renders from the
+     repository root). Python names start with ldn_ because Part 2 shares the kernel.
+     Rendered-page previews use raw <h1>/<h2>: Markdown headings would start new slides. -->
 
 # 🇬🇧 Part 1 · London in Markdown {#part-1}
 
 [⏱️ 0:20]{.clock}
 
-## 🚧 London slides go here {#london-placeholder}
+```{=html}
+<style>
+/* Part 1 source panels: wrap long lines and keep code compact.
+   Candidate for theme.scss: Reveal ignores code-overflow: wrap outside the agent boxes. */
+.reveal .ldn-src { font-size: 0.8em; }
+.reveal .ldn-src pre code { white-space: pre-wrap; }
+.reveal .ldn-behind { float: right; margin-top: 1.5em; }
+.reveal .ldn-behind > p { margin: 0; }
+.reveal .ldn-behind ~ .done { clear: both; }
+.reveal .ldn-preview figcaption { color: #555; }
+</style>
+```
 
-Placeholder until the London module is integrated.
+```{python}
+#| label: ldn-setup
+#| echo: false
+import pandas as pd
+import matplotlib.pyplot as plt
+
+ldn_att = pd.read_csv("examples/london/data/attractions.csv")
+ldn_top = ldn_att.loc[ldn_att["visits_2025"].idxmax()]
+ldn_top_name = ldn_top["attraction"]
+ldn_top_short = ldn_top_name.split(" (")[0]
+ldn_top_visits = f"{ldn_top['visits_2025']:,}"
+ldn_total = f"{ldn_att['visits_2025'].sum():,}"
+ldn_n = len(ldn_att)
+ldn_n_free = int(ldn_att["admission"].str.startswith("Free").sum())
+ldn_entry = "Free to enter" if ldn_top["admission"].startswith("Free") else "Tickets needed"
+```
+
+::: {.notes}
+Part 1 audience: newcomers to Quarto. Objective: one Markdown guide becomes HTML, Word,
+PDF, PowerPoint, a dashboard and a published website. Completion: the published dashboard
+URL opens on a phone. Every step has a checkpoint in `quarto-workshop/checkpoints/`; the
+finished project is `quarto-workshop/examples/london/`.
+:::
+
+## 🗺️ Part 1 in four blocks {#london-agenda}
+
+::: {.cards}
+::: {}
+[📝]{.big}
+
+**0:20** Markdown → HTML
+:::
+::: {}
+[🧪]{.big}
+
+**0:30** `.md` → `.qmd`: YAML · code · formats
+:::
+::: {}
+[🗂️]{.big}
+
+**0:40** five audiences + 📈 dashboard
+:::
+::: {}
+[🌍]{.big}
+
+**0:50** publish to GitHub Pages
+:::
+:::
+
+::: {.bigline}
+🏁 a live dashboard URL on your phone 📱
+:::
+
+::: {.notes}
+Ten minutes per block. The same times appear on the section dividers. People who fall
+behind copy the checkpoint named on each hands-on slide and carry on.
+:::
+
+## 🏛️ You work for London's tourism office {#london-story}
+
+::: {.bigline}
+✍️ write **one** guide → ♻️ reuse it for every audience
+:::
+
+:::: {.columns}
+::: {.column width="46%"}
+```text
+📁 your workshop folder
+├── 📁 quarto-workshop/  ← clone
+└── 📁 london-guide/     ← you
+```
+:::
+::: {.column width="54%"}
+::: {.you}
+```bash
+mkdir london-guide && cd london-guide
+claude          # or: codex
+```
+:::
+:::
+::::
+
+::: {.notes}
+Create `london-guide/` next to the cloned `quarto-workshop/` (not inside it), so the
+checkpoints are always at `../quarto-workshop/checkpoints/`. Start the coding assistant
+inside `london-guide/`. Catch-up command from the parent folder, for example:
+`cp -R quarto-workshop/checkpoints/01-london-markdown/. london-guide/`.
+:::
+
+## 1️⃣ Heading · paragraph · emphasis {#md-heading}
+
+::: {.prompt}
+```text
+Create london.md with a level-1 heading "Visit London" and a welcome paragraph with one bold and one italic phrase.
+```
+:::
+
+:::: {.columns .fragment}
+::: {.column width="55%"}
+::: {.ldn-src}
+```{.markdown}
+# Visit London
+
+Welcome to **London**: free museums, royal history and *riverside walks*.
+```
+:::
+:::
+::: {.column width="45%"}
+::: {.preview}
+```{=html}
+<h1>Visit London</h1>
+```
+
+Welcome to **London**: free museums, royal history and *riverside walks*.
+:::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/01-london-markdown/`
+:::
+
+### Exercise · ⏱️ 1 min
+
+::: {.done}
+`london.md` has a heading and a welcome paragraph.
+:::
+
+::: {.notes}
+`#` makes a heading (`##` the next level). `**bold**` and `*italic*` mark emphasis; a
+blank line starts a new paragraph. The light card shows how the rendered page will look;
+we render it ourselves after step 5.
+:::
+
+## 2️⃣ Lists {#md-lists}
+
+::: {.prompt}
+```text
+In london.md, add a "Top 5 sights" numbered list (British Museum, Natural History Museum, Tate Modern, National Gallery, Tower of London) and a "Getting around" bullet list: 🚇 Tube, 🚌 Bus, 🚲 Santander Cycles.
+```
+:::
+
+:::: {.columns .fragment}
+::: {.column width="50%"}
+::: {.ldn-src}
+```{.markdown}
+## Top 5 sights
+
+1. British Museum
+2. Natural History Museum
+3. Tate Modern
+4. National Gallery
+5. Tower of London
+
+## Getting around
+
+- 🚇 Tube
+- 🚌 Bus
+- 🚲 Santander Cycles
+```
+:::
+:::
+::: {.column width="50%"}
+:::: {.preview}
+::: {.columns}
+::: {.column width="60%"}
+```{=html}
+<h2>Top 5 sights</h2>
+```
+
+1. British Museum
+2. Natural History Museum
+3. Tate Modern
+4. National Gallery
+5. Tower of London
+:::
+::: {.column width="40%"}
+```{=html}
+<h2>Getting around</h2>
+```
+
+- 🚇 Tube
+- 🚌 Bus
+- 🚲 Santander Cycles
+:::
+:::
+::::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/01-london-markdown/`
+:::
+
+### Exercise · ⏱️ 1 min
+
+::: {.done}
+both lists sit under their own `##` headings.
+:::
+
+::: {.notes}
+`1.` starts a numbered list, `-` a bulleted one; leave a blank line before a list. The
+five sights are the five attractions whose visits we chart later (ALVA data).
+:::
+
+## 3️⃣ Link · image · quote {#md-link-image}
+
+::: {.prompt}
+```text
+Copy ../quarto-workshop/examples/london/images here. In london.md, add "Plan your visit": a TfL Journey Planner link, images/big-ben.jpg with alt text and a credit caption from images/ATTRIBUTION.md, and a "Tip from a local" blockquote.
+```
+:::
+
+:::: {.columns .fragment}
+::: {.column width="50%"}
+::: {.ldn-src}
+```{.markdown}
+Plan your route with the [TfL Journey Planner](https://tfl.gov.uk/plan-a-journey/).
+
+![Big Ben in the sun. Photo: John Dillenbeck, CC0, via Wikimedia Commons](images/big-ben.jpg){width=30% fig-alt="Big Ben's clock tower …"}
+
+> **Tip from a local:** many big museums are free. Book a free timed ticket to skip the queue.
+```
+:::
+:::
+::: {.column width="50%"}
+:::: {.preview .ldn-preview}
+::: {.columns}
+::: {.column width="38%"}
+![Big Ben in the sun. Photo: John Dillenbeck, CC0, via Wikimedia Commons](examples/london/images/big-ben.jpg){width="55%" fig-alt="Big Ben's clock tower and the Palace of Westminster against a blue sky with white clouds."}
+:::
+::: {.column width="62%"}
+Plan your route with the [TfL Journey Planner](https://tfl.gov.uk/plan-a-journey/).
+
+> **Tip from a local:** many big museums are free. Book a free timed ticket to skip the queue.
+:::
+:::
+::::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/01-london-markdown/`
+:::
+
+### Exercise · ⏱️ 2 min
+
+::: {.done}
+the photo shows with its credit and the link opens TfL.
+:::
+
+::: {.notes}
+`[text](url)` is a link; `![caption](file)` an image. The `{...}` after the image is a
+Pandoc/Quarto extension: `width` sizes it and `fig-alt` is the alt text screen readers
+announce (without it the HTML image has no alt). `>` starts a blockquote. The file has
+the full alt text: "Big Ben's clock tower and the Palace of Westminster against a blue sky
+with white clouds." The assistant copies the photo folder; by hand it is
+`cp -R ../quarto-workshop/examples/london/images .`.
+Photo: "Big Ben in the sun", John Dillenbeck, CC0 1.0, file page
+https://commons.wikimedia.org/wiki/File:Big_Ben_in_the_sun.jpg (licence and absence of
+people checked 2026-10-30). The tip: 8 of London's 10 most visited ALVA attractions have free
+general admission (`examples/london/data/attractions.csv`); the British Museum and Natural
+History Museum visit pages recommend a free pre-booked ticket to avoid queues (checked
+2026-10-30).
+:::
+
+## 4️⃣ Table {#md-table}
+
+::: {.prompt}
+```text
+In london.md, add a "Sights at a glance" table with columns Sight, Area, Price band and Nearest tube for the five sights.
+```
+:::
+
+:::: {.columns .fragment}
+::: {.column width="46%"}
+::: {.ldn-src}
+```{.markdown}
+| Sight | Area | Price band | Nearest tube |
+|---|---|---|---|
+| British Museum | Bloomsbury | Free | Tottenham Court Road |
+| Natural History Museum | South Kensington | Free | South Kensington |
+| Tate Modern | Bankside | Free | Southwark |
+| National Gallery | Trafalgar Square | Free | Charing Cross |
+| Tower of London | Tower Hill | Paid | Tower Hill |
+```
+:::
+:::
+::: {.column width="54%"}
+::: {.preview}
+| Sight | Area | Price band | Nearest tube |
+|---|---|---|---|
+| British Museum | Bloomsbury | Free | Tottenham Court Road |
+| Natural History Museum | South Kensington | Free | South Kensington |
+| Tate Modern | Bankside | Free | Southwark |
+| National Gallery | Trafalgar Square | Free | Charing Cross |
+| Tower of London | Tower Hill | Paid | Tower Hill |
+:::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/01-london-markdown/`
+:::
+
+### Exercise · ⏱️ 1 min
+
+::: {.done}
+the table shows five sights in four columns.
+:::
+
+::: {.notes}
+Pipes `|` separate columns; the `|---|` row marks the header. Check what the assistant
+writes: these are facts. Stations from the official visitor pages (checked 2026-10-30):
+British Museum, Tottenham Court Road (britishmuseum.org/visit); Natural History Museum,
+South Kensington (nhm.ac.uk/visit/getting-here.html); Tate Modern, Southwark
+(tate.org.uk/visit/tate-modern); National Gallery, Charing Cross station about 200 m away
+(nationalgallery.org.uk/visiting/access; TfL lists it as a Bakerloo and Northern line
+station); Tower of London, Tower Hill (hrp.org.uk/tower-of-london/visit/getting-here).
+"Free" means free general admission (ALVA code 4: special exhibitions charged); the
+Tower of London is "Paid" (ALVA code 1, all pay).
+:::
+
+## 5️⃣ Code fence {#md-code-fence}
+
+::: {.prompt}
+```text
+In london.md, add a "Before you go" section: a three-item checklist inside a plain text code block.
+```
+:::
+
+:::: {.columns .fragment}
+::: {.column width="54%"}
+::: {.ldn-src}
+````{.markdown}
+## Before you go
+
+```text
+[ ] Contactless card or Oyster card
+[ ] Free museum tickets booked
+[ ] Comfortable shoes and an umbrella
+```
+````
+:::
+:::
+::: {.column width="46%"}
+::: {.preview}
+```{=html}
+<h2>Before you go</h2>
+<pre style="margin: 0.3em 0 0; background: #ececea; box-shadow: none;"><code style="background: none; color: #1d1d1d; white-space: pre-wrap;">[ ] Contactless card or Oyster card
+[ ] Free museum tickets booked
+[ ] Comfortable shoes and an umbrella</code></pre>
+```
+:::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/01-london-markdown/`
+:::
+
+### Exercise · ⏱️ 1 min
+
+::: {.done}
+the checklist keeps its line breaks and brackets.
+:::
+
+::: {.notes}
+Three backticks open and close a code fence; the word after them (`text`, `python`, …)
+names the language. Text inside is shown exactly as typed, which is why the brackets
+survive. Next section: write `{python}` after the backticks and the code runs.
+:::
+
+## ▶️ Render it {#md-render}
+
+::: {.you}
+```bash
+quarto render london.md     # → london.html
+quarto preview london.md    # live reload: edit, save, look
+```
+:::
+
+::: {.bigline}
+🚫 YAML · 🚫 code · ✅ a web page
+:::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/01-london-markdown/`
+:::
+
+### Exercise · ⏱️ 3 min
+
+::: {.done}
+`london.html` opens and updates each time you save `london.md`.
+:::
+
+::: {.notes}
+Plain Markdown is already a valid Quarto input: no front matter and no code are needed.
+`quarto preview` prints a local URL and re-renders on save; stop it with Ctrl+C.
+Checkpoint: `cp -R quarto-workshop/checkpoints/01-london-markdown/. london-guide/`.
+:::
+
+# 🧪 From .md to .qmd {#md-to-qmd}
+
+[⏱️ 0:30]{.clock}
+
+## 🧾 YAML front matter {#yaml}
+
+::: {.prompt}
+```text
+Rename london.md to london.qmd. Replace the "# Visit London" heading with YAML front matter: title "Visit London", author "London Tourism Office", date today, format html. Render it.
+```
+:::
+
+:::: {.columns .fragment}
+::: {.column width="52%"}
+::: {.ldn-src}
+```{.yaml}
+---
+title: "Visit London"
+author: "London Tourism Office"
+date: today
+format: html
+---
+```
+:::
+:::
+::: {.column width="48%"}
+::: {.agent}
+`mv london.md london.qmd` · edits the top · `quarto render london.qmd`
+:::
+
+🏷️ title block · 🧾 output format
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/02-london-qmd/`
+:::
+
+### Exercise · ⏱️ 2 min
+
+::: {.done}
+`london.html` shows the title, author and date.
+:::
+
+::: {.notes}
+YAML front matter sits between two `---` lines at the very top: `title`, `author` and
+`date` make the title block; `format` picks the output. `.qmd` = Markdown + YAML + code.
+`date: today` is filled in at render time. Delete `london.md` once `london.qmd` exists:
+both would write `london.html`. Two-space indentation matters in YAML.
+:::
+
+## 🖨️ One source, four formats {#formats}
+
+::: {.prompt}
+```text
+In london.qmd, add docx, typst and pptx formats next to html, with download links on the HTML page (label typst "PDF"). Render all and list the files.
+```
+:::
+
+:::: {.columns}
+::: {.column width="48%"}
+::: {.ldn-src}
+```{.yaml}
+format:
+  html:
+    format-links:
+      - docx
+      - {format: typst, text: PDF}
+      - pptx
+  docx: default
+  typst: default
+  pptx: default
+```
+:::
+:::
+::: {.column width="52%"}
+::: {.you}
+```bash
+quarto render london.qmd
+quarto render london.qmd --to docx
+```
+:::
+
+1️⃣ all four · 2️⃣ only docx
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/02-london-qmd/`
+:::
+
+### Exercise · ⏱️ 3 min
+
+::: {.done}
+`london.html`, `.docx`, `.pdf` and `.pptx` all open.
+:::
+
+::: {.notes}
+Same source, any format. `typst` makes the PDF with the Typst engine bundled in Quarto (no
+LaTeX). In PowerPoint each `##` heading becomes a slide. `format-links` lists the other
+formats on the HTML page; an entry that is an object needs both `format` and `text`.
+Docs: https://quarto.org/docs/output-formats/typst.html and
+https://quarto.org/docs/output-formats/html-multi-format.html (checked 2026-10-30).
+:::
+
+## 🐍 Code that runs {#code-cells}
+
+::: {.prompt}
+```text
+Copy ../quarto-workshop/examples/london/data here. In london.qmd, add a Python cell that reads data/attractions.csv and finds the most visited attraction and total visits_2025, plus a sentence showing both with inline code. Render it.
+```
+:::
+
+:::: {.columns .fragment}
+::: {.column width="60%"}
+::: {.ldn-src}
+````{.markdown}
+```{{python}}
+import pandas as pd
+attractions = pd.read_csv("data/attractions.csv")
+top = attractions.loc[attractions["visits_2025"].idxmax()]
+top_name = top["attraction"]
+top_visits = f"{top['visits_2025']:,}"
+total_visits = f"{attractions['visits_2025'].sum():,}"
+```
+Most visited in 2025: the `{{python}} top_name`, with `{{python}} top_visits` visits.
+London's top ten attractions drew `{{python}} total_visits` visits in total.
+````
+:::
+:::
+::: {.column width="40%"}
+::: {.preview}
+Most visited in 2025: the `{python} ldn_top_name`, with `{python} ldn_top_visits` visits. London's top ten attractions drew `{python} ldn_total` visits in total.
+:::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/02-london-qmd/`
+:::
+
+### Exercise · ⏱️ 2 min
+
+::: {.done}
+the sentence shows numbers computed from the CSV.
+:::
+
+::: {.notes}
+A fence with `{python}` runs when you render, and its output lands in the document. Inline
+code `` `{{python}} name` `` (Quarto 1.4 and later) puts a value in a sentence, so the text
+never goes stale. Docs: https://quarto.org/docs/computations/inline-code.html (checked
+2026-10-30). The data folder can also be copied by hand:
+`cp -R ../quarto-workshop/examples/london/data .`. The numbers on the light card are
+computed by this deck from `examples/london/data/attractions.csv`: ALVA "Visits made in
+2025", London rows, top ten (https://www.alva.org.uk/details.cfm?p=423, retrieved
+2026-10-30). Only ALVA members are counted, so this is not every London sight.
+:::
+
+## 🏷️ Cell options {#cell-options}
+
+::: {.prompt}
+```text
+Add a matplotlib cell: a horizontal bar chart of visits_2025 by attraction. Hide its code, label it fig-top10, add a caption and alt text. Render it.
+```
+:::
+
+:::: {.columns}
+::: {.column width="52%"}
+::: {.ldn-src}
+````{.markdown}
+```{{python}}
+#| label: fig-top10
+#| echo: false
+#| fig-cap: "Visits in 2025 (ALVA)."
+#| fig-alt: "Bar chart of visits by attraction."
+attractions.sort_values("visits_2025").plot.barh(
+    x="attraction", y="visits_2025", legend=False)
+```
+````
+:::
+:::
+::: {.column width="48%"}
+```{python}
+#| label: fig-ldn-top10
+#| echo: false
+#| fig-cap: "Visits in 2025 (ALVA)."
+#| fig-alt: "Horizontal bar chart of 2025 visits to ten London attractions, longest bar at the top: the Natural History Museum is highest and Royal Museums Greenwich lowest."
+ldn_short = ldn_att.assign(attraction=ldn_att["attraction"].str.replace(" (South Kensington)", ""))
+ldn_ax = ldn_short.sort_values("visits_2025").plot.barh(
+    x="attraction", y="visits_2025", legend=False, color="#1f6f8b", fontsize=11,
+    figsize=(6, 3.1))
+ldn_ax.set_xlabel("Visits in 2025", fontsize=11)
+ldn_ax.set_ylabel("")
+ldn_ax.xaxis.set_major_formatter(lambda x, pos: f"{x / 1e6:.0f}M")
+ldn_ax.figure.tight_layout()
+plt.show()
+```
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/02-london-qmd/`
+:::
+
+### Exercise · ⏱️ 3 min
+
+::: {.done}
+the figure has a numbered caption and no code above it.
+:::
+
+::: {.notes}
+Cell options start with `#|`. A `label` beginning `fig-` numbers the figure and lets you
+cross-reference it with `@fig-top10`. `fig-alt` is read by screen readers. The chart on the
+right is drawn by this deck from `examples/london/data/attractions.csv` (ALVA, retrieved
+2026-10-30). Matplotlib works in every format; Plotly charts only appear in HTML.
+Checkpoint: `cp -R quarto-workshop/checkpoints/02-london-qmd/. london-guide/`.
+:::
+
+# 🗂️ One guide, five audiences {#five-audiences}
+
+[⏱️ 0:40]{.clock}
+
+## 🧠 Content once, format per audience {#audiences}
+
+::: {.cards style="grid-template-columns: repeat(5, 1fr);"}
+::: {}
+[👔]{.big}
+
+**Managers**
+
+📈 dashboard
+
+`london-dashboard.qmd`
+:::
+::: {}
+[📧]{.big}
+
+**Partners**
+
+email intro → docx
+
+`london-email.qmd`
+:::
+::: {}
+[🧾]{.big}
+
+**Walk-ins**
+
+A5 flyer → pdf
+
+`london-flyer.qmd`
+:::
+::: {}
+[📱]{.big}
+
+**Social**
+
+square ad → pdf
+
+`london-social.qmd`
+:::
+::: {}
+[🌐]{.big}
+
+**Visitors**
+
+website
+
+`_quarto.yml`
+:::
+:::
+
+::: {.bigline}
+🧠 content once → 🎨 format per audience
+:::
+
+::: {.notes}
+Every output reads the same `data/` files and the same photo, so one update to the data
+changes every audience's version at the next render. The website comes last, in the
+publishing block.
+:::
+
+## 📈 Managers: a dashboard {#dashboard}
+
+::: {.prompt}
+```text
+Create london-dashboard.qmd (format: dashboard): a row of value boxes (most visited attraction, total visits_2025, how many are free) from data/attractions.csv, then a row with a Plotly bar of visits_2025 by attraction and a Plotly line of visits by year from data/visits.csv.
+```
+:::
+
+::: {.cards .fragment}
+::: {}
+🏆 **`{python} ldn_top_visits`**
+
+`{python} ldn_top_short`
+:::
+::: {}
+👣 **`{python} ldn_total`**
+
+top ten, 2025
+:::
+::: {}
+🆓 **`{python} ldn_n_free`/`{python} ldn_n`**
+
+free entry
+:::
+::: {}
+📊 bar · 📈 line
+
+2015–2025
+:::
+:::
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.agent}
+writes `london-dashboard.qmd` · renders it
+:::
+:::
+::: {.column width="50%"}
+::: {.you}
+`quarto preview london-dashboard.qmd`
+:::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/03-london-dashboard/`
+:::
+
+### Exercise · ⏱️ 4 min
+
+::: {.done}
+the dashboard shows three value boxes and two charts.
+:::
+
+::: {.notes}
+`format: dashboard` turns `##` headings into rows and each cell output into a card.
+Value boxes and layout: https://quarto.org/docs/dashboards/data-display.html (checked
+2026-10-30). The cards sketch the layout with values computed by this deck from
+`examples/london/data/attractions.csv`. `data/visits.csv` holds 2015–2025 visits for five
+attractions from the ALVA yearly pages: 2020–2021 are pandemic years, and from 2024 the
+Natural History Museum count includes its reopened gardens (ALVA 2024 note v). If a
+Plotly legend looks clipped, ask for a horizontal legend with a fixed `entrywidth`.
+Checkpoint: `cp -R quarto-workshop/checkpoints/03-london-dashboard/. london-guide/`.
+:::
+
+## 📧 Partners: an email intro {#email}
+
+::: {.prompt}
+```text
+Create london-email.qmd (format: docx): a one-paragraph email to partner hotels introducing the guide. Reuse the numbers from data/attractions.csv with inline code and hide the code. Render it.
+```
+:::
+
+:::: {.columns}
+::: {.column width="46%"}
+::: {.ldn-src}
+```{.yaml}
+---
+title: "Discover London with our new visitor guide"
+format: docx
+execute:
+  echo: false
+---
+```
+:::
+:::
+::: {.column width="54%"}
+::: {.preview}
+Dear partners, in 2025 London's ten most visited attractions welcomed `{python} ldn_total` visits, led by the `{python} ldn_top_name` with `{python} ldn_top_visits`, and `{python} ldn_n_free` of those ten are free to enter. Our new visitor guide helps your guests …
+:::
+
+::: {.you}
+open `london-email.docx` in Word
+:::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/04-london-audiences/`
+:::
+
+### Exercise · ⏱️ 2 min
+
+::: {.done}
+`london-email.docx` opens with one paragraph of real numbers.
+:::
+
+::: {.notes}
+`execute: echo: false` hides every code cell in this document. The numbers in the light card
+are computed by this deck from the same CSV, so the email and the guide always agree.
+Google Docs or LibreOffice open the .docx too.
+:::
+
+## 🧾 Walk-ins: an A5 flyer {#flyer}
+
+::: {.prompt}
+```text
+Create london-flyer.qmd: a printable A5 flyer (format: typst, papersize: a5) with the Big Ben photo, a table of the five sights with price band and nearest tube, and the local tip. Render it and check it fits on one page.
+```
+:::
+
+:::: {.columns}
+::: {.column width="46%"}
+::: {.ldn-src}
+```{.yaml}
+---
+title: "Visit London"
+subtitle: "Five sights for one great day"
+format:
+  typst:
+    papersize: a5
+    margin:
+      x: 1.2cm
+      y: 1.2cm
+---
+```
+:::
+:::
+::: {.column width="54%"}
+::: {.agent}
+`quarto render london-flyer.qmd` → `london-flyer.pdf`
+:::
+
+::: {.bigline}
+🧾 148 × 210 mm · 1 page · 🖨️
+:::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/04-london-audiences/`
+:::
+
+### Exercise · ⏱️ 2 min
+
+::: {.done}
+`london-flyer.pdf` is a single A5 page.
+:::
+
+::: {.notes}
+`papersize` takes any Typst paper name (`a5`, `a4`, `us-letter`, …); `margin` takes `x`, `y`
+or single sides. https://quarto.org/docs/output-formats/typst.html#page-layout (checked
+2026-10-30). If it spills onto a second page, ask the assistant to shrink the photo.
+:::
+
+## 📱 Social: a square ad {#social}
+
+::: {.prompt}
+```text
+Create london-social.qmd: a one-page 12 cm × 12 cm square social ad with Typst: a big "Visit London" headline, the photo, and the most visited attraction with its 2025 visits from data/attractions.csv. Render and check it is one square page.
+```
+:::
+
+:::: {.columns}
+::: {.column width="54%"}
+::: {.ldn-src}
+````{.markdown}
+```{=typst}
+#set page(width: 12cm, height: 12cm,
+          fill: rgb("#0b2545"))
+```
+````
+:::
+
+🧩 no square `papersize` → raw Typst
+:::
+::: {.column width="46%"}
+:::: {.preview style="background: #0b2545; color: #fff;"}
+[Visit London]{style="font-size: 1.7em; font-weight: 700;"}
+
+::: {.columns}
+::: {.column width="24%"}
+![](examples/london/images/big-ben.jpg){width="85%" fig-alt="Big Ben's clock tower against a blue sky."}
+:::
+::: {.column width="76%"}
+**`{python} ldn_top_short`**
+
+`{python} ldn_top_visits` visits in 2025
+
+`{python} ldn_entry`
+:::
+:::
+::::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `checkpoints/04-london-audiences/`
+:::
+
+### Exercise · ⏱️ 2 min
+
+::: {.done}
+`london-social.pdf` is one 12 cm square page.
+:::
+
+::: {.notes}
+Quarto's `papersize` only accepts Typst's named paper sizes, and none is square, so the
+example sets the page in a raw `{=typst}` block (tested with Quarto 1.6.40 and its bundled
+Typst 0.11). Keep the document free of a title and level-1 headings: they would land on a
+letter-size first page before the square one. The card on the right sketches the real
+layout with numbers computed by this deck. Checkpoint:
+`cp -R quarto-workshop/checkpoints/04-london-audiences/. london-guide/`.
+:::
+
+# 🌍 Publish to GitHub Pages {#publish-london}
+
+[⏱️ 0:50]{.clock}
+
+## 🌐 GitHub Pages {#gh-pages}
+
+![](assets/gh-pages-flow.svg){fig-alt="Three steps: your source lives in a GitHub repository; quarto publish gh-pages renders the site and pushes the HTML to a gh-pages branch; GitHub serves that branch at user.github.io/repo." width="92%"}
+
+::: {.bigline}
+🆓 free static hosting, straight from a GitHub repo
+:::
+
+::: {.notes}
+GitHub Pages serves static files (HTML, CSS, JavaScript, PDFs) from a repository branch.
+Quarto renders locally and pushes only the rendered site to a `gh-pages` branch.
+:::
+
+## 🏗️ A project: one folder → one website {#london-website}
+
+::: {.prompt}
+```text
+Make this folder a Quarto website: _quarto.yml (render only the .qmd files; navbar: Guide, Dashboard, a Downloads menu for the docx/pdf/pptx files), index.qmd, and a .gitignore for /_site/ and /.quarto/. Render and check the links.
+```
+:::
+
+:::: {.columns}
+::: {.column width="56%"}
+::: {.ldn-src}
+```{.yaml}
+project:
+  type: website
+website:
+  title: "Visit London"
+  navbar:
+    left:
+      - {text: Guide, href: london.qmd}
+      - {text: Dashboard, href: london-dashboard.qmd}
+      - {text: Downloads, menu: [...]}
+```
+:::
+:::
+::: {.column width="44%"}
+::: {.agent}
+writes 3 files · `quarto render` → `_site/`
+:::
+
+::: {.you}
+`quarto preview`
+:::
+:::
+::::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `examples/london/`
+:::
+
+### Exercise · ⏱️ 3 min
+
+::: {.done}
+the site opens with Guide, Dashboard and Downloads in the navbar.
+:::
+
+::: {.notes}
+A `_quarto.yml` makes the folder a project: `quarto render` builds every listed page into
+`_site/`, with shared navigation, and the dashboard becomes a page of the site. The full
+file is `quarto-workshop/examples/london/_quarto.yml`: its `render` list keeps README and
+attribution notes from becoming pages, and the Downloads menu links `london.docx`,
+`london.pdf`, `london.pptx`, `london-email.docx`, `london-flyer.pdf` and
+`london-social.pdf`. Catch-up: `cp -R quarto-workshop/examples/london/. london-guide/`.
+:::
+
+## 🚀 Publish {#london-publish}
+
+::: {.prompt}
+```text
+Initialise a git repository in this folder and commit everything except _site/ and .quarto/.
+```
+:::
+
+::: {.you}
+```bash
+gh repo create london-guide --public --source=. --push
+quarto publish gh-pages
+```
+then on GitHub: ⚙️ Settings → Pages shows the live URL
+:::
+
+::: {.source .ldn-behind}
+😰 Behind? copy `examples/london/`
+:::
+
+### Exercise · ⏱️ 5 min
+
+::: {.done}
+`https://<you>.github.io/london-guide/london-dashboard.html` opens on your phone 📱
+:::
+
+::: {.notes}
+`gh repo create --source=. --push` creates the GitHub repository from this folder and
+pushes the commits (https://cli.github.com/manual/gh_repo_create). `quarto publish gh-pages`
+renders locally, creates the `gh-pages` branch on its first run, pushes the site and opens
+it; for a project site GitHub configures Pages from that branch automatically, and
+Settings → Pages shows the URL and status (https://quarto.org/docs/publishing/github-pages.html,
+checked 2026-10-30). Alternative: a GitHub Action renders on every push using
+`quarto-dev/quarto-actions/setup@v2` and `quarto-dev/quarto-actions/publish@v2` with
+`target: gh-pages`; run `quarto publish gh-pages` once locally first, and the Action needs
+Python and the packages (or `freeze: auto` with `_freeze/` committed). The finished project
+is `quarto-workshop/examples/london/`; there is no checkpoint 05.
+:::
+
+## 📚 Part 1 sources {#london-sources}
+
+::: {style="font-size: 0.7em"}
+- 📊 ALVA, *Visits made in 2025 to visitor attractions in membership with ALVA*:
+  [alva.org.uk/details.cfm?p=423](https://www.alva.org.uk/details.cfm?p=423), retrieved 2026-10-30
+- 📈 ALVA, same tables for 2015–2024: `p=`
+  [606](https://www.alva.org.uk/details.cfm?p=606) ·
+  [607](https://www.alva.org.uk/details.cfm?p=607) ·
+  [608](https://www.alva.org.uk/details.cfm?p=608) ·
+  [609](https://www.alva.org.uk/details.cfm?p=609) ·
+  [610](https://www.alva.org.uk/details.cfm?p=610) ·
+  [615](https://www.alva.org.uk/details.cfm?p=615) ·
+  [616](https://www.alva.org.uk/details.cfm?p=616) ·
+  [617](https://www.alva.org.uk/details.cfm?p=617) ·
+  [618](https://www.alva.org.uk/details.cfm?p=618) ·
+  [619](https://www.alva.org.uk/details.cfm?p=619), retrieved 2026-10-30
+- 📷 *Big Ben in the sun*, John Dillenbeck, CC0:
+  [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Big_Ben_in_the_sun.jpg), checked 2026-10-30
+- 🚇 Stations and admission:
+  [British Museum](https://www.britishmuseum.org/visit) ·
+  [Natural History Museum](https://www.nhm.ac.uk/visit/getting-here.html) ·
+  [Tate Modern](https://www.tate.org.uk/visit/tate-modern) ·
+  [National Gallery](https://www.nationalgallery.org.uk/visiting/access) ·
+  [Tower of London](https://www.hrp.org.uk/tower-of-london/visit/getting-here/) ·
+  [TfL Journey Planner](https://tfl.gov.uk/plan-a-journey/), checked 2026-10-30
+- 📘 Docs: [Typst](https://quarto.org/docs/output-formats/typst.html) ·
+  [inline code](https://quarto.org/docs/computations/inline-code.html) ·
+  [dashboards](https://quarto.org/docs/dashboards/data-display.html) ·
+  [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html) ·
+  [gh repo create](https://cli.github.com/manual/gh_repo_create), checked 2026-10-30
+:::
+
+::: {.notes}
+Every number in Part 1 comes from `examples/london/data/attractions.csv` or `visits.csv`;
+each row carries its source URL and retrieval date. ALVA lists only its members' sites.
+VisitBritain's town-level inbound visits were considered but left out: its 2024 figures are
+"official statistics in development" that the ONS says should not be compared with earlier
+years, and the page notes they predate the 4 September 2026 revision.
+:::

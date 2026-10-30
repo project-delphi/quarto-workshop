@@ -1,0 +1,70 @@
+---
+title: "London attractions dashboard"
+format: dashboard
+---
+
+```{python}
+#| label: setup
+import pandas as pd
+import plotly.express as px
+
+attractions = pd.read_csv("data/attractions.csv")
+visits = pd.read_csv("data/visits.csv")
+
+top = attractions.loc[attractions["visits_2025"].idxmax()]
+top_name = top["attraction"].split(" (")[0]
+total_visits = f"{attractions['visits_2025'].sum():,}"
+top_visits = f"{top['visits_2025']:,}"
+n_free = int(attractions["admission"].str.startswith("Free").sum())
+free_share = f"{n_free}/{len(attractions)}"
+```
+
+## Row {height=25%}
+
+::: {.valuebox icon="trophy" color="primary"}
+Most visited: `{python} top_name`
+
+`{python} top_visits`
+:::
+
+::: {.valuebox icon="people" color="info"}
+Visits to the top 10 in 2025
+
+`{python} total_visits`
+:::
+
+::: {.valuebox icon="ticket-perforated" color="success"}
+Top 10 with free entry
+
+`{python} free_share`
+:::
+
+## Row {height=62%}
+
+```{python}
+#| title: "Visits in 2025, London's ten most visited attractions"
+fig = px.bar(
+    attractions.sort_values("visits_2025"),
+    x="visits_2025", y="attraction", orientation="h",
+    labels={"visits_2025": "Visits in 2025", "attraction": ""},
+)
+fig
+```
+
+```{python}
+#| title: "Visits per year, 2015–2025 (five big sights)"
+fig = px.line(
+    visits, x="year", y="visits", color="attraction", markers=True,
+    labels={"visits": "Visits", "year": "", "attraction": ""},
+).update_layout(legend=dict(orientation="h", entrywidth=175, x=0, y=-0.12, yanchor="top"))
+fig
+```
+
+## Row {height=13%}
+
+::: {.card}
+Source: ALVA annual visits to member attractions,
+[2025](https://www.alva.org.uk/details.cfm?p=423) and earlier years (see
+`data/visits.csv`), retrieved 2026-10-30. 2020–2021 are pandemic years. From 2024
+the Natural History Museum count includes its gardens.
+:::

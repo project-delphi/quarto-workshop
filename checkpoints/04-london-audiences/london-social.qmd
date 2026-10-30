@@ -1,0 +1,42 @@
+---
+format:
+  typst:
+    fontsize: 14pt
+execute:
+  echo: false
+---
+
+```{=typst}
+// Quarto has no square papersize: set a 12 cm square page in raw Typst.
+#set page(width: 12cm, height: 12cm, margin: 0.9cm, numbering: none,
+          fill: rgb("#0b2545"))
+#set text(fill: white)
+#set par(justify: false)
+#block(below: 0.8em, text(size: 32pt, weight: "bold")[Visit London])
+```
+
+```{python}
+import pandas as pd
+
+attractions = pd.read_csv("data/attractions.csv")
+top = attractions.loc[attractions["visits_2025"].idxmax()]
+top_name = top["attraction"].split(" (")[0]
+top_visits = f"{top['visits_2025']:,}"
+entry = "Free to enter" if top["admission"].startswith("Free") else "Tickets needed"
+```
+
+:::: {layout="[42,58]" layout-valign="center"}
+
+![](images/big-ben.jpg){fig-alt="Big Ben's clock tower against a blue sky."}
+
+::: {}
+**`{python} top_name`**
+
+`{python} top_visits` visits in 2025
+
+`{python} entry`
+:::
+
+::::
+
+`#text(size: 8pt)[Visits: ALVA 2025 (members only) · Photo: John Dillenbeck, CC0, via Wikimedia Commons]`{=typst}
