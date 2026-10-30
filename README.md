@@ -74,7 +74,7 @@ the diff.
 | 0:30 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, many formats |
 | 0:40 | 🗂️ Part 1 · One guide, five audiences + dashboard |
 | 0:50 | 🌍 Part 1 · Publish to GitHub Pages |
-| 1:00 | 💧 Part 2 · Water quality in Colombian municipalities (130 min) |
+| 1:00 | 💧 Part 2 · Colombia water quality and infant mortality (130 min) |
 | 3:10 | 🏁 Done |
 
 ## For instructors and contributors
