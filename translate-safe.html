@@ -12,7 +12,9 @@
 
   // Translation skips <code> whatever its translate attribute, so each prompt's text moves
   // to a span styled like it (theme.scss); the copy button copies that span instead.
-  slides.querySelectorAll(".prompt pre > code").forEach((code) => {
+  // The boxes whose fences are prompts: the assistant prompts and the catch-up prompts.
+  const prompts = ":is(.prompt, .behind) pre";
+  slides.querySelectorAll(`${prompts} > code`).forEach((code) => {
     const text = document.createElement("span");
     [...code.attributes].forEach(({ name, value }) => text.setAttribute(name, value));
     text.classList.add("prompt-text");
@@ -20,7 +22,7 @@
     code.replaceWith(text);
   });
   slides.querySelectorAll("pre, code").forEach((el) =>
-    el.setAttribute("translate", el.matches(".prompt pre") ? "yes" : "no"));
+    el.setAttribute("translate", el.matches(prompts) ? "yes" : "no"));
 
   // Translation drops the spaces and punctuation beside untranslated text ("usandoQuarto"),
   // so a kept element takes them from its neighbouring text; inline code takes them into a
