@@ -52,9 +52,9 @@ Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
 ```
 
 Each checkpoint README lists the steps, which also work by hand from inside your project
-folder: back up the folder to `../<folder>-backup-NN`, copy the checkpoint in, copy the
-water `data/` if it is missing (Part 2 checkpoints hold sources only), render, and check a
-named output. A checkpoint is the state at the end of its block, so it can be ahead of the
+folder: back up the folder to a new time-stamped `../<folder>-backup-NN-<time>` (earlier
+backups are kept), copy the checkpoint in, copy the water `data/` if it is missing (Part 2
+checkpoints hold sources only), render, and check a named output. A checkpoint is the state at the end of its block, so it can be ahead of the
 step you are on. The finished projects, `examples/london/` and `examples/water/`, have the
 same catch-up section in their READMEs.
 

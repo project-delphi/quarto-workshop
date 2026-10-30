@@ -12,7 +12,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/01-london-markdown/README.md
 
 The steps, run inside `london-guide/` (by the assistant, or by you in a terminal):
 
-1. Keep your work: `cp -R . ../london-guide-backup-01` (a copy beside `london-guide/`).
+1. Keep your work: `cp -R . "../london-guide-backup-01-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `london-guide/`, so earlier backups are kept).
 2. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/01-london-markdown/. .`
 3. Render: `quarto render london.md`.
 4. Check: `london.html` shows both lists, the photo with its credit, the five-row table and the checklist.

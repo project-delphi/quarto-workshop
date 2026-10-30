@@ -12,7 +12,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/04-london-audiences/README.md
 
 The steps, run inside `london-guide/` (by the assistant, or by you in a terminal):
 
-1. Keep your work: `cp -R . ../london-guide-backup-04` (a copy beside `london-guide/`).
+1. Keep your work: `cp -R . "../london-guide-backup-04-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `london-guide/`, so earlier backups are kept).
 2. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/04-london-audiences/. .`
 3. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
 4. Render: `quarto render london-email.qmd && quarto render london-flyer.qmd && quarto render london-social.qmd`.

@@ -116,7 +116,7 @@ Workshop participants who fall behind on the dashboard or publishing step ask th
 assistant, started in `water-quality/`:
 "Catch me up by following ../quarto-workshop/examples/water/README.md". The steps:
 
-1. Keep your work: `cp -R . ../water-quality-backup-final` (a copy beside `water-quality/`).
+1. Keep your work: `cp -R . "../water-quality-backup-final-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `water-quality/`, so earlier backups are kept).
 2. Copy the finished project here, data included: `cp -R ../quarto-workshop/examples/water/. .`
 3. Render the site: `quarto render` (the pre-render step runs `scripts/analysis.py` first).
 4. Check: `_site/index.html` lists one post, and `_site/dashboard.html` shows a map that
