@@ -72,10 +72,11 @@ wat_accent, wat_muted = "#86cce8", "#b8c2cc"
 ::: {.notes}
 Part 2 audience: Part 1 graduates who can render a `.qmd`, use YAML formats and code cells,
 and publish a site. Objective: one analysis of real public data feeds every output.
-Completion: a published water-quality website with report, slides, tables, a blog post and
-a dashboard. Participants work in `water-quality/`, next to `quarto-workshop/`. Each
-hands-on step has a checkpoint in `quarto-workshop/checkpoints/05-water-*` to
-`13-water-*`; the finished project is `quarto-workshop/examples/water/`. Every number in
+Completion: a published water-quality website with a report (html, docx, pdf and epub),
+slides, a blog post and a dashboard. Participants work in `water-quality/`, next to
+`quarto-workshop/`. Each hands-on step has a checkpoint in
+`quarto-workshop/checkpoints/05-water-*` to `13-water-*`; the finished project is
+`quarto-workshop/examples/water/`. Every number in
 Part 2 is computed by this deck from `examples/water/data/water_municipal.csv` with
 `examples/water/scripts/analysis.py`, or carries a citation.
 :::
@@ -121,7 +122,7 @@ Part 2 is computed by this deck from `examples/water/data/water_municipal.csv` w
 :::
 
 ::: {.bigline}
-🏁 a live site: report · slides · tables · blog · dashboard
+🏁 a live site: report · ePub · slides · blog · dashboard
 :::
 
 ::: {.notes}
@@ -238,11 +239,11 @@ between kinds, not used to find them.
 
 ## 📦 One analysis, many deliverables {#water-deliverables}
 
-![](assets/water-hub.svg){fig-alt="Municipal water data flows into one analysis script, analysis.py, which writes cluster outputs once. Seven publications read those outputs: a docx report, a pdf, pptx slides for the council, xlsx cluster tables, a blog post, a website and a dashboard. All are published together on GitHub Pages." width="88%"}
+![](assets/water-hub.svg){fig-alt="Municipal water data flows into one analysis script, analysis.py, which writes cluster outputs once. Seven publications read those outputs: a docx report, a pdf report, an epub report, revealjs and pptx slides for the council, a blog post, a website and a dashboard. All are published together on GitHub Pages." width="88%"}
 
 ::: {.notes}
 The finished project, `examples/water/`, has all of them: `report.qmd` renders to html,
-docx and a Typst PDF; `slides.qmd` to pptx; `tables.qmd` writes `cluster_tables.xlsx`;
+docx, a Typst PDF and epub; `slides.qmd` to revealjs and pptx;
 `posts/…/index.qmd` is the blog post; `dashboard.qmd` the dashboard; `_quarto.yml` ties
 them into one website published on GitHub Pages.
 :::
@@ -251,9 +252,14 @@ them into one website published on GitHub Pages.
 
 ::: {.you}
 ```bash
-mkdir -p water-quality
-cp -R quarto-workshop/examples/water/data water-quality/
-cd water-quality && claude      # or: codex
+cd ~ && mkdir -p water-quality && cd water-quality
+claude
+```
+:::
+
+::: {.prompt}
+```default
+Copy ../quarto-workshop/examples/water/data into this folder as data/, then list the files in data/ with their sizes.
 ```
 :::
 
@@ -266,8 +272,10 @@ cd water-quality && claude      # or: codex
 📖 `data/README.md`
 
 ::: {.notes}
-Run the commands from the folder that holds `quarto-workshop/`; `mkdir -p` first, or `cp`
-would copy the files without their `data/` folder. `data/README.md` documents every
+Quit the Part 1 assistant, then start a new one in `water-quality/`, next to
+`quarto-workshop/` (`cd ..` from `london-guide/`); move the second terminal tab there too.
+The assistant reads `../quarto-workshop/`, so it may ask permission: approve it. Expect
+`README.md`, `municipios.geojson` and `water_municipal.csv`. `data/README.md` documents every
 column, source, licence and caveat; ask the assistant to read it first. Zone: `urban` is
 the cabecera (head town), `rural` the centros poblados y rural disperso. The rows and
 columns are counted from `examples/water/data/water_municipal.csv`: every DIVIPOLA code ×
@@ -310,12 +318,12 @@ fiscal index `idf` is left out because its method changes in 2020 (`idf_new`).
 ::: {.wat-flow}
 ```text
 data/water_municipal.csv
-        │   python scripts/analysis.py
+        │   python3 scripts/analysis.py
         ▼
 outputs/clusters.parquet  +  outputs/cluster_profiles.csv
         │   every page reads them
         ▼
-explore · clusters · report · slides · tables · blog · dashboard
+explore · clusters · report · slides · blog · dashboard
 ```
 :::
 
@@ -427,13 +435,13 @@ writes `explore.qmd` · `quarto render explore.qmd`
 :::
 ::: {.column width="50%"}
 ::: {.you}
-open `explore.html`
+open `explore.html` in your browser
 :::
 :::
 ::::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/05-water-explore/`
+😰 Stuck? copy `checkpoints/05-water-explore/`
 :::
 
 ### Exercise · ⏱️ 10 min
@@ -581,11 +589,11 @@ Read data/README.md. Create scripts/analysis.py with prepare(df): municipality r
 :::
 
 ::: {.agent}
-writes `scripts/analysis.py` · runs `python scripts/analysis.py`
+writes `scripts/analysis.py` · runs `python3 scripts/analysis.py`
 :::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/06-water-prepare/`
+😰 Stuck? copy `checkpoints/06-water-prepare/`
 :::
 
 ### Exercise · ⏱️ 5 min
@@ -608,32 +616,23 @@ In prepare(), drop rows missing more than 2 features, fill the rest with the yea
 ```
 :::
 
-:::: {.columns}
-::: {.column width="50%"}
 ::: {.agent}
-edits `prepare()` · `python scripts/analysis.py`
+edits `prepare()` · `python3 scripts/analysis.py`
 :::
-:::
-::: {.column width="50%"}
-::: {.you}
-compare its counts with 🧮 *What we keep*
-:::
-:::
-::::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/06-water-prepare/`
+😰 Stuck? copy `checkpoints/06-water-prepare/`
 :::
 
 ### Exercise · ⏱️ 5 min
 
 ::: {.done}
-the printed counts match the table: `{python} wat_kept` rows kept.
+the printed counts match 🧮 *What we keep*: `{python} wat_kept` rows kept.
 :::
 
 ::: {.notes}
 Checkpoint: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/06-water-prepare/. water-quality/`,
-then `cd water-quality && python scripts/analysis.py`. Parquet needs `pyarrow`; if it is
+then `cd water-quality && python3 scripts/analysis.py`. Parquet needs `pyarrow`; if it is
 missing, the assistant will install it in your environment.
 :::
 
@@ -694,6 +693,11 @@ with wat_plt.rc_context(wat_rc):
 ✕ = centre · 🎯 goal: small distances inside each cluster
 :::
 
+::: {.fragment}
+💧 water data: **k = `{python} wat_k`** is a hyperparameter, picked from
+k = `{python} int(wat_ktab.index.min())`–`{python} int(wat_ktab.index.max())` by elbow + silhouette
+:::
+
 ::: {.notes}
 Synthetic toy points, labelled as such: 120 random points around three centres, drawn by
 this deck with a fixed seed. k-means needs k up front. It starts from k centres, assigns
@@ -701,46 +705,18 @@ each point to the nearest, moves each centre to the mean of its points, and repe
 nothing changes. Different starts can end in different solutions, so we run 20 starts
 (`n_init=20`) and keep the best, with a fixed `random_state` for reproducibility. Inertia is
 the sum of squared distances from points to their centre.
-:::
 
-## 📉 How many clusters? {#water-choose-k}
-
-```{python}
-#| label: fig-wat-k
-#| echo: false
-#| fig-cap: "k-means on the 9 z-scored features for k = 2–8 (random_state 42, 20 starts). Left: inertia. Right: silhouette on a fixed sample of 5,000 rows."
-#| fig-alt: "Two line charts side by side. Inertia falls steeply from k = 2 to 4 and more slowly after. Silhouette is highest at k = 2 and nearly flat, around 0.19 to 0.20, from k = 3 to 7, then drops at k = 8. The chosen k = 4 is highlighted in both."
-wat_drop_next = f"{wat_ktab.loc[wat_k + 1, 'inertia_drop']:.0%}"
-wat_sil = f"{wat_ktab.loc[wat_k, 'silhouette']:.3f}"
-wat_ari_min = wat_analysis.floor_to(wat_s["ari_min"])  # rounded down: "at least"
-with wat_plt.rc_context(wat_rc):
-    wat_f, wat_axes = wat_plt.subplots(1, 2, figsize=(11, 3.6))
-    for wat_ax, wat_col, wat_lab in zip(wat_axes, ["inertia", "silhouette"], ["Inertia", "Silhouette"]):
-        wat_ax.plot(wat_ktab.index, wat_ktab[wat_col], marker="o", color=wat_muted)
-        wat_ax.plot([wat_k], [wat_ktab.loc[wat_k, wat_col]], marker="o", markersize=15,
-                    color=wat_accent)
-        wat_ax.set_xlabel("k")
-        wat_ax.set_ylabel(wat_lab)
-    wat_axes[0].yaxis.set_major_formatter(lambda wat_x, _: f"{wat_x / 1000:.0f}k")
-    wat_f.tight_layout()
-    wat_plt.show()
-```
-
-✅ **k = `{python} wat_k`** · the next cluster cuts inertia by only `{python} wat_drop_next` ·
-silhouette `{python} wat_sil`
-
-::: {.fragment}
-🔁 5 other seeds → same clusters (ARI ≥ `{python} wat_ari_min`)
-:::
-
-::: {.notes}
-Elbow: the inertia curve bends where an extra cluster stops paying for itself. Silhouette
-(−1 to 1) compares each row's distance to its own cluster with the nearest other one.
-Rule in `choose_k()`: k = 2 is excluded because it mostly splits urban from rural rows
-(adjusted Rand index with the zone ≈ 0.5); choose the smallest k ≥ 3 after which one more
-cluster cuts inertia by less than 10%, if its silhouette is within 0.01 of the best k ≥ 3.
-A silhouette near 0.2 is weak: the kinds overlap and summarise a continuum, which is
-normal for social data. ARI (adjusted Rand index) is 1 when two labelings agree perfectly.
+Choosing k for the water data (`choose_k()` in `analysis.py`, fitted on all kept rows):
+k = 2 is excluded because it mostly splits urban from rural rows (adjusted Rand index with
+the zone `{python} f"{wat_ktab.loc[2, 'ari_vs_zone']:.2f}"`). Elbow: take the smallest k ≥ 3 after which one more cluster cuts inertia
+by less than 10%, if its silhouette is within 0.01 of the best k ≥ 3. Here the next cluster
+cuts inertia by only `{python} f"{wat_ktab.loc[wat_k + 1, 'inertia_drop']:.0%}"` and the
+silhouette (−1 to 1, on a fixed sample of 5,000 rows) is
+`{python} f"{wat_ktab.loc[wat_k, 'silhouette']:.3f}"`. A silhouette near 0.2 is weak: the
+kinds overlap and summarise a continuum, which is normal for social data. Stability:
+refits with `{python} len(wat_analysis.STABILITY_SEEDS)` other seeds give the same clusters
+(adjusted Rand index ≥ `{python} wat_analysis.floor_to(wat_s["ari_min"])`; 1 means perfect
+agreement). The elbow and silhouette plots are on `clusters.qmd`.
 :::
 
 ## 🫧 A picture of the clusters {#water-pca}
@@ -790,27 +766,18 @@ In scripts/analysis.py, run k-means on the z-scored features for k = 2–8 (rand
 ```
 :::
 
-:::: {.columns}
-::: {.column width="50%"}
 ::: {.agent}
-edits `scripts/analysis.py` · `python scripts/analysis.py`
+edits `scripts/analysis.py` · `python3 scripts/analysis.py`
 :::
-:::
-::: {.column width="50%"}
-::: {.you}
-read its k and reason: 🤔 do you agree?
-:::
-:::
-::::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/07-water-cluster/`
+😰 Stuck? copy `checkpoints/07-water-cluster/`
 :::
 
 ### Exercise · ⏱️ 6 min
 
 ::: {.done}
-`outputs/clusters.parquet` has a cluster for every kept row.
+`outputs/clusters.parquet` has a cluster for every kept row, and 🤔 you can explain its choice of k.
 :::
 
 ::: {.notes}
@@ -836,13 +803,13 @@ writes `clusters.qmd` · `quarto render clusters.qmd`
 :::
 ::: {.column width="50%"}
 ::: {.you}
-open `clusters.html`
+open `clusters.html` in your browser
 :::
 :::
 ::::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/07-water-cluster/`
+😰 Stuck? copy `checkpoints/07-water-cluster/`
 :::
 
 ### Exercise · ⏱️ 6 min
@@ -853,7 +820,7 @@ open `clusters.html`
 
 ::: {.notes}
 The page only reads `outputs/`; it never refits k-means. Run order:
-`python scripts/analysis.py && quarto render clusters.qmd`. Checkpoint 07 holds both files.
+`python3 scripts/analysis.py && quarto render clusters.qmd`. Checkpoint 07 holds both files.
 :::
 
 # 🏷️ Interpret {#water-interpret}
@@ -981,11 +948,11 @@ In scripts/analysis.py, write outputs/cluster_profiles.csv (rows, municipalities
 :::
 
 ::: {.agent}
-adds `profiles()` and a naming rule · `python scripts/analysis.py`
+adds `profiles()` and a naming rule · `python3 scripts/analysis.py`
 :::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/08-water-interpret/`
+😰 Stuck? copy `checkpoints/08-water-interpret/`
 :::
 
 ### Exercise · ⏱️ 5 min
@@ -1015,13 +982,13 @@ edits `clusters.qmd` · `quarto render clusters.qmd`
 :::
 ::: {.column width="50%"}
 ::: {.you}
-open `clusters.html`
+reload `clusters.html` in your browser
 :::
 :::
 ::::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/08-water-interpret/`
+😰 Stuck? copy `checkpoints/08-water-interpret/`
 :::
 
 ### Exercise · ⏱️ 5 min
@@ -1131,18 +1098,20 @@ Add a section to clusters.qmd: within each cluster, median infant_mortality by I
 ```
 :::
 
-::: {.you}
-💬 with a neighbour: pick one confounder: could it hide a real effect, or create a fake one?
+::: {.agent}
+edits `clusters.qmd` · `quarto render clusters.qmd`
 :::
 
+💬 with a neighbour: pick one confounder: could it hide a real effect, or create a fake one?
+
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/09-water-causation/`
+😰 Stuck? copy `checkpoints/09-water-causation/`
 :::
 
 ### Exercise · ⏱️ 6 min
 
 ::: {.done}
-`clusters.html` shows ρ and n per cluster, and you have named two confounders.
+`clusters.html` shows ρ and n per cluster, and you can say how one confounder could bias it.
 :::
 
 ::: {.notes}
@@ -1171,13 +1140,13 @@ writes `report.qmd` · `quarto render report.qmd`
 :::
 ::: {.column width="50%"}
 ::: {.you}
-open `report.docx` and `report.pdf`
+open `report.docx` (Word or LibreOffice) and `report.pdf`
 :::
 :::
 ::::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/10-water-report/`
+😰 Stuck? copy `checkpoints/10-water-report/`
 :::
 
 ### Exercise · ⏱️ 8 min
@@ -1195,11 +1164,11 @@ Typst is bundled with Quarto and takes `papersize` (default `us-letter`; Part 1'
 https://quarto.org/docs/output-formats/typst.html (checked 2026-10-30).
 :::
 
-## 📊 2:35 · Council slides → pptx {#water-slides}
+## 📊 2:35 · Slides → revealjs + pptx {#water-slides}
 
 ::: {.prompt}
 ```default
-Create slides.qmd (format: pptx) for the municipal council: 6 slides including the title: the question, a table of the clusters with their names, the heatmap, outcomes by cluster, and what this does and does not show. Read outputs/, use matplotlib, hide the code. Render it and count the slides.
+Create slides.qmd (revealjs and pptx) for the municipal council, 6 slides with the title: the question, a table of the named clusters, the heatmap, outcomes by cluster, what this does and does not show. Read outputs/, use matplotlib, hide code. Render both; count the slides.
 ```
 :::
 
@@ -1211,57 +1180,82 @@ writes `slides.qmd` · `quarto render slides.qmd`
 :::
 ::: {.column width="50%"}
 ::: {.you}
-open `slides.pptx`
+open `slides.html` in your browser and `slides.pptx` in PowerPoint or LibreOffice
 :::
 :::
 ::::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/11-water-slides/`
+😰 Stuck? copy `checkpoints/11-water-slides/`
 :::
 
 ### Exercise · ⏱️ 4 min
 
 ::: {.done}
-`slides.pptx` opens with 6 slides.
+`slides.html` and `slides.pptx` both have 6 slides.
 :::
 
 ::: {.notes}
-In pptx, each `##` heading starts a slide; a slide holds either text or one figure or one
-table, so keep them simple. The council deck repeats the "descriptive only" message.
+In both formats each `##` heading starts a slide. A pptx slide holds either text or one
+figure or one table, so keep them simple. Reveal.js is HTML: `revealjs: smaller: true`
+shrinks the text so the table fits, and putting `fig-dpi: 200` under `pptx` only keeps the
+Reveal.js figures at a size that fits the slide. The council deck repeats the "descriptive
+only" message. Options: https://quarto.org/docs/reference/formats/presentations/revealjs.html
+(checked 2026-10-30).
 :::
 
-## 📗 2:40 · Tables → xlsx {#water-tables}
+## 📖 2:40 · Report → ePub {#water-epub}
 
 ::: {.prompt}
 ```default
-Create tables.qmd whose code cell writes cluster_tables.xlsx from outputs/ with pandas: one sheet per table (profiles, outcomes_by_year, k_selection, stability) plus a dictionary sheet describing every column, then links to the file. Render it and list the sheets.
+In report.qmd, add an epub format (toc: true), set lang: en, and add ePub to the html format-links. Render report.qmd and check that report.epub contains the three figures and the sources.
 ```
 :::
 
-::: {.wat-flow}
-```python
-with pd.ExcelWriter("cluster_tables.xlsx") as xl:
-    for name, df in sheets.items():
-        df.to_excel(xl, sheet_name=name, index=False)
+:::: {.columns}
+::: {.column width="50%"}
+```{.yaml}
+lang: en        # the e-book's language
+format:
+  html:
+    format-links:
+      # … Word, PDF
+      - text: ePub
+        format: epub
+  epub:
+    toc: true
 ```
 :::
+::: {.column width="50%"}
+::: {.agent}
+edits `report.qmd` · `quarto render report.qmd`
+:::
+
+::: {.you}
+open `report.epub` in an e-book reader (Calibre, or Books on a Mac)
+:::
+:::
+::::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/12-water-tables/`
+😰 Stuck? copy `checkpoints/12-water-epub/`
 :::
 
 ### Exercise · ⏱️ 4 min
 
 ::: {.done}
-`cluster_tables.xlsx` opens with one sheet per table and a dictionary.
+`report.epub` opens with the three figures and the sources.
 :::
 
 ::: {.notes}
-xlsx is not a Quarto output format, so a code cell writes it during the render and the
-page links to it: `[📗 Download cluster_tables.xlsx](cluster_tables.xlsx)`. In a website,
-list it under `project: resources:` so it is copied into `_site/`. Writing xlsx needs
-`openpyxl`.
+ePub is the e-book format: a zipped set of web pages whose text reflows to fit the reader's
+screen. Most e-book readers do not run JavaScript, so figures must be static images; the
+report's matplotlib figures already are. `lang: en` records the book's language (without it
+the ePub says `C`), and `toc: true` adds a contents page. The new `format-links` entry puts
+an ePub download beside Word and PDF on the HTML page. Open the file in Apple Books (macOS)
+or Calibre (https://calibre-ebook.com/). Options:
+https://quarto.org/docs/reference/formats/epub.html; links:
+https://quarto.org/docs/output-formats/html-multi-format.html (checked 2026-10-30).
 :::
 
 ## ✍️🌐 2:45 · Blog + website {#water-website}
@@ -1273,7 +1267,6 @@ list it under `project: resources:` so it is copied into `_site/`. Writing xlsx 
 project:
   type: website
   pre-render: scripts/analysis.py
-  resources: [cluster_tables.xlsx]
 execute:
   freeze: auto
 ```
@@ -1300,7 +1293,7 @@ listing:
 the project. `freeze: auto` stores each page's results in `_freeze/` and re-executes a page
 only when its own source changes, so changes to `data/` or `outputs/` are not detected:
 delete `_freeze/` (or render that page directly, which ignores freeze) after the data or
-the analysis changes. `tables.qmd` sets `freeze: false` so the workbook is always written.
+the analysis changes.
 A listing turns `posts/*/index.qmd` into a blog index.
 Docs: https://quarto.org/docs/projects/scripts.html,
 https://quarto.org/docs/projects/code-execution.html#freeze,
@@ -1329,7 +1322,7 @@ writes 3 files · `quarto render` → `_site/`
 ::::
 
 ::: {.source .behind}
-😰 Behind? copy `checkpoints/13-water-website/`
+😰 Stuck? copy `checkpoints/13-water-website/`
 :::
 
 ### Exercise · ⏱️ 8 min
@@ -1340,8 +1333,8 @@ the site lists one post whose title states the real k.
 
 ::: {.notes}
 Never force a number into the title: the finished post asserts that k is 4 and fails the
-render if the analysis changes it. Navbar: Explore, Clusters, Report, Tables and a
-Downloads menu linking `report.docx`, `report.pdf`, `slides.pptx` and `cluster_tables.xlsx`. `execute-dir: project` makes every page, including
+render if the analysis changes it. Navbar: Explore, Clusters, Report, Slides and a
+Downloads menu linking `report.docx`, `report.pdf`, `report.epub` and `slides.pptx`. `execute-dir: project` makes every page, including
 the post in `posts/…/`, read `outputs/` and `data/` from the project folder.
 :::
 
@@ -1431,13 +1424,13 @@ writes `dashboard.qmd` · edits `_quarto.yml` · `quarto render`
 :::
 ::: {.column width="50%"}
 ::: {.you}
-`quarto preview` → 📈 Dashboard → move the slider
+reload the preview (or `quarto preview`) → 📈 Dashboard
 :::
 :::
 ::::
 
 ::: {.source .behind}
-😰 Behind? copy `examples/water/`
+😰 Stuck? copy `examples/water/`
 :::
 
 ### Exercise · ⏱️ 8 min
@@ -1454,40 +1447,46 @@ project is `quarto-workshop/examples/water/`. Catch-up:
 `cp -R quarto-workshop/examples/water/. water-quality/`.
 :::
 
-## 🌍 3:05 · Ship it {#water-ship}
+## 🌍 3:05 · Publish it {#water-ship}
 
 ::: {.prompt}
 ```default
-Initialise a git repository in this folder with a .gitignore for _site/, .quarto/ and outputs/, and commit everything else.
+Initialise a git repository here with a .gitignore for _site/, .quarto/ and outputs/, and commit everything else. Then create a public GitHub repository named water-quality with gh and push to it.
+```
+:::
+
+::: {.prompt}
+```default
+Publish the site with quarto publish gh-pages --no-prompt and tell me the live URL.
 ```
 :::
 
 ::: {.you}
-```bash
-gh repo create water-quality --public --source=. --push
-quarto publish gh-pages
-```
-then on GitHub: ⚙️ Settings → Pages shows the live URL
+approve the `gh` and `quarto publish` commands · open the live URL
 :::
 
 ::: {.source .behind}
-😰 Behind? copy `examples/water/`
+😰 Stuck? copy `examples/water/`
 :::
 
 ### Exercise · ⏱️ 4 min
 
 ::: {.done}
-`https://<you>.github.io/water-quality/` opens in a browser.
+`https://<your-github-username>.github.io/water-quality/` opens in a browser.
 :::
 
 ::: {.notes}
-Same steps as Part 1. `quarto publish gh-pages` renders locally (running the pre-render
-script), pushes `_site/` to a `gh-pages` branch and opens the site. Settings → Pages shows
-the URL and status. The data is public (CC BY-SA 4.0 and CC BY 4.0 sources, see
+Same steps as Part 1. The assistant runs `gh repo create water-quality --public --source=.
+--push` with the `gh` sign-in from the setup check (https://cli.github.com/manual/gh_repo_create).
+`quarto publish gh-pages --no-prompt` skips the confirmation question an assistant cannot
+answer (`quarto publish --help`, Quarto 1.6.40); it renders locally (running the pre-render
+script), creates the `gh-pages` branch on its first run, pushes `_site/` and opens the site.
+A project site needs no Settings → Pages change; that page only shows the URL and status.
+Docs: https://quarto.org/docs/publishing/github-pages.html (checked 2026-10-30). The data is public (CC BY-SA 4.0 and CC BY 4.0 sources, see
 `data/README.md`), so publishing `data/` with the site is fine; keep the attributions.
 :::
 
-## 🚀 Stretch goals {#water-stretch}
+## 🚀 Extra challenges {#water-stretch}
 
 ::: {.cards}
 ::: {}
@@ -1548,7 +1547,8 @@ incidence is not in the open SIVIGILA data, which publishes only EDA deaths
   [freeze](https://quarto.org/docs/projects/code-execution.html#freeze) ·
   [listings](https://quarto.org/docs/websites/website-listings.html) ·
   [dashboards](https://quarto.org/docs/dashboards/) ·
-  [Typst](https://quarto.org/docs/output-formats/typst.html), checked 2026-10-30
+  [Typst](https://quarto.org/docs/output-formats/typst.html) ·
+  [ePub](https://quarto.org/docs/reference/formats/epub.html), checked 2026-10-30
 :::
 
 ::: {.notes}

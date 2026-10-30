@@ -1,3 +1,3 @@
-- Checkpoint 12 · Excel tables: checkpoint 11 plus `tables.qmd`, whose code cell writes `cluster_tables.xlsx`.
-- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/12-water-tables/. water-quality/`
-- Run: `cd water-quality && python scripts/analysis.py && quarto render tables.qmd`
+- Checkpoint 12 · ePub: checkpoint 11 plus `epub` in `report.qmd` (`lang: en`, an ePub download link on the HTML page).
+- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/12-water-epub/. water-quality/`
+- Run: `cd water-quality && python3 scripts/analysis.py && quarto render report.qmd`

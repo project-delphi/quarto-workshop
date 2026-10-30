@@ -1,3 +1,3 @@
 - Checkpoint 10 · Report: checkpoint 09 plus `report.qmd` (html, docx and Typst PDF).
 - Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/10-water-report/. water-quality/`
-- Run: `cd water-quality && python scripts/analysis.py && quarto render report.qmd`
+- Run: `cd water-quality && python3 scripts/analysis.py && quarto render report.qmd`

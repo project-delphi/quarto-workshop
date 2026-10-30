@@ -2,7 +2,7 @@
 
 The finished project for Part 2 of the workshop. One script computes everything once; a
 Quarto website publishes it many ways. The pages are explore, clusters, a report (html,
-docx and Typst PDF), council slides (pptx), Excel tables, a blog post and a dashboard.
+docx, Typst PDF and ePub), council slides (revealjs and pptx), a blog post and a dashboard.
 
 The question: which kinds of municipal zone exist, judged by drinking-water quality,
 services and context, and how do health and education outcomes differ between them? One
@@ -20,9 +20,8 @@ water quality.
 | `outputs/` | written by the script, ignored by Git (see below) |
 | `explore.qmd` | first look: shape, missing values, IRCA by band, zone and year |
 | `clusters.qmd` | choosing k, PCA picture, profiles, outcomes, correlation ≠ causation |
-| `report.qmd` | report: html page, `report.docx` and `report.pdf` (Typst) |
-| `slides.qmd` | six-slide council briefing, `slides.pptx` |
-| `tables.qmd` | writes `cluster_tables.xlsx` (one sheet per table, dictionary, notes) |
+| `report.qmd` | report: html page, `report.docx`, `report.pdf` (Typst) and `report.epub` |
+| `slides.qmd` | six-slide council briefing: `slides.html` (Reveal.js) and `slides.pptx` |
 | `posts/four-kinds-of-municipal-zone/` | blog post, titled with the actual k |
 | `dashboard.qmd` | IRCA band maps with a year slider and a searchable table |
 | `index.qmd`, `_quarto.yml` | the website: listing, navbar, freeze, pre-render |
@@ -30,10 +29,10 @@ water quality.
 ## Rebuild
 
 From this folder, with a Python that has pandas, numpy, matplotlib, scikit-learn, pyarrow,
-openpyxl, tabulate, plotly, itables and Jupyter:
+tabulate, plotly, itables and Jupyter:
 
 ```bash
-python scripts/analysis.py   # writes outputs/ and prints the row counts and the k table
+python3 scripts/analysis.py   # writes outputs/ and prints the row counts and the k table
 quarto render                # runs the script again (pre-render), then renders every page
 quarto preview               # live preview at a local URL
 ```
@@ -62,8 +61,6 @@ quarto render clusters.qmd          # or re-execute one page: rendering a single
 ```
 
 Rendering a single file inside the project still runs the pre-render script first.
-`tables.qmd` sets `freeze: false`, so the workbook is rewritten on every render even when
-the rest of the site is frozen.
 
 ## Design decisions
 
