@@ -114,7 +114,12 @@ Use it only once the slower renders matter, and write the invalidation step down
 
 Workshop participants who fall behind on the dashboard or publishing step ask their coding
 assistant, started in `water-quality/`:
-"Catch me up by following ../quarto-workshop/examples/water/README.md". The steps:
+
+```text
+Catch me up: follow ../quarto-workshop/examples/water/README.md
+```
+
+The steps, run inside `water-quality/` (by the assistant, or by you in a terminal):
 
 1. Keep your work: `cp -R . "../water-quality-backup-final-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `water-quality/`, so earlier backups are kept).
 2. Copy the finished project here, data included: `cp -R ../quarto-workshop/examples/water/. .`

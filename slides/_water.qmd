@@ -46,6 +46,8 @@ wat_ktab = wat_res["k_table"].set_index("k")
 wat_k = wat_res["k"]
 wat_names = wat_prof["name"].to_dict()
 wat_colors = wat_prof["color"].to_dict()
+# Exactly one cluster is named Rural; .item() fails the render if a refresh changes that.
+wat_rural_cov = wat_prof.loc[wat_prof["name"].str.startswith("Rural"), "mean_water_coverage"].item()
 
 wat_raw = wat_analysis.load()
 wat_n_rows, wat_n_cols = wat_raw.shape
@@ -918,7 +920,7 @@ which id k-means happened to give. Setting: "Rural" if fewer than 40% of the clu
 are urban zones; otherwise "Cities and large towns" (rural share ≤ −0.5 SD), "Lowland towns"
 (altitude ≤ −0.5 SD) or "Highland towns" (altitude ≥ +0.5 SD). Coverage: "low-coverage" if
 the cluster's mean piped-water coverage is ≤ −0.5 SD. That is a relative position: the rural
-cluster's mean coverage is `{python} f"{wat_prof['mean_water_coverage'].min():.0f}"`%, low
+cluster's mean coverage is `{python} f"{wat_rural_cov:.0f}"`%, low
 but not zero, so "unserved" would overstate it. Risk: the Resolución 2115 band of the
 cluster's median utility-supplied (prestadores) IRCA; individual zone-years in a cluster can
 sit in any band. Check every name against the heatmap and the profile table before you use
