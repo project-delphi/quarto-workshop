@@ -220,8 +220,8 @@ retrieval date and the SHA-256 of every cached file are in the
 - Cite: Funk, C. et al. (2026), "The Climate Hazards Center Infrared Precipitation with
   Stations, Version 3", *Scientific Data* 13, 718, <https://doi.org/10.1038/s41597-026-07096-4>.
   Also cite the data repository, <https://doi.org/10.15780/G2JQ0P>, with your access date.
-  This citation is the one the CHC page recommends; we did not check it against the
-  journal. The original CHIRPS paper is Funk, C. et al. (2015), *Scientific Data* 2,
+  This citation is the one the CHC page recommends; its DOI resolves to the *Scientific
+  Data* article (checked 2026-10-30). The original CHIRPS paper is Funk, C. et al. (2015), *Scientific Data* 2,
   150066, <https://doi.org/10.1038/sdata.2015.66>.
 
 ### OpenTopoData / SRTM (altitude, derived)
@@ -232,7 +232,8 @@ retrieval date and the SHA-256 of every cached file are in the
 - The public API's `srtm90m` dataset is SRTM GL3 version 3 (NASA/USGS), per
   <https://www.opentopodata.org/datasets/srtm/>. SRTM is a NASA product with no
   restrictions on use. Cite NASA JPL (2013), *NASA Shuttle Radar Topography Mission
-  Global 3 arc second*, and OpenTopoData as the access service.
+  Global 3 arc second*, NASA LP DAAC, <https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL3.003>,
+  and OpenTopoData as the access service.
 - The value is the terrain height at one point, the head-town coordinate DIVIPOLA
   publishes, read from a roughly 90 m grid with bilinear interpolation. It is not the
   official altitude of the town.
@@ -309,8 +310,10 @@ retrieval date and the SHA-256 of every cached file are in the
 1. **IRCA is utility-supplied ("prestadores") IRCA, not INS's national total.** An
    earlier check found that the department totals in `nxt2-39c3` match the
    *Prestadores* column of INS's INCA 2023 report, not its overall figure. The overall
-   figure also covers samples where no utility was identified. This build did not repeat
-   that check. Call the variable "IRCA (utility-supplied, INS open data)" in slides and
+   figure also covers samples where no utility was identified. A repeat check on
+   2026-10-30 compared the 2023 department rows (`municipiocodigo = "#TODOS"`) with INCA
+   2023 Tabla 4: they match *Prestadores* in 30 of 30 departments and the total in only 5.
+   Call the variable "IRCA (utility-supplied, INS open data)" in slides and
    reports. Rural IRCA is missing far more often than urban IRCA, because many rural
    systems are not sampled. The mean rural IRCA across reporting municipalities falls
    from about 37–40 in 2016–2019 to about 22–27 in 2020–2023 (computed from this CSV).
@@ -371,6 +374,10 @@ retrieval date and the SHA-256 of every cached file are in the
     Bogotá is its own region.
 13. **Rates and scores are not causal evidence.** Comparing clusters or regions shows
     association only. Water quality is not shown to cause any outcome here.
+14. **Polygon winding.** `municipios.geojson` follows RFC 7946: exterior rings run
+    counter-clockwise. Plotly and d3 maps expect the opposite winding and draw each
+    municipality inverted (the world minus the polygon). Reverse the rings in memory
+    before `go.Choropleth`, as `scripts/analysis.py` does in `load_geojson()`.
 
 ### TODO: sources not included
 
