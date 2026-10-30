@@ -85,7 +85,7 @@ A silhouette near 0.2 means the clusters overlap: they summarise a continuum.
 ```{python}
 #| label: fig-pca
 #| fig-cap: "The rows on the first two principal components of the nine z-scored features, coloured by cluster. PCA is only for the picture; k-means used all nine features."
-#| fig-alt: "Scatter plot of about eleven thousand points in four coloured groups that overlap at their edges. The rural, unserved, high-risk cluster spreads to one side; the three town and city clusters sit closer together."
+#| fig-alt: "Scatter plot of about eleven thousand points in four coloured groups that overlap at their edges. The rural, low-coverage, high-risk cluster spreads to one side; the three town and city clusters sit closer together."
 fig, ax = plt.subplots(figsize=(7, 4.6))
 # Draw the outer clusters first, so the central one is not hidden under the others.
 centres = clusters.groupby("cluster")[["pc1", "pc2"]].mean()
@@ -112,7 +112,7 @@ plt.show()
 #| label: fig-heatmap
 #| column: page
 #| fig-cap: "Cluster centroids in z units: how far each cluster's mean sits from the year's average, in standard deviations. Blue is below average, red above."
-#| fig-alt: "Heatmap with one row per cluster and one column per feature. The rural, unserved, high-risk cluster is red for IRCA and poverty and dark blue for water and sewer coverage. Cities and large towns are blue for rural share and SGP per person and red for municipal performance. Lowland towns are dark blue for altitude."
+#| fig-alt: "Heatmap with one row per cluster and one column per feature. The rural, low-coverage, high-risk cluster is red for IRCA and poverty and dark blue for water and sewer coverage. Cities and large towns are blue for rural share and SGP per person and red for municipal performance. Lowland towns are dark blue for altitude."
 zcols = [f"z_{f}" for f in analysis.FEATURES]
 cmap = LinearSegmentedColormap.from_list("div", analysis.DIVERGING["light"])
 fig, ax = plt.subplots(figsize=(10, 0.55 * k + 1.5))
@@ -130,8 +130,10 @@ plt.show()
 ```
 
 Names come from a rule over each cluster's profile (`analysis.name_rule`): the setting from
-the share of urban rows, rural share and altitude; "unserved" when water coverage is at least
-0.5 SD below average; and the risk band of the cluster's median IRCA.
+the share of urban rows, rural share and altitude; "low-coverage" when mean piped-water
+coverage is at least 0.5 SD below the year's average (a relative position, not an absence
+of service); and the Resolución 2115 band of the cluster's median utility-supplied
+(prestadores) IRCA, which describes the typical zone-year, not every member.
 
 ```{python}
 #| label: tbl-profiles

@@ -80,14 +80,18 @@ prompting a coding assistant.
   assistant can run (rendering, git, `gh repo create`, `quarto publish … --no-prompt`)
   belongs in a prompt.
 - Exercises use `### Exercise · ⏱️ N min` and a `::: {.done}` block whose text completes
-  "You're done when …". Each hands-on step has a copyable checkpoint in `checkpoints/`,
-  named on the slide with `::: {.source .behind}` ("😰 Stuck? copy `checkpoints/…`").
+  "You're done when …". Each hands-on step has a checkpoint in `checkpoints/` whose README
+  lists the catch-up steps (back up, copy, copy water data if missing, render, check a named
+  output). The slide's `::: {.source .behind}` holds a copyable `default` fence:
+  "Catch me up: follow ../quarto-workshop/checkpoints/NN-…/README.md".
+- Mark pre-work slides `[🏠 before the workshop]{.pace}` and optional slides
+  `[⭐ optional · self-paced]{.pace}`. Exercise times must leave slack in every agenda block.
 
 ## Worked examples and report deliverables
 
 `examples/london/` is the finished Part 1 project and `examples/water/` the finished Part 2
-project; `checkpoints/NN-*/` hold the state after each hands-on step, with no rendered
-output. London checkpoints carry their small cited `data/` and `images/` so each renders
+project; `checkpoints/NN-*/` hold the state at the end of each hands-on block, with
+catch-up steps in their READMEs and no rendered output. London checkpoints carry their small cited `data/` and `images/` so each renders
 on its own; water checkpoints hold sources only (participants copy `examples/water/data/`
 first). Keep all three outside `project.render`; they are rendered separately for testing.
 
@@ -120,7 +124,8 @@ Deliverables are `report.pdf`, `report.docx`, a runnable `report.ipynb`, and
 unchanged inputs, and build instructions. Keep the brief, prompts, commands,
 review criteria, README, and submission checklist consistent with this contract.
 
-Build the reports from one `report.qmd`. Render PDF and DOCX with Quarto. For a
+Build the reports from one `report.qmd`. Render the PDF with Quarto's bundled Typst
+engine (`format: typst` writes `report.pdf`; no TeX needed) and DOCX with Quarto. For a
 runnable notebook with saved results, use the tested conversion/execution route:
 
 ```bash

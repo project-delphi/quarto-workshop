@@ -34,23 +34,30 @@ experiment and communicate a campaign recommendation.
 
 [Return to Quarto foundations](index.qmd)
 
-## A 60-Minute Marketing Lab
+## A 90-Minute Marketing Lab {#lab-agenda}
 
 | Activity | Time | Observable result |
 |---|---:|---|
-| Start a local agent session | 10 min | Correct folder and working tools |
-| Inspect experiment and brief | 15 min | Question, outcomes, and comparison |
-| Build and revise | 20 min | Three report formats and 8 slides |
-| Audit with a partner | 15 min | One verified correction or check |
+| Orientation and agent session | 10 min | Inputs copied, agent running |
+| Turns 1–2: evidence and brief | 15 min | `brief.md`: question and outcomes |
+| Turn 3: build and export | 20 min | `report.pdf`, `.docx`, runnable `.ipynb` |
+| Turns 4–5: audit claim and figure | 15 min | One corrected claim, one better figure |
+| Turns 6–8: slides and review | 15 min | Eight-slide `slides.html`, checks |
+| Partner audit | 15 min | A verified correction or passed check |
 
-: {tbl-colwidths="[40,14,46]"}
+: {tbl-colwidths="[38,12,50]"}
 
-Prerequisites: basic Markdown and Git; interpreting means and percentages.
-Audience: graduate students in marketing, business analytics, or research methods.
+[🏠 before the lab: install one coding agent · ⭐ = extension, self-paced ·
+Prerequisites: basic Markdown and Git; means and percentages · Audience: graduate students
+in marketing, business analytics, or research methods]{.source}
 
 ::: {.notes}
-Use the installation links for attendees who need them. The eight numbered turns
-form the core lab. Website and blog adaptations are optional extensions.
+The eight numbered turns form the live path; ⭐ slides are self-paced extensions, and the
+website and blog adaptations are optional. Exercise times add up to 5, 13, 15, 13, 14 and
+12 minutes per block: the rest is for the concept slides, inspecting outputs and recovering
+from one failed command or dependency install. Agent runs are not instant, so do not
+compress Turn 3. These are planning estimates: time a rehearsal and keep this table, the
+exercise labels and README consistent.
 Completion: a partner can rebuild all three report formats and the slides, trace claims to the raw data,
 and explain the recommendation's limits. Do not require a predetermined winner.
 :::
@@ -80,7 +87,7 @@ Source and original CSV verified 2026-10-06; provenance in the context notes.
 
 ## One Request Can Cover Several Steps
 
-**Ask your coding agent:**
+**One request could say** (an example: the lab splits it into eight turns):
 
 > Read the inputs in context/. Build an executable Quarto report for a
 > marketing manager. Compare each email campaign with no email on
@@ -122,7 +129,8 @@ Turns 1 and 2 define the question. Turns 3 to 5 build and audit the report.
 Turns 6 to 8 produce and review the slides.
 
 ::: {.notes}
-Use this slide to orient attendees before installation and the directory method.
+Use this slide to orient attendees before they set up the workspace; installing an
+agent is pre-work.
 Turns are numbered in the slide titles that follow. The optional website and blog
 adaptations come after turn 8 and are not required for lab completion.
 :::
@@ -130,6 +138,8 @@ adaptations come after turn 8 and are not required for lab completion.
 # Installation {#installation}
 
 ## Choose One Coding Agent
+
+[🏠 before the lab]{.pace}
 
 The workshop deck lists the installers for Claude Code, Codex and Antigravity:
 [install a coding assistant](index.qmd#install-assistant). Each asks you to sign in on first start.
@@ -154,7 +164,7 @@ writers in the same working directory. Never run a paid session just to test a c
 with sending no email?
 
 ```text
-quarto-promotions/
+~/quarto-promotions/
   context/
     hillstrom.csv       # original 64,000 customer rows
     notes.md            # design, dictionary, provenance
@@ -168,19 +178,22 @@ A directory organizes context; tool permissions govern access.
 
 ## Copying the Lab Inputs
 
-Run from a clone of this workshop. Choose a fresh destination:
-
+::: {.you}
 ```bash
-mkdir -p ~/code/quarto-promotions/context
-cp examples/marketing-context/* ~/code/quarto-promotions/context/
-cd ~/code/quarto-promotions
-# Start one coding agent:
+mkdir -p ~/quarto-promotions/context && cd ~/quarto-promotions
+cp ~/quarto-workshop/examples/marketing-context/* context/
 claude
-# Or: codex
 ```
+:::
 
-**Check:** `hillstrom.csv`, `notes.md`, and `sources.bib` are present.
-The agent session is using `quarto-promotions`.
+Uses the clone from the workshop's setup check (`~/quarto-workshop`) · or `codex` / `agy` instead of `claude`
+
+### Exercise · ⏱️ 5 min
+
+::: {.done}
+`context/` holds `hillstrom.csv`, `notes.md` and `sources.bib`, and the agent reports
+`quarto-promotions` as its working folder.
+:::
 
 ::: {.notes}
 If the destination contains work, choose another folder. Alternatively ask the
@@ -191,19 +204,22 @@ The CSV is local; neither the deck nor the lab needs network data retrieval on r
 
 ## Turn 1: Understand the Evidence {data-progress-label="Turn 1: Understand the Evidence"}
 
-**Ask your coding agent in the new workspace:**
+::: {.prompt}
+```default
+Read every file in context/. Summarize assignment, row meaning, outcomes, units, and observation window. Identify pre-campaign attributes and missing business information. Check the source citation before proposing an analysis.
+```
+:::
 
-> Read every file in context/. Summarize assignment, row meaning,
-> outcomes, units, and observation window. Identify pre-campaign
-> attributes and missing business information. Check the source citation
-> before proposing an analysis.
+### Exercise · ⏱️ 5 min
 
-**Check against the files:**
+::: {.done}
+the agent's summary agrees with the files:
 
 - `segment` is randomized campaign assignment; groups are independent.
 - `spend` is dollars per customer over two weeks, including zeros.
 - `conversion` marks any purchase; `visit` marks a website visit.
 - Costs, margin, delivery/open status, and later sales are unavailable.
+:::
 
 ::: {.notes}
 Source: examples/marketing-context/notes.md and the original challenge.
@@ -236,33 +252,36 @@ is no basis for conditioning on email opens, visitors, or purchasers.
 
 ## Turn 2: Have the Agent Write the Brief {data-progress-label="Turn 2: Write the Brief"}
 
-**Continue in the same conversation:**
+::: {.prompt}
+```default
+Write brief.md using the three context files. Require report.pdf (Typst), report.docx, and report.ipynb from report.qmd, plus exactly 8 slides including the title. Compare each email with no email on sales/customer and conversion in percentage points. Include uncertainty, provenance, business limitations, and completion checks. Label planning assumptions.
+```
+:::
 
-> Write brief.md using the three context files. Require report.pdf,
-> report.docx, and report.ipynb from report.qmd, plus exactly 8 slides
-> including the title. Compare each email with no email on sales/customer
-> and conversion in percentage points. Include uncertainty, provenance,
-> business limitations, and completion checks. Label planning assumptions.
-
-**Check:** review the question and outcomes before implementation.
-
-### Exercise
-
-Add a criterion that catches a misleading claim, such as treating all
+**Your addition:** a criterion that catches a misleading claim, such as treating all
 campaign revenue as incremental sales.
+
+### Exercise · ⏱️ 5 min
+
+::: {.done}
+you have reviewed the question and outcomes in `brief.md`, and it contains your criterion.
+:::
 
 ## Durable Instructions
 
-**Ask your coding agent:**
-
-> Initialize Git if needed and work on a draft branch. Create AGENTS.md
-> with rules to preserve raw inputs, compute claims, verify citations,
-> keep execution enabled, and inspect rendered outputs. Connect these
-> rules to the instruction file your tool reads. Record the build command.
+::: {.prompt}
+```default
+Initialize Git if needed and work on a draft branch. Create AGENTS.md with rules to preserve raw inputs, compute claims, verify citations, keep execution enabled, and inspect rendered outputs. Connect these rules to the instruction file your tool reads. Record the build commands.
+```
+:::
 
 `brief.md` describes this decision. `AGENTS.md` holds recurring project rules.
 
-**Check:** the active tool reads the project's instructions.
+### Exercise · ⏱️ 3 min
+
+::: {.done}
+the agent shows that it reads the project's instructions.
+:::
 
 ::: {.notes}
 Codex uses AGENTS.md: https://developers.openai.com/codex/guides/agents-md/.
@@ -275,69 +294,133 @@ Do not assume writing a file alone makes every agent load it.
 
 ## Turn 3: Create the Report {data-progress-label="Turn 3: Create the Report"}
 
-**Ask your coding agent:**
+::: {.prompt}
+```default
+Implement brief.md as report.qmd (formats typst and docx, bibliography context/sources.bib). Read context/hillstrom.csv in Python and validate rows, assignments, and outcomes. Compute arm sizes, sales means, conversion, and contrasts with control. State uncertainty assumptions. Add labeled figures, captions, alt text, and citations. Prepare dependencies and record build commands.
+```
+:::
 
-> Implement brief.md as report.qmd. Read context/hillstrom.csv in
-> Python and validate rows, assignments, and outcomes. Compute arm
-> sizes, sales means, conversion, and contrasts with control. State
-> uncertainty assumptions. Add labeled figures, captions, alt text, and
-> citations. Export PDF, DOCX, and IPYNB. Prepare dependencies as needed
-> and record working build commands.
+::: {.agent}
+writes `report.qmd` · installs what Python needs · renders it
+:::
 
-**Check:** the source reads the CSV and computes each result.
-The next slides show how to export and inspect it.
+### Exercise · ⏱️ 8 min
+
+::: {.done}
+`report.qmd` reads the CSV and computes every number it reports. The next slides export
+and inspect it.
+:::
 
 ## One Source, Three Report Formats {#report-formats}
 
-In `report.qmd`, the coding agent selects PDF and Word:
+In `report.qmd`, the coding agent selects PDF (via Typst) and Word:
 
 ```yaml
 format:
-  pdf: default
+  typst: default        # writes report.pdf
   docx: default
 bibliography: context/sources.bib
 jupyter: python3
 ```
 
+Typst is bundled with Quarto: no LaTeX install, the same engine as the workshop's PDFs.
 The notebook conversion preserves Markdown and executable Python cells.
 Ask the agent to include readable reference links in the notebook.
 
-## Render and Compare the Formats
+::: {.notes}
+Quarto includes the Typst CLI, so no separate installation is needed, and `typst` output is
+a PDF named after the source: `report.pdf`
+(https://quarto.org/docs/output-formats/typst.html, checked 2026-10-30). Typst processes the
+citations itself and prints its own "Bibliography" heading, so the report should not add a
+second "References" heading; set `citeproc: true` only if a CSL style is required. Tested
+on 2026-10-30 with Quarto 1.6.40 in a disposable copy of the lab inputs: the PDF listed
+both references, the DOCX rendered the citations, and the notebook route executed.
+:::
 
+## Render the Three Formats {#render-and-compare-the-formats}
+
+::: {.prompt}
+```default
+Export report.pdf and report.docx from report.qmd, then convert it to report.ipynb and execute the notebook from the lab root. Show each command and fix any errors.
+```
+:::
+
+::: {.agent}
 ```bash
-quarto render report.qmd --to pdf
+quarto render report.qmd --to typst      # report.pdf
 quarto render report.qmd --to docx
 quarto convert report.qmd --output report.ipynb
 jupyter nbconvert --to notebook --execute --inplace report.ipynb
 ```
+:::
 
-**PDF:** inspect page breaks, captions, and references.
-**DOCX:** open in Word or LibreOffice and inspect tables and figures.
-**IPYNB:** inspect Markdown, Python cells, and saved results. Restart the
-kernel and run all cells from the lab root to check reproducibility.
+### Exercise · ⏱️ 3 min
+
+::: {.done}
+`report.pdf`, `report.docx` and `report.ipynb` exist and every command finished without errors.
+:::
 
 ::: {.notes}
-PDF requires a working TeX distribution such as TinyTeX. Delegate setup to the
-agent and record the actual environment, including a Python kernel for the
-notebook. Use quarto convert for a runnable notebook, then nbconvert to execute
-and save its outputs. A rendered --to ipynb export may turn code into Markdown
+Typst needs no TeX distribution. Delegate setup to the agent and record the actual
+environment, including a Python kernel for the notebook. Use quarto convert for a
+runnable notebook, then nbconvert to execute and save its outputs. A rendered --to ipynb export may turn code into Markdown
 instead of runnable cells. Inspect the cell types, saved results, and reference
 links. Prefer static Matplotlib figures and ordinary tables that work across
 formats. A single source keeps the analysis consistent; inspect every output.
-Official PDF, Word, notebook conversion, and execution documentation verified 2026-10-07:
-https://quarto.org/docs/output-formats/pdf-basics.html
+Official Word, notebook conversion, and execution documentation verified 2026-10-07; Typst
+verified 2026-10-30:
+https://quarto.org/docs/output-formats/typst.html
 https://quarto.org/docs/output-formats/ms-word.html
 https://quarto.org/docs/cli/convert.html
 https://nbconvert.readthedocs.io/en/latest/usage.html
 Do not add browser-only tabsets or widgets to the core report.
 :::
 
+## Inspect Each Format {#inspect-formats}
+
+::: {.cards}
+::: {}
+[📕]{.big}
+
+**PDF**: page breaks · captions · numbered references at the end
+:::
+::: {}
+[📄]{.big}
+
+**DOCX**: tables · figures · citations, in Word or LibreOffice
+:::
+::: {}
+[📓]{.big}
+
+**IPYNB**: code cells, not Markdown · saved results · reference links
+:::
+:::
+
+::: {.you}
+open `report.pdf` and `report.docx` · open `report.ipynb`: restart the kernel, run all cells from the lab root
+:::
+
+### Exercise · ⏱️ 4 min
+
+::: {.done}
+each format passes its check, and a fresh-kernel run reproduces the notebook's results.
+:::
+
+::: {.notes}
+A fresh kernel proves the notebook does not depend on state left over from an earlier
+session. Compare one number in each format with the report source. If a check fails,
+describe the defect to the agent rather than editing the output by hand.
+:::
+
 ## What to Inspect in the Source
 
-**Ask your coding agent:**
+[⭐ self-paced]{.pace}
 
-> Show where report.qmd reads the raw CSV, computes each numerical
-> claim, and sets execution options. Explain these parts briefly.
+::: {.prompt}
+```default
+Show where report.qmd reads the raw CSV, computes each numerical claim, and sets execution options. Explain these parts briefly.
+```
+:::
 
 **Expected configuration pattern:**
 
@@ -358,6 +441,8 @@ freeze: auto does not track arbitrary external data changes. Keep this lab fresh
 :::
 
 ## A Calculation to Inspect
+
+[⭐ self-paced]{.pace}
 
 One possible cell in the student's report:
 
@@ -519,14 +604,18 @@ slide is the relevant test.
 
 Suppose the draft says: “Every dollar of email-arm revenue was caused by the promotion.”
 
-**Ask your coding agent:**
+::: {.prompt}
+```default
+Check that claim against the no-email control. Replace it with the computed difference in sales per assigned customer. Audit denominators and distinguish percentage points from percent change. Re-render and show the values that support the corrected interpretation.
+```
+:::
 
-> Check that claim against the no-email control. Replace it with the
-> computed difference in sales per assigned customer. Audit denominators
-> and distinguish percentage points from percent change. Re-render and
-> show the values that support the corrected interpretation.
+### Exercise · ⏱️ 5 min
 
-**Check:** both observed sales and additional sales are clearly labeled.
+::: {.done}
+observed sales and additional sales are labeled separately, with values recomputed from
+the CSV.
+:::
 
 ::: {.notes}
 The sentence is a deliberate teaching defect, not an observed agent output.
@@ -535,19 +624,20 @@ Use a real defect if the student's draft is already correct.
 
 ## A Tempting but Misleading Winner
 
-**Ask your coding agent:**
-
-> Compare average spending among buyers with sales per assigned
-> customer. Explain why the buyer-only ranking cannot identify the
-> campaign with the largest causal sales effect. Keep the primary
-> analysis on all assigned customers.
+::: {.prompt}
+```default
+Compare average spending among buyers with sales per assigned customer. Explain why the buyer-only ranking cannot identify the campaign with the largest causal sales effect. Keep the primary analysis on all assigned customers.
+```
+:::
 
 **Check:** purchasing is an outcome of the promotion. Selecting only buyers
 breaks the original randomized comparison.
 
-### Exercise
+### Exercise · ⏱️ 3 min
 
-Explain why more visits, more purchases, and more revenue are different outcomes.
+::: {.done}
+you can explain why more visits, more purchases, and more revenue are different outcomes.
+:::
 
 ::: {.notes}
 Recomputed buyer-only means: men's 113.526929 dollars, women's 121.894762,
@@ -558,28 +648,31 @@ spending can describe purchasers, but is not the primary causal sales contrast.
 
 ## Turn 5: Improve the Figure {data-progress-label="Turn 5: Improve the Figure"}
 
-If the figure shows only total campaign revenue, **ask your coding agent:**
+If the figure shows only total campaign revenue:
 
-> Plot each campaign's additional sales per assigned customer versus
-> no email. Show an uncertainty interval and a zero reference line.
-> Label the two-week window and dollars/customer. Put conversion
-> differences in a separate panel with percentage-point units. Update
-> the caption and alt text, then render again.
+::: {.prompt}
+```default
+Plot each campaign's additional sales per assigned customer versus no email. Show an uncertainty interval and a zero reference line. Label the two-week window and dollars/customer. Put conversion differences in a separate panel with percentage-point units. Update the caption and alt text, then render again.
+```
+:::
 
 **Check:** arm size does not determine the ranking; units and reference are explicit.
 
-### Exercise
+### Exercise · ⏱️ 5 min
 
-Request one visual revision and confirm the underlying estimates do not change.
+::: {.done}
+your one visual revision rendered and the underlying estimates did not change.
+:::
 
 ## What Does Uncertainty Mean Here?
 
-**Ask your coding agent:**
+[⭐ self-paced]{.pace}
 
-> Explain the assumptions behind the intervals. For independent arms,
-> use customer-level sampling and preserve assignment groups. Compare
-> men's and women's emails directly before declaring a winner. State
-> how multiple comparisons and skewed spending affect interpretation.
+::: {.prompt}
+```default
+Explain the assumptions behind the intervals. For independent arms, use customer-level sampling and preserve assignment groups. Compare men's and women's emails directly before declaring a winner. State how multiple comparisons and skewed spending affect interpretation.
+```
+:::
 
 **Check:** most customers spend zero; a few spend much more.
 Intervals describe estimation uncertainty under stated assumptions.
@@ -595,35 +688,40 @@ an interval nor randomization establishes applicability to a new retailer.
 
 ## From a Sales Effect to a Business Decision
 
-**Ask your coding agent:**
+[⭐ self-paced]{.pace}
 
-> Draft a campaign recommendation supported by the experiment. State
-> which assumptions would be needed to project sales to a future
-> audience. List the margin, campaign cost, and later outcomes needed
-> to assess profit. Propose a follow-up randomized test.
+::: {.prompt}
+```default
+Draft a campaign recommendation supported by the experiment. State which assumptions would be needed to project sales to a future audience. List the margin, campaign cost, and later outcomes needed to assess profit. Propose a follow-up randomized test.
+```
+:::
 
 **Check:** a recommendation distinguishes measured sales from projected sales
 and profit. Any new audience size or cost is a labeled planning assumption.
 
-### Exercise
+### Exercise · ⭐ self-paced
 
-Choose one unresolved business question and define an outcome for the next test.
+::: {.done}
+you have chosen one unresolved business question and defined an outcome for the next test.
+:::
 
 ## Turn 6: Adapt the Report into Slides {data-progress-label="Turn 6: Adapt into Slides"}
 
-**Ask your coding agent:**
-
-> Create slides.qmd with exactly 8 slides including the title. Reuse
-> the report's verified computation. Cover the decision, experiment,
-> outcome definitions, sales results, uncertainty, recommendation, and
-> follow-up test. Use a dark Reveal.js theme and speaker notes. Render
-> and inspect every slide.
-
-```bash
-quarto render slides.qmd --to revealjs
+::: {.prompt}
+```default
+Create slides.qmd with exactly 8 slides including the title. Reuse the report's verified computation. Cover the decision, experiment, outcome definitions, sales results, uncertainty, recommendation, and follow-up test. Use a dark Reveal.js theme and speaker notes. Render and inspect every slide.
 ```
+:::
 
-**Check:** count eight slides and compare every number with the report.
+::: {.agent}
+writes `slides.qmd` · `quarto render slides.qmd --to revealjs` → `slides.html`
+:::
+
+### Exercise · ⏱️ 6 min
+
+::: {.done}
+`slides.html` has eight slides, title included, and every number matches the report.
+:::
 
 ::: {.notes}
 The title plus seven content slides satisfies the count. Extra section slides
@@ -632,68 +730,82 @@ also count. https://quarto.org/docs/presentations/revealjs/ (checked 2026-10-06)
 
 ## Turn 7: Fix an Observed Layout Defect {data-progress-label="Turn 7: Fix a Layout Defect"}
 
-If a figure and explanation are crowded, **ask your coding agent:**
+If a figure and explanation are crowded:
 
-> On the Sales Results slide, the caption falls below the visible area.
-> Move the detailed interpretation to speaker notes and shorten the
-> caption. Keep the figure readable and the total at 8 slides. Re-render
-> at desktop and laptop presentation sizes.
+::: {.prompt}
+```default
+On the Sales Results slide, the caption falls below the visible area. Move the detailed interpretation to speaker notes and shorten the caption. Keep the figure readable and the total at 8 slides. Re-render at desktop and laptop presentation sizes.
+```
+:::
 
-**Check:** the entire caption fits; notes retain the necessary interpretation.
+::: {.you}
+no browser tool in the agent? open `slides.html` yourself and describe the defect · ask which checks are done and which are still needed
+:::
 
-If the agent lacks a browser tool, inspect the output yourself and describe the defect.
-Ask it to distinguish completed checks from checks still needed.
+### Exercise · ⏱️ 3 min
+
+::: {.done}
+the whole caption fits, and the notes keep the necessary interpretation.
+:::
 
 ## Turn 8: Review the Whole Deliverable {data-progress-label="Turn 8: Review the Deliverable"}
 
-**Ask your coding agent:**
+::: {.prompt}
+```default
+Rebuild all three report formats and the slides. Run the notebook from a fresh kernel in the lab root. Recompute claims from the CSV. Audit citations, figures, denominators, and business claims. Review the diff and report commands, limitations, and files ready for review. Keep this work local.
+```
+:::
 
-> Rebuild all three report formats and the slides. Run the notebook
-> from a fresh kernel in the lab root. Recompute claims from the CSV.
-> Audit citations, figures, denominators, and business claims. Review
-> the diff and report commands, limitations, and files ready for review.
-> Keep this work local.
-
-Use the report export commands above, then rebuild the slides:
-
+::: {.agent}
 ```bash
-quarto render slides.qmd --to revealjs
+quarto render slides.qmd --to revealjs   # after the four report exports
 git diff --check
 ```
+:::
 
-**Check:** source, raw inputs, build instructions, and rendered outputs are included.
+### Exercise · ⏱️ 5 min
+
+::: {.done}
+source, unchanged inputs, build instructions, and all four outputs are present and checked.
+:::
 
 # Adapting the Workflow
 
 ## Optional: A Campaign Evidence Website
 
-From a fresh workspace with the report and context, **ask your coding agent:**
+[⭐ self-paced]{.pace} From a fresh workspace with the report and context:
 
-> Create a Quarto website in campaign-site with Decision, Experiment,
-> and Results pages. Adapt the verified report and copy its inputs.
-> Preserve the outcome definitions and limitations. Render the site and
-> check all local links and its desktop layout.
-
-```bash
-quarto create project website campaign-site --no-open --no-prompt
+::: {.prompt}
+```default
+Create a Quarto website in campaign-site with Decision, Experiment, and Results pages. Adapt the verified report and copy its inputs. Preserve the outcome definitions and limitations. Render the site and check all local links and its desktop layout.
 ```
+:::
 
-**Check:** navigation works; results recompute from the copied inputs.
+::: {.agent}
+`quarto create project website campaign-site --no-open --no-prompt`
+:::
+
+::: {.done}
+navigation works and results recompute from the copied inputs.
+:::
 
 ## Optional: A Marketing Analytics Blog
 
-In another fresh workspace, **ask your coding agent:**
+[⭐ self-paced]{.pace} In another fresh workspace:
 
-> Create a Quarto blog in marketing-blog. Adapt the report into
-> posts/promotion-sales/index.qmd with title, date, categories, executable
-> analysis, experiment citation, and limitations. Copy the inputs and
-> fix relative paths. Render and check the listing's post link.
-
-```bash
-quarto create project blog marketing-blog --no-open --no-prompt
+::: {.prompt}
+```default
+Create a Quarto blog in marketing-blog. Adapt the report into posts/promotion-sales/index.qmd with title, date, categories, executable analysis, experiment citation, and limitations. Copy the inputs and fix relative paths. Render and check the listing's post link.
 ```
+:::
 
-**Check:** data paths work from the post's new location.
+::: {.agent}
+`quarto create project blog marketing-blog --no-open --no-prompt`
+:::
+
+::: {.done}
+data paths work from the post's new location.
+:::
 
 ## Different Outputs Need Different Reviews
 
@@ -711,11 +823,13 @@ Keep the computation consistent while adapting the explanation.
 
 ## Requests for a Larger Team
 
-For a larger project, you can ask for bounded roles:
+[⭐ self-paced]{.pace} For a larger project, you can ask for bounded roles:
 
-> Have an evidence reviewer inspect sources read-only, an author edit
-> only report.qmd, and a render reviewer report visual defects. One lead
-> should integrate changes and run the final build.
+::: {.prompt}
+```default
+Have an evidence reviewer inspect sources read-only, an author edit only report.qmd, and a render reviewer report visual defects. One lead should integrate changes and run the final build.
+```
+:::
 
 | Role | Required return |
 |---|---|
@@ -734,7 +848,7 @@ Tool-specific agent configuration requires current official documentation.
 
 ## Partner Review
 
-### Exercise — 15 minutes
+### Exercise · ⏱️ 12 min
 
 Exchange all three report formats and slides. Each partner checks:
 
@@ -744,7 +858,9 @@ Exchange all three report formats and slides. Each partner checks:
 
 Use the feedback for a plain-English revision request.
 
-**Done:** show the defect, the request, and evidence of correction; or a check that passed.
+::: {.done}
+you can show the defect, the request, and evidence of correction; or a check that passed.
+:::
 
 ## Lab Submission
 
@@ -778,9 +894,9 @@ Which business conclusions could a successful build never validate?
 - [Claude Code setup](https://code.claude.com/docs/en/setup) and [project memory](https://code.claude.com/docs/en/memory)
 - [Codex CLI](https://developers.openai.com/codex/cli/) and [repository instructions](https://developers.openai.com/codex/guides/agents-md/)
 - [Quarto Reveal.js](https://quarto.org/docs/presentations/revealjs/) and [execution](https://quarto.org/docs/projects/code-execution.html)
-- Report formats: [PDF](https://quarto.org/docs/output-formats/pdf-basics.html), [Word](https://quarto.org/docs/output-formats/ms-word.html), [notebook conversion](https://quarto.org/docs/cli/convert.html)
+- Report formats: [Typst PDF](https://quarto.org/docs/output-formats/typst.html), [Word](https://quarto.org/docs/output-formats/ms-word.html), [notebook conversion](https://quarto.org/docs/cli/convert.html)
 
 Case and installation sources checked **2026-10-06**.
-Report format documentation checked **2026-10-07**.
+Word and notebook documentation checked **2026-10-07**; Typst checked **2026-10-30**.
 
 [Back to Quarto foundations](index.qmd)

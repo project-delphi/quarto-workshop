@@ -128,6 +128,10 @@ Part 2 is computed by this deck from `examples/water/data/water_municipal.csv` w
 ::: {.notes}
 10 + 15 + 15 + 20 + 15 + 10 + 45 = 130 minutes, from 1:00 to 3:10. Section dividers show
 the same start times. The 45-minute publishing block has its own start times on each slide.
+Exercise times add up to 10, 10, 12, 10, 6 and 36 minutes for explore to publish; the rest
+of each block is for the concept slides, showing results and recovering from a failed
+command. Several exercises have two prompts, one task each. These are estimates: rehearse
+with a stopwatch and change the clocks, this slide and README together.
 :::
 
 ## 🚰 Why drinking water? {#water-why}
@@ -441,7 +445,11 @@ open `explore.html` in your browser
 ::::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/05-water-explore/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md
+```
 :::
 
 ### Exercise · ⏱️ 10 min
@@ -451,9 +459,8 @@ open `explore.html` in your browser
 :::
 
 ::: {.notes}
-Catch-up, from the folder that holds `quarto-workshop/`:
-`mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/05-water-explore/. water-quality/`,
-then `cd water-quality && quarto render explore.qmd`. Check the missingness table: if
+The catch-up prompt also copies `data/` when it is missing: water checkpoints hold
+sources only. Check the missingness table: if
 `irca` is not much sparser in rural rows, the assistant probably counted the wrong column.
 :::
 
@@ -585,7 +592,7 @@ would dominate.
 
 ::: {.prompt}
 ```default
-Read data/README.md. Create scripts/analysis.py with prepare(df): municipality rows 2016–2023 with irca; features irca, water_coverage, sewer_coverage, ipm, rural_share, altitude_m, rainfall_mm, mdm, log(sgp_water_pc); urban rows of capitals (code ends 001) take *_total coverage, flagged. Run it.
+Read data/README.md. Create scripts/analysis.py with prepare(df): rows with entity_type municipality, 2016–2023, with irca; features irca, water_coverage, sewer_coverage, ipm, rural_share, altitude_m, rainfall_mm, mdm, log(sgp_water_pc); urban rows of capitals (code ends 001) take *_total coverage, flagged in <col>_from_total. Run it.
 ```
 :::
 
@@ -594,7 +601,11 @@ writes `scripts/analysis.py` · runs `python3 scripts/analysis.py`
 :::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/06-water-prepare/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md
+```
 :::
 
 ### Exercise · ⏱️ 5 min
@@ -613,7 +624,7 @@ caveats itself.
 
 ::: {.prompt}
 ```default
-In prepare(), drop rows missing more than 2 features, fill the rest with the year × zone median plus <col>_imputed flags, then z-score every feature within year. Make scripts/analysis.py save outputs/prepared.parquet and print the rows kept and dropped at each step. Run it.
+In prepare(), drop rows missing more than 2 features, fill the rest with the year × zone median plus <col>_imputed flags, then add z_<col> (z-score within year) beside the original columns; keep keys, outcomes and flags. Save outputs/prepared.parquet, print rows kept and dropped per step. Run it.
 ```
 :::
 
@@ -622,7 +633,11 @@ edits `prepare()` · `python3 scripts/analysis.py`
 :::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/06-water-prepare/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md
+```
 :::
 
 ### Exercise · ⏱️ 5 min
@@ -632,9 +647,8 @@ the printed counts match 🧮 *What we keep*: `{python} wat_kept` rows kept.
 :::
 
 ::: {.notes}
-Checkpoint: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/06-water-prepare/. water-quality/`,
-then `cd water-quality && python3 scripts/analysis.py`. Parquet needs `pyarrow`; if it is
-missing, the assistant will install it in your environment.
+Checkpoint 06 is the end of the Prepare block (both steps). Parquet needs `pyarrow`; if it
+is missing, the assistant will install it in your environment.
 :::
 
 # 🧩 Cluster {#water-cluster}
@@ -763,7 +777,7 @@ cluster is drawn last so the others do not hide it.
 
 ::: {.prompt}
 ```default
-In scripts/analysis.py, run k-means on the z-scored features for k = 2–8 (random_state=42, n_init=20); save inertia and silhouette to outputs/k_selection.csv; pick k by the elbow, check silhouette and 5-seed ARI; save outputs/clusters.parquet with cluster, pc1, pc2. Run it; explain k.
+In scripts/analysis.py, run k-means on the z_ features for k = 2–8 (random_state=42, n_init=20); save inertia and silhouette to outputs/k_selection.csv; pick k by the elbow, check silhouette and 5-seed ARI; number clusters by centroid IRCA; save outputs/clusters.parquet (prepared columns + cluster, pc1, pc2). Run it; explain k.
 ```
 :::
 
@@ -772,7 +786,11 @@ edits `scripts/analysis.py` · `python3 scripts/analysis.py`
 :::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/07-water-cluster/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
+```
 :::
 
 ### Exercise · ⏱️ 6 min
@@ -810,7 +828,11 @@ open `clusters.html` in your browser
 ::::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/07-water-cluster/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
+```
 :::
 
 ### Exercise · ⏱️ 6 min
@@ -872,7 +894,7 @@ use a lighter blue for cluster 1 as text, so every label has at least 4.5:1 cont
 ## 🏷️ Name them by a rule {#water-names}
 
 ::: {.bigline}
-🏷️ name = 🏙️ setting + 🚱 service + 🎚️ median IRCA band
+🏷️ name = 🏙️ setting + 🚰 coverage + 🎚️ median IRCA band
 :::
 
 ```{python}
@@ -887,15 +909,20 @@ for wat_c, wat_p in wat_prof.iterrows():
 print('\n: {tbl-colwidths="[7,45,15,19,14]"}')
 ```
 
-[Median IRCA: utility-supplied (prestadores) IRCA.]{.source}
+["low-coverage" = 0.5 SD or more below the year's average, not "unserved" · risk word =
+band of the cluster's **median** utility-supplied (prestadores) IRCA, not every zone-year's]{.source}
 
 ::: {.notes}
 `name_rule()` in `analysis.py` turns each profile into a name, so names never depend on
 which id k-means happened to give. Setting: "Rural" if fewer than 40% of the cluster's rows
 are urban zones; otherwise "Cities and large towns" (rural share ≤ −0.5 SD), "Lowland towns"
-(altitude ≤ −0.5 SD) or "Highland towns" (altitude ≥ +0.5 SD). Service: "unserved" if water
-coverage ≤ −0.5 SD. Risk: the Resolución 2115 band of the cluster's median IRCA. Check every
-name against the heatmap and the profile table before you use it. Zone-years and
+(altitude ≤ −0.5 SD) or "Highland towns" (altitude ≥ +0.5 SD). Coverage: "low-coverage" if
+the cluster's mean piped-water coverage is ≤ −0.5 SD. That is a relative position: the rural
+cluster's mean coverage is `{python} f"{wat_prof['mean_water_coverage'].min():.0f}"`%, low
+but not zero, so "unserved" would overstate it. Risk: the Resolución 2115 band of the
+cluster's median utility-supplied (prestadores) IRCA; individual zone-years in a cluster can
+sit in any band. Check every name against the heatmap and the profile table before you use
+it. Zone-years and
 municipalities are counted in `profiles()`; a municipality counts in every cluster that
 holds one of its zone-years.
 :::
@@ -942,11 +969,46 @@ rows: an ecological mismatch with the zone-level clusters. The highland-town res
 good discussion point: these are small municipalities, where rates are noisy.
 :::
 
+## 🏷️ Outcome rules {#water-outcome-rules}
+
+::: {.prompt}
+```default
+In scripts/analysis.py, add outcome rules: infant_mortality only in 2017–2019 and 2021–2023; infant_mortality and dropout_rate are municipal, so count each municipality once per cluster and year; saber11_mean stays per zone-year. Save outputs/outcomes_by_year.csv (median, n). Run it.
+```
+:::
+
+::: {.agent}
+adds the outcome rules and `outcomes_by_year()` · `python3 scripts/analysis.py`
+:::
+
+::: {.source .behind}
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
+```
+:::
+
+### Exercise · ⏱️ 3 min
+
+::: {.done}
+`outputs/outcomes_by_year.csv` has no infant-mortality rows for 2016 or 2020.
+:::
+
+::: {.notes}
+The outcome rules live in one place (`analysis.py`), so the profiles, the outcome lines and
+later the report all use the same year windows and count each municipality once. Infant
+mortality changes method in 2017 (modelled estimates before, observed rates after) and 2020
+looks like a different source (data README, caveat 8). Infant mortality and dropout are
+measured for the whole municipality and repeated on both zone rows; Saber 11 is measured per
+zone. Checkpoint 08 is the end of the Interpret block, so it also has the next two steps.
+:::
+
 ## 🏷️ Profiles and names {#water-interpret-do}
 
 ::: {.prompt}
 ```default
-In scripts/analysis.py, write outputs/cluster_profiles.csv (rows, municipalities, mean raw and z features, outcome medians and n) and name each cluster by a rule over its profile (setting, service, IRCA band of the median), not by hand. Run it and show me the names.
+Write outputs/cluster_profiles.csv: rows, municipalities, mean raw and z features, outcome medians and n under the same rules. Name each cluster by a rule: setting, relative coverage ("low-coverage" if mean z_water_coverage ≤ −0.5), median IRCA band. Show me the names.
 ```
 :::
 
@@ -955,25 +1017,31 @@ adds `profiles()` and a naming rule · `python3 scripts/analysis.py`
 :::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/08-water-interpret/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
+```
 :::
 
-### Exercise · ⏱️ 5 min
+### Exercise · ⏱️ 3 min
 
 ::: {.done}
 every cluster has a name you can defend from its profile.
 :::
 
 ::: {.notes}
-A rule keeps names stable across re-runs and makes them checkable. Keep the mapping in one
-place (`analysis.py`); pages read the names from `outputs/cluster_profiles.csv`.
+A naming rule keeps names stable across re-runs and makes them checkable; pages read the
+names from `outputs/cluster_profiles.csv`. "Low-coverage" states a position relative to the
+year's average; a name like "unserved" would claim that no service exists, which a z-score
+cannot show.
 :::
 
 ## 🏷️ Heatmap and outcomes {#water-interpret-page}
 
 ::: {.prompt}
 ```default
-Add to clusters.qmd a heatmap of the cluster mean z-scores (features × clusters, blue to red) and line charts of median infant_mortality, saber11_mean and dropout_rate by cluster and year from outputs/. Use the cluster names and keep each cluster's colour. Render it.
+Add to clusters.qmd a heatmap of the cluster mean z-scores (features × clusters, blue to red) and one line chart per outcome from outputs/outcomes_by_year.csv, with gaps, not joined lines, in missing years. Use the cluster names and colours. Render it.
 ```
 :::
 
@@ -991,20 +1059,24 @@ reload `clusters.html` in your browser
 ::::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/08-water-interpret/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
+```
 :::
 
-### Exercise · ⏱️ 5 min
+### Exercise · ⏱️ 4 min
 
 ::: {.done}
 `clusters.html` shows the heatmap and outcomes by cluster and year.
 :::
 
 ::: {.notes}
-Ask the assistant to compute the outcome medians in `analysis.py`
-(`outputs/outcomes_by_year.csv`) if it starts doing it in the page. Infant mortality changes
-method in 2017 (modelled estimates before, observed rates after) and 2020 looks like a
-different source, so use 2017–2019 and 2021–2023 only.
+The page only reads `outputs/`: the year windows and once-per-municipality counts were set
+in `analysis.py` on the previous slide. Each line is drawn over every year, so excluded or
+unpublished years (2020 for infant mortality; 2018, 2021 and 2023 for Saber 11) show as
+gaps rather than as a line across them.
 :::
 
 # ⚠️ Correlation ≠ causation {#water-causation}
@@ -1094,11 +1166,44 @@ and access. A causal claim would need a design that handles these, such as befor
 changes in treatment plants with comparison places.
 :::
 
-## ⚠️ Within-cluster check + discussion {#water-causation-do}
+## 🧮 Within-cluster check {#water-causation-calc}
 
 ::: {.prompt}
 ```default
-Add a section to clusters.qmd: within each cluster, median infant_mortality by IRCA band for 2017–2019 and 2021–2023, with Spearman rho and n per cluster, and one sentence stating that this is descriptive and does not establish a causal effect of water quality. Render it.
+In scripts/analysis.py, for 2017–2019 and 2021–2023, make one row per municipality-year within each cluster: its infant_mortality and the mean IRCA of its zones in that cluster. Save and print Spearman rho and n per cluster, and median infant_mortality by IRCA band. Run it.
+```
+:::
+
+::: {.agent}
+adds `irca_vs_infant()` · `python3 scripts/analysis.py`
+:::
+
+::: {.source .behind}
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/09-water-causation/README.md
+```
+:::
+
+### Exercise · ⏱️ 3 min
+
+::: {.done}
+ρ and n are saved and printed for every cluster.
+:::
+
+::: {.notes}
+The unit follows the outcome: infant mortality is municipal, so within a cluster each
+municipality-year counts once, with the mean IRCA of its zones in that cluster; blank rates
+(which may mean no recorded deaths) are left out. The computation goes in `analysis.py`, so
+the page, the report and the slides read the same numbers.
+:::
+
+## ⚠️ Show it + discuss {#water-causation-do}
+
+::: {.prompt}
+```default
+Add a section to clusters.qmd that reads those outputs: median infant_mortality by IRCA band per cluster, with rho and n, and one sentence stating this is descriptive and does not establish a causal effect of water quality. Render it.
 ```
 :::
 
@@ -1106,13 +1211,17 @@ Add a section to clusters.qmd: within each cluster, median infant_mortality by I
 edits `clusters.qmd` · `quarto render clusters.qmd`
 :::
 
-💬 with a neighbour: pick one confounder: could it hide a real effect, or create a fake one?
+💬 while it runs, with a neighbour: pick one confounder: could it hide a real effect, or create a fake one?
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/09-water-causation/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/09-water-causation/README.md
+```
 :::
 
-### Exercise · ⏱️ 6 min
+### Exercise · ⏱️ 3 min
 
 ::: {.done}
 `clusters.html` shows ρ and n per cluster, and you can say how one confounder could bias it.
@@ -1150,7 +1259,11 @@ open `report.docx` (Word or LibreOffice) and `report.pdf`
 ::::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/10-water-report/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/10-water-report/README.md
+```
 :::
 
 ### Exercise · ⏱️ 8 min
@@ -1190,7 +1303,11 @@ open `slides.html` in your browser and `slides.pptx` in PowerPoint or LibreOffic
 ::::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/11-water-slides/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/11-water-slides/README.md
+```
 :::
 
 ### Exercise · ⏱️ 4 min
@@ -1242,7 +1359,11 @@ open `report.epub` in an e-book reader (Calibre, or Books on a Mac)
 ::::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/12-water-epub/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/12-water-epub/README.md
+```
 :::
 
 ### Exercise · ⏱️ 4 min
@@ -1270,9 +1391,10 @@ https://quarto.org/docs/output-formats/html-multi-format.html (checked 2026-10-3
 # _quarto.yml
 project:
   type: website
+  execute-dir: project
   pre-render: scripts/analysis.py
 execute:
-  freeze: auto
+  freeze: false
 ```
 :::
 ::: {.column width="48%"}
@@ -1284,20 +1406,24 @@ listing:
 
 🔁 `pre-render` rebuilds `outputs/`
 
-🧊 `freeze: auto` re-runs a page only when **its** `.qmd` changes
+🧪 `freeze: false` re-runs **every** page → always the new numbers
 :::
 ::::
 
-::: {.fragment .bigline}
-⚠️ new data? `rm -rf _freeze` and render again
+::: {.fragment}
+⭐ later, for slow sites: `freeze: auto` reuses old results\
+until you run `rm -rf _freeze`
 :::
 
 ::: {.notes}
 `pre-render` runs the script before every render, including a single-file render inside
-the project. `freeze: auto` stores each page's results in `_freeze/` and re-executes a page
-only when its own source changes, so changes to `data/` or `outputs/` are not detected:
-delete `_freeze/` (or render that page directly, which ignores freeze) after the data or
-the analysis changes.
+the project. `freeze: false` re-executes every page on every render, so one `quarto render`
+rebuilds the analysis and every publication, and nothing needs clearing when `data/` or the
+script change. `execute-dir: project` makes every page, including the post in `posts/…/`,
+read `outputs/` and `data/` from the project folder. Optional extension for slow sites:
+`freeze: auto` stores each page's results in `_freeze/` and re-executes a page only when its
+own source changes, so changes to `data/` or `outputs/` are not detected; delete `_freeze/`
+(or render that page directly, which ignores freeze) after the data or the analysis change.
 A listing turns `posts/*/index.qmd` into a blog index.
 Docs: https://quarto.org/docs/projects/scripts.html,
 https://quarto.org/docs/projects/code-execution.html#freeze,
@@ -1308,7 +1434,7 @@ https://quarto.org/docs/websites/website-listings.html (checked 2026-10-30).
 
 ::: {.prompt}
 ```default
-Make this folder a Quarto website: _quarto.yml (pre-render scripts/analysis.py, freeze: auto, render list, navbar), index.qmd listing posts/, and one post titled with the real k, e.g. "Four kinds of municipal zone". Render it; check the links.
+Make this folder a Quarto website: _quarto.yml (execute-dir: project, pre-render scripts/analysis.py, freeze: false, render list, navbar), index.qmd listing posts/, and one post titled with the real k, e.g. "Four kinds of municipal zone". Render it; check the links.
 ```
 :::
 
@@ -1326,7 +1452,11 @@ writes 3 files · `quarto render` → `_site/`
 ::::
 
 ::: {.source .behind}
-😰 Stuck? copy `checkpoints/13-water-website/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
+```
 :::
 
 ### Exercise · ⏱️ 8 min
@@ -1338,8 +1468,7 @@ the site lists one post whose title states the real k.
 ::: {.notes}
 Never force a number into the title: the finished post asserts that k is 4 and fails the
 render if the analysis changes it. Navbar: Explore, Clusters, Report, Slides and a
-Downloads menu linking `report.docx`, `report.pdf`, `report.epub` and `slides.pptx`. `execute-dir: project` makes every page, including
-the post in `posts/…/`, read `outputs/` and `data/` from the project folder.
+Downloads menu linking `report.docx`, `report.pdf`, `report.epub` and `slides.pptx`.
 :::
 
 ## 📈 2:55 · Dashboard {#water-dashboard}
@@ -1434,7 +1563,11 @@ reload the preview (or `quarto preview`) → 📈 Dashboard
 ::::
 
 ::: {.source .behind}
-😰 Stuck? copy `examples/water/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/examples/water/README.md
+```
 :::
 
 ### Exercise · ⏱️ 8 min
@@ -1447,8 +1580,7 @@ the map changes when you move the year slider.
 If the map is a grey box, ask the assistant to reverse the polygon rings for Plotly (see
 `load_geojson()` in `examples/water/scripts/analysis.py`). The finished dashboard is about
 12 MB: Plotly plus one copy of the GeoJSON per map. There is no checkpoint 14: the finished
-project is `quarto-workshop/examples/water/`. Catch-up:
-`cp -R quarto-workshop/examples/water/. water-quality/`.
+project is `quarto-workshop/examples/water/`, and its README holds the catch-up steps.
 :::
 
 ## 🌍 3:05 · Publish it {#water-ship}
@@ -1470,7 +1602,11 @@ approve the `gh` and `quarto publish` commands · open the live URL
 :::
 
 ::: {.source .behind}
-😰 Stuck? copy `examples/water/`
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/examples/water/README.md
+```
 :::
 
 ### Exercise · ⏱️ 4 min
