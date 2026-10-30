@@ -3,9 +3,11 @@
 ## Scope and architecture
 
 This repository is a Quarto website containing Reveal.js teaching decks. Read `_quarto.yml`,
-`README.md`, and the affected `.qmd` files before editing. `index.qmd` teaches foundations;
+`README.md`, and the affected `.qmd` files before editing. `index.qmd` is the 3 h 10 min
+hands-on workshop: Part 0 (intro, setup), Part 1 (London guide, included from
+`slides/_london.qmd`) and Part 2 (Colombian water quality, included from `slides/_water.qmd`).
 `ai-workflows.qmd` teaches graduate-level agent-assisted authoring. Preserve the dark theme
-and exercise-driven structure. The main learning path delegates dependency setup to agents;
+(`theme: [dark, theme.scss]`) and exercise-driven structure. The main learning path delegates dependency setup to agents;
 do not reintroduce lengthy Conda or kernel troubleshooting lessons.
 
 The workshop audience uses desktop computers and modern laptops. Design and
@@ -30,7 +32,7 @@ quarto preview ai-workflows.qmd
 Preview prints a local URL and does not launch a browser automatically. Open that URL for
 visual inspection. Stop only preview processes you started.
 
-The foundations deck executes Python through Jupyter. Inspect the existing runtime and any required PDF/TeX engine before
+The workshop deck executes Python through Jupyter. Inspect the existing runtime and any required PDF/TeX engine before
 installing dependencies; prepare a local environment if needed and record the commands used.
 `environment.yml` and `environment-r.yml` are optional reproducibility recipes. When the
 existing `.conda/` environment is usable, select it explicitly:
@@ -60,15 +62,42 @@ keep teaching computations fresh. Changes to external data are not automatically
   documentation and record the verification date. Never invent results or references.
 - Give meaningful figures captions and alternative text; inspect code wrapping and tables.
 
+## Workshop slide conventions
+
+The slides are the course resource: participants follow them alone and do most work by
+prompting a coding assistant.
+
+- One concept per slide, introduced in order (Markdown → render → YAML → code cells →
+  formats → projects → publishing). Never use a concept before its slide.
+- Emoji over words: at most about 30 words of prose per slide; detail goes in `::: {.notes}`.
+  Build examples progressively with fragments (`. . .`, `.fragment`) instead of walls of text.
+- Section dividers are `# <emoji> Title {#id}` followed by `[⏱️ h:mm]{.clock}` matching the agenda.
+- Hands-on slides use the three boxes defined in `theme.scss`: `::: {.prompt}` holds the exact
+  prompt in a fenced `text` block (copyable, 1–4 lines, one task, concrete file/column names,
+  a verification ask); `::: {.agent}` lists what the assistant will likely run; `::: {.you}`
+  lists what participants type or click themselves (accounts, `git push`, `quarto publish`).
+- Exercises use `### Exercise · ⏱️ N min` and a `::: {.done}` block whose text completes
+  "You're done when …". Each hands-on step has a copyable checkpoint in `checkpoints/`.
+
 ## Worked examples and report deliverables
 
-The foundations notebook and blog use the UCI Wine recognition data in
-`examples/wine-context/`: 178 real wine samples, provenance notes, a worked
-`notebook.qmd`, and source records. Keep `wine.csv` unchanged and this bundle
-outside `project.render`. One row is one wine sample; labels 1–3 are anonymous
-cultivars, not quality scores. Compute numerical claims from the CSV. State
-that descriptive group differences and overlap do not establish prediction
-accuracy or generalization to other wines.
+`examples/london/` is the finished Part 1 project and `examples/water/` the finished Part 2
+project; `checkpoints/NN-*/` hold intermediate states (sources only, no data or rendered
+output). Keep all three outside `project.render`; they are rendered separately for testing.
+
+London figures must be real and cited: every data row carries `source`, `url`, and
+`retrieved` columns (ALVA attraction visits, VisitBritain/ONS inbound visits). Images must be
+openly licensed, attributed, and contain no people. If a figure cannot be verified at its
+source, stop and report rather than estimating it.
+
+The water dataset (`examples/water/data/`) is real public data joined on DANE DIVIPOLA codes
+by `scripts/build_dataset.py`; never generate synthetic data presented as real. One row is a
+municipality × zone (urban/rural) × year. The INS open IRCA table (datos.gov.co `nxt2-39c3`)
+corresponds to utility-supplied ("prestadores") IRCA, not INS's national total; label it so.
+Profile features are clustered; outcomes (infant mortality, Saber 11, dropout) are only used
+to describe clusters and are never clustered on. Cluster comparisons are descriptive:
+state that they do not establish causal effects of water quality. Record missing sources as
+TODOs with URLs rather than filling them.
 
 The marketing workflow names inputs and deliverables on its opening content
 slide. Inputs are `context/hillstrom.csv`, `notes.md`, and `sources.bib`.
@@ -121,8 +150,8 @@ configuration. This role contract alone does not install or launch custom agents
 
 Run `quarto render` and `git diff --check` after source/configuration changes. Inspect every
 changed slide in a browser at desktop and laptop presentation sizes, and verify
-links between both decks. Use a viewport such as 1440 × 1000 for desktop and
-1366 × 768 for laptop, checking code wrapping and caption visibility at both.
+links between both decks. Use viewports such as 1440 × 1000 for desktop, 1366 × 768 for
+laptop, and 1280 × 720 for a projector, checking code wrapping and caption visibility.
 Check executed output, captions, citations, math, and code overflow; a clean render alone is
 insufficient. Test instructional commands in a disposable directory when their behavior changes.
 Never run paid agent sessions merely to test a displayed command.
