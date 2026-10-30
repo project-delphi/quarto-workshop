@@ -801,6 +801,110 @@ background and on white pages, and each cluster also has its own marker. The cen
 cluster is drawn last so the others do not hide it.
 :::
 
+## 🌀 Turn the cloud {#water-pca-3d}
+
+```{python}
+#| label: wat-cloud
+#| echo: false
+#| output: asis
+# The previous slide's PCA with a third component. This cell computes every number on the
+# slide; assets/cluster-cloud.min.js only draws the points it writes into the page.
+import html as wat_html
+import json as wat_json
+from sklearn.decomposition import PCA as wat_PCA
+from sklearn.neighbors import NearestNeighbors as wat_NN
+
+wat_Z = wat_analysis.zmatrix(wat_res["prepared"])
+wat_pca3 = wat_PCA(n_components=3, random_state=wat_analysis.SEED).fit(wat_Z)
+wat_xyz = wat_pca3.transform(wat_Z)
+# Same first two components as the previous slide, so the cloud starts as that picture.
+assert wat_np.allclose(wat_xyz[:, :2], wat_clusters[["pc1", "pc2"]].to_numpy())
+wat_var3 = wat_pca3.explained_variance_ratio_
+wat_lab = wat_clusters["cluster"].to_numpy()
+
+
+def wat_same(d):
+    """Share of each zone-year's 15 nearest zone-years, on the first d components, in its cluster."""
+    _, wat_idx = wat_NN(n_neighbors=16).fit(wat_xyz[:, :d]).kneighbors(wat_xyz[:, :d])
+    return wat_pd.Series((wat_lab[wat_idx[:, 1:]] == wat_lab[:, None]).mean(axis=1))
+
+
+wat_same2, wat_same3 = wat_same(2), wat_same(3)
+wat_own2, wat_own3 = wat_same2.groupby(wat_lab).mean(), wat_same3.groupby(wat_lab).mean()
+wat_focus = int(wat_own2.idxmin())  # the cluster most mixed in the 2-D picture
+wat_pc3 = wat_pd.Series(wat_pca3.components_[2], index=wat_analysis.FEATURES)
+wat_pc3_top = wat_pc3.abs().nlargest(2).index
+wat_pc3_words = {
+    "irca": "💧 IRCA", "water_coverage": "🚰 piped water", "sewer_coverage": "🚽 sewer",
+    "ipm": "💸 poverty", "rural_share": "🌾 rural share", "altitude_m": "⛰️ altitude",
+    "rainfall_mm": "🌧️ rainfall", "mdm": "🏛️ MDM", "log_sgp_water_pc": "💰 SGP transfers",
+}
+wat_pc3_text = (("−" if wat_pc3[wat_pc3_top[0]] < 0 else "") + wat_pc3_words[wat_pc3_top[0]]
+                + (" + " if wat_pc3[wat_pc3_top[1]] * wat_pc3[wat_pc3_top[0]] > 0 else " − ")
+                + wat_pc3_words[wat_pc3_top[1]])
+wat_pc3_means = wat_pd.Series(wat_xyz[:, 2]).groupby(wat_lab).mean()
+wat_others = wat_pc3_means.drop(wat_focus)
+wat_focus_side = ("sits below the others" if wat_pc3_means[wat_focus] < wat_others.min()
+                  else "sits above the others" if wat_pc3_means[wat_focus] > wat_others.max()
+                  else "moves apart")
+
+wat_cloud = {
+    "scale": 100,
+    "xyz": wat_np.round(wat_xyz * 100).astype(int).ravel().tolist(),
+    "cluster": wat_lab.tolist(),
+    "focus": wat_focus,
+    # 1st-99th percentiles: the view fits the bulk of the cloud, not its few outliers.
+    "lo": wat_np.percentile(wat_xyz, 1, axis=0).round(2).tolist(),
+    "hi": wat_np.percentile(wat_xyz, 99, axis=0).round(2).tolist(),
+    "clusters": [{"id": int(c), "color": wat_colors[c],
+                  "marker": wat_analysis.CLUSTER_MARKERS[c - 1]} for c in sorted(wat_colors)],
+}
+wat_glyph = {"o": "●", "s": "■", "^": "▲", "D": "◆", "v": "▼"}
+wat_legend = "".join(
+    f'<span><span style="color:{c["color"]}">{wat_glyph.get(c["marker"], "●")}</span> '
+    f'Cluster {c["id"]}</span>' for c in wat_cloud["clusters"])
+wat_axes = "".join(f'<span class="cloud-axis">PC{a + 1} · {wat_var3[a]:.0%}</span>' for a in range(3))
+wat_alt = (f"Turning 3-D scatter of {len(wat_lab):,} zone-years on the first three principal "
+           "components, coloured and shaped by cluster as on the previous slide. Face on it is "
+           f"the 2-D picture; turned upright on PC3, cluster {wat_focus} {wat_focus_side}.")
+print("```{=html}")
+print(f'<div class="cluster-cloud" role="img" aria-label="{wat_html.escape(wat_alt)}">'
+      f'<script type="application/json">{wat_json.dumps(wat_cloud, separators=(",", ":"))}</script>'
+      f'<div class="cloud-legend">{wat_legend}</div>{wat_axes}'
+      '<p class="cloud-fallback" hidden>🫧 This 3-D view needs WebGL; the 2-D picture is on '
+      'the previous slide.</p></div>')
+print('<script src="assets/cluster-cloud.min.js"></script>')
+print("```")
+```
+
+::: {.cloud-steps}
+🫧 2 axes · `{python} f"{wat_var3[:2].sum():.0%}"` of variance · cluster `{python} wat_focus`: `{python} f"{wat_own2[wat_focus]:.0%}"` of near neighbours in it
+
+::: {.fragment data-cloud="turn"}
+🔄 3 axes · `{python} f"{wat_var3.sum():.0%}"` · `{python} f"{wat_own3[wat_focus]:.0%}"`
+:::
+
+::: {.fragment data-cloud="pc3"}
+PC3 ≈ `{python} wat_pc3_text`: cluster `{python} wat_focus` `{python} wat_focus_side`
+:::
+:::
+
+[🖱️ drag to turn · scroll to zoom]{.source}
+
+::: {.notes}
+The same zone-years, colours and markers as the previous slide, on the first three principal
+components of the same 9 z-scored features: PC1 and PC2 are the previous slide's axes.
+Face on, the cloud is that 2-D picture. Press → to turn it: PC3 adds `{python} f"{wat_var3[2]:.0%}"` of the variance. Press →
+again to stand PC3 upright and fade the other clusters. "Near neighbours" are each
+zone-year's 15 nearest zone-years on the components shown; a cluster's share is the mean
+over its zone-years. Over all zone-years the share rises from
+`{python} f"{wat_same2.mean():.0%}"` to `{python} f"{wat_same3.mean():.0%}"`. PC3's largest
+loadings are `{python} ", ".join(f"{f} {wat_pc3[f]:+.2f}" for f in wat_pc3_top)`. It is
+still a picture: k-means used all 9 features, not the components. Drag to turn the cloud
+and scroll to zoom; with reduced motion the views change without animation. About a
+minute.
+:::
+
 ## 🧩 Run k-means {#water-cluster-do}
 
 ::: {.prompt}
