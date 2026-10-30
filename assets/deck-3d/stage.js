@@ -81,7 +81,7 @@ export function stage(el, deck, sceneType) {
     });
     canvas.addEventListener("wheel", (e) => {
       e.preventDefault();
-      zoom = Math.min(2, Math.max(0.25, zoom * Math.exp(e.deltaY * 0.001)));
+      zoom = Math.min(2, Math.max(0.35, zoom * Math.exp(e.deltaY * 0.001)));
       target.dist = aim();
       start();
     }, { passive: false });
@@ -98,8 +98,8 @@ export function stage(el, deck, sceneType) {
   const aim = () => (fit() / view.zoom) * zoom;
 
   function resize() {
-    if (!renderer) return;
     const w = el.clientWidth, h = el.clientHeight;
+    if (!renderer || !w || !h) return; // a far-away slide is display:none; sized when shown
     renderer.setPixelRatio(Math.min(3, devicePixelRatio * deck.getScale()));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
@@ -183,7 +183,7 @@ export function stage(el, deck, sceneType) {
       return;
     }
     if (!renderer && !build()) return;
-    start();
+    resize();
   }
 
   deck.on("slidechanged", update);

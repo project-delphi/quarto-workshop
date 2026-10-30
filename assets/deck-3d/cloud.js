@@ -60,7 +60,7 @@ export const cloud = {
       geometry.setAttribute("position", new BufferAttribute(pos, 3));
       const material = new PointsMaterial({
         color: c.color, map: marker(c.marker), size: half * 0.075, sizeAttenuation: true,
-        transparent: true, alphaTest: 0.05,
+        alphaTest: 0.05, // focus() makes the faded clusters transparent
       });
       material.userData.id = c.id;
       group.add(new Points(geometry, material));
@@ -91,7 +91,13 @@ export const cloud = {
       focus(t) {
         materials.forEach((m) => {
           m.opacity = m.userData.id === data.focus ? 1 : 1 - 0.8 * t;
-          m.depthWrite = m.opacity > 0.99;
+          // Opaque points draw in the opaque pass, so faded ones cannot cover them;
+          // switching passes recompiles the shader (opaque ones force alpha to 1).
+          if (m.transparent !== m.opacity < 1) {
+            m.transparent = m.opacity < 1;
+            m.depthWrite = !m.transparent;
+            m.needsUpdate = true;
+          }
         });
       },
     };

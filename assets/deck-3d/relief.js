@@ -26,7 +26,7 @@ export const relief = {
     const materials = data.clusters.map((c) => {
       const rows = [];
       for (let i = 0; i < data.cols.length; i += 4) if (data.cols[i + 3] === c.id) rows.push(i);
-      const material = new MeshLambertMaterial({ color: c.color, transparent: true });
+      const material = new MeshLambertMaterial({ color: c.color });
       material.userData.id = c.id;
       const mesh = new InstancedMesh(box, material, rows.length);
       rows.forEach((i, j) => {
@@ -69,7 +69,13 @@ export const relief = {
       focus(t) {
         materials.forEach((m) => {
           m.opacity = data.focus.includes(m.userData.id) ? 1 : 1 - 0.8 * t;
-          m.depthWrite = m.opacity > 0.99;
+          // Opaque columns draw in the opaque pass, so faded ones cannot cover them;
+          // switching passes recompiles the shader (opaque ones force alpha to 1).
+          if (m.transparent !== m.opacity < 1) {
+            m.transparent = m.opacity < 1;
+            m.depthWrite = !m.transparent;
+            m.needsUpdate = true;
+          }
         });
       },
     };

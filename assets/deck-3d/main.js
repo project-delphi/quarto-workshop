@@ -12,7 +12,13 @@ function initialize() {
   const run = () => document.querySelectorAll(".deck-3d").forEach((el) => {
     if (el.dataset.ready || !scenes[el.dataset.scene]) return;
     el.dataset.ready = "true";
-    stage(el, deck, scenes[el.dataset.scene]);
+    try {
+      stage(el, deck, scenes[el.dataset.scene]);
+    } catch (error) {
+      // One slide's failure leaves the others running; this one shows its note.
+      console.error(error);
+      el.querySelector(".fallback")?.removeAttribute("hidden");
+    }
   });
   if (deck.isReady()) run();
   else deck.on("ready", run);
