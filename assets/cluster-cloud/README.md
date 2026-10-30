@@ -21,4 +21,5 @@ Versions are pinned in `package.json` and `package-lock.json` (three 0.187.0, es
 Behaviour: fragments with `data-cloud="turn"` or `data-cloud="pc3"` on the same slide set
 the view. Drag turns the cloud and the scroll wheel zooms. With `prefers-reduced-motion`,
 views change without animation and the cloud does not spin. Rendering stops while the slide
-is not shown. Without WebGL, the slide shows a short note instead.
+is not shown. Without WebGL, the slide shows a short note instead. A PDF export
+(`?print-pdf`) gets one still frame of the last view.

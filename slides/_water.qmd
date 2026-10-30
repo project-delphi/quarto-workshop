@@ -825,8 +825,9 @@ wat_lab = wat_clusters["cluster"].to_numpy()
 
 def wat_same(d):
     """Share of each zone-year's 15 nearest zone-years, on the first d components, in its cluster."""
-    _, wat_idx = wat_NN(n_neighbors=16).fit(wat_xyz[:, :d]).kneighbors(wat_xyz[:, :d])
-    return wat_pd.Series((wat_lab[wat_idx[:, 1:]] == wat_lab[:, None]).mean(axis=1))
+    # kneighbors() without X leaves each point out, even when another point has its values.
+    _, wat_idx = wat_NN(n_neighbors=15).fit(wat_xyz[:, :d]).kneighbors()
+    return wat_pd.Series((wat_lab[wat_idx] == wat_lab[:, None]).mean(axis=1))
 
 
 wat_same2, wat_same3 = wat_same(2), wat_same(3)
@@ -834,14 +835,21 @@ wat_own2, wat_own3 = wat_same2.groupby(wat_lab).mean(), wat_same3.groupby(wat_la
 wat_focus = int(wat_own2.idxmin())  # the cluster most mixed in the 2-D picture
 wat_pc3 = wat_pd.Series(wat_pca3.components_[2], index=wat_analysis.FEATURES)
 wat_pc3_top = wat_pc3.abs().nlargest(2).index
-wat_pc3_words = {
-    "irca": "💧 IRCA", "water_coverage": "🚰 piped water", "sewer_coverage": "🚽 sewer",
-    "ipm": "💸 poverty", "rural_share": "🌾 rural share", "altitude_m": "⛰️ altitude",
-    "rainfall_mm": "🌧️ rainfall", "mdm": "🏛️ MDM", "log_sgp_water_pc": "💰 SGP transfers",
-}
-wat_pc3_text = (("−" if wat_pc3[wat_pc3_top[0]] < 0 else "") + wat_pc3_words[wat_pc3_top[0]]
-                + (" + " if wat_pc3[wat_pc3_top[1]] * wat_pc3[wat_pc3_top[0]] > 0 else " − ")
-                + wat_pc3_words[wat_pc3_top[1]])
+# Emoji as on the features slide; the words are analysis.py's short labels.
+wat_pc3_emoji = {"irca": "💧", "water_coverage": "🚰", "sewer_coverage": "🚽", "ipm": "💸",
+                 "rural_share": "🌾", "altitude_m": "⛰️", "rainfall_mm": "🌧️", "mdm": "🏛️",
+                 "log_sgp_water_pc": "💰"}
+
+
+def wat_word(f):
+    wat_s = wat_analysis.SHORT_LABELS.get(f, f)
+    wat_s = wat_s[0].lower() + wat_s[1:] if wat_s[1:2].islower() else wat_s
+    return f"{wat_pc3_emoji.get(f, '')} {wat_s}".strip()
+
+
+wat_f1, wat_f2 = wat_pc3_top
+wat_pc3_text = (("−" if wat_pc3[wat_f1] < 0 else "") + wat_word(wat_f1)
+                + (" + " if wat_pc3[wat_f2] > 0 else " − ") + wat_word(wat_f2))
 wat_pc3_means = wat_pd.Series(wat_xyz[:, 2]).groupby(wat_lab).mean()
 wat_others = wat_pc3_means.drop(wat_focus)
 wat_focus_side = ("sits below the others" if wat_pc3_means[wat_focus] < wat_others.min()
@@ -859,7 +867,7 @@ wat_cloud = {
     "clusters": [{"id": int(c), "color": wat_colors[c],
                   "marker": wat_analysis.CLUSTER_MARKERS[c - 1]} for c in sorted(wat_colors)],
 }
-wat_glyph = {"o": "●", "s": "■", "^": "▲", "D": "◆", "v": "▼"}
+wat_glyph = {"o": "●", "s": "■", "^": "▲", "D": "◆", "v": "▼", "P": "✚", "X": "✖", "*": "★"}
 wat_legend = "".join(
     f'<span><span style="color:{c["color"]}">{wat_glyph.get(c["marker"], "●")}</span> '
     f'Cluster {c["id"]}</span>' for c in wat_cloud["clusters"])
@@ -889,7 +897,7 @@ PC3 ≈ `{python} wat_pc3_text`: cluster `{python} wat_focus` `{python} wat_focu
 :::
 :::
 
-[🖱️ drag to turn · scroll to zoom]{.source}
+[Each point is a zone-year on the first three principal components of the 9 z-scored features, by cluster · 🖱️ drag to turn · scroll to zoom]{.source}
 
 ::: {.notes}
 The same zone-years, colours and markers as the previous slide, on the first three principal
@@ -897,8 +905,8 @@ components of the same 9 z-scored features: PC1 and PC2 are the previous slide's
 Face on, the cloud is that 2-D picture. Press → to turn it: PC3 adds `{python} f"{wat_var3[2]:.0%}"` of the variance. Press →
 again to stand PC3 upright and fade the other clusters. "Near neighbours" are each
 zone-year's 15 nearest zone-years on the components shown; a cluster's share is the mean
-over its zone-years. Over all zone-years the share rises from
-`{python} f"{wat_same2.mean():.0%}"` to `{python} f"{wat_same3.mean():.0%}"`. PC3's largest
+over its zone-years. Over all zone-years the share is `{python} f"{wat_same2.mean():.0%}"`
+on 2 components and `{python} f"{wat_same3.mean():.0%}"` on 3. PC3's largest
 loadings are `{python} ", ".join(f"{f} {wat_pc3[f]:+.2f}" for f in wat_pc3_top)`. It is
 still a picture: k-means used all 9 features, not the components. Drag to turn the cloud
 and scroll to zoom; with reduced motion the views change without animation. About a

@@ -31,7 +31,18 @@ function marker(shape) {
   else if (shape === "^") poly([[c, c - r], [c + r, c + r * 0.8], [c - r, c + r * 0.8]]);
   else if (shape === "v") poly([[c, c + r], [c + r, c - r * 0.8], [c - r, c - r * 0.8]]);
   else if (shape === "D") poly([[c, c - r], [c + r * 0.75, c], [c, c + r], [c - r * 0.75, c]]);
-  else g.arc(c, c, r * 0.85, 0, 2 * Math.PI);
+  else if (shape === "P" || shape === "X") {
+    const t = r * 0.3;
+    g.translate(c, c);
+    if (shape === "X") g.rotate(Math.PI / 4);
+    g.rect(-t, -r, 2 * t, 2 * r);
+    g.rect(-r, -t, 2 * r, 2 * t);
+  } else if (shape === "*") {
+    poly(Array.from({ length: 10 }, (_, i) => {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5, q = i % 2 ? r * 0.45 : r;
+      return [c + q * Math.cos(a), c + q * Math.sin(a)];
+    }));
+  } else g.arc(c, c, r * 0.85, 0, 2 * Math.PI);
   g.fill();
   const texture = new CanvasTexture(canvas);
   texture.minFilter = LinearFilter; // no mipmaps: small markers keep their edges
@@ -39,7 +50,7 @@ function marker(shape) {
   return texture;
 }
 
-// Shortest equivalent of angle a near b, so a view change never unwinds earlier spins.
+// Shortest equivalent of angle a near b, so a view change never unwinds earlier turns.
 const near = (a, b) => b + Math.atan2(Math.sin(a - b), Math.cos(a - b));
 
 function cloud(el, deck) {
@@ -51,14 +62,17 @@ function cloud(el, deck) {
   const half = Math.max(...hi.map((v, a) => (v - lo[a]) / 2));
   const centre = new Vector3(...mid);
 
+  // A PDF export shows every slide at once, fragments visible: it gets one still frame.
+  const printing = deck.isPrintView?.() ?? document.documentElement.classList.contains("reveal-print");
   let renderer, scene, camera, outer, materials, labels, raf = 0, last = 0, userUntil = 0;
   let view = VIEWS.flat;
+  let zoom = 1; // the reader's wheel zoom within the current view
   const cur = { rx: 0, ry: 0, dist: 0, focus: 0 };
   const target = { ...cur };
 
   function build() {
     try {
-      renderer = new WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      renderer = new WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: printing });
     } catch {
       el.querySelector(".cloud-fallback").hidden = false;
       return false;
@@ -67,6 +81,7 @@ function cloud(el, deck) {
     canvas.setAttribute("aria-hidden", "true");
     canvas.setAttribute("data-prevent-swipe", "");
     el.prepend(canvas);
+    el.classList.add("is-drawn"); // shows the axis labels and legend (theme.scss)
     scene = new Scene();
     // Far points fade into the slide background, a depth cue when the cloud turns.
     let background = "rgba(0, 0, 0, 0)";
@@ -129,12 +144,18 @@ function cloud(el, deck) {
         userUntil = performance.now() + 4000;
         start();
       };
+      const ends = ["pointerup", "pointercancel", "lostpointercapture"];
+      const end = () => {
+        canvas.removeEventListener("pointermove", move);
+        ends.forEach((type) => canvas.removeEventListener(type, end));
+      };
       canvas.addEventListener("pointermove", move);
-      canvas.addEventListener("pointerup", () => canvas.removeEventListener("pointermove", move), { once: true });
+      ends.forEach((type) => canvas.addEventListener(type, end));
     });
     canvas.addEventListener("wheel", (e) => {
       e.preventDefault();
-      target.dist = Math.min(fit() * 2, Math.max(fit() * 0.35, target.dist * Math.exp(e.deltaY * 0.001)));
+      zoom = Math.min(2, Math.max(0.35, zoom * Math.exp(e.deltaY * 0.001)));
+      target.dist = aim();
       start();
     }, { passive: false });
     resize();
@@ -142,9 +163,11 @@ function cloud(el, deck) {
     return true;
   }
 
-  // Camera distance at which the data's largest half-range fits the canvas height.
+  // Camera distance at which the data's largest half-range fits the canvas height, and the
+  // distance for the current view and wheel zoom.
   const fit = () => (half * 1.1) / Math.tan((FOV * Math.PI) / 360) /
     Math.min(1, camera.aspect / ((hi[0] - lo[0]) / (hi[1] - lo[1])));
+  const aim = () => (fit() / view.zoom) * zoom;
 
   function resize() {
     if (!renderer) return;
@@ -153,17 +176,20 @@ function cloud(el, deck) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    target.dist = fit() / view.zoom;
+    target.dist = aim();
     draw();
+    start();
   }
 
   function setView(name) {
     view = VIEWS[name] ?? VIEWS.flat;
     target.rx = view.rx;
     target.ry = view.ry;
+    cur.rx = near(cur.rx, target.rx);
     cur.ry = near(cur.ry, target.ry);
     target.focus = view.focus ? 1 : 0;
-    if (camera) target.dist = fit() / view.zoom;
+    zoom = 1;
+    if (camera) target.dist = aim();
   }
 
   function draw() {
@@ -214,9 +240,9 @@ function cloud(el, deck) {
   function update() {
     const shown = [...slide.querySelectorAll("[data-cloud].visible")].pop();
     setView(shown ? shown.dataset.cloud : "flat");
-    // A PDF export shows every slide at once with its fragments visible: draw the last view.
-    if (document.documentElement.classList.contains("reveal-print")) {
+    if (printing) {
       if (renderer || build()) {
+        resize();
         Object.assign(cur, target);
         draw();
       }
@@ -235,6 +261,7 @@ function cloud(el, deck) {
   deck.on("fragmentshown", update);
   deck.on("fragmenthidden", update);
   deck.on("resize", resize);
+  deck.on("pdf-ready", update); // the print layout is done: draw at its final size
   document.addEventListener("visibilitychange", () => (document.hidden ? cancelAnimationFrame(raf) || (raf = 0) : start()));
   update();
 }
