@@ -45,7 +45,7 @@ plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False,
 t = pd.DataFrame({
     "Kind": [f"{c} · {names[c]}" for c in prof.index],
     "Zone-years": prof["rows"].map("{:,}".format),
-    "Median IRCA": prof["irca_median"].round(1),
+    "Median IRCA (prestadores)": prof["irca_median"].round(1),
     "Water coverage (%)": prof["mean_water_coverage"].round(0).astype(int),
     "Poverty (%)": prof["mean_ipm"].round(0).astype(int),
 })
@@ -69,6 +69,8 @@ for i, row in enumerate(prof[zcols].to_numpy()):
                 color="white" if abs(v) > 1 else "#1d1d1d")
 ax.spines[:].set_visible(False)
 fig.colorbar(im, ax=ax, label="z (SD from the year's average)", shrink=0.8)
+fig.text(0.01, -0.26, "IRCA: utility-supplied (prestadores) IRCA, INS open data. "
+         "Altitude: derived SRTM point at the head town.", fontsize=10, color="#555555")
 plt.show()
 ```
 
@@ -88,19 +90,30 @@ for ax, (col, label) in zip(axes, analysis.OUTCOMES.items()):
 fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2,
            frameon=False, bbox_to_anchor=(0.5, -0.14))
 plt.tight_layout()
+fig.text(0.01, -0.24, "Infant mortality changes method in 2017 and 2020 looks like a "
+         "different source: only 2017–2019 and 2021–2023 are shown. Descriptive only.",
+         fontsize=10, color="#555555")
 plt.show()
 ```
 
 ## What this does and does not show
 
 - Medians by kind and year; infant mortality and dropout are municipal values.
-- Within each kind, IRCA and infant mortality are barely related (Spearman ρ
-  `{python} f"{rho['spearman_rho'].min():+.2f}"` to `{python} f"{rho['spearman_rho'].max():+.2f}"`).
+- Infant mortality changes method in 2017, so we compare 2017–2019 and 2021–2023 only.
+- Within each kind, utility-supplied (prestadores) IRCA and infant mortality are barely
+  related (Spearman ρ `{python} f"{rho['spearman_rho'].min():+.2f}"` to
+  `{python} f"{rho['spearman_rho'].max():+.2f}"`).
 - **Descriptive only: this does not establish a causal effect of water quality.**
 - Poverty, rurality, health-service access and reporting quality differ between kinds.
-- Next: add service continuity and diarrhoeal disease data when they become available.
 
 ::: {.notes}
-Sources: INS IRCA (datos.gov.co nxt2-39c3, utility-supplied, prestadores); DNP TerriData;
-DANE; ICFES; MEN; CHIRPS; SRTM. See data/README.md in the project.
+Next: add service continuity and diarrhoeal disease data when they become available.
+Sources: INS IRCA, utility-supplied (prestadores), datos.gov.co nxt2-39c3,
+https://www.datos.gov.co/resource/nxt2-39c3.csv; DNP TerriData, https://terridata.dnp.gov.co/;
+DANE DIVIPOLA, https://www.datos.gov.co/resource/gdxc-w37w.json, and population projections,
+https://www.dane.gov.co; ICFES Saber 11, https://www.datos.gov.co/resource/kgxf-xxbe.csv and
+https://www.datos.gov.co/resource/rnvb-vnyh.csv; MEN dropout,
+https://www.datos.gov.co/resource/nudc-7mev.csv; CHIRPS v3.0,
+https://doi.org/10.15780/G2JQ0P; altitude derived from NASA SRTM GL3,
+https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL3.003. See data/README.md in the project.
 :::

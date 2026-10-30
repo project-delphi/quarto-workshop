@@ -37,7 +37,8 @@ describe = {
     "color": "the cluster's colour on every page",
     "outcome": "outcome column", "year": "calendar year", "median": "median value",
     "n": "rows with a value", "level": "level the outcome is measured at",
-    "spearman_rho": "Spearman correlation of IRCA and infant mortality within the cluster",
+    "spearman_rho": ("Spearman correlation of utility-supplied IRCA and infant mortality "
+                     "within the cluster, 2017–2019 and 2021–2023"),
     "all_clusters_rho": "the same correlation over all clusters together",
     "all_clusters_n": "rows behind all_clusters_rho",
     "k": "number of clusters", "inertia": "within-cluster sum of squares",
@@ -49,19 +50,33 @@ describe = {
 for f in analysis.FEATURES:
     describe[f"mean_{f}"] = f"mean of {analysis.FEATURE_LABELS[f]}"
     describe[f"z_{f}"] = f"mean z-score (within year) of {analysis.FEATURE_LABELS[f]}"
+years = {o: f"{min(y)}–{max(y)}" for o, y in analysis.OUTCOME_YEARS.items()}
+years["infant_mortality"] = "2017–2019 and 2021–2023"
+years["saber11_mean"] = "2016, 2017, 2019, 2020 and 2022"
 for o, label in analysis.OUTCOMES.items():
     for stat in ("mean", "median", "n"):
-        describe[f"{o}_{stat}"] = f"{stat} of {label}, pooled over the comparison years"
+        describe[f"{o}_{stat}"] = f"{stat} of {label}, pooled over {years[o]}"
 
 rows = [{"sheet": name, "column": col, "description": describe.get(col, "")}
         for name, df in sheets.items() for col in df.columns]
 dictionary = pd.DataFrame(rows)
 notes = pd.DataFrame({"note": [
     "Unit: municipality x zone (urban/rural) x year, 2016-2023.",
-    "IRCA is the utility-supplied (prestadores) IRCA in INS open data, datos.gov.co nxt2-39c3.",
+    "IRCA is the utility-supplied (prestadores) IRCA in INS open data, datos.gov.co nxt2-39c3: "
+    "https://www.datos.gov.co/resource/nxt2-39c3.csv",
+    analysis.INFANT_NOTE,
+    "Altitude is derived: one SRTM elevation point at the head-town coordinate, not an "
+    "official altitude.",
     "Comparisons are descriptive and do not establish a causal effect of water quality.",
     f"k = {s['k']}. {s['k_reason']}",
-    "Sources and caveats: data/README.md in the project.",
+    "Sources: DNP TerriData https://terridata.dnp.gov.co/ ; DANE DIVIPOLA "
+    "https://www.datos.gov.co/resource/gdxc-w37w.json ; DANE MGN 2023 "
+    "https://geoportal.dane.gov.co/descargas/mgn_2023/MGN2023_MPIO_POLITICO.zip ; ICFES "
+    "https://www.datos.gov.co/resource/kgxf-xxbe.csv and "
+    "https://www.datos.gov.co/resource/rnvb-vnyh.csv ; MEN "
+    "https://www.datos.gov.co/resource/nudc-7mev.csv ; CHIRPS v3.0 "
+    "https://doi.org/10.15780/G2JQ0P",
+    "Every source, licence and caveat: data/README.md in the project.",
 ]})
 
 with pd.ExcelWriter("cluster_tables.xlsx") as xl:

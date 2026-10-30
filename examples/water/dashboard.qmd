@@ -59,8 +59,8 @@ def band_map(zone):
         geojson=geo, featureidkey="properties.divipola", locations=codes,
         z=z, customdata=hover, text=[names[c] for c in codes],
         zmin=-1.5, zmax=len(analysis.IRCA_BANDS) - 0.5, colorscale=scale,
-        marker_line_width=0.2, marker_line_color="white",
-        hovertemplate="%{text}<br>IRCA: %{customdata}<extra></extra>",
+        marker_line_width=0.3, marker_line_color=analysis.NO_DATA_EDGE["light"],
+        hovertemplate="%{text}<br>IRCA (prestadores): %{customdata}<extra></extra>",
         colorbar=dict(tickvals=list(range(-1, 5)), ticktext=labels, len=0.8,
                       thickness=14)))
     fig.frames = [go.Frame(name=str(y), data=[go.Choropleth(
@@ -95,13 +95,13 @@ Kinds of municipal zone (k)
 :::
 
 ::: {.valuebox icon="droplet" color="success"}
-Median urban IRCA, `{python} last`
+Median urban IRCA (prestadores), `{python} last`
 
 `{python} urban_last`
 :::
 
 ::: {.valuebox icon="exclamation-triangle" color="warning"}
-Rural zones in the high or unfit band, `{python} last`
+Sampled rural zones in the high or unfit band, `{python} last`
 
 `{python} rural_risky`
 :::
@@ -111,12 +111,12 @@ Rural zones in the high or unfit band, `{python} last`
 ### Column {.tabset width=62%}
 
 ```{python}
-#| title: "IRCA band, urban zones (head towns)"
+#| title: "Prestadores IRCA band · urban zones"
 band_map("urban")
 ```
 
 ```{python}
-#| title: "IRCA band, rural zones"
+#| title: "Prestadores IRCA band · rural zones"
 band_map("rural")
 ```
 
@@ -128,27 +128,30 @@ g = clusters.groupby("cluster")
 kinds = pd.DataFrame({
     "Kind": g["cluster"].first().astype(str) + " · " + g["cluster_name"].first(),
     "Zone-years": g.size().map("{:,}".format),
-    "Median IRCA": g["irca"].median().round(1),
+    "Median IRCA (prestadores)": g["irca"].median().round(1),
 })
 Markdown(kinds.to_markdown(index=False))
 ```
 
 ::: {.card title="About the map"}
-IRCA is the **utility-supplied ("prestadores") IRCA** in INS open data (datos.gov.co
-`nxt2-39c3`), banded by Resolución 2115 de 2007, art. 15. Grey: no value that year, or the
-zone-year was not clustered. Boundaries: DANE MGN 2023. Descriptive only: no causal claim.
-Sources and caveats: `data/README.md`.
+IRCA is the **utility-supplied ("prestadores") IRCA** in INS open data, datos.gov.co
+[`nxt2-39c3`](https://www.datos.gov.co/resource/nxt2-39c3.csv), banded by Resolución 2115
+de 2007, art. 15. Pale grey: no value that year, or the zone-year was not clustered.
+Boundaries: DANE [MGN 2023](https://geoportal.dane.gov.co/descargas/mgn_2023/MGN2023_MPIO_POLITICO.zip).
+Descriptive only: no causal claim. Sources and caveats: `data/README.md`.
 :::
 
 # Municipalities
 
 ```{python}
-#| title: "Search by department or municipality (clustered zone-years, 2016–2023)"
+#| title: "Search by department or municipality · clustered zone-years, 2016–2023 · infant mortality changes method in 2017"
 cols = ["year", "departamento", "municipio", "zone", "cluster_name", "irca", "irca_band",
         "water_coverage", "sewer_coverage", "ipm", "infant_mortality", "saber11_mean",
         "dropout_rate"]
-table = clusters[cols].rename(columns={"cluster_name": "kind", "irca": "IRCA (prestadores)"})
-table["irca_band"] = table["irca_band"].astype(str)
+table = clusters[cols].rename(columns={
+    "cluster_name": "kind", "irca": "IRCA (prestadores)", "irca_band": "IRCA band",
+    "infant_mortality": "infant mortality (method changes in 2017)"})
+table["IRCA band"] = table["IRCA band"].astype(str)
 show(table.sort_values(["departamento", "municipio", "zone", "year"]), maxBytes=0,
      showIndex=False, column_filters="header", paging=True, pageLength=15,
      classes="display compact")

@@ -48,14 +48,14 @@ FEATURE_LABELS = {
     "sewer_coverage": "Sewer coverage (%)",
     "ipm": "Multidimensional poverty, 2018 (%)",
     "rural_share": "Rural share of population",
-    "altitude_m": "Altitude of head town (m)",
+    "altitude_m": "Altitude of head town, derived SRTM point (m)",
     "rainfall_mm": "Rainfall (mm/year)",
     "mdm": "Municipal performance, MDM",
     "log_sgp_water_pc": "Water transfers per person (log SGP)",
 }
 SHORT_LABELS = {
     "irca": "IRCA", "water_coverage": "Water cov.", "sewer_coverage": "Sewer cov.",
-    "ipm": "Poverty", "rural_share": "Rural share", "altitude_m": "Altitude",
+    "ipm": "Poverty", "rural_share": "Rural share", "altitude_m": "Altitude (derived)",
     "rainfall_mm": "Rainfall", "mdm": "MDM", "log_sgp_water_pc": "log SGP/person",
 }
 OUTCOMES = {
@@ -65,10 +65,13 @@ OUTCOMES = {
 }
 OUTCOME_LEVEL = {"infant_mortality": "municipality", "saber11_mean": "zone",
                  "dropout_rate": "municipality"}
-# Infant mortality changes method in 2017 and 2020 looks like another source
-# (data/README.md, caveat 8). Within-cluster checks use one regime only.
+# Infant mortality changes method in 2017 (modelled estimates before, observed rates
+# after) and 2020 looks like another source (data/README.md, caveat 8), so every
+# infant-mortality comparison uses 2017-2019 and 2021-2023 only.
 INFANT_YEARS = (2017, 2018, 2019, 2021, 2022, 2023)
-OUTCOME_YEARS = {"infant_mortality": INFANT_YEARS,                 # one method regime
+INFANT_NOTE = ("Infant mortality changes method in 2017 and 2020 looks like a different "
+               "source (data/README.md, caveat 8), so only 2017–2019 and 2021–2023 are used.")
+OUTCOME_YEARS = {"infant_mortality": INFANT_YEARS,                 # see INFANT_NOTE
                  "saber11_mean": (2016, 2017, 2019, 2020, 2022),  # published years
                  "dropout_rate": tuple(range(FIRST_YEAR, LAST_YEAR + 1))}
 MAX_MISSING = 2                          # drop rows missing more features than this
@@ -91,11 +94,19 @@ IRCA_BANDS_ES = ["Sin riesgo", "Bajo", "Medio", "Alto", "Inviable sanitariamente
 CLUSTER_COLORS = ["#0072b2", "#009e73", "#9085e9", "#d55e00",
                   "#e69f00", "#56b4e9", "#cc79a7", "#f0e442"]
 CLUSTER_MARKERS = ["o", "s", "^", "D", "v", "P", "X", "*"]
+# Cluster colours used as *text* on the #191919 slides: each at least 4.5:1.
+# Cluster 1's mark colour (#0072b2) is only 3.4:1 as text, so text uses a lighter blue.
+CLUSTER_TEXT_COLORS = {"dark": ["#39b4dd", "#009e73", "#9085e9", "#d55e00",
+                                "#e69f00", "#56b4e9", "#cc79a7", "#f0e442"]}
 # IRCA bands are ordered: one orange hue, darker = more risk on white pages,
 # brighter = more risk on dark slides (both pass the dataviz ordinal checks).
 BAND_COLORS = {"light": ["#eea471", "#dc813b", "#c66000", "#a44700", "#803300"],
                "dark": ["#6e401e", "#9b5824", "#cb7229", "#f1944f", "#ffbe8a"]}
-NO_DATA_COLOR = {"light": "#d9d9d6", "dark": "#3a3a38"}
+# No data must not read as the lowest band: near-white on white pages; on dark
+# slides a near-background fill drawn with a hatch (NO_DATA_HATCH in NO_DATA_EDGE).
+NO_DATA_COLOR = {"light": "#f4f4f2", "dark": "#262624"}
+NO_DATA_EDGE = {"light": "#a3a39f", "dark": "#77776f"}
+NO_DATA_HATCH = "////"
 # z-score heatmaps: blue (below the year's mean) to red (above), grey midpoint.
 DIVERGING = {"light": ["#2a78d6", "#f0efec", "#e34948"],
              "dark": ["#3987e5", "#383835", "#e66767"]}
@@ -129,6 +140,12 @@ def load_geojson(path: Path | str = ROOT / "data" / "municipios.geojson",
 def irca_band(irca: pd.Series) -> pd.Series:
     """Resolución 2115 risk band for each IRCA value."""
     return pd.cut(irca, bins=IRCA_BINS, labels=IRCA_BANDS)
+
+
+def floor_to(x: float, decimals: int = 3) -> str:
+    """Round down for "at least" statements: 0.99859 -> "0.998", never "0.999"."""
+    factor = 10 ** decimals
+    return f"{np.floor(x * factor) / factor:.{decimals}f}"
 
 
 def prepare(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
@@ -411,7 +428,7 @@ def main() -> None:
           f"{s['rows_with_any_imputed']:,} rows have an imputed feature")
     print(res["k_table"].round(3).to_string(index=False))
     print(s["k_reason"])
-    print(f"stability: ARI {s['ari_min']:.3f}-{res['stability']['ari'].max():.3f} "
+    print(f"stability: ARI >= {floor_to(s['ari_min'])} (min {s['ari_min']:.5f}) "
           f"across seeds {list(STABILITY_SEEDS)}")
     cols = ["name", "rows", "municipalities", "urban_row_share", "irca_median"]
     print(res["profiles"][cols].round(2).to_string())

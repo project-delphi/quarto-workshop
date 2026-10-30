@@ -32,10 +32,11 @@ rural = prof["urban_row_share"].idxmin()
 
 Colombia's drinking water is not one story. Between 2016 and 2023 we followed the urban
 head towns and rural areas of `{python} f"{s['municipalities']:,}"` municipalities, a total
-of `{python} f"{s['kept']:,}"` zone-years with a utility-supplied water-quality score
-(IRCA, from INS open data). We let k-means sort them by nine features: water quality,
-piped water and sewer coverage, poverty, rurality, altitude, rainfall, municipal performance
-and water transfers per person.
+of `{python} f"{s['kept']:,}"` zone-years with a utility-supplied ("prestadores")
+water-quality score (IRCA, from INS open data). We let k-means sort them by nine features:
+water quality, piped water and sewer coverage, poverty, rurality, altitude (derived from one
+SRTM elevation point at the head town), rainfall, municipal performance and water transfers
+per person.
 
 It found `{python} k` kinds:
 
@@ -54,13 +55,19 @@ for c in prof.index:
 #| fig-alt: "Scatter plot of about eleven thousand dots in four coloured groups that overlap at their edges. The rural, unserved, high-risk group spreads to one side; the three town and city groups sit closer together."
 plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False})
 fig, ax = plt.subplots(figsize=(7, 4.4))
-for c, g in clusters.groupby("cluster"):
+# Draw the outer kinds first, so the central one is not hidden under the others.
+centres = clusters.groupby("cluster")[["pc1", "pc2"]].mean()
+for c in (centres ** 2).sum(axis=1).sort_values(ascending=False).index:
+    g = clusters[clusters["cluster"] == c]
     ax.scatter(g["pc1"], g["pc2"], s=4, alpha=0.4, color=colors[c],
                marker=analysis.CLUSTER_MARKERS[c - 1], label=f"{c} · {names[c]}",
                rasterized=True)
 ax.set_xlabel("PC1")
 ax.set_ylabel("PC2")
-leg = ax.legend(markerscale=3, frameon=False, fontsize=8)
+handles, labels = ax.get_legend_handles_labels()
+by_id = sorted(zip(labels, handles))  # legend in kind order, whatever the drawing order
+leg = ax.legend([h for _, h in by_id], [lab for lab, _ in by_id], markerscale=3,
+                frameon=False, fontsize=8)
 for handle in leg.legend_handles:
     handle.set_alpha(1)
 plt.show()
@@ -73,8 +80,10 @@ average.
 
 ## Does bad water go with worse outcomes?
 
-Not in any simple way. Within each kind, the Spearman correlation between IRCA and infant
-mortality is between `{python} f"{rho['spearman_rho'].min():+.2f}"` and
+Not in any simple way. The infant mortality series changes method in 2017, and 2020 looks
+like a different source, so we compare 2017–2019 and 2021–2023 only. Within each kind, the
+Spearman correlation between IRCA and infant mortality in those years is between
+`{python} f"{rho['spearman_rho'].min():+.2f}"` and
 `{python} f"{rho['spearman_rho'].max():+.2f}"`. That does **not** mean water quality does not
 matter, and nothing here shows that it causes any outcome. Infant mortality is measured for
 the whole municipality while IRCA describes one zone; poverty, rurality, health services and

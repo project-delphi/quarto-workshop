@@ -71,7 +71,7 @@ plt.show()
 ```
 
 `{python} s["k_reason"]` Refitting with five other seeds gives an adjusted Rand index of
-at least `{python} f"{s['ari_min']:.3f}"` against the chosen labels (1 = identical).
+at least `{python} analysis.floor_to(s['ari_min'])` against the chosen labels (1 = identical).
 A silhouette near 0.2 means the clusters overlap: they summarise a continuum.
 
 ## A picture of the clusters
@@ -81,13 +81,20 @@ A silhouette near 0.2 means the clusters overlap: they summarise a continuum.
 #| fig-cap: "The rows on the first two principal components of the nine z-scored features, coloured by cluster. PCA is only for the picture; k-means used all nine features."
 #| fig-alt: "Scatter plot of about eleven thousand points in four coloured groups that overlap at their edges. The rural, unserved, high-risk cluster spreads to one side; the three town and city clusters sit closer together."
 fig, ax = plt.subplots(figsize=(7, 4.6))
-for c, g in clusters.groupby("cluster"):
+# Draw the outer clusters first, so the central one is not hidden under the others.
+centres = clusters.groupby("cluster")[["pc1", "pc2"]].mean()
+order = (centres ** 2).sum(axis=1).sort_values(ascending=False).index
+for c in order:
+    g = clusters[clusters["cluster"] == c]
     ax.scatter(g["pc1"], g["pc2"], s=5, alpha=0.45, color=colors[c],
                marker=analysis.CLUSTER_MARKERS[c - 1], label=f"{c} · {names[c]}",
                rasterized=True)
 ax.set_xlabel(f"PC1 ({s['pca_variance_pc1']:.0%} of variance)")
 ax.set_ylabel(f"PC2 ({s['pca_variance_pc2']:.0%} of variance)")
-leg = ax.legend(markerscale=3, frameon=False, fontsize=8, loc="best")
+handles, labels = ax.get_legend_handles_labels()
+by_id = sorted(zip(labels, handles))  # legend in cluster order, whatever the drawing order
+leg = ax.legend([h for _, h in by_id], [lab for lab, _ in by_id], markerscale=3,
+                frameon=False, fontsize=8, loc="best")
 for handle in leg.legend_handles:
     handle.set_alpha(1)
 plt.show()
