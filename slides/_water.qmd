@@ -10,9 +10,6 @@
 ```{=html}
 <style>
 /* Part 2 helpers. Cluster and band colours match examples/water/scripts/analysis.py. */
-.reveal .wat-behind { float: right; margin-top: 1.2em; }
-.reveal .wat-behind > p { margin: 0; }
-.reveal .wat-behind ~ .done { clear: both; }
 .reveal .wat-swatch { display: inline-block; width: 0.75em; height: 0.75em;
   border-radius: 0.15em; margin-right: 0.35em; vertical-align: -0.05em; }
 .reveal .wat-small { font-size: 0.8em; }
@@ -162,14 +159,15 @@ national IRCA
 🏭 utilities 7.4 · 🪣 self-supplied 43.7
 :::
 
-[INS IRCA for 2023, 0 = no risk, 100 = unfit. MinVivienda and INS, *Informe Nacional de
-Calidad del Agua para Consumo Humano INCA 2023* (published January 2025), Tabla 4.]{.source}
+[INS IRCA for 2023, 0 = no risk, 100 = unfit. MinSalud, MinVivienda, INS and Superservicios,
+*INCA 2023* (Bogotá, January 2025), Tabla 4.]{.source}
 
 ::: {.notes}
 IRCA (Índice de Riesgo de la Calidad del Agua para consumo humano) scores the
-surveillance samples of a year: 0 means no risk, 100 means unfit. INCA 2023, Tabla 4
-(INS IRCA 2023): Nacional 16.4, Prestadores 7.4, Autoabastecedores 43.7, Urbano 5.7,
-Rural 36.5.
+surveillance samples of a year: 0 means no risk, 100 means unfit. MinSalud, MinVivienda,
+INS and Superservicios, *Informe Nacional de Calidad del Agua para Consumo Humano INCA 2023*
+(Bogotá, January 2025), Tabla 4 (INS IRCA 2023): Nacional 16.4, Prestadores 7.4,
+Autoabastecedores 43.7, Urbano 5.7, Rural 36.5.
 https://www.minvivienda.gov.co/sites/default/files/documentos/informe-nacional-de-calidad-del-agua-para-consumo-humano-inca-2023.pdf
 (verified by the lead, 2026-10-30). Rural water in 2023 sits in the high-risk band on
 average. The fragment matters for our data: the open table we use (datos.gov.co
@@ -207,7 +205,8 @@ self-supplied systems' score, so our dataset understates the risk where no utili
 :::
 :::
 
-[Resolución 2115 de 2007 (Ministerio de la Protección Social and MAVDT), art. 15.
+[Resolución 2115 de 2007 (Ministerio de la Protección Social and Ministerio de Ambiente,
+Vivienda y Desarrollo Territorial), art. 15.
 [normas.cra.gov.co](https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm)]{.source}
 
 ::: {.notes}
@@ -282,8 +281,8 @@ utility-supplied ("prestadores") IRCA from INS open data, datos.gov.co `nxt2-39c
 ::: {.column width="58%"}
 **🧩 Cluster on**
 
-💧 IRCA · 🚰 piped water · 🚽 sewer · 💸 poverty (IPM) ·
-🌾 rural share · ⛰️ altitude · 🌧️ rainfall · 🏛️ municipal performance (MDM) ·
+💧 IRCA (prestadores) · 🚰 piped water · 🚽 sewer · 💸 poverty (IPM) ·
+🌾 rural share · ⛰️ altitude (derived) · 🌧️ rainfall · 🏛️ municipal performance (MDM) ·
 💰 water transfers per person (SGP)
 :::
 ::: {.column width="42%" .fragment}
@@ -298,7 +297,7 @@ utility-supplied ("prestadores") IRCA from INS open data, datos.gov.co `nxt2-39c
 :::
 
 ::: {.notes}
-Columns: `irca`, `water_coverage`, `sewer_coverage`, `ipm` (2018 census), `rural_share`,
+Columns: `irca` (utility-supplied, prestadores IRCA), `water_coverage`, `sewer_coverage`, `ipm` (2018 census), `rural_share`,
 `altitude_m` (derived SRTM point), `rainfall_mm` (CHIRPS), `mdm` (from 2016) and
 `sgp_water_pc` (nominal pesos per person, log-transformed). Outcomes: `infant_mortality`
 (municipal), `saber11_mean` (zone) and `dropout_rate` (municipal). Clustering on an outcome
@@ -345,7 +344,7 @@ anywhere.
 rows × columns
 :::
 ::: {.fragment}
-[🕳️]{.big}
+[❔]{.big}
 
 missing by column × zone
 :::
@@ -372,8 +371,8 @@ that have nothing to do with water (method or sampling changes).
 ```{python}
 #| label: fig-wat-bands
 #| echo: false
-#| fig-cap: "All rows, 2010–2023, by zone: no IRCA reported (grey) and Resolución 2115 risk band. Utility-supplied (prestadores) IRCA, INS open data nxt2-39c3."
-#| fig-alt: "Two horizontal stacked bars, urban and rural. The urban bar is mostly no-risk and low-risk IRCA with a small grey no-data share. The rural bar is more than half grey, and most of the rest is in the high-risk band."
+#| fig-cap: "All rows, 2010–2023, by zone: no IRCA reported (hatched grey) and Resolución 2115 risk band. Utility-supplied (prestadores) IRCA, INS open data nxt2-39c3."
+#| fig-alt: "Two horizontal stacked bars, urban and rural. The urban bar is mostly no-risk and low-risk IRCA with a small hatched no-data share. The rural bar is more than half hatched no-data, and the largest share of the rest is in the high-risk band."
 wat_bandcat = wat_analysis.irca_band(wat_raw["irca"]).astype(str).where(wat_raw["irca"].notna(), "No IRCA")
 wat_order = ["No IRCA"] + wat_analysis.IRCA_BANDS
 wat_tab = wat_pd.crosstab(wat_raw["zone"], wat_bandcat).reindex(columns=wat_order, fill_value=0)
@@ -387,9 +386,12 @@ with wat_plt.rc_context(wat_rc):
     wat_left = wat_np.zeros(2)
     wat_cols = [wat_analysis.NO_DATA_COLOR["dark"]] + wat_analysis.BAND_COLORS["dark"]
     for wat_band, wat_col in zip(wat_order, wat_cols):
+        wat_nodata = wat_band == "No IRCA"
         wat_ax.barh(["rural", "urban"], wat_pct[wat_band],
-                    left=wat_left, color=wat_col, edgecolor="#191919", linewidth=2,
-                    label=wat_band, height=0.62)
+                    left=wat_left, color=wat_col, height=0.62, label=wat_band,
+                    hatch=wat_analysis.NO_DATA_HATCH if wat_nodata else None,
+                    edgecolor=wat_analysis.NO_DATA_EDGE["dark"] if wat_nodata else "#191919",
+                    linewidth=0 if wat_nodata else 2)
         wat_left += wat_pct[wat_band].to_numpy()
     wat_ax.set_xlim(0, 100)
     wat_ax.set_xlabel("Share of rows (%)")
@@ -398,7 +400,7 @@ with wat_plt.rc_context(wat_rc):
     wat_plt.show()
 ```
 
-🕳️ rural rows without IRCA: **`{python} wat_rural_missing`** · 🔴 rural rows with IRCA
+❔ rural rows without IRCA: **`{python} wat_rural_missing`** · 🔴 rural rows with IRCA
 in high or unfit: **`{python} wat_rural_high`**
 
 ::: {.notes}
@@ -409,10 +411,10 @@ the utility-supplied (prestadores) IRCA. The rural median also drops sharply in 
 2020; the data README warns the 2020 drop may reflect which systems were sampled.
 :::
 
-## 🔍 Exercise: explore the data {#water-explore-do}
+## 🔍 Explore the data {#water-explore-do}
 
 ::: {.prompt}
-```text
+```default
 Read data/README.md. Create explore.qmd from data/water_municipal.csv (divipola as text): rows and columns, % missing per column by zone, IRCA counts by Resolución 2115 band and zone, and median IRCA by year and zone, labelled utility-supplied (prestadores). Render it; report errors.
 ```
 :::
@@ -430,7 +432,7 @@ open `explore.html`
 :::
 ::::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/05-water-explore/`
 :::
 
@@ -511,8 +513,8 @@ wat_from_total = wat_fmt(wat_s["capital_urban_rows_filled_from_total"])
 | step | rows |
 |---|--:|
 | 🏘️ municipality rows, 2016–2023 | `{python} wat_rows_mun` |
-| ➖ no IRCA | `{python} wat_no_irca` |
-| ➖ more than 2 features missing | `{python} wat_too_many` |
+| ❌ no IRCA | `{python} wat_no_irca` |
+| ❌ more than 2 features missing | `{python} wat_too_many` |
 | ✅ **kept**: `{python} wat_kept_u` urban + `{python} wat_kept_r` rural | **`{python} wat_kept`** |
 
 : {tbl-colwidths="[78,22]"}
@@ -570,10 +572,10 @@ variance 1. Computed from the kept rows with `log_sgp_water_pc`; with raw pesos,
 would dominate.
 :::
 
-## 🧹 Exercise: select and transform {#water-prepare-do}
+## 🧹 Select and transform {#water-prepare-do}
 
 ::: {.prompt}
-```text
+```default
 Read data/README.md. Create scripts/analysis.py with prepare(df): municipality rows 2016–2023 with irca; features irca, water_coverage, sewer_coverage, ipm, rural_share, altitude_m, rainfall_mm, mdm, log(sgp_water_pc); urban rows of capitals (code ends 001) take *_total coverage, flagged. Run it.
 ```
 :::
@@ -582,7 +584,7 @@ Read data/README.md. Create scripts/analysis.py with prepare(df): municipality r
 writes `scripts/analysis.py` · runs `python scripts/analysis.py`
 :::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/06-water-prepare/`
 :::
 
@@ -598,10 +600,10 @@ The `001` rule picks department capitals, which have only municipal coverage tot
 caveats itself.
 :::
 
-## 🧹 Exercise: impute and scale {#water-prepare-do-2}
+## 🧹 Impute and scale {#water-prepare-do-2}
 
 ::: {.prompt}
-```text
+```default
 In prepare(), drop rows missing more than 2 features, fill the rest with the year × zone median plus <col>_imputed flags, then z-score every feature within year. Make scripts/analysis.py save outputs/prepared.parquet and print the rows kept and dropped at each step. Run it.
 ```
 :::
@@ -619,7 +621,7 @@ compare its counts with 🧮 *What we keep*
 :::
 ::::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/06-water-prepare/`
 :::
 
@@ -689,7 +691,7 @@ with wat_plt.rc_context(wat_rc):
 ```
 
 ::: {.bigline}
-✖️ = centre · 🎯 goal: small distances inside each cluster
+✕ = centre · 🎯 goal: small distances inside each cluster
 :::
 
 ::: {.notes}
@@ -710,7 +712,7 @@ the sum of squared distances from points to their centre.
 #| fig-alt: "Two line charts side by side. Inertia falls steeply from k = 2 to 4 and more slowly after. Silhouette is highest at k = 2 and nearly flat, around 0.19 to 0.20, from k = 3 to 7, then drops at k = 8. The chosen k = 4 is highlighted in both."
 wat_drop_next = f"{wat_ktab.loc[wat_k + 1, 'inertia_drop']:.0%}"
 wat_sil = f"{wat_ktab.loc[wat_k, 'silhouette']:.3f}"
-wat_ari_min = f"{wat_s['ari_min']:.3f}"
+wat_ari_min = wat_analysis.floor_to(wat_s["ari_min"])  # rounded down: "at least"
 with wat_plt.rc_context(wat_rc):
     wat_f, wat_axes = wat_plt.subplots(1, 2, figsize=(11, 3.6))
     for wat_ax, wat_col, wat_lab in zip(wat_axes, ["inertia", "silhouette"], ["Inertia", "Silhouette"]):
@@ -747,16 +749,24 @@ normal for social data. ARI (adjusted Rand index) is 1 when two labelings agree 
 #| label: fig-wat-pca
 #| echo: false
 #| fig-cap: "Each dot is a zone-year on the first two principal components of the 9 z-scored features, coloured by cluster. PCA is only for the picture; k-means used all 9 features."
-#| fig-alt: "Scatter plot of about eleven thousand dots in four coloured groups that overlap at their edges. Cluster 4 spreads to the right; clusters 1, 2 and 3 sit closer together on the left."
+#| fig-alt: "Scatter plot of about eleven thousand dots in four coloured groups that overlap at their edges. Cluster 4 spreads to the right, cluster 1 to the lower left and cluster 2 to the upper left; cluster 3 sits in the middle, drawn on top."
 with wat_plt.rc_context(wat_rc):
     wat_f, wat_ax = wat_plt.subplots(figsize=(9.5, 4.9))
-    for wat_c, wat_g in wat_clusters.groupby("cluster"):
-        wat_ax.scatter(wat_g["pc1"], wat_g["pc2"], s=5, alpha=0.5, color=wat_colors[wat_c],
-                       marker=wat_analysis.CLUSTER_MARKERS[wat_c - 1], label=f"Cluster {wat_c}",
-                       rasterized=True, linewidths=0)
+    # Outer clusters first, so the central one (cluster 3) is drawn on top, not hidden.
+    wat_centres = wat_clusters.groupby("cluster")[["pc1", "pc2"]].mean()
+    wat_order_pca = (wat_centres ** 2).sum(axis=1).sort_values(ascending=False).index
+    wat_handles = {}
+    for wat_c in wat_order_pca:
+        wat_g = wat_clusters[wat_clusters["cluster"] == wat_c]
+        wat_handles[wat_c] = wat_ax.scatter(
+            wat_g["pc1"], wat_g["pc2"], s=6, color=wat_colors[wat_c],
+            alpha=0.75 if wat_c == wat_order_pca[-1] else 0.5,
+            marker=wat_analysis.CLUSTER_MARKERS[wat_c - 1], rasterized=True, linewidths=0)
     wat_ax.set_xlabel(f"PC1 ({wat_s['pca_variance_pc1']:.0%} of variance)")
     wat_ax.set_ylabel(f"PC2 ({wat_s['pca_variance_pc2']:.0%} of variance)")
-    wat_leg = wat_ax.legend(markerscale=4, loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=14)
+    wat_leg = wat_ax.legend([wat_handles[wat_c] for wat_c in sorted(wat_handles)],
+                            [f"Cluster {wat_c}" for wat_c in sorted(wat_handles)],
+                            markerscale=4, loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=14)
     for wat_h in wat_leg.legend_handles:
         wat_h.set_alpha(1)
     wat_f.tight_layout()
@@ -768,14 +778,15 @@ Principal component analysis squeezes 9 dimensions into the 2 that keep the most
 here PC1 and PC2 keep the shares shown on the axes, so overlaps in the picture can be
 separations in the other dimensions. Clusters are numbered by centroid IRCA, from lowest
 to highest. The colours pass a colour-vision-deficiency check for every pair on this dark
-background and on white pages, and each cluster also has its own marker.
+background and on white pages, and each cluster also has its own marker. The central
+cluster is drawn last so the others do not hide it.
 :::
 
-## 🧩 Exercise: run k-means {#water-cluster-do}
+## 🧩 Run k-means {#water-cluster-do}
 
 ::: {.prompt}
-```text
-In scripts/analysis.py, run k-means on the z-scored features for k = 2–8 (random_state=42, n_init=20); save inertia and silhouette to outputs/k_selection.csv; pick k by the elbow, check silhouette and ARI across 5 seeds; save outputs/clusters.parquet with cluster, pc1, pc2. Run it; explain k.
+```default
+In scripts/analysis.py, run k-means on the z-scored features for k = 2–8 (random_state=42, n_init=20); save inertia and silhouette to outputs/k_selection.csv; pick k by the elbow, check silhouette and 5-seed ARI; save outputs/clusters.parquet with cluster, pc1, pc2. Run it; explain k.
 ```
 :::
 
@@ -792,7 +803,7 @@ read its k and reason: 🤔 do you agree?
 :::
 ::::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/07-water-cluster/`
 :::
 
@@ -809,10 +820,10 @@ force a number of clusters to make a nicer story. Order the clusters by a fixed 
 centroid IRCA) so a re-run keeps the same ids and colours.
 :::
 
-## 🧩 Exercise: the clusters page {#water-cluster-page}
+## 🧩 The clusters page {#water-cluster-page}
 
 ::: {.prompt}
-```text
+```default
 Create clusters.qmd that reads outputs/k_selection.csv and outputs/clusters.parquet and shows an elbow plot, a silhouette plot and a PCA scatter (pc1, pc2) coloured by cluster, each with a caption and alt text. Render it and tell me about errors.
 ```
 :::
@@ -830,7 +841,7 @@ open `clusters.html`
 :::
 ::::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/07-water-cluster/`
 :::
 
@@ -854,7 +865,7 @@ The page only reads `outputs/`; it never refits k-means. Run order:
 ```{python}
 #| label: fig-wat-heatmap
 #| echo: false
-#| fig-cap: "Cluster centroids in z units: standard deviations above (red) or below (blue) the year's average."
+#| fig-cap: "Cluster centroids in z units: standard deviations above (red) or below (blue) the year's average. IRCA: utility-supplied (prestadores). Altitude: derived SRTM point."
 #| fig-alt: "Heatmap with four rows, clusters 1 to 4, and nine feature columns. Cluster 4 is red for IRCA and poverty and dark blue for water and sewer coverage. Cluster 1 is dark blue for rural share and SGP per person and red for municipal performance. Cluster 3 is dark blue for altitude. Cluster 2 is red for altitude, rural share and coverage."
 wat_zcols = [f"z_{wat_c}" for wat_c in wat_analysis.FEATURES]
 wat_cmap = wat_LSC.from_list("wat_div", wat_analysis.DIVERGING["dark"])
@@ -867,7 +878,7 @@ with wat_plt.rc_context(wat_rc):
                       rotation=25, ha="right")
     wat_ax.set_yticks(range(wat_k), [f"Cluster {wat_c}" for wat_c in wat_prof.index])
     for wat_t, wat_c in zip(wat_ax.get_yticklabels(), wat_prof.index):
-        wat_t.set_color(wat_colors[wat_c])
+        wat_t.set_color(wat_analysis.CLUSTER_TEXT_COLORS["dark"][wat_c - 1])  # ≥ 4.5:1 text
         wat_t.set_fontweight("bold")
     for wat_i, wat_row in enumerate(wat_prof[wat_zcols].to_numpy()):
         for wat_j, wat_v in enumerate(wat_row):
@@ -886,7 +897,8 @@ Each cell is the cluster's mean z-score for a feature: +1 means one standard dev
 above that year's average across all kept rows. Read across a row to describe a cluster,
 down a column to see which feature separates them. Here, cluster 4 combines high IRCA and
 poverty with very low coverage; cluster 3 is low-lying; cluster 1 has low rural share and
-high municipal performance; cluster 2 is high, small and well served.
+high municipal performance; cluster 2 is high, more rural and well served. Cluster labels
+use a lighter blue for cluster 1 as text, so every label has at least 4.5:1 contrast.
 :::
 
 ## 🏷️ Name them by a rule {#water-names}
@@ -925,25 +937,30 @@ holds one of its zone-years.
 ```{python}
 #| label: fig-wat-outcomes
 #| echo: false
-#| fig-cap: "Median outcome by cluster and year. Infant mortality: 2017–2019 and 2021–2023 (one method). Saber 11: published years. Infant mortality and dropout are municipal values."
+#| fig-cap: "Median by cluster and year. Infant mortality: 2017–2019 and 2021–2023 only (its method changes in 2017; 2020 looks like another source). Saber 11: published years."
 #| fig-alt: "Three small line charts by year, one line per cluster. Cluster 1, cities and large towns, has the lowest infant mortality, around 9 per 1,000, and the highest Saber 11 scores. Cluster 2, highland towns, has the highest infant mortality. Cluster 3, lowland towns, has the lowest Saber 11 scores. Dropout medians stay between about 1.7 and 4.6 percent and dip in 2020 for every cluster."
 wat_out = wat_res["outcomes_by_year"]
 with wat_plt.rc_context(wat_rc):
-    wat_f, wat_axes = wat_plt.subplots(1, 3, figsize=(11.5, 3.7))
-    for wat_ax, (wat_col, wat_lab) in zip(wat_axes, wat_analysis.OUTCOMES.items()):
+    wat_f, wat_axes = wat_plt.subplots(1, 3, figsize=(11.5, 3.25))
+    wat_short = {"infant_mortality": "Infant mortality\nper 1,000 births",
+                 "saber11_mean": "Saber 11\nmean score", "dropout_rate": "School dropout\n(%)"}
+    for wat_ax, wat_col in zip(wat_axes, wat_analysis.OUTCOMES):
         wat_o = wat_out[wat_out["outcome"] == wat_col]
         for wat_c, wat_g in wat_o.groupby("cluster"):
             wat_g = wat_g.set_index("year").reindex(wat_analysis.OUTCOME_YEARS[wat_col])
             wat_ax.plot(wat_g.index, wat_g["median"], marker=wat_analysis.CLUSTER_MARKERS[wat_c - 1],
-                        markersize=6, color=wat_colors[wat_c], label=f"{wat_c} · {wat_names[wat_c]}")
-        wat_ax.set_title(wat_lab.replace(" (", "\n("), fontsize=13, loc="left")
+                        markersize=7, color=wat_colors[wat_c], label=f"{wat_c} · {wat_names[wat_c]}")
+        wat_ax.set_title(wat_short[wat_col], fontsize=15, loc="left")
         wat_ax.set_xticks([2016, 2019, 2022])
-        wat_ax.tick_params(labelsize=12)
+        wat_ax.tick_params(labelsize=14)
     wat_f.legend(*wat_axes[0].get_legend_handles_labels(), loc="lower center", ncol=2,
-                 fontsize=12, bbox_to_anchor=(0.5, -0.2))
-    wat_f.tight_layout()
+                 fontsize=14, bbox_to_anchor=(0.5, -0.24), columnspacing=1.5)
+    wat_f.tight_layout(w_pad=2)
     wat_plt.show()
 ```
+
+[⚠️ Descriptive only: these differences are not causal effects of water quality. Infant
+mortality and dropout are municipal values.]{.source}
 
 ::: {.notes}
 Medians within each year, so the comparison never mixes years. Infant mortality changes
@@ -955,10 +972,10 @@ rows: an ecological mismatch with the zone-level clusters. The highland-town res
 good discussion point: these are small municipalities, where rates are noisy.
 :::
 
-## 🏷️ Exercise: profiles and names {#water-interpret-do}
+## 🏷️ Profiles and names {#water-interpret-do}
 
 ::: {.prompt}
-```text
+```default
 In scripts/analysis.py, write outputs/cluster_profiles.csv (rows, municipalities, mean raw and z features, outcome medians and n) and name each cluster by a rule over its profile (setting, service, IRCA band of the median), not by hand. Run it and show me the names.
 ```
 :::
@@ -967,7 +984,7 @@ In scripts/analysis.py, write outputs/cluster_profiles.csv (rows, municipalities
 adds `profiles()` and a naming rule · `python scripts/analysis.py`
 :::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/08-water-interpret/`
 :::
 
@@ -982,10 +999,10 @@ A rule keeps names stable across re-runs and makes them checkable. Keep the mapp
 place (`analysis.py`); pages read the names from `outputs/cluster_profiles.csv`.
 :::
 
-## 🏷️ Exercise: heatmap and outcomes {#water-interpret-page}
+## 🏷️ Heatmap and outcomes {#water-interpret-page}
 
 ::: {.prompt}
-```text
+```default
 Add to clusters.qmd a heatmap of the cluster mean z-scores (features × clusters, blue to red) and line charts of median infant_mortality, saber11_mean and dropout_rate by cluster and year from outputs/. Use the cluster names and keep each cluster's colour. Render it.
 ```
 :::
@@ -1003,7 +1020,7 @@ open `clusters.html`
 :::
 ::::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/08-water-interpret/`
 :::
 
@@ -1015,8 +1032,9 @@ open `clusters.html`
 
 ::: {.notes}
 Ask the assistant to compute the outcome medians in `analysis.py`
-(`outputs/outcomes_by_year.csv`) if it starts doing it in the page. Infant mortality: use
-2017–2019 and 2021–2023 only (one method regime).
+(`outputs/outcomes_by_year.csv`) if it starts doing it in the page. Infant mortality changes
+method in 2017 (modelled estimates before, observed rates after) and 2020 looks like a
+different source, so use 2017–2019 and 2021–2023 only.
 :::
 
 # ⚠️ Correlation ≠ causation {#water-causation}
@@ -1028,33 +1046,34 @@ Ask the assistant to compute the outcome medians in `analysis.py`
 ```{python}
 #| label: fig-wat-within
 #| echo: false
-#| fig-cap: "Within each cluster: median infant mortality by IRCA band (utility-supplied IRCA), 2017–2019 and 2021–2023 pooled. Bands with fewer than 20 zone-years are not drawn."
-#| fig-alt: "Four small panels, one per cluster, each showing median infant mortality across IRCA risk bands. The lines are nearly flat in every cluster, and the Spearman correlations printed on the panels are all close to zero."
+#| fig-cap: "Within each cluster: median infant mortality by utility-supplied (prestadores) IRCA band. Infant mortality changes method in 2017 and 2020 looks like another source, so 2017–2019 and 2021–2023 are pooled. Bands with fewer than 20 zone-years are not drawn."
+#| fig-alt: "Four small panels, one per cluster, each showing median infant mortality across the five IRCA risk bands, labelled N, L, M, H and U for no risk, low, medium, high and unfit. The lines are nearly flat in every cluster, and the Spearman correlations printed on the panels are all close to zero."
 wat_rho = wat_res["irca_infant"].set_index("cluster")
 wat_bins = wat_res["irca_infant_bins"]
 wat_bins = wat_bins[wat_bins["n"] >= 20]
 wat_rho_lo = f"{wat_rho['spearman_rho'].min():+.2f}"
 wat_rho_hi = f"{wat_rho['spearman_rho'].max():+.2f}"
 with wat_plt.rc_context(wat_rc):
-    wat_f, wat_axes = wat_plt.subplots(1, wat_k, figsize=(11.5, 3.4), sharey=True)
+    wat_f, wat_axes = wat_plt.subplots(1, wat_k, figsize=(11.5, 3.5), sharey=True)
     for wat_ax, (wat_c, wat_g) in zip(wat_axes, wat_bins.groupby("cluster")):
         wat_pos = [wat_analysis.IRCA_BANDS.index(wat_b) for wat_b in wat_g["irca_band"]]
         wat_ax.plot(wat_pos, wat_g["median"], marker=wat_analysis.CLUSTER_MARKERS[wat_c - 1],
-                    markersize=7, color=wat_colors[wat_c])
-        wat_ax.set_title(f"Cluster {wat_c}", fontsize=14, loc="left", color=wat_colors[wat_c],
-                         fontweight="bold")
-        wat_ax.text(0.03, 0.05, f"ρ = {wat_rho.loc[wat_c, 'spearman_rho']:+.2f}\n"
-                    f"n = {wat_rho.loc[wat_c, 'n']:,}", transform=wat_ax.transAxes, fontsize=13)
-        wat_ax.set_xticks(range(5), ["none", "low", "med", "high", "unfit"], fontsize=11)
-        wat_ax.set_xlabel("IRCA risk band", fontsize=12)
-    wat_axes[0].set_ylim(0, wat_bins["median"].max() * 1.25)
-    wat_axes[0].set_ylabel("Infant mortality\nper 1,000")
+                    markersize=8, color=wat_colors[wat_c])
+        wat_ax.set_title(f"Cluster {wat_c}", fontsize=15, loc="left", fontweight="bold",
+                         color=wat_analysis.CLUSTER_TEXT_COLORS["dark"][wat_c - 1])
+        wat_ax.text(0.04, 0.05, f"ρ = {wat_rho.loc[wat_c, 'spearman_rho']:+.2f}\n"
+                    f"n = {wat_rho.loc[wat_c, 'n']:,}", transform=wat_ax.transAxes, fontsize=14)
+        wat_ax.set_xticks(range(5), ["N", "L", "M", "H", "U"], fontsize=14)
+        wat_ax.tick_params(axis="y", labelsize=14)
+    wat_axes[0].set_ylim(0, wat_bins["median"].max() * 1.3)
+    wat_axes[0].set_ylabel("Infant mortality\nper 1,000", fontsize=14)
+    wat_f.supxlabel("IRCA band:  N no risk · L low · M medium · H high · U unfit", fontsize=14)
     wat_f.tight_layout()
     wat_plt.show()
 ```
 
 ::: {.bigline}
-⚠️ descriptive only: this does **not** establish a causal effect of water quality
+⚠️ descriptive only: **not** a causal effect of water quality
 :::
 
 ::: {.notes}
@@ -1065,7 +1084,7 @@ mean zero deaths) are left out, small municipalities have noisy rates, and confo
 push in both directions. The binned medians follow the Resolución 2115 bands.
 :::
 
-## 🕸️ What else could explain it? {#water-confounders}
+## 🤔 What else could explain it? {#water-confounders}
 
 ::: {.cards style="grid-template-columns: repeat(5, 1fr);"}
 ::: {}
@@ -1104,10 +1123,10 @@ and access. A causal claim would need a design that handles these, such as befor
 changes in treatment plants with comparison places.
 :::
 
-## ⚠️ Exercise: within-cluster check + discussion {#water-causation-do}
+## ⚠️ Within-cluster check + discussion {#water-causation-do}
 
 ::: {.prompt}
-```text
+```default
 Add a section to clusters.qmd: within each cluster, median infant_mortality by IRCA band for 2017–2019 and 2021–2023, with Spearman rho and n per cluster, and one sentence stating that this is descriptive and does not establish a causal effect of water quality. Render it.
 ```
 :::
@@ -1116,7 +1135,7 @@ Add a section to clusters.qmd: within each cluster, median infant_mortality by I
 💬 with a neighbour: pick one confounder: could it hide a real effect, or create a fake one?
 :::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/09-water-causation/`
 :::
 
@@ -1139,7 +1158,7 @@ an effect). Checkpoint 09 holds the finished `scripts/analysis.py` and `clusters
 ## 📄 2:25 · Report → docx + PDF {#water-report}
 
 ::: {.prompt}
-```text
+```default
 Create report.qmd (formats html, docx, typst) from outputs/: summary, question, data (IRCA = utility-supplied prestadores IRCA), method, heatmap, outcomes, correlation ≠ causation, limits, sources. Matplotlib figures with captions and alt text; hide code. Render all formats; report errors.
 ```
 :::
@@ -1157,29 +1176,29 @@ open `report.docx` and `report.pdf`
 :::
 ::::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/10-water-report/`
 :::
 
-### Exercise · ⏱️ 10 min
+### Exercise · ⏱️ 8 min
 
 ::: {.done}
 `report.docx` and `report.pdf` open with the heatmap and the outcomes figure.
 :::
 
 ::: {.notes}
-Static formats need static figures: Plotly charts appear only in HTML in Quarto 1.6, so use
-matplotlib. `format-links` on the html format adds Word and PDF download links (each entry
-needs `text` and `format`). Typst is bundled with Quarto; Typst has no paper-size YAML
-option in this setup, so keep the default page. Write numbers with inline code from
-`outputs/`, never by hand. Docs: https://quarto.org/docs/output-formats/typst.html
-(checked 2026-10-30).
+Static formats need static figures. Plotly draws interactive JavaScript charts, which Word,
+PowerPoint and PDF files cannot run, so use matplotlib for these outputs. `format-links` on
+the html format adds Word and PDF download links; each entry takes `format` and `text`.
+Typst is bundled with Quarto and takes `papersize` (default `us-letter`; Part 1's flyer uses
+`papersize: a5`). Write numbers with inline code from `outputs/`, never by hand. Docs:
+https://quarto.org/docs/output-formats/typst.html (checked 2026-10-30).
 :::
 
 ## 📊 2:35 · Council slides → pptx {#water-slides}
 
 ::: {.prompt}
-```text
+```default
 Create slides.qmd (format: pptx) for the municipal council: 6 slides including the title: the question, a table of the clusters with their names, the heatmap, outcomes by cluster, and what this does and does not show. Read outputs/, use matplotlib, hide the code. Render it and count the slides.
 ```
 :::
@@ -1197,7 +1216,7 @@ open `slides.pptx`
 :::
 ::::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/11-water-slides/`
 :::
 
@@ -1215,7 +1234,7 @@ table, so keep them simple. The council deck repeats the "descriptive only" mess
 ## 📗 2:40 · Tables → xlsx {#water-tables}
 
 ::: {.prompt}
-```text
+```default
 Create tables.qmd whose code cell writes cluster_tables.xlsx from outputs/ with pandas: one sheet per table (profiles, outcomes_by_year, k_selection, stability) plus a dictionary sheet describing every column, then links to the file. Render it and list the sheets.
 ```
 :::
@@ -1228,7 +1247,7 @@ with pd.ExcelWriter("cluster_tables.xlsx") as xl:
 ```
 :::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/12-water-tables/`
 :::
 
@@ -1288,10 +1307,10 @@ https://quarto.org/docs/projects/code-execution.html#freeze,
 https://quarto.org/docs/websites/website-listings.html (checked 2026-10-30).
 :::
 
-## ✍️🌐 Exercise: website + post {#water-website-do}
+## ✍️🌐 Website + post {#water-website-do}
 
 ::: {.prompt}
-```text
+```default
 Make this folder a Quarto website: _quarto.yml (pre-render scripts/analysis.py, freeze: auto, render list, navbar), index.qmd listing posts/, and one post titled with the real k, e.g. "Four kinds of municipal zone". Render it; check the links.
 ```
 :::
@@ -1309,11 +1328,11 @@ writes 3 files · `quarto render` → `_site/`
 :::
 ::::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `checkpoints/13-water-website/`
 :::
 
-### Exercise · ⏱️ 10 min
+### Exercise · ⏱️ 8 min
 
 ::: {.done}
 the site lists one post whose title states the real k.
@@ -1334,25 +1353,33 @@ the post in `posts/…/`, read `outputs/` and `data/` from the project folder.
 #| label: fig-wat-map
 #| echo: false
 #| fig-cap: "Urban zones, 2023: utility-supplied (prestadores) IRCA band."
-#| fig-alt: "Map of Colombia's municipalities coloured by the 2023 IRCA band of their head town, with a legend from no data through no risk, low, medium and high to unfit. Most of the Andean interior is in the darker no-risk and low-risk colours, scattered municipalities are bright high-risk, and much of the east and the Amazon is grey for no data."
+#| fig-alt: "Map of Colombia's municipalities coloured by the 2023 IRCA band of their head town, with a legend from hatched no data through no risk, low, medium and high to unfit. Most of the Andean interior is in the darker no-risk and low-risk colours, scattered municipalities are bright high-risk, and much of the east and the Amazon is hatched for no data."
 wat_geo = wat_analysis.load_geojson(for_plotly=False)
 wat_last_year = wat_analysis.LAST_YEAR
 wat_urban = wat_clusters[(wat_clusters["zone"] == "urban") & (wat_clusters["year"] == wat_last_year)]
 wat_band_of = dict(zip(wat_urban["divipola"], wat_urban["irca_band"].astype(str)))
 wat_band_col = dict(zip(wat_analysis.IRCA_BANDS, wat_analysis.BAND_COLORS["dark"]))
-wat_polys, wat_fill = [], []
+wat_polys, wat_fill, wat_nodata_polys = [], [], []
 for wat_feat in wat_geo["features"]:
     wat_gm = wat_feat["geometry"]
     wat_parts = [wat_gm["coordinates"]] if wat_gm["type"] == "Polygon" else wat_gm["coordinates"]
-    wat_col = wat_band_col.get(wat_band_of.get(wat_feat["properties"]["divipola"]),
-                               wat_analysis.NO_DATA_COLOR["dark"])
+    wat_col = wat_band_col.get(wat_band_of.get(wat_feat["properties"]["divipola"]))
     for wat_part in wat_parts:
-        wat_polys.append(wat_np.asarray(wat_part[0]))
-        wat_fill.append(wat_col)
-wat_legend = [wat_plt.Rectangle((0, 0), 1, 1, color=wat_c) for wat_c in
-              [wat_analysis.NO_DATA_COLOR["dark"]] + wat_analysis.BAND_COLORS["dark"]]
+        if wat_col is None:               # no data: hatched, so it never reads as a band
+            wat_nodata_polys.append(wat_np.asarray(wat_part[0]))
+        else:
+            wat_polys.append(wat_np.asarray(wat_part[0]))
+            wat_fill.append(wat_col)
+wat_nodata_style = dict(facecolor=wat_analysis.NO_DATA_COLOR["dark"],
+                        edgecolor=wat_analysis.NO_DATA_EDGE["dark"],
+                        hatch=wat_analysis.NO_DATA_HATCH)
+wat_legend = ([wat_plt.Rectangle((0, 0), 1, 1, linewidth=0, **wat_nodata_style)]
+              + [wat_plt.Rectangle((0, 0), 1, 1, color=wat_c)
+                 for wat_c in wat_analysis.BAND_COLORS["dark"]])
 with wat_plt.rc_context(wat_rc):
     wat_f, wat_ax = wat_plt.subplots(figsize=(5.6, 4.6))
+    wat_ax.add_collection(wat_PolyCollection(wat_nodata_polys, linewidths=0.15,
+                                             **wat_nodata_style))
     wat_ax.add_collection(wat_PolyCollection(wat_polys, facecolors=wat_fill,
                                              edgecolors="#191919", linewidths=0.15))
     wat_ax.set_xlim(-84.5, -66.7)
@@ -1378,8 +1405,9 @@ with wat_plt.rc_context(wat_rc):
 
 ::: {.notes}
 The map on the slide is a static preview drawn by this deck from the GeoJSON and the
-clustered rows (urban zones, 2023; grey = no value or not clustered; Providencia is off the
-top edge). In the dashboard, Plotly draws it interactively. Two
+clustered rows (urban zones, 2023; hatched = no value or not clustered, so it never reads
+as the lowest band; Providencia is off the top edge). In the dashboard, Plotly draws it
+interactively. Two
 traps: the GeoJSON follows RFC 7946 (exterior rings counter-clockwise), and Plotly expects
 the opposite winding, so without reversing the rings every municipality is drawn as "the
 world minus the municipality" (a grey rectangle). And animation frames should update only
@@ -1387,10 +1415,10 @@ world minus the municipality" (a grey rectangle). And animation frames should up
 components: https://quarto.org/docs/dashboards/ (checked 2026-10-30).
 :::
 
-## 📈 Exercise: the dashboard {#water-dashboard-do}
+## 📈 Build the dashboard {#water-dashboard-do}
 
 ::: {.prompt}
-```text
+```default
 Create dashboard.qmd (format: dashboard): a Plotly choropleth of urban IRCA band from data/municipios.geojson (featureidkey "properties.divipola"), a year slider (frames update only z), an itables table of outputs/clusters.parquet. Add it to the navbar; render and report errors.
 ```
 :::
@@ -1408,11 +1436,11 @@ writes `dashboard.qmd` · edits `_quarto.yml` · `quarto render`
 :::
 ::::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `examples/water/`
 :::
 
-### Exercise · ⏱️ 10 min
+### Exercise · ⏱️ 8 min
 
 ::: {.done}
 the map changes when you move the year slider.
@@ -1429,7 +1457,7 @@ project is `quarto-workshop/examples/water/`. Catch-up:
 ## 🌍 3:05 · Ship it {#water-ship}
 
 ::: {.prompt}
-```text
+```default
 Initialise a git repository in this folder with a .gitignore for _site/, .quarto/ and outputs/, and commit everything else.
 ```
 :::
@@ -1442,7 +1470,7 @@ quarto publish gh-pages
 then on GitHub: ⚙️ Settings → Pages shows the live URL
 :::
 
-::: {.source .wat-behind}
+::: {.source .behind}
 😰 Behind? copy `examples/water/`
 :::
 
@@ -1495,19 +1523,27 @@ incidence is not in the open SIVIGILA data, which publishes only EDA deaths
 
 ## 📚 Sources {#water-sources}
 
-::: {style="font-size: 0.62em"}
+::: {style="font-size: 0.58em"}
 - 💧 IRCA: INS, *Calidad del Agua para Consumo Humano en Colombia*, datos.gov.co
   [`nxt2-39c3`](https://www.datos.gov.co/resource/nxt2-39c3.csv), CC BY-SA 4.0
   (utility-supplied, prestadores)
-- 🎚️ Bands: [Resolución 2115 de 2007, art. 15](https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm) ·
-  🇨🇴 [INCA 2023](https://www.minvivienda.gov.co/sites/default/files/documentos/informe-nacional-de-calidad-del-agua-para-consumo-humano-inca-2023.pdf), Tabla 4
+- 🎚️ Bands: MinProtección Social and MAVDT, [Resolución 2115 de 2007, art. 15](https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm) ·
+  🇨🇴 MinSalud, MinVivienda, INS and Superservicios, [*INCA 2023*](https://www.minvivienda.gov.co/sites/default/files/documentos/informe-nacional-de-calidad-del-agua-para-consumo-humano-inca-2023.pdf) (Bogotá, January 2025), Tabla 4
 - 🏛️ Coverage, poverty, MDM, SGP, region, infant mortality: DNP
   [TerriData](https://terridata.dnp.gov.co/) (Superservicios, DANE, DNP-SICODIS, MinSalud)
-- 🗺️ Codes, population, boundaries: [DANE](https://www.dane.gov.co) DIVIPOLA (`gdxc-w37w`),
-  projections by area, MGN 2023
-- 🎓 Saber 11: ICFES `kgxf-xxbe`, `rnvb-vnyh` · 🎒 dropout: MEN `nudc-7mev` (datos.gov.co)
-- 🌧️ Rainfall: [CHIRPS v3.0](https://www.chc.ucsb.edu/data/chirps3); Funk et al. (2015),
-  *Scientific Data* 2, 150066 · ⛰️ altitude: NASA SRTM via [OpenTopoData](https://www.opentopodata.org/datasets/srtm/)
+- 🗺️ DANE: DIVIPOLA [`gdxc-w37w`](https://www.datos.gov.co/resource/gdxc-w37w.json) ·
+  population projections [2005–2017](https://www.dane.gov.co/files/censo2018/proyecciones-de-poblacion/Municipal/DCD-area-proypoblacion-Mun-2005-2017_VP.xlsx),
+  [2018–2042](https://www.dane.gov.co/files/censo2018/proyecciones-de-poblacion/Municipal/PPED-AreaMun-2018-2042_VP.xlsx) ·
+  [MGN 2023](https://geoportal.dane.gov.co/descargas/mgn_2023/MGN2023_MPIO_POLITICO.zip)
+- 🎓 Saber 11: ICFES [`kgxf-xxbe`](https://www.datos.gov.co/resource/kgxf-xxbe.csv),
+  [`rnvb-vnyh`](https://www.datos.gov.co/resource/rnvb-vnyh.csv) · 🎒 dropout: MEN
+  [`nudc-7mev`](https://www.datos.gov.co/resource/nudc-7mev.csv)
+- 🌧️ Rainfall: [CHIRPS v3.0](https://www.chc.ucsb.edu/data/chirps3), Funk et al. (2026),
+  *Scientific Data* 13, 718, [doi:10.1038/s41597-026-07096-4](https://doi.org/10.1038/s41597-026-07096-4);
+  data [doi:10.15780/G2JQ0P](https://doi.org/10.15780/G2JQ0P); Funk et al. (2015),
+  *Scientific Data* 2, 150066, [doi:10.1038/sdata.2015.66](https://doi.org/10.1038/sdata.2015.66)
+- ⛰️ Altitude (derived): NASA SRTM GL3, [doi:10.5067/MEaSUREs/SRTM/SRTMGL3.003](https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL3.003),
+  via [OpenTopoData](https://www.opentopodata.org/datasets/srtm/)
 - 📘 Docs: [scripts](https://quarto.org/docs/projects/scripts.html) ·
   [freeze](https://quarto.org/docs/projects/code-execution.html#freeze) ·
   [listings](https://quarto.org/docs/websites/website-listings.html) ·
@@ -1518,6 +1554,8 @@ incidence is not in the open SIVIGILA data, which publishes only EDA deaths
 ::: {.notes}
 Every source, licence, retrieval date and caveat is in
 `examples/water/data/README.md`; the data were retrieved on 2026-10-30. The INCA 2023
-figures and the IRCA bands were verified by the lead on 2026-10-30. Nothing in Part 2 is
-synthetic except the toy points on the k-means slide, which are labelled.
+figures and the IRCA bands were verified by the lead on 2026-10-30; MAVDT is the Ministerio
+de Ambiente, Vivienda y Desarrollo Territorial. The CHIRPS v3 article and data DOIs were
+checked by the lead on 2026-10-30. Nothing in Part 2 is synthetic except the toy points on
+the k-means slide, which are labelled.
 :::

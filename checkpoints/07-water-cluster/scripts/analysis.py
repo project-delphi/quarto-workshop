@@ -38,7 +38,7 @@ FEATURE_LABELS = {
     "sewer_coverage": "Sewer coverage (%)",
     "ipm": "Multidimensional poverty, 2018 (%)",
     "rural_share": "Rural share of population",
-    "altitude_m": "Altitude of head town (m)",
+    "altitude_m": "Altitude of head town, derived SRTM point (m)",
     "rainfall_mm": "Rainfall (mm/year)",
     "mdm": "Municipal performance, MDM",
     "log_sgp_water_pc": "Water transfers per person (log SGP)",
@@ -71,6 +71,12 @@ def load(path: Path | str = DATA) -> pd.DataFrame:
 def irca_band(irca: pd.Series) -> pd.Series:
     """Resolución 2115 risk band for each IRCA value."""
     return pd.cut(irca, bins=IRCA_BINS, labels=IRCA_BANDS)
+
+
+def floor_to(x: float, decimals: int = 3) -> str:
+    """Round down for "at least" statements: 0.99859 -> "0.998", never "0.999"."""
+    factor = 10 ** decimals
+    return f"{np.floor(x * factor) / factor:.{decimals}f}"
 
 
 def prepare(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
@@ -262,7 +268,7 @@ def main() -> None:
           f"from {s['municipalities']:,} municipalities")
     print(res["k_table"].round(3).to_string(index=False))
     print(s["k_reason"])
-    print(f"stability: ARI {s['ari_min']:.3f}-{res['stability']['ari'].max():.3f} "
+    print(f"stability: ARI >= {floor_to(s['ari_min'])} (min {s['ari_min']:.5f}) "
           f"across seeds {list(STABILITY_SEEDS)}")
     print(res["clusters"]["cluster"].value_counts().sort_index().to_string())
     for p in write_outputs(res, args.out):

@@ -72,7 +72,8 @@ the rest of the site is frozen.
   are 2016–2023, because MDM starts in 2016. Rows without IRCA are dropped, and so are rows
   missing more than two of the nine features; the script prints both counts.
 - **Features.** `irca`, `water_coverage`, `sewer_coverage`, `ipm`, `rural_share`,
-  `altitude_m`, `rainfall_mm`, `mdm` and `log(sgp_water_pc)`. `idf` is left out because its
+  `altitude_m` (derived: one SRTM point at the head town), `rainfall_mm`, `mdm` and
+  `log(sgp_water_pc)`. `idf` is left out because its
   method changes in 2020 (`idf_new` is a different scale). Outcomes are never clustered on.
 - **Department capitals.** They have no urban/rural coverage split. Urban capital rows take
   `water_coverage_total` / `sewer_coverage_total`, flagged in `*_from_total`; rural capital
@@ -86,16 +87,19 @@ the rest of the site is frozen.
   of 5,000 rows. k = 2 is excluded because it mostly splits urban from rural rows (see the
   `ari_vs_zone` column). The rule: the smallest k ≥ 3 after which one more cluster cuts
   inertia by less than 10%, provided its silhouette is within 0.01 of the best k ≥ 3.
-  Stability: the adjusted Rand index against refits with five other seeds.
+  Stability: the adjusted Rand index against refits with five other seeds. "At least"
+  statements round it down (`analysis.floor_to`), so 0.99859 is reported as ≥ 0.998.
 - **Cluster ids and names.** Ids are ordered by centroid IRCA, low to high, so a re-run with
   the same seed keeps them. Names come from `name_rule()`: the setting (share of urban rows,
   rural share, altitude), "unserved" if water coverage is at least 0.5 SD below average, and
   the Resolución 2115 band of the cluster's median IRCA. Colours follow the id on every page.
   A name describes the cluster's typical profile, not every member: some urban zones fall in
   the "Rural, unserved" cluster (Leticia's head town in 2022–2023, for example).
-- **Outcomes.** Infant mortality uses 2017–2019 and 2021–2023 only (one method regime; a
-  blank may mean no recorded deaths). Saber 11 uses its published years. Infant mortality
-  and dropout are municipal values repeated on both zone rows: an ecological mismatch.
+- **Outcomes.** The infant mortality series changes method in 2017 (modelled estimates
+  before, observed rates after) and 2020 looks like a different source (data README, caveat
+  8), so infant mortality uses 2017–2019 and 2021–2023 only; from 2017 a blank may mean no
+  recorded deaths. Saber 11 uses its published years. Infant mortality and dropout are
+  municipal values repeated on both zone rows: an ecological mismatch.
 
 ## Notes
 
@@ -107,11 +111,14 @@ the rest of the site is frozen.
   the dashboard needs an internet connection.
 - The dashboard is about 12 MB: Plotly (about 4 MB) plus one copy of the 2.7 MB GeoJSON per
   map. Each year's frame carries only the band codes.
+- No data must not look like the lowest IRCA band: maps on white pages draw it near-white
+  with grey borders; the dark workshop slides hatch it (`NO_DATA_*` in `analysis.py`).
 
 ## Sources
 
 See `data/README.md` for every source, licence, retrieval date and caveat. IRCA risk bands:
-[Resolución 2115 de 2007, art. 15](https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm).
-National context (report only): MinVivienda and INS,
-[INCA 2023](https://www.minvivienda.gov.co/sites/default/files/documentos/informe-nacional-de-calidad-del-agua-para-consumo-humano-inca-2023.pdf),
-Tabla 4.
+Ministerio de la Protección Social and Ministerio de Ambiente, Vivienda y Desarrollo
+Territorial, [Resolución 2115 de 2007, art. 15](https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm).
+National context (report only): MinSalud, MinVivienda, INS and Superservicios,
+[*INCA 2023*](https://www.minvivienda.gov.co/sites/default/files/documentos/informe-nacional-de-calidad-del-agua-para-consumo-humano-inca-2023.pdf)
+(Bogotá, January 2025), Tabla 4.
