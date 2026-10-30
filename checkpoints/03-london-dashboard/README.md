@@ -1,0 +1,3 @@
+- Checkpoint 03 · Dashboard: checkpoint 02 plus `london-dashboard.qmd` (value boxes and two Plotly charts from `data/`).
+- Copy, from the folder that holds `quarto-workshop/`: `rm -f london-guide/london.md && cp -R quarto-workshop/checkpoints/03-london-dashboard/. london-guide/`
+- Render: `cd london-guide && quarto preview london-dashboard.qmd`.
