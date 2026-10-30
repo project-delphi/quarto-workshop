@@ -31,7 +31,9 @@ Also before the workshop: run the setup check on the slides and read
 Quarto's bundled Typst engine, so no LaTeX install is needed. To follow the slides
 in another language such as Spanish, use the
 [Google Translate extension](https://chromewebstore.google.com/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb);
-code blocks are marked not to be translated. Shell examples assume macOS, Linux, or WSL.
+code blocks are marked not to be translated, and prompts are translated with the file
+names, columns, options and commands in them kept in English. Shell examples assume
+macOS, Linux, or WSL.
 
 ### How the slides work
 

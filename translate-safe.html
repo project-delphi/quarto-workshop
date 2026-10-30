@@ -1,14 +1,102 @@
 <script>
 // Shared by both decks: make browser translation (e.g. the Google Translate extension) help.
-// 1. Code must not be rewritten: commands, prompts and file names are marked translate="no".
-// 2. Box labels are real text, not CSS content, so they are translated with the slide.
-// 3. Product names stay as written ("Quarto" must not become "Cuarto").
+// 1. Code must not be rewritten: commands and file names are marked translate="no".
+// 2. Prompts are prose for the assistant, so they are translated (and copied) in the
+//    reader's language; the file names, columns, options and commands in them are not.
+// 3. Box labels are real text, not CSS content, so they are translated with the slide.
+// 4. Product and index names stay as written ("Quarto" must not become "Cuarto").
 // Attribute: https://html.spec.whatwg.org/multipage/dom.html#attr-translate (checked 2026-10-30).
 (() => {
   const slides = document.querySelector(".reveal .slides");
   if (!slides) return;
 
-  slides.querySelectorAll("pre, code").forEach((el) => el.setAttribute("translate", "no"));
+  // Translation skips <code> whatever its translate attribute, so each prompt's text moves
+  // to a span styled like it (theme.scss); the copy button copies that span instead.
+  slides.querySelectorAll(".prompt pre > code").forEach((code) => {
+    const text = document.createElement("span");
+    [...code.attributes].forEach(({ name, value }) => text.setAttribute(name, value));
+    text.classList.add("prompt-text");
+    text.append(...code.childNodes);
+    code.replaceWith(text);
+  });
+  slides.querySelectorAll("pre, code").forEach((el) =>
+    el.setAttribute("translate", el.matches(".prompt pre") ? "yes" : "no"));
+
+  // Translation drops the spaces and punctuation beside untranslated text ("usandoQuarto"),
+  // so each kept piece holds them.
+  const spaceBefore = /\s*$/;
+  const spaceAfter = /^(?:[)\]"”'.,;:!?]+(?=\s|$))?\s*/;
+
+  // Wraps parts of the text nodes under root in translate="no" spans. split(text) returns
+  // alternating pieces: [translated, kept, translated, …].
+  function keep(root, split) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node) =>
+        node.parentElement.closest("script, style, svg, [translate='no']")
+          ? NodeFilter.FILTER_REJECT
+          : NodeFilter.FILTER_ACCEPT,
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach((node) => {
+      const parts = split(node.nodeValue);
+      if (parts.length < 2) return;
+      for (let i = 1; i < parts.length; i += 2) {
+        const before = spaceBefore.exec(parts[i - 1])[0];
+        const after = spaceAfter.exec(parts[i + 1] ?? "")[0];
+        parts[i - 1] = parts[i - 1].slice(0, parts[i - 1].length - before.length);
+        parts[i] = before + parts[i] + after;
+        if (after) parts[i + 1] = parts[i + 1].slice(after.length);
+      }
+      const fragment = document.createDocumentFragment();
+      parts.forEach((part, i) => {
+        if (i % 2) {
+          const span = document.createElement("span");
+          span.setAttribute("translate", "no");
+          span.textContent = part;
+          fragment.append(span);
+        } else if (part) {
+          fragment.append(part);
+        }
+      });
+      node.replaceWith(fragment);
+    });
+  }
+
+  // Code inside prompts: Quarto commands and options, and any word that is a path, file
+  // name, identifier, call or flag. Names a translator reads as words are listed
+  // (without the list, the column mdm became "señora").
+  const commands = /(quarto [a-z]+(?: gh-pages| --[\w-]+)*|\b(?:format|toc|lang|freeze|papersize|execute-dir): [\w-]+)/;
+  const listed = new Set(["gh-pages", "pre-render", "format-links", "london-guide",
+                          "water-quality", "campaign-site", "marketing-blog",
+                          "irca", "ipm", "mdm", "divipola"]);
+  const isCode = (word) => listed.has(word) || word.split("/").length > 2 ||
+    /^[./~]|\/$|\w\.\w|[_=<>*{}#\\|]|\w\(|^--|-\w*\d/.test(word);
+  const count = (text, char) => text.split(char).length - 1;
+
+  function splitPrompt(text) {
+    const pieces = [];
+    text.split(commands).forEach((piece, i) => {
+      if (i % 2) return pieces.push([piece, true]);
+      piece.split(/(\s+)/).forEach((word) => {
+        let [, lead, core, trail] = /^([("“']*)(.*?)([)"”',.;:!?]*)$/s.exec(word);
+        // A word keeps its own closing parenthesis: prepare(), log(sgp_water_pc).
+        while (trail[0] === ")" && count(core, "(") > count(core, ")")) {
+          core += ")";
+          trail = trail.slice(1);
+        }
+        pieces.push([lead, false], [core, isCode(core)], [trail, false]);
+      });
+    });
+    const parts = [""];
+    pieces.forEach(([piece, code]) => {
+      if (!piece) return;
+      if (code === (parts.length % 2 === 0)) parts[parts.length - 1] += piece;
+      else parts.push(piece);
+    });
+    return parts;
+  }
+  slides.querySelectorAll(".prompt-text").forEach((text) => keep(text, splitPrompt));
 
   function label(tag, className, emoji, text) {
     const el = document.createElement(tag);
@@ -30,34 +118,28 @@
     });
   });
   slides.querySelectorAll(".done > p:first-child").forEach((p) => {
-    if (!p.querySelector(".done-label")) p.prepend(label("strong", "done-label", "✅", "You're done when "));
+    // The space sits outside the label, where the code that may follow can hold it.
+    if (!p.querySelector(".done-label")) p.prepend(label("strong", "done-label", "✅", "You're done when"), " ");
   });
 
-  // Not global: test() on a global pattern would carry lastIndex between nodes.
-  const names = /\b(Quarto|Markdown|Typst|YAML|Jupyter|Reveal\.js|GitHub Pages)\b/;
-  const walker = document.createTreeWalker(slides, NodeFilter.SHOW_TEXT, {
-    acceptNode: (node) =>
-      node.parentElement.closest("pre, code, script, style, svg, [translate='no']") ||
-      !names.test(node.nodeValue)
-        ? NodeFilter.FILTER_REJECT
-        : NodeFilter.FILTER_ACCEPT,
-  });
-  const nodes = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-  nodes.forEach((node) => {
-    const parts = node.nodeValue.split(names);
-    const fragment = document.createDocumentFragment();
-    parts.forEach((part, i) => {
-      if (i % 2) {
-        const span = document.createElement("span");
-        span.setAttribute("translate", "no");
-        span.textContent = part;
-        fragment.append(span);
-      } else if (part) {
-        fragment.append(part);
-      }
-    });
-    node.replaceWith(fragment);
+  // MDM is already Spanish (Medición de Desempeño Municipal); translation made it "DMM".
+  const names = /\b(Quarto|Markdown|Typst|YAML|Jupyter|Reveal\.js|GitHub Pages|MDM)\b/;
+  keep(slides, (text) => text.split(names));
+
+  // Inline code holds its neighbouring spaces too, in a wrapper outside the code chip.
+  slides.querySelectorAll("code[translate='no']").forEach((code) => {
+    if (code.closest("pre")) return;
+    const prev = code.previousSibling;
+    const next = code.nextSibling;
+    const before = prev?.nodeType === Node.TEXT_NODE ? spaceBefore.exec(prev.nodeValue)[0] : "";
+    const after = next?.nodeType === Node.TEXT_NODE ? spaceAfter.exec(next.nodeValue)[0] : "";
+    if (!before && !after) return;
+    const wrapper = document.createElement("span");
+    wrapper.setAttribute("translate", "no");
+    code.replaceWith(wrapper);
+    if (before) prev.nodeValue = prev.nodeValue.slice(0, prev.nodeValue.length - before.length);
+    if (after) next.nodeValue = next.nodeValue.slice(after.length);
+    wrapper.append(before, code, after);
   });
 })();
 </script>
