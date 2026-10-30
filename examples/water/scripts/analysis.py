@@ -274,7 +274,13 @@ def stability(X: np.ndarray, k: int, labels: np.ndarray, seeds=STABILITY_SEEDS) 
 
 # --- 4. name and profile -------------------------------------------------------
 def name_rule(p: pd.Series) -> str:
-    """Descriptive name from one cluster's profile row (see profiles())."""
+    """Descriptive name from one cluster's profile row (see profiles()).
+
+    "low-coverage" is relative: the cluster's mean piped-water coverage is at least
+    0.5 SD below the year's average, not an absence of service. The risk word is the
+    Resolución 2115 band of the cluster's median utility-supplied (prestadores) IRCA;
+    individual zone-years can fall in other bands.
+    """
     if p["urban_row_share"] < 0.4:
         setting = "Rural"
     elif p["z_rural_share"] <= -0.5:
@@ -286,7 +292,7 @@ def name_rule(p: pd.Series) -> str:
     else:
         setting = "Towns"
     if p["z_water_coverage"] <= -0.5:
-        setting += ", unserved"
+        setting += ", low-coverage"
     risk = {"No risk": "no-risk", "Low": "low-risk", "Medium": "medium-risk",
             "High": "high-risk", "Unfit": "unfit"}[p["irca_median_band"]]
     return f"{setting}, {risk} water"
@@ -452,6 +458,8 @@ def main() -> None:
           f"across seeds {list(STABILITY_SEEDS)}")
     cols = ["name", "rows", "municipalities", "urban_row_share", "irca_median"]
     print(res["profiles"][cols].round(2).to_string())
+    print("IRCA vs infant mortality within clusters (municipality-years):")
+    print(res["irca_infant"][["cluster", "spearman_rho", "n"]].round(3).to_string(index=False))
     for p in write_outputs(res, args.out):
         print("wrote", p.relative_to(Path.cwd()) if p.is_relative_to(Path.cwd()) else p)
 

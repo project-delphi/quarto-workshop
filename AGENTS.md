@@ -74,20 +74,29 @@ prompting a coding assistant.
 - Section dividers are `# <emoji> Title {#id}` followed by `[⏱️ h:mm]{.clock}` matching the agenda.
 - Hands-on slides use the three boxes defined in `theme.scss`: `::: {.prompt}` holds the exact
   prompt in a ```` ```default ```` fence (copyable, 1–4 lines, one task, concrete file/column
-  names, a verification ask; with `code-line-numbers: false` a `text` fence gets no copy button); `::: {.agent}` lists what the assistant will likely run; `::: {.you}`
+  names, a verification ask; the AI lab's numbered turns are fuller graduate specifications
+  but still one turn's work ending in a check; with `code-line-numbers: false` a `text` fence
+  gets no copy button); `::: {.agent}` lists what the assistant will likely run; `::: {.you}`
   lists only what needs the participant: starting the assistant, accounts and sign-in,
   approving the assistant's commands, `quarto preview`, and opening results. Work an
   assistant can run (rendering, git, `gh repo create`, `quarto publish … --no-prompt`)
   belongs in a prompt.
 - Exercises use `### Exercise · ⏱️ N min` and a `::: {.done}` block whose text completes
-  "You're done when …". Each hands-on step has a copyable checkpoint in `checkpoints/`,
-  named on the slide with `::: {.source .behind}` ("😰 Stuck? copy `checkpoints/…`").
+  "You're done when …". Each hands-on block ends with a checkpoint in `checkpoints/` whose
+  README lists the catch-up steps (back up to a new time-stamped folder, copy, copy water
+  data if missing, render, check a named output). The slide's `::: {.source .behind}` holds
+  a copyable `default` fence: "Catch me up: follow ../quarto-workshop/checkpoints/NN-…/README.md".
+- Mark pre-work slides `[🏠 before the workshop]{.pace}` (`before the lab` in the AI lab) and
+  optional slides `[⭐ self-paced]{.pace}`; when the pill would crowd a slide, end the title
+  with `· ⭐ optional` or write `### Exercise · ⭐ self-paced`. Each deck's agenda explains ⭐.
+  Exercise times must leave slack in every agenda block; 🏠 exercises are timed for home
+  and do not count against it.
 
 ## Worked examples and report deliverables
 
 `examples/london/` is the finished Part 1 project and `examples/water/` the finished Part 2
-project; `checkpoints/NN-*/` hold the state after each hands-on step, with no rendered
-output. London checkpoints carry their small cited `data/` and `images/` so each renders
+project; `checkpoints/NN-*/` hold the state at the end of each hands-on block, with
+catch-up steps in their READMEs and no rendered output. London checkpoints carry their small cited `data/` and `images/` so each renders
 on its own; water checkpoints hold sources only (participants copy `examples/water/data/`
 first). Keep all three outside `project.render`; they are rendered separately for testing.
 
@@ -120,7 +129,8 @@ Deliverables are `report.pdf`, `report.docx`, a runnable `report.ipynb`, and
 unchanged inputs, and build instructions. Keep the brief, prompts, commands,
 review criteria, README, and submission checklist consistent with this contract.
 
-Build the reports from one `report.qmd`. Render PDF and DOCX with Quarto. For a
+Build the reports from one `report.qmd`. Render the PDF with Quarto's bundled Typst
+engine (`format: typst` writes `report.pdf`; no TeX needed) and DOCX with Quarto. For a
 runnable notebook with saved results, use the tested conversion/execution route:
 
 ```bash

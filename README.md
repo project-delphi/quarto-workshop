@@ -10,8 +10,8 @@ on them.
   London tourist guide from Markdown to a published dashboard. Part 2 clusters Colombian
   municipalities by drinking-water risk and context, then publishes one analysis many ways.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)**: an
-  optional graduate lab built on a real randomized email-marketing experiment, with a report in
-  PDF, DOCX and IPYNB, eight slides, and verified revisions.
+  optional 90-minute graduate lab built on a real randomized email-marketing experiment, with a
+  report in PDF (Typst), DOCX and IPYNB, eight slides, and verified revisions.
 
 ## For attendees
 
@@ -23,10 +23,12 @@ coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
 folders; it holds the checkpoints and the data:
 
 ```bash
-git clone https://github.com/project-delphi/quarto-workshop.git
+cd ~ && git clone https://github.com/project-delphi/quarto-workshop.git
 ```
 
-PDFs use Quarto's bundled Typst engine, so no LaTeX install is needed. To follow the slides
+Also before the workshop: run the setup check on the slides and read
+[Markdown in Y minutes](https://learnxinyminutes.com/markdown/). PDFs in both decks use
+Quarto's bundled Typst engine, so no LaTeX install is needed. To follow the slides
 in another language such as Spanish, use the
 [Google Translate extension](https://chromewebstore.google.com/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb);
 code blocks are marked not to be translated. Shell examples assume macOS, Linux, or WSL.
@@ -41,19 +43,20 @@ Hands-on slides use three coloured boxes:
 | 👀 **Expect it to run** (amber) | Commands the assistant will probably run for you |
 | ⌨️ **You type** (green) | The few things only you can do: start the assistant, sign in, approve its commands, run `quarto preview`, open results |
 
-Every exercise shows a ⏱️ time box and a ✅ "you're done when…" check. If you fall behind,
-copy the matching checkpoint into your folder and carry on, for example:
+Every exercise shows a ⏱️ time box and a ✅ "you're done when…" check. 🏠 slides are
+pre-work and ⭐ slides are optional and self-paced. If you fall behind, copy the exercise's
+😰 **Catch me up** prompt into your assistant, for example:
 
-```bash
-cp -R quarto-workshop/checkpoints/02-london-qmd/. london-guide/
+```text
+Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
 ```
 
-Part 2 checkpoints hold sources only, so copy the data first:
-
-```bash
-mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/
-cp -R quarto-workshop/checkpoints/07-water-cluster/. water-quality/
-```
+Each checkpoint README lists the steps, which also work by hand from inside your project
+folder: back up the folder to a new time-stamped `../<folder>-backup-NN-<time>` (earlier
+backups are kept), copy the checkpoint in, copy the water `data/` if it is missing (Part 2
+checkpoints hold sources only), render, and check a named output. A checkpoint is the state at the end of its block, so it can be ahead of the
+step you are on. The finished projects, `examples/london/` and `examples/water/`, have the
+same catch-up section in their READMEs.
 
 Prompts are examples, not transcripts: assistants vary, so check the rendered result and read
 the diff.
@@ -64,9 +67,8 @@ the diff.
 |---|---|
 | 0:00 | 👋 Welcome · 🎯 objective · 🏁 outcome |
 | 0:05 | 🧭 What is Quarto? |
-| 0:10 | 🛠️ Setup check |
-| 0:15 | 📖 Read: [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) |
-| 0:20 | 🇬🇧 Part 1 · London: Markdown → HTML |
+| 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install and [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) are pre-work) |
+| 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML |
 | 0:30 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, many formats |
 | 0:40 | 🗂️ Part 1 · One guide, five audiences + dashboard |
 | 0:50 | 🌍 Part 1 · Publish to GitHub Pages |
@@ -82,7 +84,7 @@ the diff.
 | `ai-workflows.qmd` | Optional marketing-experiment lab on agent-assisted Quarto authoring |
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis and outputs |
-| `checkpoints/` | The state after each hands-on step (no rendered output; water ones need `examples/water/data/`) |
+| `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
 | `assets/` | Hub and publishing diagrams (SVG) |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
@@ -124,7 +126,11 @@ slide heading starts a task segment (used for the eight marketing turns).
 ### Editing and verification
 
 - Follow the slide conventions in `AGENTS.md`: one concept per slide, ≤ ~30 words of prose,
-  emoji over words, notes for detail, the three agent boxes, ⏱️ and ✅ on every exercise.
+  emoji over words, notes for detail, the three agent boxes, ⏱️ and ✅ on every exercise, and a
+  😰 catch-up prompt naming a checkpoint README.
+- Exercise times are planning estimates that leave each block a few minutes for showing
+  results and recovering from a failed command. Rehearse with a stopwatch and keep the
+  agenda slides, section clocks, exercise labels and this README consistent.
 - Use executable `{python}` cells only for code that should run during rendering, and
   display-only fences for examples. Never run install, network, publish or agent commands
   while rendering.

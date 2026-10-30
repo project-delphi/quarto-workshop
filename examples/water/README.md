@@ -24,7 +24,7 @@ water quality.
 | `slides.qmd` | six-slide council briefing: `slides.html` (Reveal.js) and `slides.pptx` |
 | `posts/four-kinds-of-municipal-zone/` | blog post, titled with the actual k |
 | `dashboard.qmd` | IRCA band maps with a year slider and a searchable table |
-| `index.qmd`, `_quarto.yml` | the website: listing, navbar, freeze, pre-render |
+| `index.qmd`, `_quarto.yml` | the website: listing, navbar, pre-render, fresh execution |
 
 ## Rebuild
 
@@ -49,18 +49,26 @@ quarto preview               # live preview at a local URL
 
 Every page reads these files. None of them recomputes the clusters.
 
-## Freeze and stale pages
+## Fresh execution
 
-`_quarto.yml` sets `execute: freeze: auto`: a page is re-executed only when **its own
-source** changes. The pre-render step rebuilds `outputs/` before every render, but frozen
-pages do not notice. After you change `data/` or `scripts/analysis.py`:
+`_quarto.yml` sets `execute: freeze: false`, so every render re-executes every page, and the
+pre-render step rebuilds `outputs/` first. One `quarto render` therefore rebuilds the
+analysis and every publication from `data/`: after you change `data/` or
+`scripts/analysis.py` there is nothing to clear. Rendering a single file inside the project
+also runs the pre-render script first.
+
+### Optional: cache pages with `freeze: auto`
+
+`freeze: auto` re-executes a page only when **its own source** changes. Quarto does not
+track the files a page reads, so after `data/` or `scripts/analysis.py` changes, frozen
+pages keep their old results until you clear them:
 
 ```bash
 rm -rf _freeze && quarto render     # re-execute every page
-quarto render clusters.qmd          # or re-execute one page: rendering a single file ignores freeze
+quarto render clusters.qmd          # or one page: rendering a single file ignores freeze
 ```
 
-Rendering a single file inside the project still runs the pre-render script first.
+Use it only once the slower renders matter, and write the invalidation step down.
 
 ## Design decisions
 
@@ -88,15 +96,36 @@ Rendering a single file inside the project still runs the pre-render script firs
   statements round it down (`analysis.floor_to`), so 0.99859 is reported as ≥ 0.998.
 - **Cluster ids and names.** Ids are ordered by centroid IRCA, low to high, so a re-run with
   the same seed keeps them. Names come from `name_rule()`: the setting (share of urban rows,
-  rural share, altitude), "unserved" if water coverage is at least 0.5 SD below average, and
-  the Resolución 2115 band of the cluster's median IRCA. Colours follow the id on every page.
-  A name describes the cluster's typical profile, not every member: some urban zones fall in
-  the "Rural, unserved" cluster (Leticia's head town in 2022–2023, for example).
+  rural share, altitude), "low-coverage" if mean piped-water coverage is at least 0.5 SD
+  below the year's average, and the Resolución 2115 band of the cluster's median
+  utility-supplied (prestadores) IRCA. "Low-coverage" is a relative position, not an
+  absence of service (see `mean_water_coverage` in `outputs/cluster_profiles.csv`).
+  Colours follow the id on every page. A name describes the cluster's typical profile, not
+  every member: some urban zones fall in the "Rural, low-coverage" cluster (Leticia's head
+  town in 2022–2023, for example), and zone-years in a "high-risk" cluster can have IRCA in
+  any band.
 - **Outcomes.** The infant mortality series changes method in 2017 (modelled estimates
   before, observed rates after) and 2020 looks like a different source (data README, caveat
   8), so infant mortality uses 2017–2019 and 2021–2023 only; from 2017 a blank may mean no
   recorded deaths. Saber 11 uses its published years. Infant mortality and dropout are
   municipal values repeated on both zone rows: an ecological mismatch.
+
+## Catch up to the finished project
+
+Workshop participants who fall behind on the dashboard or publishing step ask their coding
+assistant, started in `water-quality/`:
+
+```text
+Catch me up: follow ../quarto-workshop/examples/water/README.md
+```
+
+The steps, run inside `water-quality/` (by the assistant, or by you in a terminal):
+
+1. Keep your work: `cp -R . "../water-quality-backup-final-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `water-quality/`, so earlier backups are kept).
+2. Copy the finished project here, data included: `cp -R ../quarto-workshop/examples/water/. .`
+3. Render the site: `quarto render` (the pre-render step runs `scripts/analysis.py` first).
+4. Check: `_site/index.html` lists one post, and `_site/dashboard.html` shows a map that
+   changes with the year slider.
 
 ## Notes
 

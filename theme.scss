@@ -276,11 +276,40 @@ $code-block-font-size: 0.6em;
 .reveal span.source { display: inline-block; line-height: 1.35; }
 .reveal a code { color: inherit; text-decoration: underline; }
 
-/* "Behind? copy checkpoints/…" pointer, floated beside the exercise label. */
-/* Keeps level with the exercise label as its margin scales with --ws-space. */
-.reveal .behind { float: right; margin-top: calc(0.41em + 0.79em * var(--ws-space)); }
-.reveal .behind > p { margin: 0; }
+/* "😰 Stuck?" catch-up prompt, floated beside the exercise label: a copyable one-liner
+   naming the checkpoint README that lists the steps. Keeps level with the exercise label
+   as its margin scales with --ws-space. */
+.reveal .behind {
+  float: right;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  max-width: 77%;
+  margin-top: calc(0.2em + 0.79em * var(--ws-space));
+}
+.reveal .behind > p { margin: 0; white-space: nowrap; }
+.reveal .behind div.sourceCode {
+  margin: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.28);
+}
+.reveal .behind pre { margin: 0; font-size: 0.85em; box-shadow: none; }
+.reveal .behind pre code { padding: 0.2em 2.4em 0.2em 0.5em; color: #e6e6e6; }
 .reveal .behind ~ .done { clear: both; }
+/* A float's top ignores margin collapsing, so the block before it gives up its bottom
+   margin; the exercise label's own top margin then sets the gap for both. */
+.reveal .slides section > :has(+ .behind) { margin-bottom: 0; }
+
+/* Pace marker under a slide title: 🏠 pre-work or ⭐ optional, self-paced. */
+.reveal .pace {
+  display: inline-block;
+  padding: 0.08em 0.6em;
+  border: 2px solid var(--ws-muted);
+  border-radius: 999px;
+  color: var(--ws-muted);
+  font-size: 0.55em;
+  font-weight: 600;
+}
 
 /* Code is read from the back of a room. Reveal ignores code-overflow: wrap,
    so long lines wrap here rather than scrolling off the slide. */

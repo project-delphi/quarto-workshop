@@ -100,15 +100,17 @@ ICFES (Saber 11) and MEN (school dropout). `data/README.md` documents every sour
   Five other seeds reproduce the labels (adjusted Rand index ≥
   `{python} analysis.floor_to(s['ari_min'])`). A silhouette near 0.2 means the kinds overlap.
 - **Names** are assigned by a rule over each cluster's profile: the share of urban rows,
-  rural share and altitude; "unserved" when water coverage is at least 0.5 SD below average;
-  and the IRCA risk band (Resolución 2115 de 2007, art. 15) of the cluster's median IRCA.
+  rural share and altitude; "low-coverage" when mean piped-water coverage is at least 0.5 SD
+  below the year's average (a relative position, not an absence of service); and the IRCA
+  risk band (Resolución 2115 de 2007, art. 15) of the cluster's median utility-supplied
+  (prestadores) IRCA, so individual zone-years can sit in other bands.
 
 ## The kinds of municipal zone
 
 ```{python}
 #| label: fig-heatmap
 #| fig-cap: "Cluster centroids in z units (standard deviations from the year's average). Blue is below average, red above."
-#| fig-alt: "Heatmap with one row per cluster and one column per feature. The rural, unserved, high-risk cluster is red for IRCA and poverty and dark blue for water and sewer coverage. Cities and large towns are dark blue for rural share and transfers per person and red for municipal performance. Lowland towns are dark blue for altitude."
+#| fig-alt: "Heatmap with one row per cluster and one column per feature. The rural, low-coverage, high-risk cluster is red for IRCA and poverty and dark blue for water and sewer coverage. Cities and large towns are dark blue for rural share and transfers per person and red for municipal performance. Lowland towns are dark blue for altitude."
 zcols = [f"z_{f}" for f in analysis.FEATURES]
 cmap = LinearSegmentedColormap.from_list("div", analysis.DIVERGING["light"])
 fig, ax = plt.subplots(figsize=(6.5, 0.45 * k + 1.3))
