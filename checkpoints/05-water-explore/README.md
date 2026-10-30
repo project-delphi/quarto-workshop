@@ -1,0 +1,3 @@
+- Checkpoint 05 · Explore: `explore.qmd`: rows and columns, missing values by column and zone, IRCA by risk band and zone, IRCA by year.
+- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/05-water-explore/. water-quality/`
+- Run: `cd water-quality && quarto render explore.qmd`

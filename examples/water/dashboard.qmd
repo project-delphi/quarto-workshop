@@ -1,0 +1,155 @@
+---
+title: "Water quality dashboard"
+format: dashboard
+---
+
+```{python}
+#| label: setup
+import json
+import sys
+
+import pandas as pd
+import plotly.graph_objects as go
+from IPython.display import Markdown
+from itables import show
+
+sys.path.insert(0, "scripts")
+import analysis  # constants only; the numbers come from outputs/
+
+clusters = pd.read_parquet("outputs/clusters.parquet")
+s = json.loads(open("outputs/summary.json").read())
+geo = analysis.load_geojson()  # rings rewound for Plotly; see analysis.py
+years = list(range(analysis.FIRST_YEAR, analysis.LAST_YEAR + 1))
+last = years[-1]
+
+latest = clusters[clusters["year"] == last]
+urban_last = f"{latest.loc[latest['zone'] == 'urban', 'irca'].median():.1f}"
+rural_risky = f"{(latest.loc[latest['zone'] == 'rural', 'irca'] > 35).mean():.0%}"
+kept = f"{s['kept']:,}"
+```
+
+```{python}
+#| label: map-setup
+# One choropleth per zone. The GeoJSON is stored once per map; each year's frame
+# only carries the band codes (z) and the hover values, so the file stays small.
+codes = [f["properties"]["divipola"] for f in geo["features"]]
+names = {f["properties"]["divipola"]: f"{f['properties']['municipio'].title()}, "
+         f"{f['properties']['departamento'].title()}" for f in geo["features"]}
+band_codes = {b: i for i, b in enumerate(analysis.IRCA_BANDS)}
+colors = [analysis.NO_DATA_COLOR["light"]] + analysis.BAND_COLORS["light"]
+labels = ["No data"] + [f"{b} ({lo:g}–{hi:g})" for b, lo, hi in
+                        zip(analysis.IRCA_BANDS, [0, 5.1, 14.1, 35.1, 80.1], [5, 14, 35, 80, 100])]
+n = len(colors)
+scale = []
+for i, c in enumerate(colors):  # stepped colour scale, one step per band
+    scale += [[i / n, c], [(i + 1) / n, c]]
+
+
+def band_map(zone):
+    d = clusters[clusters["zone"] == zone].set_index(["year", "divipola"])
+
+    def frame_values(year):
+        irca = d.loc[year]["irca"].reindex(codes)
+        z = analysis.irca_band(irca).map(band_codes).astype(float).fillna(-1)
+        hover = [f"{v:.1f}" if pd.notna(v) else "no data" for v in irca]
+        return z.tolist(), hover
+
+    z, hover = frame_values(last)
+    fig = go.Figure(go.Choropleth(
+        geojson=geo, featureidkey="properties.divipola", locations=codes,
+        z=z, customdata=hover, text=[names[c] for c in codes],
+        zmin=-1.5, zmax=len(analysis.IRCA_BANDS) - 0.5, colorscale=scale,
+        marker_line_width=0.2, marker_line_color="white",
+        hovertemplate="%{text}<br>IRCA: %{customdata}<extra></extra>",
+        colorbar=dict(tickvals=list(range(-1, 5)), ticktext=labels, len=0.8,
+                      thickness=14)))
+    fig.frames = [go.Frame(name=str(y), data=[go.Choropleth(
+        z=frame_values(y)[0], customdata=frame_values(y)[1])]) for y in years]
+    fig.update_geos(fitbounds="locations", visible=False)
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=10, b=85),
+        sliders=[dict(active=len(years) - 1, currentvalue=dict(prefix="Year: "),
+                      pad=dict(t=10), len=0.9, x=0.05,
+                      steps=[dict(label=str(y), method="animate",
+                                  args=[[str(y)], dict(mode="immediate",
+                                        frame=dict(duration=0, redraw=True),
+                                        transition=dict(duration=0))])
+                             for y in years])])
+    return fig
+```
+
+# Map
+
+## Row {height=130px}
+
+::: {.valuebox icon="grid-3x3" color="primary"}
+Zone-years clustered, `{python} analysis.FIRST_YEAR`–`{python} last`
+
+`{python} kept`
+:::
+
+::: {.valuebox icon="diagram-3" color="info"}
+Kinds of municipal zone (k)
+
+`{python} s["k"]`
+:::
+
+::: {.valuebox icon="droplet" color="success"}
+Median urban IRCA, `{python} last`
+
+`{python} urban_last`
+:::
+
+::: {.valuebox icon="exclamation-triangle" color="warning"}
+Rural zones in the high or unfit band, `{python} last`
+
+`{python} rural_risky`
+:::
+
+## Row
+
+### Column {.tabset width=62%}
+
+```{python}
+#| title: "IRCA band, urban zones (head towns)"
+band_map("urban")
+```
+
+```{python}
+#| title: "IRCA band, rural zones"
+band_map("rural")
+```
+
+### Column {width=38%}
+
+```{python}
+#| title: "Kinds of municipal zone, 2016–2023"
+g = clusters.groupby("cluster")
+kinds = pd.DataFrame({
+    "Kind": g["cluster"].first().astype(str) + " · " + g["cluster_name"].first(),
+    "Zone-years": g.size().map("{:,}".format),
+    "Median IRCA": g["irca"].median().round(1),
+})
+Markdown(kinds.to_markdown(index=False))
+```
+
+::: {.card title="About the map"}
+IRCA is the **utility-supplied ("prestadores") IRCA** in INS open data (datos.gov.co
+`nxt2-39c3`), banded by Resolución 2115 de 2007, art. 15. Grey: no value that year, or the
+zone-year was not clustered. Boundaries: DANE MGN 2023. Descriptive only: no causal claim.
+Sources and caveats: `data/README.md`.
+:::
+
+# Municipalities
+
+```{python}
+#| title: "Search by department or municipality (clustered zone-years, 2016–2023)"
+cols = ["year", "departamento", "municipio", "zone", "cluster_name", "irca", "irca_band",
+        "water_coverage", "sewer_coverage", "ipm", "infant_mortality", "saber11_mean",
+        "dropout_rate"]
+table = clusters[cols].rename(columns={"cluster_name": "kind", "irca": "IRCA (prestadores)"})
+table["irca_band"] = table["irca_band"].astype(str)
+show(table.sort_values(["departamento", "municipio", "zone", "year"]), maxBytes=0,
+     showIndex=False, column_filters="header", paging=True, pageLength=15,
+     classes="display compact")
+```

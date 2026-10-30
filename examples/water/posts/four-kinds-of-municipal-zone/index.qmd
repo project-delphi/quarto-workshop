@@ -1,0 +1,84 @@
+---
+title: "Four kinds of municipal zone"
+description: "Clustering Colombia's urban and rural zones by water quality, services and context, and what the clusters do and do not tell us about health and schooling."
+date: 2026-10-30
+categories: [water, clustering, Colombia]
+execute:
+  echo: false
+---
+
+```{python}
+#| label: setup
+import json
+import sys
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+sys.path.insert(0, "scripts")  # code runs from the project folder (execute-dir: project)
+import analysis  # constants only; the numbers come from outputs/
+
+clusters = pd.read_parquet("outputs/clusters.parquet")
+prof = pd.read_csv("outputs/cluster_profiles.csv", index_col="cluster")
+rho = pd.read_csv("outputs/irca_infant.csv")
+s = json.loads(open("outputs/summary.json").read())
+k = s["k"]
+# The title states the number of clusters: fail loudly if the analysis changes it.
+assert k == 4, f"k is now {k}: rename this post and its folder"
+names = prof["name"].to_dict()
+colors = prof["color"].to_dict()
+rural = prof["urban_row_share"].idxmin()
+```
+
+Colombia's drinking water is not one story. Between 2016 and 2023 we followed the urban
+head towns and rural areas of `{python} f"{s['municipalities']:,}"` municipalities, a total
+of `{python} f"{s['kept']:,}"` zone-years with a utility-supplied water-quality score
+(IRCA, from INS open data). We let k-means sort them by nine features: water quality,
+piped water and sewer coverage, poverty, rurality, altitude, rainfall, municipal performance
+and water transfers per person.
+
+It found `{python} k` kinds:
+
+```{python}
+#| output: asis
+for c in prof.index:
+    p = prof.loc[c]
+    print(f"- **{c} · {names[c]}**: {p['rows']:,} zone-years from {p['municipalities']} "
+          f"municipalities; median IRCA {p['irca_median']:.1f}, "
+          f"{p['mean_water_coverage']:.0f}% piped water, {p['mean_ipm']:.0f}% poor.")
+```
+
+```{python}
+#| label: fig-pca
+#| fig-cap: "Each dot is a zone-year, placed by the first two principal components of the nine features and coloured by kind. The kinds overlap: they summarise a continuum."
+#| fig-alt: "Scatter plot of about eleven thousand dots in four coloured groups that overlap at their edges. The rural, unserved, high-risk group spreads to one side; the three town and city groups sit closer together."
+plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False})
+fig, ax = plt.subplots(figsize=(7, 4.4))
+for c, g in clusters.groupby("cluster"):
+    ax.scatter(g["pc1"], g["pc2"], s=4, alpha=0.4, color=colors[c],
+               marker=analysis.CLUSTER_MARKERS[c - 1], label=f"{c} · {names[c]}",
+               rasterized=True)
+ax.set_xlabel("PC1")
+ax.set_ylabel("PC2")
+leg = ax.legend(markerscale=3, frameon=False, fontsize=8)
+for handle in leg.legend_handles:
+    handle.set_alpha(1)
+plt.show()
+```
+
+The *`{python} names[rural]`* kind stands out: median IRCA
+`{python} f"{prof.loc[rural, 'irca_median']:.1f}"`, in the high-risk band of Resolución 2115
+de 2007, with `{python} f"{prof.loc[rural, 'mean_sewer_coverage']:.0f}"`% sewer coverage on
+average.
+
+## Does bad water go with worse outcomes?
+
+Not in any simple way. Within each kind, the Spearman correlation between IRCA and infant
+mortality is between `{python} f"{rho['spearman_rho'].min():+.2f}"` and
+`{python} f"{rho['spearman_rho'].max():+.2f}"`. That does **not** mean water quality does not
+matter, and nothing here shows that it causes any outcome. Infant mortality is measured for
+the whole municipality while IRCA describes one zone; poverty, rurality, health services and
+reporting quality all get in the way; and many rural systems are never sampled.
+
+The full method, tables and caveats are in the [report](../../report.qmd), the
+[cluster page](../../clusters.qmd) and the [dashboard](../../dashboard.qmd).

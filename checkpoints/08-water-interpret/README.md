@@ -1,0 +1,3 @@
+- Checkpoint 08 · Interpret: checkpoint 07 plus cluster profiles and rule-based names (`outputs/cluster_profiles.csv`), a centroid heatmap and outcomes by cluster and year in `clusters.qmd`.
+- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/08-water-interpret/. water-quality/`
+- Run: `cd water-quality && python scripts/analysis.py && quarto render clusters.qmd`

@@ -1,0 +1,3 @@
+- Checkpoint 13 · Website and blog: checkpoint 12 as a Quarto website: `_quarto.yml` (pre-render, freeze), `index.qmd` with a post listing and `posts/four-kinds-of-municipal-zone/`.
+- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/13-water-website/. water-quality/`
+- Run: `cd water-quality && quarto render` (the pre-render step runs `scripts/analysis.py` first)

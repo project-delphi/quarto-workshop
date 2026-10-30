@@ -1,0 +1,54 @@
+project:
+  type: website
+  # Code runs from this folder, so every page reads outputs/ and data/ the same way.
+  execute-dir: project
+  # Compute once: rebuild outputs/ before every render. Frozen pages do not notice
+  # new outputs; see README.md, "Freeze and stale pages".
+  pre-render: scripts/analysis.py
+  # Render only the pages; README and data notes stay plain files.
+  render:
+    - index.qmd
+    - explore.qmd
+    - clusters.qmd
+    - report.qmd
+    - slides.qmd
+    - tables.qmd
+    - dashboard.qmd
+    - posts/four-kinds-of-municipal-zone/index.qmd
+  # Written by tables.qmd during the render; copy it into _site.
+  resources:
+    - cluster_tables.xlsx
+
+website:
+  title: "Water quality in Colombian municipalities"
+  navbar:
+    left:
+      - text: "Explore"
+        href: explore.qmd
+      - text: "Clusters"
+        href: clusters.qmd
+      - text: "Report"
+        href: report.qmd
+      - text: "Tables"
+        href: tables.qmd
+      - text: "Dashboard"
+        href: dashboard.qmd
+      - text: "Downloads"
+        menu:
+          - text: "Report (Word)"
+            href: report.docx
+          - text: "Report (PDF)"
+            href: report.pdf
+          - text: "Council slides (PowerPoint)"
+            href: slides.pptx
+          - text: "Cluster tables (Excel)"
+            href: cluster_tables.xlsx
+
+format:
+  html:
+    theme: cosmo
+
+execute:
+  # Re-run a page only when its source changes. Changes to data/ or outputs/ are
+  # not detected: delete _freeze/ or render the page directly after they change.
+  freeze: auto

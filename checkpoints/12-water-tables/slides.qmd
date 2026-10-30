@@ -1,0 +1,106 @@
+---
+title: "Kinds of municipal zone"
+subtitle: "Drinking water, services and outcomes in Colombia, 2016–2023 · council briefing"
+format: pptx
+execute:
+  echo: false
+fig-dpi: 200
+---
+
+```{python}
+#| label: setup
+import json
+import sys
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import Markdown
+from matplotlib.colors import LinearSegmentedColormap
+
+sys.path.insert(0, "scripts")
+import analysis  # constants only; the numbers come from outputs/
+
+prof = pd.read_csv("outputs/cluster_profiles.csv", index_col="cluster")
+outcomes = pd.read_csv("outputs/outcomes_by_year.csv")
+rho = pd.read_csv("outputs/irca_infant.csv")
+s = json.loads(open("outputs/summary.json").read())
+k = s["k"]
+names = prof["name"].to_dict()
+colors = prof["color"].to_dict()
+plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False,
+                     "font.size": 11})
+```
+
+## The question
+
+- Which kinds of municipal zone exist, by water quality, services and context?
+- How do infant mortality, Saber 11 scores and school dropout differ between them?
+- Data: `{python} f"{s['kept']:,}"` urban and rural zone-years from
+  `{python} f"{s['municipalities']:,}"` municipalities, 2016–2023.
+- Water quality: utility-supplied (prestadores) IRCA, INS open data `nxt2-39c3`.
+
+## `{python} k` kinds of municipal zone
+
+```{python}
+t = pd.DataFrame({
+    "Kind": [f"{c} · {names[c]}" for c in prof.index],
+    "Zone-years": prof["rows"].map("{:,}".format),
+    "Median IRCA": prof["irca_median"].round(1),
+    "Water coverage (%)": prof["mean_water_coverage"].round(0).astype(int),
+    "Poverty (%)": prof["mean_ipm"].round(0).astype(int),
+})
+Markdown(t.to_markdown(index=False))
+```
+
+## How the kinds differ
+
+```{python}
+#| fig-alt: "Heatmap with one row per kind and one column per feature, in standard deviations from the year's average. The rural, unserved, high-risk kind is red for IRCA and poverty and dark blue for water and sewer coverage."
+zcols = [f"z_{f}" for f in analysis.FEATURES]
+cmap = LinearSegmentedColormap.from_list("div", analysis.DIVERGING["light"])
+fig, ax = plt.subplots(figsize=(10, 0.55 * k + 1.6))
+im = ax.imshow(prof[zcols].to_numpy(), cmap=cmap, vmin=-1.5, vmax=1.5, aspect="auto")
+ax.set_xticks(range(len(zcols)), [analysis.SHORT_LABELS[f] for f in analysis.FEATURES],
+              rotation=30, ha="right")
+ax.set_yticks(range(k), [f"{c} · {names[c]}" for c in prof.index])
+for i, row in enumerate(prof[zcols].to_numpy()):
+    for j, v in enumerate(row):
+        ax.text(j, i, f"{v:+.1f}", ha="center", va="center", fontsize=9,
+                color="white" if abs(v) > 1 else "#1d1d1d")
+ax.spines[:].set_visible(False)
+fig.colorbar(im, ax=ax, label="z (SD from the year's average)", shrink=0.8)
+plt.show()
+```
+
+## Outcomes by kind
+
+```{python}
+#| fig-alt: "Three small line charts by year, one line per kind. Cities and large towns have the lowest infant mortality and the highest Saber 11 scores. Lowland towns have the lowest Saber 11 scores. Dropout medians stay between about 1.7 and 4.6 percent, lowest in highland towns, and dips in 2020 for every kind."
+fig, axes = plt.subplots(1, 3, figsize=(11, 3.6))
+for ax, (col, label) in zip(axes, analysis.OUTCOMES.items()):
+    o = outcomes[outcomes["outcome"] == col]
+    for c, g in o.groupby("cluster"):
+        g = g.set_index("year").reindex(analysis.OUTCOME_YEARS[col])
+        ax.plot(g.index, g["median"], marker="o", markersize=4, color=colors[c],
+                linewidth=2, label=f"{c} · {names[c]}")
+    ax.set_title(label, fontsize=11, loc="left")
+    ax.set_xticks([2016, 2018, 2020, 2022])
+fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2,
+           frameon=False, bbox_to_anchor=(0.5, -0.14))
+plt.tight_layout()
+plt.show()
+```
+
+## What this does and does not show
+
+- Medians by kind and year; infant mortality and dropout are municipal values.
+- Within each kind, IRCA and infant mortality are barely related (Spearman ρ
+  `{python} f"{rho['spearman_rho'].min():+.2f}"` to `{python} f"{rho['spearman_rho'].max():+.2f}"`).
+- **Descriptive only: this does not establish a causal effect of water quality.**
+- Poverty, rurality, health-service access and reporting quality differ between kinds.
+- Next: add service continuity and diarrhoeal disease data when they become available.
+
+::: {.notes}
+Sources: INS IRCA (datos.gov.co nxt2-39c3, utility-supplied, prestadores); DNP TerriData;
+DANE; ICFES; MEN; CHIRPS; SRTM. See data/README.md in the project.
+:::
