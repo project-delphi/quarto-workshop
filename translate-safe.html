@@ -79,18 +79,19 @@
     });
   }
 
-  // Code inside prompts. Prompts write literals as code (paths, file names, snake_case
-  // columns, calls, name=value) or in double quotes (what the assistant must find or
-  // match; AGENTS.md). Also kept: Quarto commands, options and format names, gh, and the
-  // names a translator reads as words (without the list, the column mdm became "señora").
-  const commands = /((?<![\w"])"[^"]+"(?!\w)|“[^”]+”|quarto [a-z]+(?: gh-pages| --[\w-]+)*|\bgh(?![\w-])|\b(?:format|toc|lang|freeze|papersize|execute-dir): [\w-]+)/;
-  const listed = new Set(["gh-pages", "pre-render", "format-links", "london-guide",
-                          "water-quality", "campaign-site", "marketing-blog",
-                          "html", "docx", "typst", "pptx", "epub", "revealjs",
-                          "irca", "ipm", "mdm", "divipola"]);
-  const isCode = (word) => listed.has(word) || word.split("/").length > 2 ||
-    (!/^(?:e\.g|i\.e)$/i.test(word) &&
-     /^[./~]|\/$|\w\.\w|[_=<>*{}#\\|]|\w\(|^--|-\w*\d|[a-z]\d/.test(word));
+  // The Colombian sources' acronyms are already Spanish (translation made MDM "DMM"); in
+  // prompts they are also lowercase column names (it made the column mdm "señora").
+  const sources = ["IRCA", "IPM", "MDM", "SGP", "DANE", "DIVIPOLA", "ICFES", "INS", "DNP"];
+
+  // Code inside prompts. A prompt writes each literal the assistant must find or match as
+  // code (`backticks` for a bare name, or a path, file name, snake_case column, call or
+  // name=value) or in double quotes (AGENTS.md). Also kept: Quarto commands, options and
+  // format names, gh, and the sources' acronyms.
+  const commands = /(`[^`]+`|(?<![\w"])"[^"]+"(?!\w)|“[^”]+”|quarto [a-z]+(?: gh-pages| --[\w-]+)*|\bgh(?![\w-])|\b(?:format|toc|lang|freeze|papersize|execute-dir): [\w-]+)/;
+  const formats = new Set(["html", "docx", "typst", "pptx", "epub", "revealjs"]);
+  const isCode = (word) => formats.has(word) || sources.includes(word.toUpperCase()) ||
+    word.split("/").length > 2 || (!/^(?:e\.g|i\.e)$/i.test(word) &&
+    /^[./~]|\/$|\w\.\w|[_=<>*{}#\\|]|\w\(|^--|-[a-z]+\d|[a-z]\d/.test(word));
   const count = (text, char) => text.split(char).length - 1;
 
   function splitPrompt(text) {
@@ -141,10 +142,10 @@
     if (!p.querySelector(".done-label")) p.prepend(label("strong", "done-label", "✅", "You're done when"), " ");
   });
 
-  // The Colombian sources' acronyms are already Spanish; translation made MDM "DMM".
-  const names = /\b(Quarto|Markdown|Typst|YAML|Jupyter|Reveal\.js|GitHub Pages|IRCA|IPM|MDM|SGP|DANE|DIVIPOLA|ICFES|INS|DNP)\b/;
+  const names = new RegExp(String.raw`\b(Quarto|Markdown|Typst|YAML|Jupyter|Reveal\.js|GitHub Pages|${sources.join("|")})\b`);
   keep(slides, (text) => text.split(names), names);
 
+  // Every inline code needs this, not only in boxes: translation joins words to it anywhere.
   slides.querySelectorAll("code").forEach((code) => code.closest("pre") || holdEdges(code));
 })();
 </script>
