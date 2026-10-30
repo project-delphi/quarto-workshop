@@ -2,6 +2,8 @@
 
 State at the end of the Markdown block (steps 1–5 and the first render): `london.md` with a heading, lists, a link, the Big Ben photo, a quote, a table and a code fence, plus `images/`. No YAML and no code yet.
 
+`AGENTS.md` holds the project's rules for the coding assistant, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
+
 ## Catch up
 
 Ask your coding assistant, started in `london-guide/`:

@@ -3,7 +3,7 @@
 ## Scope and architecture
 
 This repository is a Quarto website containing Reveal.js teaching decks. Read `_quarto.yml`,
-`README.md`, and the affected `.qmd` files before editing. `index.qmd` is the 3 h 10 min
+`README.md`, and the affected `.qmd` files before editing. `index.qmd` is the 3 h 20 min
 hands-on workshop: Part 0 (intro, setup), Part 1 (London guide, included from
 `slides/_london.qmd`) and Part 2 (Colombian water quality, included from `slides/_water.qmd`).
 `ai-workflows.qmd` teaches graduate-level agent-assisted authoring. Preserve the dark theme
@@ -105,7 +105,9 @@ prompting a coding assistant.
 ## Worked examples and report deliverables
 
 `examples/london/` is the finished Part 1 project and `examples/water/` the finished Part 2
-project; `checkpoints/NN-*/` hold the state at the end of each hands-on block, with
+project. Each project, its examples and its checkpoints from the environment step on carry
+the `AGENTS.md`, `pyproject.toml` and `uv.lock` that the slides' prompts create; their
+Quarto and Python commands run through `uv run`; `checkpoints/NN-*/` hold the state at the end of each hands-on block, with
 catch-up steps in their READMEs and no rendered output. London checkpoints carry their small cited `data/` and `images/` so each renders
 on its own; water checkpoints hold sources only (participants copy `examples/water/data/`
 first). Keep all three outside `project.render`; they are rendered separately for testing.

@@ -5,7 +5,7 @@
 
 # 💧 Part 2 · Colombia water quality and infant mortality {#part-2}
 
-[⏱️ 1:00]{.clock}
+[⏱️ 1:05]{.clock}
 
 ```{=html}
 <style>
@@ -89,37 +89,37 @@ Part 2 is computed by this deck from `examples/water/data/water_municipal.csv` w
 ::: {}
 [💧]{.big}
 
-**1:00** why · data
+**1:05** why · rules · data
 :::
 ::: {}
 [🔍]{.big}
 
-**1:10** explore
+**1:20** explore
 :::
 ::: {}
 [🧹]{.big}
 
-**1:25** prepare
+**1:35** prepare
 :::
 ::: {}
 [🧩]{.big}
 
-**1:40** cluster
+**1:50** cluster
 :::
 ::: {}
 [🏷️]{.big}
 
-**2:00** interpret
+**2:10** interpret
 :::
 ::: {}
 [⚠️]{.big}
 
-**2:15** correlation ≠ causation
+**2:25** correlation ≠ causation
 :::
 ::: {}
 [📤]{.big}
 
-**2:25** publish many
+**2:35** publish many
 :::
 :::
 
@@ -128,12 +128,57 @@ Part 2 is computed by this deck from `examples/water/data/water_municipal.csv` w
 :::
 
 ::: {.notes}
-10 + 15 + 15 + 20 + 15 + 10 + 45 = 130 minutes, from 1:00 to 3:10. Section dividers show
+15 + 15 + 15 + 20 + 15 + 10 + 45 = 135 minutes, from 1:05 to 3:20. Section dividers show
 the same start times. The 45-minute publishing block has its own start times on each slide.
 Exercise times add up to 10, 10, 12, 10, 6 and 36 minutes for explore to publish; the rest
 of each block is for the concept slides, showing results and recovering from a failed
 command. Several exercises have two prompts, one task each. These are estimates: rehearse
 with a stopwatch and change the clocks, this slide and README together.
+:::
+
+## 📏 Two measures: IRCA and Saber 11 {#water-measures}
+
+::: {.cards .groups}
+::: {}
+[💧 IRCA · water-quality risk]{.group}
+
+- 🧪 tap-water samples against health limits
+- ⚖️ failed tests weighted by risk: *E. coli* 25 · turbidity 15 · pH 1.5
+- 📏 0 = no risk → 100 = unfit
+:::
+::: {.fragment}
+[🎓 Saber 11 · ICFES exam]{.group}
+
+- 🧑‍🎓 students finishing secondary school
+- 📚 5 tests: reading, maths, social studies, science, English
+- 📏 global score 0–500
+:::
+:::
+
+::: {.fragment .bigline}
+🧮 each row: one zone's IRCA · its schools' mean Saber 11
+:::
+
+[Resolución 2115 de 2007, arts. 13–14 ([normas.cra.gov.co](https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm)) ·
+ICFES, *Saber 11.° Guía de orientación 2017-1*, pp. 101 and 104 ([icfes.gov.co](https://www.icfes.gov.co/wp-content/uploads/2024/11/Guia-de-orientacion-saber-11-2017-1.pdf))]{.source}
+
+::: {.notes}
+IRCA (Índice de Riesgo de la Calidad del Agua para consumo humano), Resolución 2115 de
+2007: each tested characteristic carries a risk score (art. 13, Cuadro 6: *Escherichia
+coli* 25, total coliforms 15, turbidity 15, free residual chlorine 15, apparent colour 6,
+pH 1.5, among others). A sample's IRCA is the score of the characteristics that fail their
+limit as a percentage of the score of all characteristics analysed, and the monthly IRCA
+is the mean over the month's samples (art. 14). So 0 means every test passed and 100 means
+every test failed. Our `irca` is the year's utility-supplied ("prestadores") IRCA from the
+INS open table; the next slide shows why that matters. Saber 11 is ICFES's standardized exam
+for students finishing upper secondary school, with five tests (critical reading,
+mathematics, social studies and citizenship, natural sciences, English). The global score
+is 5 × the weighted mean of the five test scores (each 0–100; English weight 1, the others
+3), on 0–500 without decimals, and its mean was fixed at 250 in the first sitting (2014-2)
+so that years compare (guide, p. 104). Our `saber11_mean` is the mean global score of the
+students whose school is in that municipality and zone, both sittings of a year pooled; it
+covers only students who sat the exam, so it says nothing about those who left school.
+Sources checked 2026-10-30.
 :::
 
 ## 🚰 Why drinking water? {#water-why}
@@ -289,6 +334,63 @@ columns are counted from `examples/water/data/water_municipal.csv`: every DIVIPO
 utility-supplied ("prestadores") IRCA from INS open data, datos.gov.co `nxt2-39c3`.
 :::
 
+## 📜 Rules for the analysis {#water-agents}
+
+::: {.prompt}
+```default
+Read data/README.md, then create AGENTS.md for this project. Scope: describe Colombian municipal water quality and infant mortality from data/ only. Rules: keep data/ unchanged, label IRCA as utility-supplied (prestadores), never cluster on outcomes, and say comparisons are descriptive, not causal. Show me the file.
+```
+:::
+
+::: {.agent}
+reads `data/README.md` · writes `AGENTS.md`: scope, rules, the data's caveats
+:::
+
+::: {.you}
+approve · check that every rule is there
+:::
+
+::: {.notes}
+The same idea as the London guide's `AGENTS.md`, with this analysis' rules: the raw data
+stay unchanged, the INS open table's IRCA is the utility-supplied ("prestadores") IRCA and
+is labelled so, outcomes (infant mortality, Saber 11, dropout) describe the clusters but
+never define them, and comparisons between clusters do not establish causal effects of
+water quality. Reading `data/README.md` first lets the assistant add the data's caveats
+(method changes, capitals' coverage, the years each source covers). The assistant reads
+these rules in every session of this part, including after a restart.
+:::
+
+## 📦 The project's environment {#water-env}
+
+::: {.prompt}
+```default
+Give this project its own Python environment with `uv`: run `uv init --bare`, then `uv add ipykernel nbclient nbformat pyyaml pandas numpy matplotlib plotly scikit-learn pyarrow itables tabulate`. Run `quarto` and `python` through `uv run`, and add that rule to AGENTS.md. Show me the Python line of `uv run quarto check jupyter`.
+```
+:::
+
+::: {.agent}
+`uv init --bare` · `uv add …` → `pyproject.toml`, `uv.lock`, `.venv/` · adds a rule to `AGENTS.md`
+:::
+
+::: {.you}
+approve its commands · from now on preview with `uv run quarto preview`
+:::
+
+::: {.bigline}
+📦 one project · one environment · the same `uv run` as Part 1
+:::
+
+::: {.notes}
+Same recipe as the London guide, with the analysis packages: `scikit-learn` for k-means,
+`pyarrow` for the parquet outputs, `itables` for the dashboard's table and `tabulate` for
+pandas' Markdown tables. It takes seconds because uv reuses the packages it downloaded
+for Part 1. Every Python and Quarto command in this part starts with `uv run`, including
+the website's pre-render script, which Quarto runs with the environment's Python. The data
+build script, `examples/water/scripts/build_dataset.py`, declares its own packages at its
+top, so `uv run` gives it a separate environment. Docs, checked 2026-10-30:
+https://docs.astral.sh/uv/concepts/projects/run/.
+:::
+
 ## 🧩 Features vs 🎯 outcomes {#water-features}
 
 **🧩 Cluster on**
@@ -350,7 +452,7 @@ groups are for reading only: k-means sees nine z-scored columns with equal weigh
 ::: {.wat-flow}
 ```text
 data/water_municipal.csv
-        │   python3 scripts/analysis.py
+        │   uv run python scripts/analysis.py
         ▼
 outputs/clusters.parquet  +  outputs/cluster_profiles.csv
         │   every page reads them
@@ -373,7 +475,7 @@ anywhere.
 
 # 🔍 Explore {#water-explore}
 
-[⏱️ 1:10]{.clock}
+[⏱️ 1:20]{.clock}
 
 ## 🔍 Look before you model {#water-explore-what}
 
@@ -462,7 +564,7 @@ Read data/README.md. Create explore.qmd from data/water_municipal.csv (divipola 
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.agent}
-writes `explore.qmd` · `quarto render explore.qmd`
+writes `explore.qmd` · `uv run quarto render explore.qmd`
 :::
 :::
 ::: {.column width="50%"}
@@ -494,7 +596,7 @@ sources only. Check the missingness table: if
 
 # 🧹 Prepare {#water-prepare}
 
-[⏱️ 1:25]{.clock}
+[⏱️ 1:35]{.clock}
 
 ## 🧹 Four steps from table to features {#water-prepare-steps}
 
@@ -625,7 +727,7 @@ Read data/README.md. Create scripts/analysis.py with prepare(df): rows with enti
 :::
 
 ::: {.agent}
-writes `scripts/analysis.py` · runs `python3 scripts/analysis.py`
+writes `scripts/analysis.py` · runs `uv run python scripts/analysis.py`
 :::
 
 ::: {.source .behind}
@@ -657,7 +759,7 @@ In prepare(), drop rows missing more than 2 features, fill the rest with the `ye
 :::
 
 ::: {.agent}
-edits `prepare()` · `python3 scripts/analysis.py`
+edits `prepare()` · `uv run python scripts/analysis.py`
 :::
 
 ::: {.source .behind}
@@ -681,7 +783,7 @@ is missing, the assistant will install it in your environment.
 
 # 🧩 Cluster {#water-cluster}
 
-[⏱️ 1:40]{.clock}
+[⏱️ 1:50]{.clock}
 
 ## 🧩 k-means in four steps {#water-kmeans}
 
@@ -1066,7 +1168,7 @@ In scripts/analysis.py, run k-means on the z_ features for k=2–8 (random_state
 :::
 
 ::: {.agent}
-edits `scripts/analysis.py` · `python3 scripts/analysis.py`
+edits `scripts/analysis.py` · `uv run python scripts/analysis.py`
 :::
 
 ::: {.source .behind}
@@ -1101,7 +1203,7 @@ Create clusters.qmd that reads outputs/k_selection.csv and outputs/clusters.parq
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.agent}
-writes `clusters.qmd` · `quarto render clusters.qmd`
+writes `clusters.qmd` · `uv run quarto render clusters.qmd`
 :::
 :::
 ::: {.column width="50%"}
@@ -1127,12 +1229,12 @@ Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
 
 ::: {.notes}
 The page only reads `outputs/`; it never refits k-means. Run order:
-`python3 scripts/analysis.py && quarto render clusters.qmd`. Checkpoint 07 holds both files.
+`uv run python scripts/analysis.py && uv run quarto render clusters.qmd`. Checkpoint 07 holds both files.
 :::
 
 # 🏷️ Interpret {#water-interpret}
 
-[⏱️ 2:00]{.clock}
+[⏱️ 2:10]{.clock}
 
 ## 🌡️ What sets each cluster apart? {#water-heatmap}
 
@@ -1262,7 +1364,7 @@ In scripts/analysis.py, add outcome rules: infant_mortality only in 2017–2019 
 :::
 
 ::: {.agent}
-adds the outcome rules and `outcomes_by_year()` · `python3 scripts/analysis.py`
+adds the outcome rules and `outcomes_by_year()` · `uv run python scripts/analysis.py`
 :::
 
 ::: {.source .behind}
@@ -1297,7 +1399,7 @@ Write outputs/cluster_profiles.csv: rows, municipalities, mean raw and z feature
 :::
 
 ::: {.agent}
-adds `profiles()` and a naming rule · `python3 scripts/analysis.py`
+adds `profiles()` and a naming rule · `uv run python scripts/analysis.py`
 :::
 
 ::: {.source .behind}
@@ -1332,7 +1434,7 @@ Add to clusters.qmd a heatmap of the cluster mean z-scores (features × clusters
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.agent}
-edits `clusters.qmd` · `quarto render clusters.qmd`
+edits `clusters.qmd` · `uv run quarto render clusters.qmd`
 :::
 :::
 ::: {.column width="50%"}
@@ -1365,7 +1467,7 @@ gaps rather than as a line across them.
 
 # ⚠️ Correlation ≠ causation {#water-causation}
 
-[⏱️ 2:15]{.clock}
+[⏱️ 2:25]{.clock}
 
 ## 📉 Worse water, more infant deaths? {#water-within}
 
@@ -1459,7 +1561,7 @@ In scripts/analysis.py, for 2017–2019 and 2021–2023, make one row per munici
 :::
 
 ::: {.agent}
-adds `irca_vs_infant()` · `python3 scripts/analysis.py`
+adds `irca_vs_infant()` · `uv run python scripts/analysis.py`
 :::
 
 ::: {.source .behind}
@@ -1492,7 +1594,7 @@ Add a section to clusters.qmd that reads those outputs: median infant_mortality 
 :::
 
 ::: {.agent}
-edits `clusters.qmd` · `quarto render clusters.qmd`
+edits `clusters.qmd` · `uv run quarto render clusters.qmd`
 :::
 
 💬 while it runs, with a neighbour: pick one confounder: could it hide a real effect, or create a fake one?
@@ -1519,9 +1621,9 @@ an effect). Checkpoint 09 holds the finished `scripts/analysis.py` and `clusters
 
 # 📤 Publish many {#water-publish}
 
-[⏱️ 2:25]{.clock}
+[⏱️ 2:35]{.clock}
 
-## 📄 2:25 · Report → docx + PDF {#water-report}
+## 📄 2:35 · Report → docx + PDF {#water-report}
 
 ::: {.prompt}
 ```default
@@ -1532,7 +1634,7 @@ Create report.qmd (formats html, docx, typst) from outputs/: summary, question, 
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.agent}
-writes `report.qmd` · `quarto render report.qmd`
+writes `report.qmd` · `uv run quarto render report.qmd`
 :::
 :::
 ::: {.column width="50%"}
@@ -1565,7 +1667,7 @@ Typst is bundled with Quarto and takes `papersize` (default `us-letter`; Part 1'
 https://quarto.org/docs/output-formats/typst.html (checked 2026-10-30).
 :::
 
-## 📊 2:35 · Slides → revealjs + pptx {#water-slides}
+## 📊 2:45 · Slides → revealjs + pptx {#water-slides}
 
 ::: {.prompt}
 ```default
@@ -1576,7 +1678,7 @@ Create slides.qmd (revealjs and pptx) for the municipal council, 6 slides with t
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.agent}
-writes `slides.qmd` · `quarto render slides.qmd`
+writes `slides.qmd` · `uv run quarto render slides.qmd`
 :::
 :::
 ::: {.column width="50%"}
@@ -1609,7 +1711,7 @@ only" message. Options: https://quarto.org/docs/reference/formats/presentations/
 (checked 2026-10-30).
 :::
 
-## 📖 2:40 · Report → ePub {#water-epub}
+## 📖 2:50 · Report → ePub {#water-epub}
 
 ::: {.prompt}
 ```default
@@ -1633,7 +1735,7 @@ format:
 :::
 ::: {.column width="50%"}
 ::: {.agent}
-edits `report.qmd` · `quarto render report.qmd`
+edits `report.qmd` · `uv run quarto render report.qmd`
 :::
 
 ::: {.you}
@@ -1667,7 +1769,7 @@ https://quarto.org/docs/reference/formats/epub.html; links:
 https://quarto.org/docs/output-formats/html-multi-format.html (checked 2026-10-30).
 :::
 
-## ✍️🌐 2:45 · Blog + website {#water-website}
+## ✍️🌐 2:55 · Blog + website {#water-website}
 
 :::: {.columns}
 ::: {.column width="52%"}
@@ -1701,7 +1803,7 @@ until you run `rm -rf _freeze`
 
 ::: {.notes}
 `pre-render` runs the script before every render, including a single-file render inside
-the project. `freeze: false` re-executes every page on every render, so one `quarto render`
+the project. `freeze: false` re-executes every page on every render, so one `uv run quarto render`
 rebuilds the analysis and every publication, and nothing needs clearing when `data/` or the
 script change. `execute-dir: project` makes every page, including the post in `posts/…/`,
 read `outputs/` and `data/` from the project folder. Optional extension for slow sites:
@@ -1725,12 +1827,12 @@ Make this folder a Quarto website: _quarto.yml (execute-dir: project, `pre-rende
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.agent}
-writes 3 files · `quarto render` → `_site/`
+writes 3 files · `uv run quarto render` → `_site/`
 :::
 :::
 ::: {.column width="50%"}
 ::: {.you}
-`quarto preview`
+`uv run quarto preview`
 :::
 :::
 ::::
@@ -1755,7 +1857,7 @@ render if the analysis changes it. Navbar: Explore, Clusters, Report, Slides and
 Downloads menu linking `report.docx`, `report.pdf`, `report.epub` and `slides.pptx`.
 :::
 
-## 📈 2:55 · Dashboard {#water-dashboard}
+## 📈 3:05 · Dashboard {#water-dashboard}
 
 :::: {.columns}
 ::: {.column width="50%"}
@@ -1829,19 +1931,19 @@ components: https://quarto.org/docs/dashboards/ (checked 2026-10-30).
 
 ::: {.prompt}
 ```default
-Create dashboard.qmd (format: dashboard): a Plotly choropleth of "urban" IRCA band from data/municipios.geojson (featureidkey="properties.divipola"), a year slider (frames update only z), an itables table of outputs/clusters.parquet. Add it to the navbar; render and report errors.
+Create dashboard.qmd (format: dashboard): a Plotly choropleth of "urban" IRCA band from data/municipios.geojson (featureidkey="properties.divipola"), a year slider (frames update only z), an itables table of outputs/clusters.parquet. Make it polished: IRCA bands in order from no risk to unfit, light to dark, with a legend, titled cards and readable labels. Add it to the navbar; render, check it looks good at laptop size and report errors.
 ```
 :::
 
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.agent}
-writes `dashboard.qmd` · edits `_quarto.yml` · `quarto render`
+writes `dashboard.qmd` · edits `_quarto.yml` · `uv run quarto render`
 :::
 :::
 ::: {.column width="50%"}
 ::: {.you}
-reload the preview (or `quarto preview`) → 📈 Dashboard
+reload the preview (or `uv run quarto preview`) → 📈 Dashboard
 :::
 :::
 ::::
@@ -1867,17 +1969,17 @@ If the map is a grey box, ask the assistant to reverse the polygon rings for Plo
 project is `quarto-workshop/examples/water/`, and its README holds the catch-up steps.
 :::
 
-## 🌍 3:05 · Publish it {#water-ship}
+## 🌍 3:15 · Publish it {#water-ship}
 
 ::: {.prompt}
 ```default
-Initialise a git repository here with a .gitignore for _site/, .quarto/ and outputs/, and commit everything else. Then create a public GitHub repository named `water-quality` with gh and push to it.
+Initialise a git repository here with a .gitignore for _site/, .quarto/, .venv/ and outputs/, and commit everything else. Then create a public GitHub repository named `water-quality` with gh and push to it.
 ```
 :::
 
 ::: {.prompt}
 ```default
-Publish the site with quarto publish gh-pages --no-prompt and tell me the live URL.
+Publish the site with `uv run quarto publish gh-pages --no-prompt` and tell me the live URL.
 ```
 :::
 
