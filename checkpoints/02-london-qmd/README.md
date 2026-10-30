@@ -1,3 +1,3 @@
-- Checkpoint 02 · From .md to .qmd: `london.qmd` with YAML front matter, four formats (html, docx, typst, pptx), a Python cell, inline code and a figure.
+- Checkpoint 02 · From .md to .qmd: `london.qmd` with YAML front matter, six formats (html, docx, typst, pptx, epub, revealjs slides in `london-slides.html`), a Python cell, inline code and a figure.
 - Copy, from the folder that holds `quarto-workshop/`: `rm -f london-guide/london.md && cp -R quarto-workshop/checkpoints/02-london-qmd/. london-guide/`
-- Render: `cd london-guide && quarto render london.qmd` (all four formats) or `quarto render london.qmd --to docx` (one).
+- Render: `cd london-guide && quarto render london.qmd` (all six formats) or `quarto render london.qmd --to docx` (one).

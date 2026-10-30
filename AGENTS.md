@@ -75,10 +75,13 @@ prompting a coding assistant.
 - Hands-on slides use the three boxes defined in `theme.scss`: `::: {.prompt}` holds the exact
   prompt in a ```` ```default ```` fence (copyable, 1–4 lines, one task, concrete file/column
   names, a verification ask; with `code-line-numbers: false` a `text` fence gets no copy button); `::: {.agent}` lists what the assistant will likely run; `::: {.you}`
-  lists what participants type or click themselves (accounts, `git push`, `quarto publish`).
+  lists only what needs the participant: starting the assistant, accounts and sign-in,
+  approving the assistant's commands, `quarto preview`, and opening results. Work an
+  assistant can run (rendering, git, `gh repo create`, `quarto publish … --no-prompt`)
+  belongs in a prompt.
 - Exercises use `### Exercise · ⏱️ N min` and a `::: {.done}` block whose text completes
   "You're done when …". Each hands-on step has a copyable checkpoint in `checkpoints/`,
-  named on the slide with `::: {.source .behind}` ("😰 Behind? copy `checkpoints/…`").
+  named on the slide with `::: {.source .behind}` ("😰 Stuck? copy `checkpoints/…`").
 
 ## Worked examples and report deliverables
 

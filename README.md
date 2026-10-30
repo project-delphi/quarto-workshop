@@ -1,9 +1,9 @@
 # Quarto Workshop
 
 Create reproducible content you can share with the world, using Quarto. In a hands-on
-3 h 10 min session, participants turn plain-text Markdown into **docx, pdf, pptx, xlsx, a
-website, a blog and a dashboard**, with a coding assistant (Claude Code or Codex) writing the
-computations. The slides are the course resource: everything needed to follow along alone is
+3 h 10 min session, participants turn plain-text Markdown into **docx, pdf, pptx, revealjs slides, epub, a
+website, a blog and a dashboard**, with a coding assistant (Claude Code, Codex or Antigravity)
+writing the computations. The slides are the course resource: everything needed to follow along alone is
 on them.
 
 - **[Quarto workshop](https://project-delphi.github.io/quarto-workshop/)**: Part 1 builds a
@@ -17,16 +17,19 @@ on them.
 
 Before the workshop, install [Quarto](https://quarto.org/docs/get-started/), Python, Git,
 an editor, the [GitHub CLI](https://cli.github.com/) (signed in with `gh auth login`), and one
-coding assistant ([Claude Code](https://code.claude.com/docs/en/setup) or
-[Codex](https://github.com/openai/codex)). Then clone this repository next to your working
+coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
+[Codex](https://github.com/openai/codex) or Google's
+[Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli), `agy`). Then clone this repository next to your working
 folders; it holds the checkpoints and the data:
 
 ```bash
 git clone https://github.com/project-delphi/quarto-workshop.git
 ```
 
-PDFs use Quarto's bundled Typst engine, so no LaTeX install is needed
-(`quarto install tinytex` is the LaTeX alternative). Shell examples assume macOS, Linux, or WSL.
+PDFs use Quarto's bundled Typst engine, so no LaTeX install is needed. To follow the slides
+in another language such as Spanish, use the
+[Google Translate extension](https://chromewebstore.google.com/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb);
+code blocks are marked not to be translated. Shell examples assume macOS, Linux, or WSL.
 
 ### How the slides work
 
@@ -36,7 +39,7 @@ Hands-on slides use three coloured boxes:
 |---|---|
 | 🤖 **Ask your coding assistant** (violet) | The exact prompt to paste |
 | 👀 **Expect it to run** (amber) | Commands the assistant will probably run for you |
-| ⌨️ **You type** (green) | The few commands and clicks you do yourself: accounts, `git push`, `quarto publish`, opening files |
+| ⌨️ **You type** (green) | The few things only you can do: start the assistant, sign in, approve its commands, run `quarto preview`, open results |
 
 Every exercise shows a ⏱️ time box and a ✅ "you're done when…" check. If you fall behind,
 copy the matching checkpoint into your folder and carry on, for example:

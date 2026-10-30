@@ -1,0 +1,63 @@
+<script>
+// Shared by both decks: make browser translation (e.g. the Google Translate extension) help.
+// 1. Code must not be rewritten: commands, prompts and file names are marked translate="no".
+// 2. Box labels are real text, not CSS content, so they are translated with the slide.
+// 3. Product names stay as written ("Quarto" must not become "Cuarto").
+// Attribute: https://html.spec.whatwg.org/multipage/dom.html#attr-translate (checked 2026-10-30).
+(() => {
+  const slides = document.querySelector(".reveal .slides");
+  if (!slides) return;
+
+  slides.querySelectorAll("pre, code").forEach((el) => el.setAttribute("translate", "no"));
+
+  function label(tag, className, emoji, text) {
+    const el = document.createElement(tag);
+    el.className = className;
+    const icon = document.createElement("span");
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = emoji + " ";
+    el.append(icon, text);
+    return el;
+  }
+  const boxes = {
+    prompt: ["🤖", "Ask your coding assistant"],
+    agent: ["👀", "Expect it to run"],
+    you: ["⌨️", "You type"],
+  };
+  Object.entries(boxes).forEach(([name, [emoji, text]]) => {
+    slides.querySelectorAll(`.${name}`).forEach((box) => {
+      if (!box.querySelector(":scope > .box-label")) box.prepend(label("div", "box-label", emoji, text));
+    });
+  });
+  slides.querySelectorAll(".done > p:first-child").forEach((p) => {
+    if (!p.querySelector(".done-label")) p.prepend(label("strong", "done-label", "✅", "You're done when "));
+  });
+
+  // Not global: test() on a global pattern would carry lastIndex between nodes.
+  const names = /\b(Quarto|Markdown|Typst|YAML|Jupyter|Reveal\.js|GitHub Pages)\b/;
+  const walker = document.createTreeWalker(slides, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) =>
+      node.parentElement.closest("pre, code, script, style, svg, [translate='no']") ||
+      !names.test(node.nodeValue)
+        ? NodeFilter.FILTER_REJECT
+        : NodeFilter.FILTER_ACCEPT,
+  });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach((node) => {
+    const parts = node.nodeValue.split(names);
+    const fragment = document.createDocumentFragment();
+    parts.forEach((part, i) => {
+      if (i % 2) {
+        const span = document.createElement("span");
+        span.setAttribute("translate", "no");
+        span.textContent = part;
+        fragment.append(span);
+      } else if (part) {
+        fragment.append(part);
+      }
+    });
+    node.replaceWith(fragment);
+  });
+})();
+</script>
