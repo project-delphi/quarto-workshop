@@ -21,7 +21,8 @@ $code-block-font-size: 0.6em;
   --ws-muted: #{$ws-muted};
   --ws-panel: rgba(134, 204, 232, 0.08);
   /* Spacing factor per slide, set by slide-spacing.html: 1 on full slides, up to 1.8 on
-     slides with spare room. Margins scale with it; at 1 the layout is unchanged. */
+     slides with spare room, down to 0.6 on overfull (translated) ones. Margins scale
+     with it; at 1 the layout is unchanged. */
   --ws-space: 1;
 }
 
@@ -330,19 +331,25 @@ $code-block-font-size: 0.6em;
 .reveal span.source { display: inline-block; line-height: 1.35; }
 .reveal a code { color: inherit; text-decoration: underline; }
 
-/* "😰 Stuck?" catch-up prompt, floated beside the exercise label: a copyable one-liner
-   naming the checkpoint README that lists the steps. Keeps level with the exercise label
-   as its margin scales with --ws-space. */
+/* "😰 Stuck?" catch-up prompt beside the exercise label: a copyable one-liner naming the
+   checkpoint README that lists the steps. The label floats left on one line; the prompt,
+   a flex box, takes the rest of the row and wraps its path when both are long (as in
+   translations). Keeps level with the label as its margin scales with --ws-space. */
+.reveal h3[id^="exercise"]:has(+ .behind) {
+  float: left;
+  margin-right: 0.5em;
+  white-space: nowrap;
+}
 .reveal .behind {
-  float: right;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.5em;
-  max-width: 77%;
   margin-top: calc(0.2em + 0.79em * var(--ws-space));
 }
 .reveal .behind > p { margin: 0; white-space: nowrap; }
 .reveal .behind div.sourceCode {
+  min-width: 0;
   margin: 0;
   border: 0;
   background: rgba(0, 0, 0, 0.28);
@@ -351,9 +358,11 @@ $code-block-font-size: 0.6em;
 .reveal .behind pre code,
 .reveal .behind pre > .prompt-text { padding: 0.2em 2.4em 0.2em 0.5em; color: #e6e6e6; }
 .reveal .behind ~ .done { clear: both; }
-/* A float's top ignores margin collapsing, so the block before it gives up its bottom
-   margin; the exercise label's own top margin then sets the gap for both. */
-.reveal .slides section > :has(+ .behind) { margin-bottom: 0; }
+/* A float's top ignores margin collapsing, so the block before the label (and its last
+   child, whose margin would pass through it) gives up its bottom margin; the label's and
+   the prompt's own top margins then set the gap. */
+.reveal .slides section > :has(+ h3[id^="exercise"] + .behind),
+.reveal .slides section > :has(+ h3[id^="exercise"] + .behind) > :last-child { margin-bottom: 0; }
 
 /* Pace marker under a slide title: 🏠 pre-work or ⭐ optional, self-paced. */
 .reveal .pace {

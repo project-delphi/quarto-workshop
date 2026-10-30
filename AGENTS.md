@@ -94,8 +94,9 @@ prompting a coding assistant.
 - Exercises use `### Exercise · ⏱️ N min` and a `::: {.done}` block whose text completes
   "You're done when …". Each hands-on block ends with a checkpoint in `checkpoints/` whose
   README lists the catch-up steps (back up to a new time-stamped folder, copy, copy water
-  data if missing, render, check a named output). The slide's `::: {.source .behind}` holds
-  a copyable `default` fence: "Catch me up: follow ../quarto-workshop/checkpoints/NN-…/README.md".
+  data if missing, render, check a named output). The slide's `::: {.source .behind}`, placed
+  right after the exercise label so it shares its row, holds a copyable `default` fence:
+  "Catch me up: follow ../quarto-workshop/checkpoints/NN-…/README.md".
 - Mark pre-work slides `[🏠 before the workshop]{.pace}` (`before the lab` in the AI lab) and
   optional slides `[⭐ self-paced]{.pace}`; when the pill would crowd a slide, end the title
   with `· ⭐ optional` or write `### Exercise · ⭐ self-paced`. Each deck's agenda explains ⭐.
