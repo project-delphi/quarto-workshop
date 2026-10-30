@@ -1,0 +1,3 @@
+- Checkpoint 09 · Correlation ≠ causation: checkpoint 08 plus within-cluster IRCA vs infant mortality (Spearman ρ, n) and the descriptive-only caveat in `clusters.qmd`.
+- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/09-water-causation/. water-quality/`
+- Run: `cd water-quality && python scripts/analysis.py && quarto render clusters.qmd`

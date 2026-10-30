@@ -1,0 +1,3 @@
+- Checkpoint 11 · Council slides: checkpoint 10 plus `slides.qmd` (six-slide pptx).
+- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/11-water-slides/. water-quality/`
+- Run: `cd water-quality && python scripts/analysis.py && quarto render slides.qmd`
