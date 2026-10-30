@@ -2,7 +2,7 @@
 
 Welcome to **London**: free museums, royal history and *riverside walks*.
 
-## Top 5 sights
+## Five sights to start with
 
 1. British Museum
 2. Natural History Museum
