@@ -144,13 +144,15 @@ Markdown(t.to_markdown(index=False))
 
 ```{python}
 #| label: fig-outcomes
-#| fig-cap: "Median outcome by kind and year. Infant mortality changes method in 2017 and 2020 looks like a different source, so only 2017–2019 and 2021–2023 are shown. Saber 11: published years. Infant mortality and dropout are municipal values, repeated on both zone rows. Descriptive only."
-#| fig-alt: "Three small line charts by year, one line per kind. Cities and large towns have the lowest infant mortality and the highest Saber 11 scores. Lowland towns have the lowest Saber 11 scores. Dropout medians stay between about 1.7 and 4.6 percent, lowest in highland towns, and dips in 2020 for every kind."
+#| fig-cap: "Median outcome by kind and year. Infant mortality changes method in 2017 and 2020 looks like a different source, so only 2017–2019 and 2021–2023 are shown. Saber 11: published years. Infant mortality and dropout are municipal values, repeated on both zone rows, counted once per cluster and year. Descriptive only."
+#| fig-alt: "Three small line charts by year, one line per kind. Cities and large towns have the lowest infant mortality and the highest Saber 11 scores. Lowland towns have the lowest Saber 11 scores. Dropout medians stay between about 1.7 and 4.7 percent, lowest in highland towns, and dips in 2020 for every kind."
 fig, axes = plt.subplots(1, 3, figsize=(6.5, 2.5))
 for ax, (col, label) in zip(axes, analysis.OUTCOMES.items()):
     o = outcomes[outcomes["outcome"] == col]
     for c, g in o.groupby("cluster"):
-        g = g.set_index("year").reindex(analysis.OUTCOME_YEARS[col])
+        # Every year of the span: excluded years become gaps, not joined lines.
+        yrs = analysis.OUTCOME_YEARS[col]
+        g = g.set_index("year").reindex(range(min(yrs), max(yrs) + 1))
         ax.plot(g.index, g["median"], marker="o", markersize=3, color=colors[c],
                 linewidth=1.5, label=f"{c} · {names[c]}")
     ax.set_title(label.replace(" (", "\n("), fontsize=8, loc="left")
@@ -204,7 +206,8 @@ plt.show()
 Within each kind, Spearman's ρ between IRCA and infant mortality lies between
 `{python} f"{rho['spearman_rho'].min():+.2f}"` and `{python} f"{rho['spearman_rho'].max():+.2f}"`.
 Across all kinds together it is `{python} f"{rho['all_clusters_rho'].iloc[0]:+.2f}"`
-(n = `{python} f"{rho['all_clusters_n'].iloc[0]:,}"` zone-years).
+(n = `{python} f"{rho['all_clusters_n'].iloc[0]:,}"` municipality-years; a municipality whose
+two zones share a cluster counts once).
 
 This analysis is **descriptive and does not establish a causal effect of water quality** on
 infant mortality or any other outcome, and a weak association does not show the absence of

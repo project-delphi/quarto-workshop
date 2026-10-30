@@ -48,6 +48,7 @@
   }
 
   const measured = new WeakSet();
+  let firstPass = true;
 
   function space(slide, limit) {
     if (measured.has(slide) || slide.matches("#title-slide, .level1")) return;
@@ -69,7 +70,8 @@
   function spaceSlides(deck) {
     const limit = deck.getConfig().height * LIMIT;
     const current = deck.getCurrentSlide();
-    const initial = !measured.size;
+    const initial = firstPass;
+    firstPass = false;
     deck.getSlides().forEach((slide) => {
       // After the first pass, never change the slide that is on screen.
       if (initial || slide !== current) space(slide, limit);

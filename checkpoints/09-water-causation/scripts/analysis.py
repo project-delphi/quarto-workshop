@@ -291,6 +291,13 @@ def name_rule(p: pd.Series) -> str:
     return f"{setting}, {risk} water"
 
 
+def once_per_municipality(rows: pd.DataFrame, col: str) -> pd.DataFrame:
+    """Municipal outcomes repeat on both zone rows: keep one per cluster and year."""
+    if OUTCOME_LEVEL[col] == "municipality":
+        return rows.drop_duplicates(["cluster", "divipola", "year"])
+    return rows
+
+
 def profiles(clustered: pd.DataFrame) -> pd.DataFrame:
     """One row per cluster: size, mean raw and z features, outcome summaries."""
     g = clustered.groupby("cluster")
@@ -304,7 +311,8 @@ def profiles(clustered: pd.DataFrame) -> pd.DataFrame:
     prof = prof.join(g[FEATURES].mean().add_prefix("mean_"))
     prof = prof.join(g[[f"z_{c}" for c in FEATURES]].mean())
     for col in OUTCOMES:          # pooled over OUTCOME_YEARS[col]
-        by = clustered[clustered["year"].isin(OUTCOME_YEARS[col])].groupby("cluster")[col]
+        rows = clustered[clustered["year"].isin(OUTCOME_YEARS[col])].dropna(subset=[col])
+        by = once_per_municipality(rows, col).groupby("cluster")[col]
         prof[f"{col}_mean"] = by.mean()
         prof[f"{col}_median"] = by.median()
         prof[f"{col}_n"] = by.count()
@@ -318,10 +326,15 @@ def profiles(clustered: pd.DataFrame) -> pd.DataFrame:
 
 def outcomes_by_year(clustered: pd.DataFrame) -> pd.DataFrame:
     """Median and n of each outcome by cluster and year (within-year comparison)."""
-    long = clustered.melt(id_vars=["cluster", "year"], value_vars=list(OUTCOMES),
+    long = clustered.melt(id_vars=["cluster", "divipola", "year"], value_vars=list(OUTCOMES),
                           var_name="outcome").dropna(subset=["value"])
     keep = [y in OUTCOME_YEARS[o] for o, y in zip(long["outcome"], long["year"])]
     long = long[keep]
+    # Municipal outcomes repeat on both zone rows: count each municipality once per
+    # cluster and year.
+    municipal = long["outcome"].map(OUTCOME_LEVEL).eq("municipality")
+    long = pd.concat([long[~municipal],
+                      long[municipal].drop_duplicates(["outcome", "cluster", "divipola", "year"])])
     out = (long.groupby(["outcome", "cluster", "year"])["value"]
            .agg(median="median", n="count").reset_index())
     out["level"] = out["outcome"].map(OUTCOME_LEVEL)
@@ -334,8 +347,13 @@ def irca_vs_infant(clustered: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
     Pools the observed-rate regime years INFANT_YEARS. Infant mortality is
     municipal; IRCA is zone-level (an ecological mismatch). Rows with a blank
     rate are left out, and a blank may mean no infant deaths were recorded.
+    Unit: one municipality-year within a cluster. When both zones of a municipality
+    fall in the same cluster, its rate is counted once, with the zones' mean IRCA.
     """
     d = clustered[clustered["year"].isin(INFANT_YEARS)].dropna(subset=["infant_mortality"])
+    d = (d.groupby(["cluster", "divipola", "year"], as_index=False)
+           .agg(irca=("irca", "mean"), infant_mortality=("infant_mortality", "first")))
+    d["irca_band"] = irca_band(d["irca"])
     rows = [{"cluster": c,
              "spearman_rho": g["irca"].corr(g["infant_mortality"], method="spearman"),
              "n": len(g), "municipalities": g["divipola"].nunique()}
