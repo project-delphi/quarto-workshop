@@ -2,6 +2,8 @@
 
 State at the end of the audiences block: checkpoint 03 plus `london-email.qmd` (docx), `london-flyer.qmd` (A5 Typst PDF) and `london-social.qmd` (12 cm square Typst PDF; optional on the slides).
 
+`AGENTS.md` holds the project's rules for the coding assistant, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
+
 ## Catch up
 
 Ask your coding assistant, started in `london-guide/`:
@@ -15,5 +17,5 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 1. Keep your work: `cp -R . "../london-guide-backup-04-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `london-guide/`, so earlier backups are kept).
 2. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/04-london-audiences/. .`
 3. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
-4. Render: `quarto render london-email.qmd && quarto render london-flyer.qmd && quarto render london-social.qmd`.
+4. Render: `uv run quarto render london-email.qmd && uv run quarto render london-flyer.qmd && uv run quarto render london-social.qmd`.
 5. Check: `london-email.docx` opens with headings and working links, `london-flyer.pdf` is one A5 page and `london-social.pdf` is one 12 cm square page.

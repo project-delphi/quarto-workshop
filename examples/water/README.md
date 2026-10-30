@@ -28,13 +28,14 @@ water quality.
 
 ## Rebuild
 
-From this folder, with a Python that has pandas, numpy, matplotlib, scikit-learn, pyarrow,
-tabulate, plotly, itables and Jupyter:
+From this folder. `pyproject.toml` and `uv.lock` define the Python environment, and `uv run`
+builds it in `.venv/` on first use; `AGENTS.md` holds the project's rules for coding
+assistants:
 
 ```bash
-python3 scripts/analysis.py   # writes outputs/ and prints the row counts and the k table
-quarto render                # runs the script again (pre-render), then renders every page
-quarto preview               # live preview at a local URL
+uv run python scripts/analysis.py  # writes outputs/ and prints the row counts and the k table
+uv run quarto render                # runs the script again (pre-render), then renders every page
+uv run quarto preview               # live preview at a local URL
 ```
 
 `scripts/analysis.py` writes:
@@ -52,7 +53,7 @@ Every page reads these files. None of them recomputes the clusters.
 ## Fresh execution
 
 `_quarto.yml` sets `execute: freeze: false`, so every render re-executes every page, and the
-pre-render step rebuilds `outputs/` first. One `quarto render` therefore rebuilds the
+pre-render step rebuilds `outputs/` first. One `uv run quarto render` therefore rebuilds the
 analysis and every publication from `data/`: after you change `data/` or
 `scripts/analysis.py` there is nothing to clear. Rendering a single file inside the project
 also runs the pre-render script first.
@@ -64,8 +65,8 @@ track the files a page reads, so after `data/` or `scripts/analysis.py` changes,
 pages keep their old results until you clear them:
 
 ```bash
-rm -rf _freeze && quarto render     # re-execute every page
-quarto render clusters.qmd          # or one page: rendering a single file ignores freeze
+rm -rf _freeze && uv run quarto render  # re-execute every page
+uv run quarto render clusters.qmd       # or one page: rendering a single file ignores freeze
 ```
 
 Use it only once the slower renders matter, and write the invalidation step down.
@@ -123,7 +124,7 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 
 1. Keep your work: `cp -R . "../water-quality-backup-final-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `water-quality/`, so earlier backups are kept).
 2. Copy the finished project here, data included: `cp -R ../quarto-workshop/examples/water/. .`
-3. Render the site: `quarto render` (the pre-render step runs `scripts/analysis.py` first).
+3. Render the site: `uv run quarto render` (the pre-render step runs `scripts/analysis.py` first).
 4. Check: `_site/index.html` lists one post, and `_site/dashboard.html` shows a map that
    changes with the year slider.
 

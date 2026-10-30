@@ -1,7 +1,7 @@
 # Quarto Workshop
 
 Create reproducible content you can share with the world, using Quarto. In a hands-on
-3 h 10 min session, participants turn plain-text Markdown into **docx, pdf, pptx, revealjs slides, epub, a
+3 h 20 min session, participants turn plain-text Markdown into **docx, pdf, pptx, revealjs slides, epub, a
 website, a blog and a dashboard**, with a coding assistant (Claude Code, Codex or Antigravity)
 writing the computations. The slides are the course resource: everything needed to follow along alone is
 on them.
@@ -15,7 +15,8 @@ on them.
 
 ## For attendees
 
-Before the workshop, install [Quarto](https://quarto.org/docs/get-started/), Python, Git,
+Before the workshop, install [Quarto](https://quarto.org/docs/get-started/),
+[uv](https://docs.astral.sh/uv/getting-started/installation/) (it brings Python), Git,
 an editor, the [GitHub CLI](https://cli.github.com/) (signed in with `gh auth login`), and one
 coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
 [Codex](https://github.com/openai/codex) or Google's
@@ -28,7 +29,9 @@ cd ~ && git clone https://github.com/project-delphi/quarto-workshop.git
 
 Also before the workshop: run the setup check on the slides and read
 [Markdown in Y minutes](https://learnxinyminutes.com/markdown/). PDFs in both decks use
-Quarto's bundled Typst engine, so no LaTeX install is needed. To follow the slides
+Quarto's bundled Typst engine, so no LaTeX install is needed. Each project creates its own
+Python environment with uv during the workshop (one prompt, a few seconds), and its Quarto
+and Python commands run through `uv run`. To follow the slides
 in another language such as Spanish, use the
 [Google Translate extension](https://chromewebstore.google.com/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb);
 code blocks are marked not to be translated, and prompts are translated with the file
@@ -70,12 +73,12 @@ the diff.
 | 0:00 | 👋 Welcome · 🎯 objective · 🏁 outcome |
 | 0:05 | 🧭 What is Quarto? |
 | 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install and [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) are pre-work) |
-| 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML |
-| 0:30 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, many formats |
-| 0:40 | 🗂️ Part 1 · One guide, five audiences + dashboard |
-| 0:50 | 🌍 Part 1 · Publish to GitHub Pages |
-| 1:00 | 💧 Part 2 · Colombia water quality and infant mortality (130 min) |
-| 3:10 | 🏁 Done |
+| 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment |
+| 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, many formats |
+| 0:45 | 🗂️ Part 1 · One guide, five audiences + dashboard |
+| 0:55 | 🌍 Part 1 · Publish to GitHub Pages |
+| 1:05 | 💧 Part 2 · Colombia water quality and infant mortality (135 min) |
+| 3:20 | 🏁 Done |
 
 ## For instructors and contributors
 
