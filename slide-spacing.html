@@ -1,0 +1,105 @@
+<script>
+// Shared by both decks. Slides with spare room get more space between their blocks:
+// each content slide receives the largest --ws-space factor (theme.scss scales its
+// margins with it) whose content still ends above LIMIT of the slide height. Full
+// slides keep factor 1, i.e. the stylesheet's own spacing. Fragments are measured in
+// place: Reveal hides them with opacity, so they keep their space.
+// API: https://revealjs.com/api/ (getSlides, getConfig, layout), checked 2026-10-30.
+(() => {
+  const STEPS = [1.8, 1.6, 1.4, 1.2];
+  const LIMIT = 0.88;
+
+  // Content height in slide units: the slide's own height once it may shrink to fit.
+  // (Children's offsets understate inline .columns wrappers.)
+  function contentBottom(slide) {
+    slide.style.setProperty("height", "auto", "important");
+    slide.style.setProperty("min-height", "0", "important");
+    const bottom = slide.offsetHeight;
+    slide.style.removeProperty("height");
+    slide.style.removeProperty("min-height");
+    return bottom;
+  }
+
+  // Far-away slides, and the vertical stacks Quarto wraps sections in, are display:none;
+  // show them for the measurement, then restore their style attributes.
+  function unhide(slide) {
+    const changed = [];
+    for (let el = slide; el && !el.matches(".slides"); el = el.parentElement) {
+      if (getComputedStyle(el).display === "none") {
+        changed.push([el, el.getAttribute("style")]);
+        el.style.setProperty("display", "block", "important");
+      }
+    }
+    return changed;
+  }
+
+  function restore(changed) {
+    changed.reverse().forEach(([el, style]) => {
+      if (style === null) el.removeAttribute("style");
+      else el.setAttribute("style", style);
+    });
+  }
+
+  // Reveal lazy-loads images (data-src) only near the current slide; a slide whose images
+  // have not loaded keeps factor 1 until they have, so it is measured before it is shown.
+  function imagesReady(slide) {
+    return [...slide.querySelectorAll("img")].every(
+      (img) => !img.hasAttribute("data-src") && img.complete && img.naturalHeight > 0);
+  }
+
+  const measured = new WeakSet();
+  let firstPass = true;
+
+  function space(slide, limit) {
+    if (measured.has(slide) || slide.matches("#title-slide, .level1")) return;
+    if (!imagesReady(slide)) return;
+    const changed = unhide(slide);
+    slide.style.setProperty("--ws-space", "1");
+    let fit = 1;
+    if (contentBottom(slide) <= limit) {
+      fit = STEPS.find((step) => {
+        slide.style.setProperty("--ws-space", String(step));
+        return contentBottom(slide) <= limit;
+      }) || 1;
+    }
+    restore(changed);
+    slide.style.setProperty("--ws-space", String(fit));
+    measured.add(slide);
+  }
+
+  function spaceSlides(deck) {
+    const limit = deck.getConfig().height * LIMIT;
+    const current = deck.getCurrentSlide();
+    const initial = firstPass;
+    firstPass = false;
+    deck.getSlides().forEach((slide) => {
+      // After the first pass, never change the slide that is on screen.
+      if (initial || slide !== current) space(slide, limit);
+    });
+    deck.layout();
+  }
+
+  function initialize() {
+    const deck = window.Reveal;
+    if (!deck) return;
+    const run = () => document.fonts.ready.then(() => {
+      spaceSlides(deck);
+      deck.on("slidechanged", () => spaceSlides(deck));
+      document.addEventListener("load", (event) => {
+        if (event.target.tagName === "IMG") spaceSlides(deck);
+      }, true);
+      if (document.readyState !== "complete") {
+        window.addEventListener("load", () => spaceSlides(deck));
+      }
+    });
+    if (deck.isReady()) run();
+    else deck.on("ready", run);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize);
+  } else {
+    initialize();
+  }
+})();
+</script>

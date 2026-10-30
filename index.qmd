@@ -1,960 +1,396 @@
 ---
 title: "Quarto Workshop"
-subtitle: "Build with a coding agent, understand with Quarto"
+subtitle: "📝 Plain text → 🌍 the world"
 author: "Ravi Kalia"
 date: ""
-description: "Four wine-data authoring tasks: introduction slides, a three-page essay, a runnable Jupyter notebook, and a separate blog."
+title-note: "🌍 Prefer Spanish or another language? The
+  [Google Translate extension](https://chromewebstore.google.com/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb)
+  translates these slides; code stays as written."
+template-partials:
+  - assets/title-slide.html
+description: "A hands-on workshop: turn Markdown into docx, pdf, pptx, revealjs slides, epub, a website, a blog and a dashboard with Quarto and a coding assistant, using a London guide and Colombian water-quality data."
 ---
 
-## What You Will Build
+## 🎯 Objective · 🏁 Outcome {#objective}
 
-Four connected tasks about **wine chemistry**, built with a coding agent:
+::: {.goal}
+[🎯 Objective]{.goal-label}
 
-| Task | Final output |
-|---|---|
-| 1. Introduction slides | Six-slide `intro.html` presentation |
-| 2. Evidence essay | Three-page `essay.pdf` |
-| 3. Data notebook | Runnable `notebook.ipynb` with saved results |
-| 4. Blog | HTML home page and a wine-chemistry post |
+Create **reproducible content** you can **share with the world**, using Quarto.
+:::
 
-The real [UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
-records 13 chemical measurements for 178 wines from three anonymous cultivars.
-The challenge: **what can chemistry tell us, and what can it not?**
+. . .
 
-Keep editable sources and build instructions for each task. The blog is a
-separate website task, not the Jupyter notebook.
+::: {.goal .goal-outcome}
+[🏁 Outcome]{.goal-label}
+
+Plain-text Markdown becomes
+
+::: {.chips}
+[📄 docx]{} [📕 pdf]{} [📊 pptx]{} [🎞️ revealjs]{} [📖 epub]{} [🌐 website]{} [✍️ blog]{} [📈 dashboard]{}
+:::
+
+🤖 with the code written by your coding assistant
+:::
+
+[🌍 [¿Prefieres leer en español? La extensión Google Translate traduce estas diapositivas; el código no cambia.]{lang="es"} ·
+[Google Translate](https://chromewebstore.google.com/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb)]{.source}
 
 ::: {.notes}
-Learning objectives: request an implementation, read Markdown/YAML/code,
-check rendered results, and request a precise revision. Audience: students
-new to Quarto, with basic folder and terminal familiarity. Completion means
-four inspected deliverables from one unchanged source CSV. The dataset is
-classification data, not wine quality or tasting data. Source: UCI Wine dataset,
-checked 2026-10-21.
+Audience: people comfortable with files and a terminal, new to Quarto. Prerequisites:
+Quarto, Python, Git, a GitHub account and one coding assistant installed (setup slide).
+Completion: a published London dashboard URL and a published water-quality site.
+The slides are the course resource: participants can follow them alone. Most steps
+are done by prompting the coding assistant; the green boxes are the few things people
+type themselves.
 :::
 
-## The Wine Question {#wine-question}
+## 🗓️ Agenda {#agenda}
 
-Imagine three unlabeled groups of wine bottles. A lab measures each sample's
-chemistry. Could those measurements help identify its cultivar?
+| ⏱️ | Block | Min |
+|---|---|--:|
+| 0:00 | 👋 Welcome · 🎯 objective · 🏁 outcome | 5 |
+| 0:05 | 🧭 What is Quarto? | 5 |
+| 0:10 | 🛠️ Setup check | 5 |
+| 0:15 | 📖 Read: Markdown in Y minutes | 5 |
+| 0:20 | 🇬🇧 Part 1 · London: Markdown → HTML | 10 |
+| 0:30 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, many formats | 10 |
+| 0:40 | 🗂️ Part 1 · One guide, five audiences + dashboard | 10 |
+| 0:50 | 🌍 Part 1 · Publish to GitHub Pages | 10 |
+| 1:00 | 💧 Part 2 · Water quality in Colombian municipalities | 130 |
+| 3:10 | 🏁 Done | |
 
-| What we have | What we do not have |
-|---|---|
-| 178 samples, three anonymous cultivar labels | Named grapes or tasting scores |
-| 13 measured features per wine | A guarantee about new regions or vintages |
-
-We will begin with **alcohol** and **color intensity**, then inspect how
-individual wines overlap even when group averages differ.
+: {tbl-colwidths="[10,80,10]"}
 
 ::: {.notes}
-UCI describes samples from one Italian region and three cultivars. Cultivar
-numbers 1–3 are categories, not ranks. Color intensity has no unit specified
-on the UCI page. The local CSV is a scikit-learn copy with added sample IDs.
-UCI and scikit-learn documentation checked 2026-10-21.
+Section dividers show the same start times. Part 2 has its own agenda slide.
+The total is 190 minutes: Part 2 keeps its stage times and adds a 10-minute
+motivation and dataset block.
 :::
 
-## Can Two Measurements Separate the Cultivars? {#wine-preview}
+# 🧭 What is Quarto? {#what-is-quarto}
 
-```{python}
-#| echo: false
-#| label: fig-wine-preview
-#| fig-cap: "Alcohol versus color intensity for 178 UCI wine samples. Colors show anonymous cultivar labels."
-#| fig-alt: "Scatterplot of alcohol and color intensity for 178 wines in three cultivar groups. The groups differ but overlap, especially around the center of the plot."
-import pandas as pd
-import matplotlib.pyplot as plt
+[⏱️ 0:05]{.clock}
 
-wine = pd.read_csv("examples/wine-context/wine.csv")
-with plt.style.context("dark_background"):
-    fig, ax = plt.subplots(figsize=(8, 4))
-    for label, group in wine.groupby("cultivar"):
-        ax.scatter(group.alcohol, group.color_intensity, label=f"Cultivar {label}",
-                   s=34, alpha=0.8)
-    ax.set_xlabel("Alcohol (dataset measurement)")
-    ax.set_ylabel("Color intensity (dataset measurement)")
-    ax.legend(title="Anonymous label", ncol=3, loc="upper center")
-    fig.tight_layout()
-    plt.show()
-```
+## Quarto = Markdown → anything {#quarto-hub}
 
-**Look closely:** where do the colors overlap? This plot describes the supplied
-wines; it is not a test of classification accuracy.
+![](assets/quarto-hub.svg){fig-alt="Two inputs, a .md Markdown file and a .qmd file with code in Python, R, bash, SQL, MATLAB, Java, JavaScript or C, flow into Quarto, shown by its four-quadrant logo, which combines Pandoc with Jupyter and knitr. Quarto produces four groups of formats: documents (html, pdf, docx, odt and, highlighted, epub); presentations (revealjs, pptx, beamer); the web (website, blog, dashboard); and more (Markdown, Jupyter notebooks, JATS, wikis)." width="92%"}
+
+[📚 [All Quarto output formats](https://quarto.org/docs/output-formats/all-formats.html) ·
+Quarto logo: Posit, PBC]{.source}
 
 ::: {.notes}
-The caption and labels describe a real, local dataset, not invented teaching
-counts. One point is one wine sample. Both axes show the dataset's recorded
-values; UCI does not give physical units for these columns. Ask learners to
-locate overlap before they see group means.
+Pandoc converts the Markdown. Code cells run in Jupyter (Python) or knitr (R), and their
+results are inserted. Quarto's principal languages are Python, R, Julia and Observable
+JavaScript (`{ojs}` cells, run in the reader's browser); Jupyter kernels add many more,
+such as MATLAB or Java (https://quarto.org/docs/faq/,
+https://quarto.org/docs/computations/ojs.html). knitr's engines run `{sql}`, `{c}` and
+`{bash}` cells (https://pkg.yihui.org/rmarkdown-book/language-engines.html); in Jupyter,
+`!` lines run shell commands
+(https://quarto.org/docs/computations/execution-options.html#shell-commands). Today we
+use Python only. The official
+list groups documents (HTML, PDF, MS Word, OpenDocument, ePub), presentations (Revealjs,
+PowerPoint, Beamer), Markdown flavours, wikis and more (Jupyter, JATS, RTF, …):
+https://quarto.org/docs/output-formats/all-formats.html. ePub is the e-book format:
+https://quarto.org/docs/reference/formats/epub.html. Websites and blogs
+(https://quarto.org/docs/websites/) and dashboards (https://quarto.org/docs/dashboards/)
+are built from the same files. All checked 2026-10-30. The Quarto logo is a Posit, PBC
+trademark, used here to refer to Quarto (https://quarto.org/trademark.html).
 :::
 
-## Workshop Route
+# 🛠️ Setup {#setup}
 
-| Stage | Checkpoint |
-|---|---|
-| Setup and source exercises | Practice page `hello.html` |
-| Task 1: wine-data introduction | Six generated slides |
-| Task 2: evidence and summaries | Three-page essay |
-| Task 3: data Jupyter notebook | Executed `.ipynb` |
-| Task 4: separate blog | Working home page and post |
-| Review, collaboration, publication | Checked files and approved destination |
+[⏱️ 0:10]{.clock}
 
-: {tbl-colwidths="[55,45]"}
+## 🪟 Windows? Work inside Ubuntu {#wsl}
 
-Work through the tasks across sessions. Publication follows review and approval.
+::: {.cards .tips}
+::: {}
+[🐧]{.big}
+
+**Install inside Ubuntu**
+
+Quarto, gh, Python and the assistant, in the WSL terminal
+:::
+::: {}
+[🏠]{.big}
+
+**Keep folders in `~`**
+
+not under `/mnt/c`, which is slower
+:::
+::: {}
+[📂]{.big}
+
+**`explorer.exe .`**
+
+opens this folder in Windows
+:::
+::: {}
+[➕]{.big}
+
+**Second tab: Ctrl+Shift+D**
+
+same folder, for `quarto preview`
+:::
+:::
 
 ::: {.notes}
-Audience: students new to Quarto. Prerequisites: opening a folder,
-using an editor, and basic terminal navigation. No environment-manager expertise
-is assumed. Teach the prompts live, then inspect the actual files and browser.
+macOS and Linux users skip this slide. On Windows, install WSL with Ubuntu
+(`wsl --install`, https://learn.microsoft.com/windows/wsl/install) and do everything in
+the Ubuntu terminal: installers for Windows (PowerShell) put the tools where WSL cannot
+use them. Microsoft recommends keeping project files in the Linux file system, e.g.
+`/home/<user>/london-guide`, not `/mnt/c/...`, and opening the current folder in File
+Explorer with `explorer.exe .` (https://learn.microsoft.com/windows/wsl/filesystems).
+Windows browsers reach servers started in WSL at `localhost`, so Ctrl+click the URL that
+`quarto preview` prints (https://learn.microsoft.com/windows/wsl/networking). In Windows
+Terminal, Ctrl+Shift+D duplicates the tab with the same profile and folder
+(https://learn.microsoft.com/windows/terminal/customize-settings/actions). All checked
+2026-10-30.
 :::
 
-## How to Use These Slides
+## 🧩 No coding assistant yet? {#install-assistant}
 
-Most slides repeat one three-part pattern:
+::: {.you .installers}
+::: {}
+**✳️ Claude Code**
 
-:::: {.columns}
-::: {.column width="33%"}
-**Ask your coding agent**
-
-Paste the plain-English request into your agent session.
+`claude` · [setup](https://code.claude.com/docs/en/setup)
 :::
-::: {.column width="33%"}
-**Commands**
-
-See what performs the work, or run the step yourself.
-:::
-::: {.column width="33%"}
-**Check**
-
-Inspect an observable result before continuing.
-:::
-::::
-
-The agent can edit files and run local tools, subject to its permissions.
-You do not need to repeat a command it has already completed.
-
-::: {.notes}
-Codex CLI capabilities and interactive workflow:
-https://developers.openai.com/codex/cli/ (checked 2026-10-06).
-The prompts are workshop examples, not transcripts or guaranteed agent responses.
-:::
-
-## Before You Begin
-
-- Install [Quarto](https://quarto.org/docs/get-started/), Git, and an editor.
-- Install one coding agent using the next two slides, then open your working folder.
-- Sign in with an account that can use your chosen tool.
-- Have a GitHub account and [GitHub CLI](https://cli.github.com/) for publishing.
-
-The terminal examples use macOS, Linux, or WSL on Windows.
-The same prompts work with Claude Code or Codex.
-
-## Install Claude Code {#install-claude}
-
-On macOS, Linux, or WSL, run once in your terminal:
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
-Open a new terminal, then check and start it:
+::: {}
+**🌀 Codex**
+
+`codex` · [CLI guide](https://learn.chatgpt.com/docs/codex/cli)
+:::
 
 ```bash
-claude --version
-claude
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
 ```
 
-Complete sign-in with an account that has Claude Code access.
-Choose one coding agent for the exercises.
+::: {}
+**♊ Antigravity**
 
-[Official setup and other platforms](https://code.claude.com/docs/en/setup).
-Verified **2026-10-06**.
+`agy` · Gemini · [docs](https://antigravity.google/docs/getting-started?tab=cli)
+:::
+
+```bash
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+```
+:::
+
+Pick one · install, open a new terminal tab, then start it with its command (`claude`, `codex` or `agy`)
+
+[Install commands checked 2026-10-30. Windows: run them in Ubuntu (WSL).]{.source}
 
 ::: {.notes}
-Run the installer yourself before the workshop. These fences are display-only.
-Start the agent inside the exercise folder once it is created. Do not run two
-agents as simultaneous writers in the same directory.
+Do this before the workshop. Sign in with an account that has access to the tool.
+Claude Code installer: https://code.claude.com/docs/en/setup. Codex standalone installer
+for macOS and Linux: https://learn.chatgpt.com/docs/codex/cli, which also lists Windows,
+`npm install -g @openai/codex` and Homebrew. Google's Antigravity CLI (`agy`):
+https://antigravity.google/docs/getting-started?tab=cli, which also lists PowerShell and
+CMD installers for Windows. It replaced Gemini CLI for unpaid-tier and Google One users on
+18 June 2026 (https://www.geminicli.com/docs/get-started/installation); existing Gemini CLI
+settings are migrated on first launch (https://antigravity.google/docs/cli/gcli-migration/).
+All checked 2026-10-30. Start the assistant inside the exercise folder, and never run two
+assistants writing to one folder.
 :::
 
-## Install Codex {#install-codex}
+## 🛠️ Setup check {#setup-check}
 
-With Node.js and npm available, run once in your terminal:
+🏠 Before the workshop · 🪟 on Windows, in the Ubuntu (WSL) terminal
 
+::: {.you}
 ```bash
-npm install -g @openai/codex@latest
-codex --version
-codex
-```
-
-Complete the sign-in flow with an account authorized to use Codex.
-Start it inside your exercise folder, or select that folder in a graphical client.
-
-[Official CLI guide](https://developers.openai.com/codex/cli/) and
-[npm installation example](https://developers.openai.com/cookbook/examples/codex/using_goals_in_codex).
-Verified **2026-10-06**.
-
-::: {.notes}
-Install only the tool you plan to use. Record its version. Installation and
-sign-in are preparation; later prompts use the term coding agent for either tool.
-:::
-
-# Your First Conversation
-
-## A Folder for the Workshop
-
-**Terminal, once:** choose a new folder outside this workshop repository.
-
-```bash
-mkdir -p ~/code/quarto-play
-cd ~/code/quarto-play
-# Start one coding agent:
-claude
-# Or: codex
-```
-
-**Ask your coding agent:**
-
-> I am learning Quarto. Use this folder for the exercises. Check the tools
-> available, initialize Git if needed, and work on a workshop branch.
-> Tell me which folder you are using and what is missing.
-
-**Check:** the session names `quarto-play` as its working folder.
-
-::: {.notes}
-In a graphical coding agent client, select the same local folder and enter the prompt
-in the conversation. The CLI route makes the working directory explicit without
-depending on a particular app layout. Git equivalents: git init --initial-branch=main
-and git switch -c workshop. Initial branches can be unborn until the first commit.
-:::
-
-## A Document from One Request {#first-request}
-
-**Ask your coding agent:**
-
-> Create hello.qmd, a short HTML page for a student new to Quarto.
-> Include a title, a paragraph explaining Quarto, and a list of two things
-> I can publish. Render it, fix any build errors, and tell me which file to open.
-
-**Command behind the render:**
-
-```bash
-quarto render hello.qmd --to html
-```
-
-**Check:** open `hello.html` and compare it with `hello.qmd`.
-
-::: {.notes}
-Live demonstration: send the request, show file edits and the actual render
-command, then open the output. Do not substitute the agent's completion message
-for the rendered page. If dependencies are missing, use the setup prompt below.
-:::
-
-## What the Coding Agent Did
-
-| Your request | Work to inspect |
-|---|---|
-| “Create hello.qmd” | A new editable source file |
-| “A short HTML page” | YAML selecting HTML and concise Markdown |
-| “Render it” | A Quarto command and its output |
-| “Fix any build errors” | Further edits and a successful rerun |
-
-The coding agent can carry out this sequence from a plain-English request.
-The generated source remains yours to read, edit, and version.
-
-## The Next Message Is a Revision
-
-**Continue in the same coding agent conversation:**
-
-> Change the title to “Can Chemistry Distinguish Wine Cultivars?”. Add a
-> question about alcohol and color intensity across three anonymous cultivars.
-> Add sections for code, interpretation, and sources. Render again.
-
-**Check:** both titles change. This HTML practice page prepares Task 3's `.ipynb`.
-
-### Exercise
-
-Request one different revision in your own words. Point to the changed source
-and show its effect in the browser.
-
-## A Useful Request
-
-> In hello.qmd, explain Quarto to first-year data science students. Use a
-> wine-chemistry notebook example in under 100 words. Preserve my title.
-> Render the page and check that the example appears.
-
-| Include what matters | In this request |
-|---|---|
-| Context | `hello.qmd`, first-year data science students |
-| Desired result | A short introduction with a wine-data example |
-| Constraint | Preserve the title |
-| Completion check | Render and find the example |
-
-::: {.notes}
-These are useful details, not a required prompt template. Short follow-ups work
-when the conversation already contains the context. Prompting guidance:
-https://developers.openai.com/codex/prompting/ (checked 2026-10-06).
-:::
-
-# Understanding the Source
-
-## Quarto's Job
-
-Quarto combines prose, code, and results into a publication.
-The coding agent can write the source and run Quarto for you.
-
-| Source | Role |
-|---|---|
-| Markdown | Headings, paragraphs, links, lists |
-| YAML | Title, output format, document options |
-| Executable cells | Computation and generated figures |
-| CSS | Appearance of HTML pages and slides |
-
-### Exercise
-
-Browse the [Quarto gallery](https://quarto.org/docs/gallery/). Describe one
-feature you would ask your coding agent to add to your project.
-
-## Markdown You Can Recognize
-
-**Ask your coding agent:**
-
-> Add a “Reading list” to hello.qmd with a link to the UCI Wine dataset
-> and one bold phrase explaining that cultivar labels are anonymous.
-> Verify the link, render, and explain the Markdown.
-
-**Source pattern:**
-
-```{.markdown code-line-numbers="1|3|5"}
-## Reading list
-
-The **cultivar labels are anonymous categories**.
-
-[UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
-```
-
-**Check:** a heading, bold text, and a working link appear on the page.
-
-## YAML Selects the Output
-
-**Ask your coding agent:**
-
-> Add a table of contents to hello.qmd. Keep the existing title and
-> sections. Render it and explain the YAML change.
-
-**Source pattern at the top of the file:**
-
-```yaml
----
-title: "Can Chemistry Distinguish Wine Cultivars?"
-format:
-  html:
-    toc: true
----
-```
-
-**Check:** the contents links lead to your section headings.
-
-## Formatting a Comparison
-
-**Ask your coding agent:**
-
-> Add two tabs to hello.qmd: “Question” and “Evidence”. Put a
-> short wine-data note in each. Use Quarto's tabset syntax and render.
-
-**Source pattern:**
-
-```markdown
-::: {.panel-tabset}
-## Question
-Can chemistry distinguish the three cultivars?
-## Evidence
-Alcohol and color intensity vary, with some overlap.
-:::
-```
-
-**Check:** clicking each tab reveals the corresponding text.
-
-## Displayed Code and Executed Code
-
-**Ask your coding agent:**
-
-> Add one displayed Python example and one executable Python cell to
-> hello.qmd. Have each say hello. Explain how their fences differ.
-> Render the page with execution enabled.
-
-````markdown
-```python
-print("This code is displayed")
-```
-
-```{{python}}
-print("This code runs")
-```
-````
-
-**Check:** only the executable cell produces a separate output line.
-
-## The Coding Agent Handles the Runtime
-
-If the executable example needs dependencies, **ask your coding agent:**
-
-> Inspect the available Python environments. Reuse a suitable local
-> environment or prepare one for this project. Render hello.qmd with
-> execution enabled. Fix failures and record the interpreter, dependencies,
-> and working command in README.md.
-
-**Commands you should recognize:**
-
-```bash
-quarto check jupyter
-quarto render hello.qmd
-```
-
-**Check:** the output exists and the recorded build command works.
-
-::: {.notes}
-The selected interpreter may require an environment variable or activation.
-Have the agent record the actual invocation, rather than teaching a universal
-environment fix. Optional reproducibility recipes are in the workshop repository.
-:::
-
-## A Computation in These Slides
-
-This cell counts the three cultivar groups from the supplied CSV when the
-deck renders:
-
-```{python}
-#| echo: true
-import csv
-from collections import Counter
-
-with open("examples/wine-context/wine.csv", newline="") as source:
-    group_counts = Counter(row["cultivar"] for row in csv.DictReader(source))
-total = sum(group_counts.values())
-largest_share = 100 * max(group_counts.values()) / total
-print(f"Wine samples: {total}")
-print(f"Largest group share: {largest_share:.1f}%")
-```
-
-**Check:** the total is 178. The largest group contains 71 wines.
-
-## Revise a Calculation
-
-The `max` function selects the largest cultivar group. What happens if we
-ask for the smallest group instead?
-
-### Exercise
-
-> Add this computation to hello.qmd, adjusting the CSV path to
-> `context/wine.csv`. Change `max` to `min`, render, and explain what changes.
-
-**Check:** the total stays 178 while the reported group share changes.
-
-## Cell Options Control What Readers See
-
-**Ask your coding agent:**
-
-> Hide the group-count calculation's code in the page, but keep its output
-> visible and recompute it on render. Explain the option used.
-
-**Source pattern inside the executable cell:**
-
-```python
-#| echo: false
-import csv
-from collections import Counter
-with open("context/wine.csv", newline="") as source:
-    group_counts = Counter(row["cultivar"] for row in csv.DictReader(source))
-print(f"Wine samples: {sum(group_counts.values())}")
-```
-
-`echo: false` hides source. `eval: false` would stop the calculation.
-
-**Check:** the result remains visible and agrees with the practice inputs.
-
-# Task 1: Wine Chemistry Introduction Slides
-
-## Shared Inputs for Tasks 1–3 {#wine-inputs}
-
-From the workshop clone, copy the teaching bundle into your practice folder:
-
-```bash
-mkdir -p ~/code/quarto-play/context
-cp examples/wine-context/* ~/code/quarto-play/context/
-```
-
-| Input | Purpose |
-|---|---|
-| `wine.csv` | 178 real wine samples and 13 measured features |
-| `notes.md` | Provenance, definitions, limits, and task checks |
-| `sources.bib` | UCI and scikit-learn source records |
-| `notebook.qmd` | Worked data notebook source |
-
-**Check:** return to your `quarto-play` agent session. Preserve the CSV.
-
-## Task 1: A Generated Introduction {#task-slides}
-
-**Ask your coding agent in `quarto-play`:**
-
-> Create intro.qmd for first-year data science students. Generate exactly
-> six Reveal.js slides: title, the mystery-cultivar question, what one row
-> and the labels mean, two chemical features, overlap and limits, and sources.
-> Use context/notes.md and context/sources.bib. Keep the dark theme, add
-> speaker notes, and render intro.html.
-
-```bash
-quarto render intro.qmd --to revealjs
-```
-
-**Outputs:** `intro.qmd` and `intro.html`, six slides including title and sources.
-
-**Check:** explain the question without claiming these are wine-quality scores.
-Inspect every slide at desktop and laptop sizes, including links and captions.
-
-# Task 2: A Three-Page Essay
-
-## Task 2: What Can Chemistry Tell Us? {#task-essay}
-
-**Ask your coding agent in `quarto-play`:**
-
-> Write essay.qmd for data science students about what the UCI wine
-> measurements can tell us about three anonymous cultivars. Use
-> context/wine.csv for all numbers and context/sources.bib for provenance.
-> Explain group counts, means, variation, and overlap; distinguish
-> description from prediction. Follow the page plan on the next slide.
-> Render exactly three pages to essay.pdf and inspect them.
-
-```bash
-quarto render essay.qmd --to pdf
-```
-
-**Outputs:** editable `essay.qmd` and a three-page `essay.pdf`.
-
-## Essay Page Plan and Review
-
-| Page | Argument |
-|---|---|
-| 1 | Question, dataset provenance, unit of analysis, cultivar labels |
-| 2 | Alcohol and color intensity: counts, means, spread, overlap |
-| 3 | What the descriptive evidence cannot establish; references |
-
-Use A4 paper, 11-point text, and 1-inch margins. **Three pages total**,
-including references, with no separate cover. Revise prose to fit.
-
-### Exercise
-
-Trace each numerical claim to `context/wine.csv`. Find one sentence that
-overstates the evidence and ask your agent to revise it.
-
-::: {.notes}
-Ask the agent to inspect the available PDF engine and record the build command.
-Keep the prose in essay form. Group statistics describe these 178 wines, not
-all wine. Color intensity has no unit specified in the source; avoid inventing
-one. PDF guidance checked 2026-10-19:
-https://quarto.org/docs/output-formats/pdf-basics.html.
-:::
-
-# Task 3: A Data Jupyter Notebook
-
-## Task 3: Notebook Content {#task-notebook}
-
-**Ask your coding agent in `quarto-play`:**
-
-> Adapt context/notebook.qmd into notebook.qmd here. Fix data and
-> bibliography paths to context/. Include the question, sample counts,
-> group means, medians, sample standard deviations, and a captioned
-> alcohol-versus-color scatterplot. State what a row represents and what
-> the labels mean. Include limitations and readable source links in
-> Markdown. Convert to notebook.ipynb and execute it with saved results.
-
-**Outputs:** editable `notebook.qmd` and runnable `notebook.ipynb`.
-
-**Check:** all 178 rows contribute; summaries and plot agree with the CSV.
-
-## Task 3: A Runnable Jupyter Notebook
-
-Run in `quarto-play` with the selected Python/Jupyter environment:
-
-```bash
-quarto convert notebook.qmd --output notebook.ipynb
-jupyter nbconvert --to notebook --execute --inplace notebook.ipynb
-```
-
-### Exercise
-
-Open `notebook.ipynb`, restart its kernel, and run all cells from the task folder.
-
-**Done:** code cells execute, saved table and chart agree with the CSV,
-and source links work. An HTML page alone does not complete this task.
-
-::: {.notes}
-Quarto conversion preserves executable cells. In validated Quarto 1.6.40,
-rendering directly to IPYNB can turn analysis code into Markdown. Official
-conversion and nbconvert guidance checked 2026-10-19:
-https://quarto.org/docs/cli/convert.html and
-https://nbconvert.readthedocs.io/en/latest/usage.html.
-:::
-
-# Task 4: A Separate Blog
-
-## A Separate Blog Folder
-
-**Terminal, once:** start a separate blog project and coding agent session.
-
-```bash
-mkdir -p ~/code/quarto-blog
-cd ~/code/quarto-blog
-# Start one coding agent:
-claude
-# Or: codex
-```
-
-**Ask your coding agent:**
-
-> Create a Quarto blog titled “Wine Chemistry Notebook”.
-> Initialize Git if needed and work on a blog-setup branch. Render the
-> starter site and tell me how to preview it locally.
-
-**Output:** an HTML website with a home page and a wine-chemistry post.
-**Check:** the home page lists the starter posts before you add your own.
-
-## The Scaffold Command
-
-The coding agent can run the scaffold command as part of that request:
-
-```bash
-quarto create project blog . --no-open --no-prompt
-```
-
-| Generated path | What to inspect |
-|---|---|
-| `_quarto.yml` | Site title, navigation, theme |
-| `index.qmd` | Post listing |
-| `posts/` | A folder for each post |
-| `posts/_metadata.yml` | Shared post defaults |
-| `about.qmd` | About page |
-
-**Check:** the coding agent edits the generated configuration without losing its structure.
-
-::: {.notes}
-The flags skip editor launch and confirmation. Run this command only in the
-new blog folder, and only if your coding agent has not already scaffolded it.
-Source: https://quarto.org/docs/websites/website-blog.html (checked 2026-10-06).
-:::
-
-## Choose What the Blog Publishes {#blog-render-targets}
-
-**Ask your coding agent:**
-
-> In the blog's _quarto.yml, restrict project.render to the home page,
-> about page, and posts. Keep context/ as source material for the analysis.
-> Preserve the existing site configuration.
-
-```yaml
-project:
-  type: website
-  render:
-    - index.qmd
-    - about.qmd
-    - posts/**/*.qmd
-```
-
-**Check:** after rendering, `_site/context/notes.html` and
-`_site/context/notebook.html` are absent. Add any new public pages to the list.
-
-::: {.notes}
-By default, Quarto renders Markdown and notebook inputs throughout a project.
-The copied context bundle includes notes.md and notebook.qmd, so a default blog
-would turn both into extra public pages. An explicit render list keeps these
-inputs available to the post without rendering them as pages. This controls
-render targets, not access to files explicitly copied as website resources.
-Official render-target documentation checked 2026-10-19:
-https://quarto.org/docs/projects/quarto-projects.html#render-targets.
-:::
-
-## Wine Context for the Post {#wine-context}
-
-Copy the shared teaching inputs into the separate blog:
-
-```bash
-mkdir -p ~/code/quarto-blog/context
-cp ~/code/quarto-play/context/* ~/code/quarto-blog/context/
-```
-
-| Input | Purpose |
-|---|---|
-| `wine.csv` | 178 samples and three anonymous cultivars |
-| `notes.md` | Question, provenance, and limits |
-| `sources.bib` | UCI and scikit-learn references |
-| `notebook.qmd` | Worked data notebook to adapt |
-
-**Check:** cultivar numbers are categories, not quality ratings.
-
-::: {.notes}
-Run the copy commands in a terminal, then return to the blog agent session.
-The preceding slide excludes this bundle from the blog's render list.
-:::
-
-## Your First Executable Post
-
-**Ask your coding agent:**
-
-> Read context/notes.md and context/notebook.qmd. Create
-> posts/wine-chemistry/index.qmd with a question, executable Python reading
-> wine.csv, an alcohol-versus-color scatterplot, interpretation, and cited
-> sources. Fix paths for the post folder. Include title, date, caption, and
-> alt text. Render the blog and check its listing.
-
-```bash
-quarto render
-```
-
-**Outputs:** `posts/wine-chemistry/index.qmd`,
-`_site/posts/wine-chemistry/index.html`, and a listing in `_site/index.html`.
-
-**Check:** the chart shows three labeled groups and the home page links to the post.
-
-## A Cell the Coding Agent Might Write
-
-One possible source pattern inside `posts/wine-chemistry/index.qmd`:
-
-````markdown
-```{{python}}
-#| label: fig-wine
-#| fig-cap: "Alcohol and color intensity in 178 UCI wine samples."
-#| fig-alt: "Scatterplot colored by three anonymous cultivars, with overlap."
-import pandas as pd
-import matplotlib.pyplot as plt
-wine = pd.read_csv("../../context/wine.csv")
-for label, group in wine.groupby("cultivar"):
-    plt.scatter(group.alcohol, group.color_intensity,
-                label=f"Cultivar {label}", alpha=0.7)
-plt.xlabel("Alcohol (dataset measurement)")
-plt.ylabel("Color intensity (dataset measurement)")
-plt.legend()
-plt.show()
-```
-````
-
-**Check:** each point represents one sample; the labels remain anonymous.
-
-## Provenance and Limits {#wine-notes}
-
-**Ask your coding agent:**
-
-> Cite the UCI Wine dataset for the measurements and scikit-learn for
-> the local export. Explain the row and cultivar labels. State that this
-> chart describes the supplied wines; it does not measure prediction
-> accuracy or wine quality. Render the references.
-
-- [UCI Wine dataset](https://archive.ics.uci.edu/dataset/109/wine)
-- [scikit-learn `load_wine`](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_wine.html)
-
-**Check:** the post has working source links and a specific limitation.
-
-::: {.notes}
-UCI and scikit-learn documentation checked 2026-10-21. The labels identify
-three cultivars but supply no named grapes, tasting scores, or sampling design.
-:::
-
-## Preview and Render
-
-**Ask your coding agent:**
-
-> Start a local preview of this blog and give me its URL. I want to
-> inspect the post, the listing, and the navigation in a browser.
-
-**Commands for your own terminal:**
-
-```bash
-quarto preview
-# When you need a fresh output build:
-quarto render
-```
-
-Preview serves the site while you edit. Render creates the output files.
-Neither command publishes the blog to the public web.
-
-## Feedback That Changes the Page
-
-**Continue the same conversation after inspecting the post:**
-
-> The chart uses cultivar numbers without explaining them. Add
-> “anonymous cultivar” to its legend and caption, and clarify that
-> these numbers are categories, not quality scores. Re-render the whole blog.
-
-### Exercise
-
-Find one real defect in your own preview and describe it to your coding agent.
-
-**Check:** show the before-and-after source and the corrected page.
-
-::: {.notes}
-The example names a possible defect, not an error guaranteed to occur in the
-previous cell. If the labels are already correct, choose an observed defect.
-:::
-
-## A Blog Checkpoint
-
-**Ask your coding agent:**
-
-> Review this blog for broken local links, missing figure captions, and
-> unsupported claims. Fix the issues you can verify. Render the whole
-> site and report what you checked and what still needs my review.
-
-### Exercise
-
-Open the home page, follow the post link, and return using navigation.
-Inspect the chart at a laptop viewport size.
-
-**Done:** the listing works, the figure is readable, and the prose explains the dataset provenance and limits.
-
-## Four Task Completion Checks {#task-checklist}
-
-- **Introduction slides:** `intro.html` has exactly six readable slides,
-  including the title and references.
-- **Essay:** `essay.pdf` has exactly three pages including references
-  and explains what the descriptive summaries can support.
-- **Data Jupyter notebook:** `notebook.ipynb` runs from a fresh kernel
-  and saves the group summaries and chart for all 178 wines.
-- **Separate blog:** the HTML home page links to the rendered wine-chemistry post.
-
-For every task, keep editable sources, unchanged inputs, and a `README.md`
-with build commands. Check source links, provenance, and the unit of analysis.
-
-# Review and Publication
-
-## Reviewing the Files
-
-**Ask your coding agent:**
-
-> Summarize the changes and explain which files are source, generated
-> output, or local dependencies. Check the diff and suggest the files
-> that belong in a commit. Keep this review local.
-
-**Commands for inspection:**
-
-```bash
-git status --short
-git diff --stat
-git diff --check
-```
-
-**Check:** inspect new files too. A normal `git diff` omits untracked files.
-
-## Publishing Preparation
-
-**Ask your coding agent:**
-
-> Prepare this personal blog for GitHub Pages. Inspect its configuration,
-> render it, and explain the files and repository settings needed. Show
-> the destination and intended visibility. Stop before creating a remote
-> repository, pushing, or publishing.
-
-**Check:** you recognize the account, repository name, visibility, and content.
-
-The next slide uses Quarto's `gh-pages` method for **your new blog**.
-This workshop itself serves committed `docs/` from `main`.
-
-::: {.notes}
-Publishing workflow: https://quarto.org/docs/publishing/github-pages.html
-(checked 2026-10-06). Approval here makes the classroom's proposed destination
-concrete before students expose content publicly.
-:::
-
-## Publishing Your Blog
-
-After reviewing the destination, **ask your coding agent:**
-
-> Commit the reviewed blog files, create a public GitHub repository
-> named my-blog under my account, push the source, and publish using
-> Quarto's gh-pages method. Check deployment and give me the live URL.
-
-**Commands involved, after the reviewed local commit:**
-
-```bash
+quarto check
 gh auth status
-# If needed, complete gh auth login yourself.
-gh repo create my-blog --public --source=. --push
-quarto publish gh-pages
+claude --version
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+cd ~ && git clone https://github.com/project-delphi/quarto-workshop.git
 ```
-
-**Check:** open the live URL and test a post link after deployment completes.
-
-::: {.notes}
-Replace my-blog with the student's chosen available repository name. Students
-complete authentication themselves. The agent should honor branch protection and
-use a PR where required. Do not run these commands in the workshop checkout.
-GitHub CLI reference: https://cli.github.com/manual/gh_repo_create (checked 2026-10-06).
 :::
 
-## When a Build Fails
+No `gh`? [Install the GitHub CLI](https://cli.github.com/), then `gh auth login` · 🤖 Codex: `codex --version` · Antigravity: `agy --version`
 
-**Ask your coding agent:** include the failed command, exact error, and file path.
+### Exercise · ⏱️ 4 min
 
-> Running quarto render fails in posts/wine-chemistry/index.qmd with
-> the error below. Reproduce it, identify the cause, fix it, and rerun
-> the full build. Keep execution enabled and preserve the figure.
-> Explain what changed.
-
-**Check:** the same command succeeds and the expected result still appears.
-
-### Exercise
-
-In a disposable copy, misspell a Python variable. Ask your coding agent to repair the
-failure, then explain the diff before accepting it.
-
-## Collaborative Blog Exercise
-
-### Exercise — 30 minutes
-
-Work in groups of 3–4. Each person owns a different post on their own branch.
-
-> Create a branch for my contribution. Write a post about my chosen topic
-> using the notes I provide. Follow this blog's existing conventions,
-> render it, and show me the changes for review.
-
-A partner reviews the evidence and preview. Ask your coding agent to address the feedback.
-One integrator combines the reviewed contributions and publishes.
-
-**Done:** each post has a working link, an identifiable author, and a reviewed claim.
-
-::: {.notes}
-Use separate checkouts or worktrees for concurrent writers. Avoid concurrent
-renders into one output directory. In a protected repository, use pull requests.
-An integrator may ask your coding agent to prepare integration, resolve conflicts, and run the
-full build, but must review the combined result before publishing.
+::: {.done}
+`quarto check` finds Jupyter, `gh auth status` says "Logged in", and `~/quarto-workshop/checkpoints/` exists.
 :::
 
-## Other Inputs, Same Conversation
+::: {.notes}
+`quarto check` reports Pandoc, Typst, Python and Jupyter, so there is no separate Python
+check; its Python line can pass while Jupyter shows "(None)", so check the Jupyter line.
+If Jupyter is missing, ask the coding assistant to install it for your Python and record
+the command; do not debug kernels on stage. A fresh Git has no identity and `git commit`
+fails, hence `git config`: use the name and email of your GitHub account (or its
+noreply address). The cloned workshop repository supplies the checkpoints and the
+water data. `gh auth status` must show a logged-in account before publishing.
+PDFs use `format: typst`, bundled with Quarto, so no LaTeX is needed:
+https://quarto.org/docs/output-formats/typst.html. GitHub CLI install and `gh auth login`:
+https://cli.github.com/ (both checked 2026-10-30).
+:::
 
-**A notebook:**
+## 🧰 Three boxes, three roles {#three-boxes}
 
-> Adapt my wine-chemistry analysis.ipynb into a blog post. Preserve the computations,
-> add the missing explanation, and verify that the rendered results agree.
+[👀 An example: you will paste prompts like this from Part 1 on.]{.source}
 
-**An R analysis:**
+::: {.prompt}
+```default
+Create london.md with a level-1 heading "Visit London" and one welcome paragraph.
+```
+:::
 
-> Create a post from my R script. Prepare the required packages, add
-> captions and units, and record a working render command.
+::: {.agent}
+writes `london.md` · may run `quarto render london.md`
+:::
 
-Use the same checks: source, computation, evidence, and rendered result.
+::: {.you}
+approve its commands · open `london.html` in your browser
+:::
 
-## What You Should Be Able to Explain
+::: {.notes}
+Violet: paste this prompt into your coding assistant (use the copy button).
+Amber: what the assistant will probably run; you do not repeat it. Green: the few
+things you type or click yourself, such as accounts, publishing and opening files. The
+assistant occupies its terminal, so type green commands (such as `quarto preview`) in a
+second terminal tab opened in the same folder.
+The prompts are examples, not transcripts: assistants vary, so check the result.
+:::
 
-- Which request caused a file or computation to change?
-- Which Quarto command produced the page you inspected?
-- What evidence made you accept the result?
-- What revision did you request after seeing the output?
+## 🗣️ How to prompt your coding assistant {#how-to-prompt}
 
-Continue with [AI workflows: promotion experiments and sales outcomes](ai-workflows.qmd).
+::: {.cards .tips}
+::: {}
+[🎯]{.big}
 
-## References and Questions
+**Be specific**
 
-- [Quarto guide](https://quarto.org/docs/guide/) and [Python computations](https://quarto.org/docs/computations/python.html)
-- [Creating a blog](https://quarto.org/docs/websites/website-blog.html) and [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html)
-- [Codex CLI](https://developers.openai.com/codex/cli/) and [prompting guidance](https://developers.openai.com/codex/prompting/)
-- [Claude Code installation](https://code.claude.com/docs/en/setup)
+file names, columns, chart types
+:::
+::: {}
+[☝️]{.big}
 
-CLI and publishing guidance checked **2026-10-06**.
+**One step at a time**
 
-Which part of your next publication would you ask your coding agent to build first?
+one task per prompt
+:::
+::: {}
+[✅]{.big}
+
+**Ask it to run & check**
+
+"…render it and tell me about errors"
+:::
+::: {}
+[👀]{.big}
+
+**Check what changed**
+
+you are responsible for the result
+:::
+:::
+
+🌍 ¿Español? Your first prompt can be: `Responde siempre en español; deja el código y los nombres de archivo en inglés.`
+
+::: {.notes}
+A good prompt names the file, the content, the output and a completion check. Prompts
+on the slides are in English and are not translated by the browser, so commands and file
+names stay exact; you may write your own prompts in Spanish.
+Short follow-ups work once the conversation has context. Ask the assistant to show
+what it changed; read the diff before moving on.
+:::
+
+# 📖 Read {#read}
+
+[⏱️ 0:15]{.clock}
+
+## 📖 Markdown in Y minutes {#read-markdown}
+
+👉 [learnxinyminutes.com/markdown](https://learnxinyminutes.com/markdown/) · 🇪🇸 [en español](https://learnxinyminutes.com/es/markdown/)
+
+::: {.cards style="grid-template-columns: repeat(5, 1fr);"}
+::: {}
+[\#]{.big}
+
+`#` headings
+:::
+::: {}
+[✳️]{.big}
+
+`*emphasis*` · `**bold**`
+:::
+::: {}
+[📋]{.big}
+
+`-` and `1.` lists
+:::
+::: {}
+[🔗]{.big}
+
+`[link](url)`
+
+`![image](file)`
+:::
+::: {}
+[🧮]{.big}
+
+`| tables |` · ```` ``` ```` code fences
+:::
+:::
+
+### Exercise · ⏱️ 5 min
+
+::: {.done}
+you can name the Markdown for a heading, a link and a table.
+:::
+
+::: {.notes}
+Read only; no typing yet. The next slides use exactly these constructs, one per slide.
+Page checked 2026-10-30.
+:::
+
+{{< include slides/_london.qmd >}}
+
+{{< include slides/_water.qmd >}}
+
+# 🏁 Done {#done}
+
+[⏱️ 3:10]{.clock}
+
+## 🙌 What you built {#what-you-built}
+
+::: {.cards}
+::: {}
+[🇬🇧]{.big}
+
+London guide: html · docx · pdf · pptx · revealjs · epub · dashboard · live site
+:::
+::: {}
+[💧]{.big}
+
+Water analysis: report (docx · pdf · epub) · slides (pptx · revealjs) · blog · dashboard · live site
+:::
+::: {}
+[🔁]{.big}
+
+One source, many outputs, rebuilt with one command
+:::
+:::
+
+📚 [Quarto guide](https://quarto.org/docs/guide/) ·
+[Dashboards](https://quarto.org/docs/dashboards/) ·
+[Typst](https://quarto.org/docs/output-formats/typst.html) ·
+[GitHub Pages](https://quarto.org/docs/publishing/github-pages.html)
+
+➡️ Next: [AI workflows: promotion experiments and sales outcomes](ai-workflows.qmd)
+
+::: {.notes}
+Documentation links checked 2026-10-30. Ask each team which output they would build
+first for their own work.
+:::

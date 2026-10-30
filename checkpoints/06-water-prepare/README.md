@@ -1,0 +1,3 @@
+- Checkpoint 06 · Prepare: checkpoint 05 plus `scripts/analysis.py` with `prepare()`: rows, features, capital fill, imputation flags, z-scores within year; writes `outputs/prepared.parquet`.
+- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/06-water-prepare/. water-quality/`
+- Run: `cd water-quality && python3 scripts/analysis.py`

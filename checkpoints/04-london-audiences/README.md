@@ -1,0 +1,3 @@
+- Checkpoint 04 · Five audiences: checkpoint 03 plus `london-email.qmd` (docx), `london-flyer.qmd` (A5 Typst PDF) and `london-social.qmd` (12 cm square Typst PDF).
+- Copy, from the folder that holds `quarto-workshop/`: `rm -f london-guide/london.md && cp -R quarto-workshop/checkpoints/04-london-audiences/. london-guide/`
+- Render: `cd london-guide && quarto render london-email.qmd && quarto render london-flyer.qmd && quarto render london-social.qmd`.

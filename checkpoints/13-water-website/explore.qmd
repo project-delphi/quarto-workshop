@@ -1,0 +1,120 @@
+---
+title: "Explore the municipal water data"
+subtitle: "Colombia, 2010–2023 · one row per municipality × zone × year"
+format:
+  html:
+    code-fold: true
+    toc: true
+---
+
+```{python}
+#| label: setup
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("data/water_municipal.csv", dtype={"divipola": str, "dpto_code": str})
+n_rows, n_cols = df.shape
+n_codes = df["divipola"].nunique()
+first, last = int(df["year"].min()), int(df["year"].max())
+
+# Resolución 2115 de 2007, art. 15. IRCA has one decimal, so (5, 14] is 5.1–14.
+bands = ["No risk (0–5)", "Low (5.1–14)", "Medium (14.1–35)", "High (35.1–80)",
+         "Unfit (80.1–100)"]
+band_colors = ["#eea471", "#dc813b", "#c66000", "#a44700", "#803300"]
+df["irca_band"] = pd.cut(df["irca"], bins=[-0.001, 5, 14, 35, 80, 100], labels=bands)
+zone_colors = {"urban": "#0072b2", "rural": "#d55e00"}
+```
+
+The table has `{python} f"{n_rows:,}"` rows and `{python} n_cols` columns:
+`{python} f"{n_codes:,}"` DIVIPOLA codes × 2 zones × `{python} last - first + 1` years.
+IRCA here is the **utility-supplied ("prestadores") IRCA** in the INS open table
+datos.gov.co `nxt2-39c3`, not INS's national total. See `data/README.md` for every
+column, source and caveat.
+
+## Missing values by column and zone
+
+```{python}
+#| label: tbl-missing
+#| tbl-cap: "Share of rows with a missing value (%), 2010–2023, by zone. Columns without gaps are left out."
+keys = ["divipola", "municipio", "dpto_code", "departamento", "region", "entity_type",
+        "zone", "year", "irca_band", "irca_missing"]
+missing = (df.drop(columns=keys).isna().groupby(df["zone"]).mean().T * 100).round(1)
+missing = missing[["urban", "rural"]]
+missing = missing[missing.max(axis=1) > 0].sort_values("rural", ascending=False)
+missing
+```
+
+Rural IRCA is missing far more often than urban IRCA: many rural systems are not sampled.
+Department capitals have no zone-level coverage (only `water_coverage_total`).
+
+## IRCA by risk band and zone
+
+```{python}
+#| label: fig-bands
+#| fig-cap: "Rows by IRCA risk band (Resolución 2115 de 2007, art. 15) and zone, 2010–2023. Utility-supplied (prestadores) IRCA, INS open data."
+#| fig-alt: "Two horizontal stacked bars, urban and rural, split into five IRCA risk bands from no risk to unfit. About half of urban rows with an IRCA value are in the no-risk band; rural rows are spread across all bands, with the largest share in the high-risk band."
+counts = pd.crosstab(df["zone"], df["irca_band"]).reindex(["rural", "urban"])
+share = counts.div(counts.sum(axis=1), axis=0) * 100
+fig, ax = plt.subplots(figsize=(8, 2.6))
+left = pd.Series(0.0, index=share.index)
+for band, color in zip(bands, band_colors):
+    ax.barh(share.index, share[band], left=left, color=color, label=band,
+            edgecolor="white", linewidth=2)
+    left += share[band]
+ax.set_xlabel("Share of rows with an IRCA value (%)")
+ax.set_xlim(0, 100)
+ax.spines[["top", "right"]].set_visible(False)
+ax.legend(ncol=3, frameon=False, bbox_to_anchor=(0, 1.02), loc="lower left", fontsize=8)
+plt.show()
+```
+
+```{python}
+#| label: tbl-bands
+#| tbl-cap: "Rows by IRCA band and zone, 2010–2023 (counts); 'No IRCA' rows have no reported value."
+table = pd.crosstab(df["irca_band"], df["zone"])[["urban", "rural"]]
+table.loc["No IRCA"] = df[df["irca"].isna()].groupby("zone").size()[["urban", "rural"]]
+table
+```
+
+## IRCA by year
+
+```{python}
+#| label: fig-trend
+#| fig-cap: "Median utility-supplied (prestadores) IRCA by year and zone, 2010–2023, over the rows with a value. The dashed line at 5 marks the top of the no-risk band."
+#| fig-alt: "Line chart of median IRCA per year, 2010 to 2023. The urban line falls from about 11 to 15 in 2010 to 2012 to between 2 and 5 from 2016. The rural line is near 50 in 2010 to 2015, between 31 and 39 in 2016 to 2019, and about 10 to 13 from 2020."
+trend = df.groupby(["year", "zone"])["irca"].agg(["median", "count"]).reset_index()
+fig, ax = plt.subplots(figsize=(8, 3.6))
+for zone, color in zone_colors.items():
+    t = trend[trend["zone"] == zone]
+    ax.plot(t["year"], t["median"], marker="o", color=color, linewidth=2, label=zone)
+    ax.annotate(zone, (t["year"].iloc[-1], t["median"].iloc[-1]), xytext=(6, 0),
+                textcoords="offset points", va="center", color=color)
+ax.axhline(5, color="#888888", linewidth=1, linestyle="--")
+ax.set_ylabel("Median IRCA (0–100)")
+ax.set_xticks(range(first, last + 1, 2))
+ax.spines[["top", "right"]].set_visible(False)
+ax.legend(frameon=False)
+plt.show()
+```
+
+```{python}
+#| label: tbl-trend
+#| tbl-cap: "Median IRCA and number of rows with a value, by year and zone."
+tab = trend.pivot(index="year", columns="zone", values="median").round(1)
+tab = tab[["urban", "rural"]].add_prefix("median ")
+tab.join(trend.pivot(index="year", columns="zone", values="count")[["urban", "rural"]]
+         .add_prefix("rows "))
+```
+
+The rural median steps down in 2016 and again in 2020. `data/README.md` warns that the
+2020 drop may reflect a change in which rural systems were sampled, so do not read it as an
+improvement yet.
+
+## Sources
+
+- IRCA: Instituto Nacional de Salud (INS), datos.gov.co
+  [`nxt2-39c3`](https://www.datos.gov.co/resource/nxt2-39c3.csv), CC BY-SA 4.0.
+  Utility-supplied ("prestadores") IRCA.
+- Risk bands: [Resolución 2115 de 2007, art. 15](https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm).
+- Coverage and context: DNP TerriData; DANE DIVIPOLA and population projections; full list
+  in `data/README.md`.

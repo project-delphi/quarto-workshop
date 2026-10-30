@@ -1,0 +1,3 @@
+- Checkpoint 01 · London in Markdown: `london.md` with headings, lists, a link, the photo, a quote, a table and a code fence (no YAML, no code).
+- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p london-guide && cp -R quarto-workshop/checkpoints/01-london-markdown/. london-guide/`
+- Render: `cd london-guide && quarto render london.md` (or `quarto preview london.md` for live reload).

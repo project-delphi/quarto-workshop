@@ -1,0 +1,107 @@
+---
+title: "Clusters of municipal zones"
+subtitle: "k-means on water, sanitation and context · Colombia, 2016–2023"
+format:
+  html:
+    code-fold: true
+    toc: true
+---
+
+```{python}
+#| label: setup
+import json
+import sys
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+sys.path.insert(0, "scripts")
+import analysis  # constants only; the numbers come from outputs/
+
+clusters = pd.read_parquet("outputs/clusters.parquet")
+ksel = pd.read_csv("outputs/k_selection.csv")
+stab = pd.read_csv("outputs/stability.csv")
+s = json.loads(open("outputs/summary.json").read())
+
+k = s["k"]
+names = {c: f"Cluster {c}" for c in range(1, k + 1)}   # named in the next step
+colors = {c: analysis.CLUSTER_COLORS[c - 1] for c in range(1, k + 1)}
+plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False,
+                     "font.size": 10})
+```
+
+One row is a **municipality × zone (urban/rural) × year**, 2016–2023. IRCA is the
+utility-supplied ("prestadores") IRCA in INS open data (datos.gov.co `nxt2-39c3`).
+
+## Rows and features
+
+From `{python} f"{s['municipality_rows']:,}"` municipality rows we dropped
+`{python} f"{s['dropped_no_irca']:,}"` without IRCA and
+`{python} s['dropped_too_many_missing']` with more than two features missing, keeping
+`{python} f"{s['kept']:,}"` rows (`{python} f"{s['kept_urban']:,}"` urban,
+`{python} f"{s['kept_rural']:,}"` rural) from `{python} f"{s['municipalities']:,}"`
+municipalities. `{python} s['capital_urban_rows_filled_from_total']` urban rows of
+department capitals take the municipal coverage total (flagged), and
+`{python} s['rows_with_any_imputed']` rows have a coverage value imputed with the
+year × zone median (flagged). Features are standardised within each year.
+
+```{python}
+#| label: tbl-features
+#| tbl-cap: "The nine clustered features. Outcomes are never clustered on."
+pd.DataFrame({"feature": analysis.FEATURES,
+              "meaning": [analysis.FEATURE_LABELS[f] for f in analysis.FEATURES]}
+             ).set_index("feature")
+```
+
+## Choosing k
+
+```{python}
+#| label: fig-k
+#| fig-cap: "k-means for k = 2–8 (random_state 42, 20 starts). Left: inertia (within-cluster sum of squares). Right: silhouette on a fixed sample of 5,000 rows. The chosen k is marked."
+#| fig-alt: "Two line charts side by side. Inertia falls steeply from k = 2 to 4 and more slowly after. Silhouette is highest at k = 2 and roughly flat, near 0.19 to 0.20, from k = 3 to 7, dropping at k = 8. A marker highlights the chosen k."
+fig, axes = plt.subplots(1, 2, figsize=(7.5, 2.8))
+for ax, col, label in zip(axes, ["inertia", "silhouette"], ["Inertia", "Silhouette"]):
+    ax.plot(ksel["k"], ksel[col], marker="o", color="#4a4a4a", linewidth=2)
+    chosen = ksel[ksel["k"] == k]
+    ax.plot(chosen["k"], chosen[col], marker="o", markersize=11, color="#0072b2")
+    ax.set_xlabel("k")
+    ax.set_ylabel(label)
+plt.tight_layout()
+plt.show()
+```
+
+`{python} s["k_reason"]` Refitting with five other seeds gives an adjusted Rand index of
+at least `{python} analysis.floor_to(s['ari_min'])` against the chosen labels (1 = identical).
+A silhouette near 0.2 means the clusters overlap: they summarise a continuum.
+
+## A picture of the clusters
+
+```{python}
+#| label: fig-pca
+#| fig-cap: "The rows on the first two principal components of the nine z-scored features, coloured by cluster. PCA is only for the picture; k-means used all nine features."
+#| fig-alt: "Scatter plot of about eleven thousand points in four coloured groups that overlap at their edges. The rural, unserved, high-risk cluster spreads to one side; the three town and city clusters sit closer together."
+fig, ax = plt.subplots(figsize=(7, 4.6))
+# Draw the outer clusters first, so the central one is not hidden under the others.
+centres = clusters.groupby("cluster")[["pc1", "pc2"]].mean()
+order = (centres ** 2).sum(axis=1).sort_values(ascending=False).index
+for c in order:
+    g = clusters[clusters["cluster"] == c]
+    ax.scatter(g["pc1"], g["pc2"], s=5, alpha=0.45, color=colors[c],
+               marker=analysis.CLUSTER_MARKERS[c - 1], label=f"{c} · {names[c]}",
+               rasterized=True)
+ax.set_xlabel(f"PC1 ({s['pca_variance_pc1']:.0%} of variance)")
+ax.set_ylabel(f"PC2 ({s['pca_variance_pc2']:.0%} of variance)")
+handles, labels = ax.get_legend_handles_labels()
+by_id = sorted(zip(labels, handles))  # legend in cluster order, whatever the drawing order
+leg = ax.legend([h for _, h in by_id], [lab for lab, _ in by_id], markerscale=3,
+                frameon=False, fontsize=8, loc="best")
+for handle in leg.legend_handles:
+    handle.set_alpha(1)
+plt.show()
+```
+
+## Sources
+
+See `data/README.md` for every source, licence and caveat. IRCA: INS, datos.gov.co
+[`nxt2-39c3`](https://www.datos.gov.co/resource/nxt2-39c3.csv) (utility-supplied, prestadores).
+Risk bands: [Resolución 2115 de 2007, art. 15](https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm).

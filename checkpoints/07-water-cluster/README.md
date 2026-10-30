@@ -1,0 +1,3 @@
+- Checkpoint 07 · Cluster: checkpoint 06 with k-means in `scripts/analysis.py` (k = 2–8, elbow + silhouette, ARI across seeds) and `clusters.qmd` (elbow, silhouette, PCA scatter).
+- Copy, from the folder that holds `quarto-workshop/`: `mkdir -p water-quality && cp -R quarto-workshop/examples/water/data water-quality/ && cp -R quarto-workshop/checkpoints/07-water-cluster/. water-quality/`
+- Run: `cd water-quality && python3 scripts/analysis.py && quarto render clusters.qmd`
