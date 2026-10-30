@@ -347,20 +347,21 @@ def irca_vs_infant(clustered: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
     Pools the observed-rate regime years INFANT_YEARS. Infant mortality is
     municipal; IRCA is zone-level (an ecological mismatch). Rows with a blank
     rate are left out, and a blank may mean no infant deaths were recorded.
-    Unit: one municipality-year within a cluster. When both zones of a municipality
-    fall in the same cluster, its rate is counted once, with the zones' mean IRCA.
+    Unit: one municipality-year, within a cluster or pooled over all clusters. A
+    municipality's rate is counted once, with the mean IRCA of its zones in that set.
     """
-    d = clustered[clustered["year"].isin(INFANT_YEARS)].dropna(subset=["infant_mortality"])
-    d = (d.groupby(["cluster", "divipola", "year"], as_index=False)
-           .agg(irca=("irca", "mean"), infant_mortality=("infant_mortality", "first")))
+    rows = clustered[clustered["year"].isin(INFANT_YEARS)].dropna(subset=["infant_mortality"])
+    agg = {"irca": ("irca", "mean"), "infant_mortality": ("infant_mortality", "first")}
+    d = rows.groupby(["cluster", "divipola", "year"], as_index=False).agg(**agg)
     d["irca_band"] = irca_band(d["irca"])
-    rows = [{"cluster": c,
-             "spearman_rho": g["irca"].corr(g["infant_mortality"], method="spearman"),
-             "n": len(g), "municipalities": g["divipola"].nunique()}
-            for c, g in d.groupby("cluster")]
-    rho = pd.DataFrame(rows)
-    rho["all_clusters_rho"] = d["irca"].corr(d["infant_mortality"], method="spearman")
-    rho["all_clusters_n"] = len(d)
+    pooled = rows.groupby(["divipola", "year"]).agg(**agg)
+    per_cluster = [{"cluster": c,
+                    "spearman_rho": g["irca"].corr(g["infant_mortality"], method="spearman"),
+                    "n": len(g), "municipalities": g["divipola"].nunique()}
+                   for c, g in d.groupby("cluster")]
+    rho = pd.DataFrame(per_cluster)
+    rho["all_clusters_rho"] = pooled["irca"].corr(pooled["infant_mortality"], method="spearman")
+    rho["all_clusters_n"] = len(pooled)
     bins = (d.groupby(["cluster", "irca_band"], observed=True)["infant_mortality"]
               .agg(median="median", n="count").reset_index())
     return rho, bins
