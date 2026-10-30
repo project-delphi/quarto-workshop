@@ -105,9 +105,11 @@ prompting a coding assistant.
 ## Worked examples and report deliverables
 
 `examples/london/` is the finished Part 1 project and `examples/water/` the finished Part 2
-project. Each project, its examples and its checkpoints from the environment step on carry
-the `AGENTS.md`, `pyproject.toml` and `uv.lock` that the slides' prompts create; their
-Quarto and Python commands run through `uv run`; `checkpoints/NN-*/` hold the state at the end of each hands-on block, with
+project. Both, and every checkpoint, carry the project's `AGENTS.md`, `pyproject.toml` and
+`uv.lock`, as the slides' prompts create them, and run Quarto and Python through `uv run`.
+Checkpoints are copied into participants' folders, so each keeps its own copy: after a
+dependency change, run `uv lock` in the example and copy both files to its checkpoints.
+`checkpoints/NN-*/` hold the state at the end of each hands-on block, with
 catch-up steps in their READMEs and no rendered output. London checkpoints carry their small cited `data/` and `images/` so each renders
 on its own; water checkpoints hold sources only (participants copy `examples/water/data/`
 first). Keep all three outside `project.render`; they are rendered separately for testing.

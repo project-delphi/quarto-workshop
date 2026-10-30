@@ -73,7 +73,7 @@ the diff.
 | 0:00 | 👋 Welcome · 🎯 objective · 🏁 outcome |
 | 0:05 | 🧭 What is Quarto? |
 | 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install and [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) are pre-work) |
-| 0:15 | 🇬🇧 Part 1 · London: rules, Markdown → HTML, environment |
+| 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment |
 | 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, many formats |
 | 0:45 | 🗂️ Part 1 · One guide, five audiences + dashboard |
 | 0:55 | 🌍 Part 1 · Publish to GitHub Pages |
