@@ -1261,10 +1261,10 @@ display:block!important;
 <h2>Choose One Coding Agent</h2>
 <p>The foundations deck shows both installation routes:</p>
 <ul>
-<li><a href="./index.html#install-assistant">Install Claude Code</a>: native installer, version check, sign-in.</li>
-<li><a href="./index.html#install-assistant">Install Codex</a>: npm installation, version check, sign-in.</li>
+<li><a href="./index.html#install-assistant">Install Claude Code</a>: installer command, sign-in.</li>
+<li><a href="./index.html#install-assistant">Install Codex</a>: installer command, sign-in.</li>
 </ul>
-<p>Start <code>claude</code> or <code>codex</code> inside the lab folder. Use the same plain-English task prompts with either coding agent.</p>
+<p>Start <code>claude</code>, <code>codex</code> or <code>agy</code> inside the lab folder. Use the same plain-English task prompts with either coding agent.</p>
 <p><strong>Check:</strong> confirm the session’s working folder and record the tool version.</p>
 <aside class="notes">
 <p>Official guides: https://code.claude.com/docs/en/setup and https://developers.openai.com/codex/cli/ (checked 2026-10-06). Shell examples assume macOS, Linux, or WSL. Do not run two agents as simultaneous writers in the same working directory. Never run a paid session just to test a command.</p>
@@ -3321,6 +3321,7 @@ window.QuartoSupport = function () {
       }
 
       const measured = new WeakSet();
+      let firstPass = true;
 
       function space(slide, limit) {
         if (measured.has(slide) || slide.matches("#title-slide, .level1")) return;
@@ -3342,7 +3343,8 @@ window.QuartoSupport = function () {
       function spaceSlides(deck) {
         const limit = deck.getConfig().height * LIMIT;
         const current = deck.getCurrentSlide();
-        const initial = !measured.size;
+        const initial = firstPass;
+        firstPass = false;
         deck.getSlides().forEach((slide) => {
           // After the first pass, never change the slide that is on screen.
           if (initial || slide !== current) space(slide, limit);
