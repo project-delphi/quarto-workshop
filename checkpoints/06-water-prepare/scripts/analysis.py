@@ -62,7 +62,8 @@ def prepare(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     d = d[has_irca].copy()
 
     # Department capitals (code ends in 001) have no urban/rural REC split.
-    # Urban capital rows take the municipal total, flagged; rural rows stay empty.
+    # Urban capital rows take the municipal total, flagged; rural rows are not
+    # filled from the total and go through the usual imputation below.
     capital_urban = d["divipola"].str.endswith("001") & (d["zone"] == "urban")
     for col in ["water_coverage", "sewer_coverage"]:
         fill = capital_urban & d[col].isna() & d[f"{col}_total"].notna()
