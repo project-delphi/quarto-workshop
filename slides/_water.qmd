@@ -808,7 +808,7 @@ cluster is drawn last so the others do not hide it.
 #| echo: false
 #| output: asis
 # The previous slide's PCA with a third component. This cell computes every number on the
-# slide; assets/cluster-cloud.min.js only draws the points it writes into the page.
+# slide; assets/deck-3d.min.js only draws the points it writes into the page.
 import html as wat_html
 import json as wat_json
 from sklearn.decomposition import PCA as wat_PCA
@@ -871,28 +871,29 @@ wat_glyph = {"o": "●", "s": "■", "^": "▲", "D": "◆", "v": "▼", "P": "�
 wat_legend = "".join(
     f'<span><span style="color:{c["color"]}">{wat_glyph.get(c["marker"], "●")}</span> '
     f'Cluster {c["id"]}</span>' for c in wat_cloud["clusters"])
-wat_axes = "".join(f'<span class="cloud-axis">PC{a + 1} · {wat_var3[a]:.0%}</span>' for a in range(3))
+wat_axes = "".join(f'<span class="axis-label">PC{a + 1} · {wat_var3[a]:.0%}</span>' for a in range(3))
 wat_alt = (f"Turning 3-D scatter of {len(wat_lab):,} zone-years on the first three principal "
            "components, coloured and shaped by cluster as on the previous slide. Face on it is "
            f"the 2-D picture; turned upright on PC3, cluster {wat_focus} {wat_focus_side}.")
 print("```{=html}")
-print(f'<div class="cluster-cloud" role="img" aria-label="{wat_html.escape(wat_alt)}">'
+print(f'<div class="deck-3d" data-scene="cloud" role="img" aria-label="{wat_html.escape(wat_alt)}">'
       f'<script type="application/json">{wat_json.dumps(wat_cloud, separators=(",", ":"))}</script>'
-      f'<div class="cloud-legend">{wat_legend}</div>{wat_axes}'
-      '<p class="cloud-fallback" hidden>🫧 This 3-D view needs WebGL; the 2-D picture is on '
+      f'<div class="legend">{wat_legend}</div>{wat_axes}'
+      '<p class="fallback" hidden>🫧 This 3-D view needs WebGL; the 2-D picture is on '
       'the previous slide.</p></div>')
-print('<script src="assets/cluster-cloud.min.js"></script>')
+# The deck's 3-D bundle, loaded once here for this slide and the relief view.
+print('<script src="assets/deck-3d.min.js"></script>')
 print("```")
 ```
 
-::: {.cloud-steps}
+::: {.steps-3d}
 🫧 2 axes · `{python} f"{wat_var3[:2].sum():.0%}"` of variance · cluster `{python} wat_focus`: `{python} f"{wat_own2[wat_focus]:.0%}"` of near neighbours in it
 
-::: {.fragment data-cloud="turn"}
+::: {.fragment data-view="turn"}
 🔄 3 axes · `{python} f"{wat_var3.sum():.0%}"` · `{python} f"{wat_own3[wat_focus]:.0%}"`
 :::
 
-::: {.fragment data-cloud="pc3"}
+::: {.fragment data-view="pc3"}
 PC3 ≈ `{python} wat_pc3_text`: cluster `{python} wat_focus` `{python} wat_focus_side`
 :::
 :::
@@ -911,6 +912,138 @@ loadings are `{python} ", ".join(f"{f} {wat_pc3[f]:+.2f}" for f in wat_pc3_top)`
 still a picture: k-means used all 9 features, not the components. Drag to turn the cloud
 and scroll to zoom; with reduced motion the views change without animation. About a
 minute.
+:::
+
+## 🏔️ Where the clusters stand {#water-relief}
+
+```{python}
+#| label: wat-relief
+#| echo: false
+#| output: asis
+# Columns and borders in km for the relief view; assets/deck-3d.min.js only draws them.
+import collections as wat_collections
+
+wat_rel_year = wat_analysis.LAST_YEAR
+# The mainland: the San Andrés and Providencia archipelago (department 88) is left off.
+wat_rel = wat_clusters[(wat_clusters["zone"] == "urban") & (wat_clusters["year"] == wat_rel_year)
+                       & ~wat_clusters["divipola"].str.startswith("88")]
+
+
+def wat_part(ring):
+    """Area and centroid of a lon/lat ring (shoelace formula)."""
+    wat_x, wat_y = ring[:, 0], ring[:, 1]
+    wat_c = wat_x * wat_np.roll(wat_y, -1) - wat_np.roll(wat_x, -1) * wat_y
+    wat_a = wat_c.sum() / 2
+    return (abs(wat_a), (wat_x + wat_np.roll(wat_x, -1)) @ wat_c / (6 * wat_a),
+            (wat_y + wat_np.roll(wat_y, -1)) @ wat_c / (6 * wat_a))
+
+
+# Municipal polygons give each municipality's centroid (of its largest part) and, from the
+# edges they share, the borders: an edge of one polygon is the coast or a national
+# border; an edge shared across departments is a department border.
+wat_centroid, wat_edges, wat_edge_dpts = {}, wat_collections.Counter(), wat_collections.defaultdict(set)
+for wat_feat in wat_analysis.load_geojson(for_plotly=False)["features"]:
+    wat_code = wat_feat["properties"]["divipola"]
+    if wat_code.startswith("88"):
+        continue
+    wat_gm = wat_feat["geometry"]
+    wat_polys = [wat_gm["coordinates"]] if wat_gm["type"] == "Polygon" else wat_gm["coordinates"]
+    wat_polys = [[wat_np.asarray(r, dtype=float) for r in p] for p in wat_polys]
+    wat_centroid[wat_code] = max((wat_part(p[0]) for p in wat_polys), key=lambda t: t[0])[1:]
+    for wat_ring in (r for p in wat_polys for r in p):
+        wat_pts = [tuple(v) for v in wat_np.round(wat_ring, 4)]
+        for wat_u, wat_v in zip(wat_pts, wat_pts[1:]):
+            if wat_u != wat_v:
+                wat_e = (wat_u, wat_v) if wat_u < wat_v else (wat_v, wat_u)
+                wat_edges[wat_e] += 1
+                wat_edge_dpts[wat_e].add(wat_code[:2])
+wat_outline = [e for e, n in wat_edges.items() if n == 1]
+wat_dpt_edges = [e for e, n in wat_edges.items() if n > 1 and len(wat_edge_dpts[e]) > 1]
+
+# Kilometres from the mainland's centre (equirectangular, fine at Colombia's latitudes).
+wat_ll = wat_np.array([p for e in wat_outline for p in e])
+wat_lon0, wat_lat0 = (wat_ll.min(0) + wat_ll.max(0)) / 2
+wat_kx, wat_ky = 111.32 * wat_np.cos(wat_np.radians(wat_lat0)), 110.57
+
+
+def wat_km(lon, lat):
+    return (lon - wat_lon0) * wat_kx, (lat - wat_lat0) * wat_ky
+
+
+def wat_segments(edges, step):
+    """Border segments snapped to a step-degree grid, as flat km pairs."""
+    wat_seen = set()
+    for wat_u, wat_v in edges:
+        wat_a, wat_b = (tuple(wat_np.round(wat_np.array(p) / step).astype(int)) for p in (wat_u, wat_v))
+        if wat_a != wat_b:
+            wat_seen.add((wat_a, wat_b) if wat_a < wat_b else (wat_b, wat_a))
+    return [round(c) for s in sorted(wat_seen) for p in s for c in wat_km(p[0] * step, p[1] * step)]
+
+
+wat_exag = 50  # vertical exaggeration: a 3,000 m town stands 150 km tall on the map
+wat_xy = wat_np.array([wat_km(*wat_centroid[c]) for c in wat_rel["divipola"]])
+wat_alt_med = wat_rel.groupby("cluster")["altitude_m"].median()
+wat_high, wat_low = int(wat_alt_med.idxmax()), int(wat_alt_med.idxmin())
+wat_hi_xy = wat_np.median(wat_xy[wat_rel["cluster"].to_numpy() == wat_high], axis=0)
+wat_ext = wat_np.array([wat_km(*p) for p in wat_ll])
+wat_relief = {
+    "exaggeration": wat_exag,
+    "cols": [int(v) for x, y, a, k in zip(wat_xy[:, 0], wat_xy[:, 1], wat_rel["altitude_m"], wat_rel["cluster"])
+             for v in (round(x), round(y), round(a), k)],
+    "outline": wat_segments(wat_outline, 0.03),
+    "departments": wat_segments(wat_dpt_edges, 0.05),
+    "extent": [round(v) for v in (wat_ext[:, 0].min(), wat_ext[:, 0].max(), wat_ext[:, 1].min(), wat_ext[:, 1].max())],
+    "clusters": [{"id": int(c), "color": wat_colors[c]} for c in sorted(wat_colors)],
+    "focus": [wat_high, wat_low],
+    # The focus view turns about the highest cluster's middle column, halfway up.
+    "view": [round(wat_hi_xy[0]), round(wat_hi_xy[1]), round(wat_alt_med[wat_high] / 1000 * wat_exag / 2)],
+}
+wat_rel_legend = "".join(
+    f'<span><span style="color:{wat_colors[c]}">■</span> Cluster {c} · {wat_alt_med[c]:,.0f} m</span>'
+    for c in sorted(wat_colors))
+wat_rel_alt = (f"3-D map of mainland Colombia with one column for each of the {len(wat_rel)} clustered "
+               f"urban zones in {wat_rel_year}, at its municipality's centroid, as tall as its head town's "
+               f"altitude and coloured by cluster. Cluster {wat_high}'s columns are the tallest (median "
+               f"{wat_alt_med[wat_high]:,.0f} m); cluster {wat_low}'s are the shortest "
+               f"({wat_alt_med[wat_low]:,.0f} m).")
+wat_region_top = {c: wat_rel.loc[wat_rel["cluster"] == c, "region"].value_counts(normalize=True)
+                  for c in (wat_high, wat_low)}
+print("```{=html}")
+print(f'<div class="deck-3d" data-scene="relief" role="img" aria-label="{wat_html.escape(wat_rel_alt)}">'
+      f'<script type="application/json">{wat_json.dumps(wat_relief, separators=(",", ":"))}</script>'
+      f'<div class="legend">{wat_rel_legend}</div>'
+      '<p class="fallback" hidden>🗺️ This 3-D view needs WebGL; the IRCA map near the end of '
+      'Part 2 shows the same municipalities.</p></div>')
+print("```")
+```
+
+::: {.steps-3d}
+🗺️ `{python} len(wat_rel)` urban zones, `{python} wat_rel_year`: a column each, coloured by cluster
+
+::: {.fragment data-view="tilt"}
+⛰️ height = head-town altitude, ×`{python} wat_exag`
+:::
+
+::: {.fragment data-view="focus"}
+🏔️ cluster `{python} wat_high`: median `{python} f"{wat_alt_med[wat_high]:,.0f}"` m · cluster `{python} wat_low`: `{python} f"{wat_alt_med[wat_low]:,.0f}"` m
+:::
+:::
+
+[Columns stand at municipality centroids; heights are derived SRTM altitudes of the head towns · 🖱️ drag to turn · scroll to zoom]{.source}
+
+::: {.notes}
+The previous slide's PC3 is mostly altitude, so this slide puts the clusters on the map.
+One column per clustered urban zone in `{python} wat_rel_year`, at its municipality's
+centroid (from the DANE polygons; the head-town coordinates are not in the dataset), as tall
+as its head town's altitude (one derived SRTM point, not an official altitude) times
+`{python} wat_exag`, and coloured by cluster. The San Andrés and Providencia archipelago is
+left off. Press → to tilt the map, and again to fly to cluster `{python} wat_high`, whose
+middle column the view turns about; clusters `{python} wat_high` and `{python} wat_low`
+stay bright. Cluster `{python} wat_high`'s urban zones are
+`{python} f"{wat_region_top[wat_high].iloc[0]:.0%}"` in the DNP region
+`{python} wat_region_top[wat_high].index[0]`; cluster `{python} wat_low`'s are
+`{python} f"{wat_region_top[wat_low].iloc[0]:.0%}"` in `{python} wat_region_top[wat_low].index[0]`.
+This shows where the kinds are, not why they differ. About a minute.
 :::
 
 ## 🧩 Run k-means {#water-cluster-do}

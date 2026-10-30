@@ -42,10 +42,10 @@ QUARTO_PYTHON="$PWD/.conda/bin/python" \
   JUPYTER_PATH="$PWD/.conda/share/jupyter" quarto render
 ```
 
-The 3-D cluster slide loads the prebuilt `assets/cluster-cloud.min.js` (three.js), so
-rendering needs no npm. After editing `assets/cluster-cloud/cloud.js`, rebuild it with
-`npm ci && npm run build` in that folder (`assets/cluster-cloud/README.md`) and commit
-the bundle. The deck cell computes the slide's points and numbers; the script only draws.
+The 3-D slides in Part 2 load the prebuilt `assets/deck-3d.min.js` (three.js), so
+rendering needs no npm. After editing a script in `assets/deck-3d/`, rebuild it with
+`npm ci && npm run build` in that folder (`assets/deck-3d/README.md`) and commit the
+bundle. The deck cells compute the slides' points and numbers; the scripts only draw.
 
 Do not disable execution or hide errors to make a build pass. `freeze: false` and `cache: false`
 keep teaching computations fresh. Changes to external data are not automatically detected by
