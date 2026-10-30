@@ -46,11 +46,13 @@
   }
 
   // Wraps parts of the text nodes under root in translate="no" spans. split(text) returns
-  // alternating pieces: [translated, kept, translated, …].
-  function keep(root, split) {
+  // alternating pieces: [translated, kept, translated, …]; only nodes matching wanted are
+  // split. Not global: test() on a global pattern would carry lastIndex between nodes.
+  function keep(root, split, wanted = /\S/) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: (node) =>
-        node.parentElement.closest("script, style, svg, [translate='no']")
+        node.parentElement.closest("script, style, svg, [translate='no']") ||
+        !wanted.test(node.nodeValue)
           ? NodeFilter.FILTER_REJECT
           : NodeFilter.FILTER_ACCEPT,
     });
@@ -68,7 +70,7 @@
           span.textContent = part;
           spans.push(span);
           fragment.append(span);
-        } else {
+        } else if (part) {
           fragment.append(part);
         }
       });
@@ -78,12 +80,13 @@
   }
 
   // Code inside prompts. Prompts write literals as code (paths, file names, snake_case
-  // columns, calls, name=value) or in double quotes (headings, titles, values; AGENTS.md).
-  // Also kept: Quarto commands and options, gh, and the names a translator reads as words
-  // (without the list, the column mdm became "señora").
-  const commands = /("[^"]+"|“[^”]+”|quarto [a-z]+(?: gh-pages| --[\w-]+)*|\bgh(?![\w-])|\b(?:format|toc|lang|freeze|papersize|execute-dir): [\w-]+)/;
+  // columns, calls, name=value) or in double quotes (what the assistant must find or
+  // match; AGENTS.md). Also kept: Quarto commands, options and format names, gh, and the
+  // names a translator reads as words (without the list, the column mdm became "señora").
+  const commands = /((?<![\w"])"[^"]+"(?!\w)|“[^”]+”|quarto [a-z]+(?: gh-pages| --[\w-]+)*|\bgh(?![\w-])|\b(?:format|toc|lang|freeze|papersize|execute-dir): [\w-]+)/;
   const listed = new Set(["gh-pages", "pre-render", "format-links", "london-guide",
                           "water-quality", "campaign-site", "marketing-blog",
+                          "html", "docx", "typst", "pptx", "epub", "revealjs",
                           "irca", "ipm", "mdm", "divipola"]);
   const isCode = (word) => listed.has(word) || word.split("/").length > 2 ||
     (!/^(?:e\.g|i\.e)$/i.test(word) &&
@@ -138,9 +141,9 @@
     if (!p.querySelector(".done-label")) p.prepend(label("strong", "done-label", "✅", "You're done when"), " ");
   });
 
-  // MDM is already Spanish (Medición de Desempeño Municipal); translation made it "DMM".
-  const names = /\b(Quarto|Markdown|Typst|YAML|Jupyter|Reveal\.js|GitHub Pages|MDM)\b/;
-  keep(slides, (text) => text.split(names));
+  // The Colombian sources' acronyms are already Spanish; translation made MDM "DMM".
+  const names = /\b(Quarto|Markdown|Typst|YAML|Jupyter|Reveal\.js|GitHub Pages|IRCA|IPM|MDM|SGP|DANE|DIVIPOLA|ICFES|INS|DNP)\b/;
+  keep(slides, (text) => text.split(names), names);
 
   slides.querySelectorAll("code").forEach((code) => code.closest("pre") || holdEdges(code));
 })();
