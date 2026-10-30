@@ -1812,7 +1812,7 @@ display:block!important;
 <h2>Turn 7: Fix an Observed Layout Defect</h2>
 <p>If a figure and explanation are crowded:</p>
 <div class="prompt">
-<div class="sourceCode" id="cb19"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb19-1"><a aria-hidden="true" tabindex="-1"></a>On the Sales Results slide, the caption falls below the visible area. Move the detailed interpretation to speaker notes and shorten the caption. Keep the figure readable and the total at 8 slides. Re-render at desktop and laptop presentation sizes.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb19-1"><a aria-hidden="true" tabindex="-1"></a>On the &quot;Sales Results&quot; slide, the caption falls below the visible area. Move the detailed interpretation to speaker notes and shorten the caption. Keep the figure readable and the total at 8 slides. Re-render at desktop and laptop presentation sizes.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="you">
 <p>no browser tool in the agent? open <code>slides.html</code> yourself and describe the defect · ask which checks are done and which are still needed</p>
@@ -1845,7 +1845,7 @@ display:block!important;
 <h2>Optional: A Campaign Evidence Website</h2>
 <p><span class="pace">⭐ self-paced</span> From a fresh workspace with the report and context:</p>
 <div class="prompt">
-<div class="sourceCode" id="cb22"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb22-1"><a aria-hidden="true" tabindex="-1"></a>Create a Quarto website in campaign-site with Decision, Experiment, and Results pages. Adapt the verified report and copy its inputs. Preserve the outcome definitions and limitations. Render the site and check all local links and its desktop layout.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb22-1"><a aria-hidden="true" tabindex="-1"></a>Create a Quarto website in `campaign-site` with Decision, Experiment, and Results pages. Adapt the verified report and copy its inputs. Preserve the outcome definitions and limitations. Render the site and check all local links and its desktop layout.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="agent">
 <p><code>quarto create project website campaign-site --no-open --no-prompt</code></p>
@@ -1858,7 +1858,7 @@ display:block!important;
 <h2>Optional: A Marketing Analytics Blog</h2>
 <p><span class="pace">⭐ self-paced</span> In another fresh workspace:</p>
 <div class="prompt">
-<div class="sourceCode" id="cb23"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb23-1"><a aria-hidden="true" tabindex="-1"></a>Create a Quarto blog in marketing-blog. Adapt the report into posts/promotion-sales/index.qmd with title, date, categories, executable analysis, experiment citation, and limitations. Copy the inputs and fix relative paths. Render and check the listing&#39;s post link.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb23-1"><a aria-hidden="true" tabindex="-1"></a>Create a Quarto blog in `marketing-blog`. Adapt the report into posts/promotion-sales/index.qmd with title, date, categories, executable analysis, experiment citation, and limitations. Copy the inputs and fix relative paths. Render and check the listing&#39;s post link.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="agent">
 <p><code>quarto create project blog marketing-blog --no-open --no-prompt</code></p>
@@ -3396,18 +3396,19 @@ window.QuartoSupport = function () {
         });
       }
 
-      // Code inside prompts. Prompts write literals as code (paths, file names, snake_case
-      // columns, calls, name=value) or in double quotes (what the assistant must find or
-      // match; AGENTS.md). Also kept: Quarto commands, options and format names, gh, and the
-      // names a translator reads as words (without the list, the column mdm became "señora").
-      const commands = /((?<![\w"])"[^"]+"(?!\w)|“[^”]+”|quarto [a-z]+(?: gh-pages| --[\w-]+)*|\bgh(?![\w-])|\b(?:format|toc|lang|freeze|papersize|execute-dir): [\w-]+)/;
-      const listed = new Set(["gh-pages", "pre-render", "format-links", "london-guide",
-                              "water-quality", "campaign-site", "marketing-blog",
-                              "html", "docx", "typst", "pptx", "epub", "revealjs",
-                              "irca", "ipm", "mdm", "divipola"]);
-      const isCode = (word) => listed.has(word) || word.split("/").length > 2 ||
-        (!/^(?:e\.g|i\.e)$/i.test(word) &&
-         /^[./~]|\/$|\w\.\w|[_=<>*{}#\\|]|\w\(|^--|-\w*\d|[a-z]\d/.test(word));
+      // The Colombian sources' acronyms are already Spanish (translation made MDM "DMM"); in
+      // prompts they are also lowercase column names (it made the column mdm "señora").
+      const sources = ["IRCA", "IPM", "MDM", "SGP", "DANE", "DIVIPOLA", "ICFES", "INS", "DNP"];
+
+      // Code inside prompts. A prompt writes each literal the assistant must find or match as
+      // code (`backticks` for a bare name, or a path, file name, snake_case column, call or
+      // name=value) or in double quotes (AGENTS.md). Also kept: Quarto commands, options and
+      // format names, gh, and the sources' acronyms.
+      const commands = /(`[^`]+`|(?<![\w"])"[^"]+"(?!\w)|“[^”]+”|quarto [a-z]+(?: gh-pages| --[\w-]+)*|\bgh(?![\w-])|\b(?:format|toc|lang|freeze|papersize|execute-dir): [\w-]+)/;
+      const formats = new Set(["html", "docx", "typst", "pptx", "epub", "revealjs"]);
+      const isCode = (word) => formats.has(word) || sources.includes(word.toUpperCase()) ||
+        word.split("/").length > 2 || (!/^(?:e\.g|i\.e)$/i.test(word) &&
+        /^[./~]|\/$|\w\.\w|[_=<>*{}#\\|]|\w\(|^--|-[a-z]+\d|[a-z]\d/.test(word));
       const count = (text, char) => text.split(char).length - 1;
 
       function splitPrompt(text) {
@@ -3458,10 +3459,10 @@ window.QuartoSupport = function () {
         if (!p.querySelector(".done-label")) p.prepend(label("strong", "done-label", "✅", "You're done when"), " ");
       });
 
-      // The Colombian sources' acronyms are already Spanish; translation made MDM "DMM".
-      const names = /\b(Quarto|Markdown|Typst|YAML|Jupyter|Reveal\.js|GitHub Pages|IRCA|IPM|MDM|SGP|DANE|DIVIPOLA|ICFES|INS|DNP)\b/;
+      const names = new RegExp(String.raw`\b(Quarto|Markdown|Typst|YAML|Jupyter|Reveal\.js|GitHub Pages|${sources.join("|")})\b`);
       keep(slides, (text) => text.split(names), names);
 
+      // Every inline code needs this, not only in boxes: translation joins words to it anywhere.
       slides.querySelectorAll("code").forEach((code) => code.closest("pre") || holdEdges(code));
     })();
     </script>
