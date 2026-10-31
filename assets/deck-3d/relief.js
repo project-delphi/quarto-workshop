@@ -10,21 +10,39 @@ import {
 } from "three";
 
 // Lays out the city labels on screen for one frame (stage.js calls it with each label's
-// point): above, beside or below the point (data-side, styled in theme.scss) so that no
-// label covers another label or another labelled city. A search over the four sides keeps
-// the cheapest layout. A label keeps its side if it can, so labels do not jump while the
-// map turns; otherwise above is cheapest, then the side facing away from the cities'
-// middle, the other side, and below. Where no side fits, a label hides, the last-listed
-// city first (the deck cell lists them by priority).
-function arrangeLabels(cities, spots, w, h) {
-  const gap = parseFloat(getComputedStyle(cities[0].label).fontSize) * 0.25;
-  cities.forEach((c) => { c.size ??= [c.label.offsetWidth, c.label.offsetHeight]; });
+// point): above, beside or below the point (data-side, styled in theme.scss) so that each
+// label stays on the canvas, off the legend, and clear of the other labels and labelled
+// cities. A search over the four sides keeps the cheapest layout. A label keeps its side if
+// it can, so labels do not jump while the map turns; otherwise above is cheapest, then the
+// side facing away from the visible cities' middle, the other side, and below. Where no
+// side fits, a label hides, the last-listed city first (the deck cell lists them by
+// priority). Sizes are measured once the labels show, and again on remeasure() (stage.js
+// calls it when web fonts finish loading); a frame whose points have not moved keeps the
+// last layout.
+function arrangeLabels(state, spots, w, h) {
+  const { cities, el } = state;
+  if (!state.sizes) {
+    const legend = el.querySelector(".legend");
+    state.sizes = cities.map((c) => [c.label.offsetWidth, c.label.offsetHeight]);
+    state.gap = parseFloat(getComputedStyle(cities[0].label).fontSize) * 0.25;
+    state.legend = legend && [legend.offsetLeft, legend.offsetLeft + legend.offsetWidth,
+      legend.offsetTop, legend.offsetTop + legend.offsetHeight];
+    state.last = null;
+  }
+  const moved = !state.last || state.last.w !== w || state.last.h !== h
+    || spots.some(([x, y], i) => Math.abs(x - state.last.spots[i][0]) + Math.abs(y - state.last.spots[i][1]) > 0.5);
+  if (!moved) return;
+  state.last = { w, h, spots: spots.map(([x, y]) => [x, y]) };
+
+  const { gap, sizes } = state;
+  const overlap = (a, b) => a[0] < b[1] && b[0] < a[1] && a[2] < b[3] && b[2] < a[3];
   const on = spots.map(([x, y]) => x >= 0 && x <= w && y >= 0 && y <= h);
-  const midX = spots.reduce((sum, [x]) => sum + x, 0) / spots.length;
+  const shown = spots.filter((_, i) => on[i]);
+  const midX = shown.reduce((sum, [x]) => sum + x, 0) / (shown.length || 1);
   const options = cities.map((c, i) => {
     if (!on[i]) return [[null, null, 0]]; // off the canvas: stage.js hides it anyway
     const [x, y] = spots[i];
-    const [lw, lh] = c.size;
+    const [lw, lh] = sizes[i];
     const left = [x - gap - lw, x - gap, y - lh / 2, y + lh / 2];
     const right = [x + gap, x + gap + lw, y - lh / 2, y + lh / 2];
     const boxes = [
@@ -34,13 +52,14 @@ function arrangeLabels(cities, spots, w, h) {
     ];
     return boxes
       .map(([side, b], rank) => [side, b, side === c.side ? 0 : c.side ? 4 + rank : rank])
-      .filter(([, b]) => !spots.some(([px, py], j) => j !== i && on[j]
-        && px > b[0] && px < b[1] && py > b[2] && py < b[3]))
+      .filter(([, b]) => b[0] >= 0 && b[1] <= w && b[2] >= 0 && b[3] <= h
+        && !(state.legend && overlap(b, state.legend))
+        && !spots.some(([px, py], j) => j !== i && on[j]
+          && px > b[0] && px < b[1] && py > b[2] && py < b[3]))
       .sort((a, b) => a[2] - b[2])
       .concat([[null, null, 100 + cities.length - i]]); // hidden
   });
-  const overlap = (a, b) => a[0] < b[1] && b[0] < a[1] && a[2] < b[3] && b[2] < a[3];
-  let best = null, bestCost = Infinity, budget = 20000; // a cap on the search per frame
+  let best = null, bestCost = Infinity, budget = 5000; // a cap on the search per frame
   const chosen = [];
   (function search(i, cost) {
     if (cost >= bestCost || (best && --budget < 0)) return;
@@ -122,13 +141,15 @@ export const relief = {
       const [x, y, altitude, cluster] = data.cities.slice(k * 4, k * 4 + 4);
       return { label, to: new Vector3(x, top(altitude), -y), cluster, weight: 1 };
     });
+    const labelState = { cities, el };
 
     return {
       centre: [(x0 + x1) / 2, 0, -(y0 + y1) / 2],
       half,
       aspect: (x1 - x0) / (y1 - y0),
       labels: cities,
-      arrange: (spots, w, h) => cities.length && arrangeLabels(cities, spots, w, h),
+      arrange: (spots, w, h) => labelState.cities.length && arrangeLabels(labelState, spots, w, h),
+      remeasure: () => { labelState.sizes = null; },
       focus(t) {
         // Names fade less than columns: they stay readable for orientation.
         cities.forEach((c) => { c.weight = data.focus.includes(c.cluster) ? 1 : 1 - 0.45 * t; });

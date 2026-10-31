@@ -1145,15 +1145,18 @@ wat_relief = {
     # The focus view turns about the highest cluster's middle column, halfway up.
     "view": [round(wat_hi_xy[0]), round(wat_hi_xy[1]), round(wat_hi_alt / 1000 * wat_exag / 2)],
 }
-# City labels: the ten most populous mainland department capitals (DIVIPOLA codes ending 001)
-# by head-town population that year, plus Tunja. Suburbs such as Soacha are left out: their
-# labels would cover their capitals'. Each label sits at the top of its city's column; the
-# list is in priority order (relief.js hides the last ones first where labels collide),
-# with Tunja, Boyacá's capital, second.
+# City labels: the ten most populous department capitals (DIVIPOLA codes ending 001) by
+# head-town population that year, plus Tunja, among the cities with a column on this map, so
+# every label marks a column. Suburbs such as Soacha are left out: their labels would cover
+# their capitals'. Each label sits at the top of its city's column; the list is in priority
+# order (relief.js hides the last ones first where labels collide), with Tunja, Boyacá's
+# capital, second.
 wat_towns = wat_raw[(wat_raw["zone"] == "urban") & (wat_raw["year"] == wat_rel_year)
                     & (wat_raw["entity_type"] == "municipality")].set_index("divipola")
-wat_capitals = wat_towns[wat_towns.index.str.endswith("001") & ~wat_towns.index.str.startswith("88")]
+wat_col_of = wat_rel.set_index("divipola")[["altitude_m", "cluster"]]
+wat_capitals = wat_towns[wat_towns.index.str.endswith("001") & wat_towns.index.isin(wat_col_of.index)]
 wat_city_top = list(wat_capitals["population"].nlargest(10).index)
+# Tunja must have a column too: a data refresh that drops it fails the render below.
 wat_city_codes = wat_city_top[:1] + ["15001"] + [c for c in wat_city_top[1:] if c != "15001"]
 # Short names for the four whose official names are long; the rest from `municipio`.
 wat_city_names = {"11001": "Bogotá", "76001": "Cali", "13001": "Cartagena", "54001": "Cúcuta"}
@@ -1163,12 +1166,10 @@ def wat_city(c):
     return wat_city_names.get(c, wat_towns.loc[c, "municipio"].title())
 
 
-wat_city_cluster = dict(zip(wat_rel["divipola"], wat_rel["cluster"]))
 wat_relief["cities"] = [
     int(v) for c in wat_city_codes
     for v in (*(round(t) for t in wat_km(*wat_centroid[c])),
-              round(wat_towns.loc[c, "altitude_m"]) if wat_pd.notna(wat_towns.loc[c, "altitude_m"]) else 0,
-              wat_city_cluster.get(c, 0))]
+              round(wat_col_of.loc[c, "altitude_m"]), wat_col_of.loc[c, "cluster"])]
 wat_city_labels = "".join(
     f'<span class="place-label" translate="no">'
     f'{wat_html.escape(wat_city(c))}</span>'
@@ -1223,9 +1224,9 @@ stay bright. Cluster `{python} wat_high`'s urban zones are
 `{python} wat_region_top[wat_high].index[0]`; cluster `{python} wat_low`'s are
 `{python} f"{wat_region_top[wat_low].iloc[0]:.0%}"` in `{python} wat_region_top[wat_low].index[0]`.
 This shows where the kinds are, not why they differ. The labels name the
-`{python} len(wat_city_top)` most populous mainland department capitals by `{python} wat_rel_year`
+`{python} len(wat_city_top)` most populous department capitals on the map by `{python} wat_rel_year`
 head-town population (DANE projections in the dataset: `{python} ", ".join(wat_city(c) for c in wat_city_top)`)
-and Tunja, Boyacá's capital at `{python} f"{wat_towns.loc['15001', 'altitude_m']:,.0f}"` m. Large
+and Tunja, Boyacá's capital at `{python} f"{wat_col_of.loc['15001', 'altitude_m']:,.0f}"` m. Large
 suburbs (Soacha, Soledad, Bello) are left out because their labels would cover their
 capitals'. About a minute.
 :::
@@ -1277,8 +1278,9 @@ the modelling choices while the room copies: paste the next slide's ⭐ prompt o
 projector (or open `choose_k()` in checkpoint 07) and talk through k = 2–8, 20 starts with
 a fixed seed, the elbow rule with the silhouette check, stability across seeds (ARI) and
 numbering by centroid IRCA. Builders paste the ⭐ prompts instead; if they get stuck, the 📤
-prompt on this slide puts them back on the normal route. The Interpret and Causation blocks
-each open with a 📤 prompt for their part of `analysis.py`.
+prompt on this slide puts them back on the normal route. In the Interpret and Causation
+blocks, the first hands-on slide after the concept slides is the 📤 prompt for their part
+of `analysis.py`.
 :::
 
 ## 🧩 Run k-means · ⭐ challenge {#water-cluster-do}
@@ -1376,7 +1378,7 @@ wat_ex_c = int(wat_prof.index.max())
 wat_ex = wat_prof.loc[wat_ex_c, wat_zcols].astype(float)
 wat_ex = wat_ex[wat_ex.abs().nlargest(2).index]
 wat_ex_text = f"cluster {wat_ex_c}: " + " and ".join(
-    f"{wat_analysis.SHORT_LABELS[wat_c[2:]].lower()} {wat_v:+.1f} SD" for wat_c, wat_v in wat_ex.items())
+    f"{wat_word(wat_c[2:])} {wat_v:+.1f} SD" for wat_c, wat_v in wat_ex.items())
 with wat_plt.rc_context(wat_rc):
     wat_f, wat_ax = wat_plt.subplots(figsize=(11, 0.75 * wat_k + 1.6))
     wat_im = wat_ax.imshow(wat_prof[wat_zcols].to_numpy(), cmap=wat_cmap, vmin=-wat_zlim,
@@ -1765,7 +1767,7 @@ reload `clusters.html` in your browser
 :::
 ::::
 
-::: {style="font-size: 0.8em;"}
+::: {.check}
 💬 while it renders, with a neighbour: describe one cluster using two features.
 :::
 
@@ -1960,7 +1962,9 @@ Add a section to clusters.qmd that reads those outputs: median infant_mortality 
 edits `clusters.qmd` · `uv run quarto render clusters.qmd`
 :::
 
+::: {.check}
 💬 while it runs, with a neighbour: pick one confounder: could it hide a real effect, or create a fake one?
+:::
 
 ### Exercise · ⏱️ 3 min
 
@@ -2398,7 +2402,7 @@ Publish the site with `uv run quarto publish gh-pages --no-prompt` and tell me t
 approve the `gh` and `quarto publish` commands · open the live URL
 :::
 
-::: {style="font-size: 0.8em;"}
+::: {.check}
 💬 while it publishes: which file would you change to update every publication?
 :::
 

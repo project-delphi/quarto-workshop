@@ -21,8 +21,8 @@ const near = (a, b) => b + Math.atan2(Math.sin(a - b), Math.cos(a - b));
 // largest half-range, its face-on width/height, HTML labels drawn at to (with from, a line's
 // end: they fade as the line turns towards the reader; without, a place: hidden while off
 // the canvas), a callback that fades the unfocused groups by t (0 to 1) and labels by
-// weight, and an optional arrange(spots, w, h) that lays the labels out on screen each frame
-// and sets hidden on those that do not fit.
+// weight, and optional arrange(spots, w, h), which lays the labels out on screen each frame
+// and sets hidden on those that do not fit, and remeasure(), called once fonts load.
 export function stage(el, deck, sceneType) {
   const data = JSON.parse(el.querySelector("script[type='application/json']").textContent);
   const slide = el.closest("section");
@@ -52,6 +52,8 @@ export function stage(el, deck, sceneType) {
     outer.add(inner);
     scene.add(outer);
     world = sceneType.build(inner, data, el);
+    // Labels measured in a fallback font are laid out again once the web fonts have loaded.
+    document.fonts?.ready.then(() => { world.remeasure?.(); resize(); });
     camera = new PerspectiveCamera(FOV, 1, world.half * 0.01, world.half * 40);
     // Far objects fade into the slide background, a depth cue when the scene turns.
     let background = "rgba(0, 0, 0, 0)";
