@@ -84,10 +84,10 @@ the diff.
 | 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install, the test run and [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) are pre-work) |
 | 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment |
 | 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, docx + PDF |
-| 0:45 | 🗂️ Part 1 · 📈 Dashboard (⭐ more audiences) |
-| 0:50 | 🌍 Part 1 · Publish to GitHub Pages |
-| 1:00 | ☕ Break · 🛟 catch up |
-| 1:10 | 💧 Part 2 · Colombia water quality and infant mortality (130 min) |
+| 0:45 | 🗂️ Part 1 · Four audiences, 🤖 sub-agents in parallel |
+| 0:55 | 🌍 Part 1 · Publish to GitHub Pages |
+| 1:05 | ☕ Break · 🛟 catch up |
+| 1:15 | 💧 Part 2 · Colombia water quality and infant mortality (125 min) |
 | 3:20 | 🏁 Done |
 
 ## For instructors and contributors
