@@ -135,7 +135,7 @@ Part 2 is computed by this deck from `examples/water/data/water_municipal.csv` w
 15 + 15 + 15 + 20 + 15 + 10 + 45 = 135 minutes, from 1:05 to 3:20. Section dividers show
 the same start times. The 45-minute publishing block has its own start times on each slide.
 Exercise times add up to 4, 10, 10, 12, 10, 6 and 36 minutes for why · rules · data to
-publish; the rest
+publish (the ⭐ dashboard pages are self-paced and not counted); the rest
 of each block is for the concept slides, showing results and recovering from a failed
 command. Several exercises have two prompts, one task each. These are estimates: rehearse
 with a stopwatch and change the clocks, this slide and README together.
@@ -1386,6 +1386,133 @@ rows: an ecological mismatch with the zone-level clusters. The highland-town res
 good discussion point: these are small municipalities, where rates are noisy.
 :::
 
+## 🌡️ Outcomes in SD units {#water-outcome-heatmap}
+
+```{python}
+#| label: fig-wat-outcome-heatmap
+#| echo: false
+#| fig-cap: "Cluster mean outcome in z units (SD above red, below blue the year's average); the mean itself in brackets. Colour scale as in the features heatmap."
+#| fig-alt: "Heatmap with four rows, clusters 1 to 4, and three outcome columns. Cluster 1 is blue for infant mortality and red for Saber 11. Cluster 2 is red for infant mortality and blue for dropout. Cluster 3 is the bluest for Saber 11. All cells are paler than in the features heatmap: no outcome mean is more than about two thirds of a standard deviation from the average."
+# Like the features: standardise within year, then average over each cluster's rows.
+# Municipal outcomes count each municipality once per year (or cluster), as in profiles().
+wat_ocols = list(wat_analysis.OUTCOMES)
+wat_oz = {}
+for wat_col in wat_ocols:
+    wat_r = wat_clusters[wat_clusters["year"].isin(wat_analysis.OUTCOME_YEARS[wat_col])]
+    wat_r = wat_r.dropna(subset=[wat_col])
+    wat_base = (wat_r.drop_duplicates(["divipola", "year"])
+                if wat_analysis.OUTCOME_LEVEL[wat_col] == "municipality" else wat_r)
+    wat_mu = wat_base.groupby("year")[wat_col].mean()
+    wat_sd = wat_base.groupby("year")[wat_col].std(ddof=0)
+    wat_r = wat_analysis.once_per_municipality(wat_r, wat_col)
+    wat_z = (wat_r[wat_col] - wat_r["year"].map(wat_mu)) / wat_r["year"].map(wat_sd)
+    wat_oz[wat_col] = wat_z.groupby(wat_r["cluster"]).mean()
+wat_oz = wat_pd.DataFrame(wat_oz).loc[wat_prof.index]
+wat_ohead = {"infant_mortality": "Infant mortality\nper 1,000 · ↓ better",
+             "saber11_mean": "Saber 11\nscore · ↑ better",
+             "dropout_rate": "Dropout\n% · ↓ better"}
+wat_ofmt = {"infant_mortality": "{:.1f}", "saber11_mean": "{:.0f}", "dropout_rate": "{:.1f}%"}
+with wat_plt.rc_context(wat_rc):
+    wat_f, wat_ax = wat_plt.subplots(figsize=(11, 0.65 * wat_k + 1.3))
+    wat_im = wat_ax.imshow(wat_oz.to_numpy(), cmap=wat_cmap, vmin=-1.5, vmax=1.5, aspect="auto")
+    wat_ax.set_xticks(range(len(wat_ocols)), [wat_ohead[wat_c] for wat_c in wat_ocols])
+    wat_ax.xaxis.tick_top()
+    wat_ax.set_yticks(range(wat_k), [f"Cluster {wat_c}" for wat_c in wat_prof.index])
+    for wat_t, wat_c in zip(wat_ax.get_yticklabels(), wat_prof.index):
+        wat_t.set_color(wat_analysis.CLUSTER_TEXT_COLORS["dark"][wat_c - 1])  # ≥ 4.5:1 text
+        wat_t.set_fontweight("bold")
+    for wat_i, wat_c in enumerate(wat_prof.index):
+        for wat_j, wat_col in enumerate(wat_ocols):
+            wat_mean = wat_ofmt[wat_col].format(wat_prof.loc[wat_c, f"{wat_col}_mean"])
+            wat_ax.text(wat_j, wat_i, f"{wat_oz.loc[wat_c, wat_col]:+.2f}  ({wat_mean})",
+                        ha="center", va="center", fontsize=14, color="white")
+    wat_ax.spines[:].set_visible(False)
+    wat_ax.tick_params(length=0)
+    wat_cb = wat_f.colorbar(wat_im, ax=wat_ax, shrink=0.85, pad=0.02)
+    wat_cb.set_label("z")
+    wat_cb.outline.set_visible(False)
+    wat_plt.show()
+```
+
+[⚠️ Descriptive only: not causal effects of water quality. Infant mortality: 2017–2019 and
+2021–2023; Saber 11: published years.]{.source}
+
+::: {.notes}
+The same recipe as the features heatmap: each outcome is standardised within its year
+(value minus that year's mean, divided by that year's standard deviation), and a cell is
+the cluster's mean z, with the cluster's mean outcome in brackets. Municipal outcomes
+(infant mortality, dropout) count each municipality once per year for the year's mean and
+standard deviation, and once per cluster and year inside a cluster, as `profiles()` does.
+Years: infant mortality 2017–2019 and 2021–2023, Saber 11 2016, 2017, 2019, 2020 and 2022,
+dropout 2016–2023. The colour scale is the features heatmap's (±1.5), so the paler cells are
+the point: the clusters differ far less in outcomes than in the features that formed them.
+Cluster 1 (cities and large towns) has the lowest infant mortality and the best Saber 11
+scores; cluster 2 (highland towns) the highest infant mortality but the lowest dropout.
+:::
+
+## 🎛️ Every variable, cluster by cluster {#water-compare}
+
+```{python}
+#| label: wat-compare
+#| echo: false
+#| output: asis
+# Box summaries per cluster for every feature and outcome; the dropdown switches variable.
+# Only the summaries are embedded (a few numbers per box), not the 11,000 rows.
+import plotly.graph_objects as wat_go
+from plotly.offline import get_plotlyjs_version as wat_plotlyjs_version
+
+wat_vars = {**{wat_c: wat_analysis.FEATURE_LABELS[wat_c] for wat_c in wat_analysis.FEATURES},
+            **wat_analysis.OUTCOMES}
+wat_traces, wat_buttons = [], []
+for wat_i, (wat_col, wat_lab) in enumerate(wat_vars.items()):
+    wat_r = wat_clusters
+    if wat_col in wat_analysis.OUTCOMES:
+        wat_r = wat_r[wat_r["year"].isin(wat_analysis.OUTCOME_YEARS[wat_col])]
+        wat_r = wat_analysis.once_per_municipality(wat_r.dropna(subset=[wat_col]), wat_col)
+    for wat_c, wat_g in wat_r.groupby("cluster"):
+        wat_q = wat_g[wat_col].quantile([0.05, 0.25, 0.5, 0.75, 0.95]).to_numpy()
+        wat_traces.append(wat_go.Box(
+            x=[wat_names[wat_c].replace(", ", ",<br>", 1)], lowerfence=[wat_q[0]],
+            q1=[wat_q[1]], median=[wat_q[2]], q3=[wat_q[3]], upperfence=[wat_q[4]],
+            mean=[wat_g[wat_col].mean()], boxmean=True, name=f"Cluster {wat_c}",
+            marker_color=wat_colors[wat_c], line_width=2.5, showlegend=False,
+            visible=wat_i == 0))
+    wat_show = [wat_j // wat_k == wat_i for wat_j in range(len(wat_vars) * wat_k)]
+    wat_buttons.append(dict(label=wat_lab, method="update",
+                            args=[{"visible": wat_show}, {"yaxis.title.text": wat_lab}]))
+wat_fig = wat_go.Figure(wat_traces)
+wat_fig.update_layout(
+    width=1120, height=540, autosize=False, margin=dict(l=90, r=20, t=70, b=90),
+    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(color="#f0f0f0", size=18), yaxis_title=next(iter(wat_vars.values())),
+    yaxis=dict(gridcolor="#3a3a3a", zeroline=False), xaxis=dict(tickfont_size=16),
+    # Plotly highlights the open menu's rows in near-white, so the menu is light with dark text.
+    updatemenus=[dict(buttons=wat_buttons, active=0, x=0, y=1.13, xanchor="left",
+                      yanchor="bottom", bgcolor="#e8e8e6", bordercolor="#8a8f96",
+                      font=dict(color="#1d1d1d", size=17))])
+print("```{=html}")
+# The cartesian bundle (boxes, menus) is a third of full plotly.js; embed-resources inlines it.
+wat_js = f"https://cdn.plot.ly/plotly-cartesian-{wat_plotlyjs_version()}.min.js"
+print(wat_fig.to_html(include_plotlyjs=wat_js, full_html=False,
+                      config={"displayModeBar": False, "responsive": False}))
+print("```")
+```
+
+[▭ middle half · ━ median · ┅ mean · whiskers 5th–95th percentile · all zone-years
+2016–2023; outcomes in their years, municipal ones once per municipality]{.source}
+
+::: {.notes}
+Pick a variable in the menu: the boxes show how its values spread within each cluster, so
+the overlaps are visible as well as the gaps between means. Features are the values that
+went into the clustering, after imputation (`water_coverage` and `sewer_coverage` medians
+filled `{python} f"{wat_s['imputed_water_coverage']:,}"` and
+`{python} f"{wat_s['imputed_sewer_coverage']:,}"` rows); outcomes were never clustered on.
+Only the box summaries are embedded, not the rows. The deck sets `embed-resources`, so
+Quarto inlines Plotly's cartesian bundle (about 1.5 MB, enough for boxes and menus) and the
+slide works offline. It is descriptive: a gap between clusters is not an effect of water
+quality.
+:::
+
 ## 🏷️ Outcome rules {#water-outcome-rules}
 
 ::: {.prompt}
@@ -1998,6 +2125,53 @@ If the map is a grey box, ask the assistant to reverse the polygon rings for Plo
 `load_geojson()` in `examples/water/scripts/analysis.py`). The finished dashboard is about
 12 MB: Plotly plus one copy of the GeoJSON per map. There is no checkpoint 14: the finished
 project is `quarto-workshop/examples/water/`, and its README holds the catch-up steps.
+:::
+
+## 📈 Three more dashboard pages · ⭐ optional {#water-dashboard-more}
+
+::: {.prompt}
+```default
+Add Kinds, Outcomes and Method pages to dashboard.qmd from outputs/ only: a heatmap of cluster_profiles.csv's `z_` columns; outcomes_by_year.csv medians by `year` and `cluster`, and irca_infant.csv's ρ; k_selection.csv's inertia and silhouette by k. Use each cluster's `color` and axis units; say it is descriptive, not causal. Render; check each page at laptop size.
+```
+:::
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.agent}
+🧬 Kinds · 🎯 Outcomes · 📐 Method (why k = `{python} wat_k`), from `outputs/`
+:::
+:::
+::: {.column width="50%"}
+::: {.you}
+reload 📈 Dashboard · open each page
+:::
+:::
+::::
+
+### Exercise · ⏱️ 8 min
+
+::: {.source .behind}
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/examples/water/README.md
+```
+:::
+
+::: {.done}
+the dashboard has Map, Kinds, Outcomes, Method and Municipalities pages.
+:::
+
+::: {.notes}
+Compute once, publish many: every new page reads files `analysis.py` already wrote, so the
+dashboard never recomputes a number. A level-1 heading starts a dashboard page
+(https://quarto.org/docs/dashboards/layout.html#pages, checked 2026-10-31). With Quarto
+1.6.40 a dashboard cell shows every top-level expression, not only the last one: a bare
+`fig.add_vline(...)` line draws the chart a second time, so assign it (`fig = fig.add_vline(...)`)
+and end the cell with `fig`. If legend entries overlap, ask for a horizontal legend with a
+fixed `entrywidth`; years without data should stay gaps, not joined lines. Optional and
+self-paced: not counted in the agenda's exercise times.
+The finished dashboard is `quarto-workshop/examples/water/dashboard.qmd`.
 :::
 
 ## 🌍 3:15 · Publish it {#water-ship}
