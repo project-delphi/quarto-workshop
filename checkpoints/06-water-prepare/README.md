@@ -19,4 +19,4 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 3. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/06-water-prepare/. .`
 4. Run: `uv run python scripts/analysis.py`.
 5. Check: the printed `kept` count matches the 🧮 *What we keep* slide and `outputs/prepared.parquet` exists.
-6. Rejoin: your folder now holds the end of this block, so skip the block's remaining prompts and follow the slides. Start pasting prompts again at 🧩 *Cluster* (⏱️ 1:55) ([slide](https://project-delphi.github.io/quarto-workshop/#/water-cluster)).
+6. Rejoin: your folder now holds the end of this block, so skip the block's remaining prompts and follow the slides. Start pasting prompts again at 🧩 *Cluster* (⏱️ 2:00) ([slide](https://project-delphi.github.io/quarto-workshop/#/water-cluster)).

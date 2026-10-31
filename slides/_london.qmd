@@ -14,9 +14,6 @@
 /* Lists and Table: the longest Markdown sources beside their previews. */
 .reveal .ldn-src.long { font-size: 0.7em; }
 .reveal .ldn-preview figcaption { color: #555; }
-.reveal .preview.ldn-brief { font-size: 0.56em; }
-.reveal .preview.ldn-brief h3 { font-size: 1.2em; margin: 0.45em 0 0.2em; }
-.reveal .preview.ldn-brief table { width: 100%; }
 /* Table thumbnails: theme.scss sets img height:auto, so size them here. */
 .reveal .preview.ldn-table img { height: 2.3em; width: auto; max-width: none; vertical-align: middle; }
 .reveal .preview.ldn-table :is(td, th) { vertical-align: middle; padding-top: 0.1em; padding-bottom: 0.1em; }
@@ -33,24 +30,19 @@ import matplotlib.pyplot as plt
 ldn_att = pd.read_csv("examples/london/data/attractions.csv")
 ldn_top = ldn_att.loc[ldn_att["visits_2025"].idxmax()]
 ldn_top_name = ldn_top["attraction"]
-ldn_top_short = ldn_top_name.split(" (")[0]
 ldn_top_visits = f"{ldn_top['visits_2025']:,}"
 ldn_total = f"{ldn_att['visits_2025'].sum():,}"
-ldn_n = len(ldn_att)
-ldn_n_free = int(ldn_att["admission"].str.startswith("Free").sum())
-ldn_entry = "Free to enter" if ldn_top["admission"].startswith("Free") else "Tickets needed"
 
 ldn_ch = pd.read_csv("examples/london/data/churches.csv")
-ldn_ch_types = {k: int(v) for k, v in ldn_ch["type"].value_counts().items()}
 ldn_ch_n = len(ldn_ch)
 ```
 
 ::: {.notes}
 Part 1 audience: newcomers to Quarto. Objective: one Markdown guide becomes HTML, Word,
-PDF, a dashboard and a published website (⭐ PowerPoint, slides, an e-book and print
-versions). Completion: the published dashboard
+PDF, a dashboard, a partner brief, a flyer, a social ad and a published website
+(⭐ PowerPoint, slides and an e-book). Completion: the published dashboard
 URL opens on a phone. Each hands-on block ends with a checkpoint in
-`quarto-workshop/checkpoints/` (01–04); the finished project is
+`quarto-workshop/checkpoints/` (01, 02 and 04); the finished project is
 `quarto-workshop/examples/london/`.
 :::
 
@@ -70,12 +62,12 @@ URL opens on a phone. Each hands-on block ends with a checkpoint in
 ::: {}
 [🗂️]{.big}
 
-**0:45** 📈 dashboard · ⭐ more audiences
+**0:45** 🤖 four audiences in parallel
 :::
 ::: {}
 [🌍]{.big}
 
-**0:50** publish to GitHub Pages
+**0:55** publish to GitHub Pages
 :::
 :::
 
@@ -85,11 +77,11 @@ URL opens on a phone. Each hands-on block ends with a checkpoint in
 
 ::: {.notes}
 Twenty minutes for the first block, when the assistant, the project rules, the preview and
-the Python environment are new, then 10, 5 and 10. The same times appear on the section
-dividers. Exercise times add up to 13, 8, 3 and 8 minutes; the rest of each block is for
-showing results and helping someone recover. The ⭐ pptx, epub and revealjs exports, the
-churches page, the partner email, the flyer and the social ad are self-paced: demonstrate
-the exports, and show the finished audience files from `examples/london/` in passing.
+the Python environment are new, then ten per block. The same times appear on the section
+dividers. Exercise times add up to 13, 8, 6 and 8 minutes; the rest of each block is for
+showing results and helping someone recover. The ⭐ pptx, epub and revealjs exports are
+self-paced: demonstrate them. The four audience versions come from one prompt whose
+sub-agents run in parallel, so they take about as long as the dashboard alone.
 People stuck for two minutes paste the 😰 catch-up prompt on the hands-on slide and rejoin
 at the next block. These times are estimates: rehearse with a stopwatch and adjust them
 together with the section clocks and README.
@@ -1003,43 +995,43 @@ with all six formats.
 
 📈 dashboard
 
-`london-dashboard.qmd`
+`format: dashboard`
 :::
 ::: {}
 [📧]{.big}
 
-**Partners** ⭐
+**Partners**
 
-email attachment → docx
+email attachment
 
-`london-email.qmd`
+`format: docx`
 :::
 ::: {}
 [🧾]{.big}
 
-**Walk-ins** ⭐
+**Walk-ins**
 
-A5 flyer → pdf
+A5 flyer · pdf
 
-`london-flyer.qmd`
+`typst` · `papersize: a5`
 :::
 ::: {}
 [📱]{.big}
 
-**Social** ⭐
+**Social**
 
-square ad → pdf
+12 cm square ad · pdf
 
-`london-social.qmd`
+raw `{=typst}` page size
 :::
 ::: {}
 [🌐]{.big}
 
 **Visitors**
 
-website
+website · next block
 
-`_quarto.yml`
+`project: website`
 :::
 :::
 
@@ -1049,323 +1041,89 @@ website
 
 ::: {.notes}
 Every output reads the same `data/` files and the same photo, so one update to the data
-changes every audience's version at the next render. The website comes last, in the
-publishing block. In the room this block is the dashboard only; the ⭐ partner, walk-in
-and social versions are self-paced, so show the finished files from `examples/london/`
-for a few seconds and move on.
+changes every audience's version at the next render. Each card names the format setting
+that makes the difference, and the prompt two slides on asks for exactly these:
+`format: dashboard` turns `##` headings into rows and each cell output into a card, with a
+level-1 heading per page (https://quarto.org/docs/dashboards/); `format: docx` is Word;
+the flyer is a Typst PDF on A5 paper (`papersize: a5`,
+https://quarto.org/docs/output-formats/typst.html#page-layout); Typst has no square paper
+size, so the ad sets its page in a raw `{=typst}` block; and `project: website` in
+`_quarto.yml` comes in the publishing block (docs checked 2026-10-31). The files are
+`london-dashboard.qmd`, `london-email.qmd` (with `london-email-message.md`),
+`london-flyer.qmd` and `london-social.qmd`. The first four are independent, so one prompt
+can hand them to four sub-agents at once (next slide). The website comes last and links
+them all.
 :::
 
-## 📈 Managers: a dashboard {#dashboard}
+## 🤖 Sub-agents: one lead, many hands {#sub-agents}
 
-::: {.prompt}
-```default
-Create london-dashboard.qmd (format: dashboard): value boxes (top attraction, total visits_2025, number free) from data/attractions.csv; Plotly bars of visits_2025 by attraction and a line of visits by `year` from data/visits.csv. Make it look polished and consistent; render it and check it at laptop size.
-```
-:::
-
-::: {.cards .fragment}
+::: {.cards style="grid-template-columns: repeat(3, 1fr);"}
 ::: {}
-🏆 **`{python} ldn_top_visits`**
+[🧑‍✈️]{.big}
 
-`{python} ldn_top_short`
-:::
-::: {}
-🚶 **`{python} ldn_total`**
+**Lead**
 
-10 ALVA member attractions, 2025
-:::
-::: {}
-🆓 **`{python} ldn_n_free`/`{python} ldn_n`**
-
-free entry
+your assistant: splits the work, waits, renders, checks
 :::
 ::: {}
-📊 bar · 📈 line
+[🤖🤖🤖🤖]{.big}
 
-2015–2025
-:::
-:::
+**Sub-agents**
 
-:::: {.columns}
-::: {.column width="50%"}
-::: {.agent}
-writes and renders `london-dashboard.qmd`
-:::
-:::
-::: {.column width="50%"}
-::: {.you}
-open `london-dashboard.html`
-:::
-:::
-::::
-
-### Exercise · ⏱️ 3 min
-
-::: {.source .behind}
-😰 Stuck?
-
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/03-london-dashboard/README.md
-```
-:::
-
-::: {.done}
-the dashboard shows three value boxes and two charts.
-:::
-
-::: {.notes}
-`format: dashboard` turns `##` headings into rows and each cell output into a card.
-Value boxes and layout: https://quarto.org/docs/dashboards/data-display.html (checked
-2026-10-30). The cards sketch the layout with values computed by this deck from
-`examples/london/data/attractions.csv`. `data/visits.csv` holds 2015–2025 visits for five
-attractions from the ALVA yearly pages: 2020–2021 are pandemic years, and from 2024 the
-Natural History Museum count includes its reopened gardens (ALVA 2024 note v). If a
-Plotly legend looks clipped, ask for a horizontal legend with a fixed `entrywidth`.
-Checkpoint 03 is the state after this step.
-:::
-
-## ⛪ Managers: churches · ⭐ optional {#dashboard-churches}
-
-::: {.prompt}
-```default
-Add a Churches page to london-dashboard.qmd: a table of the churches in data/churches.csv, each name linked to its `visit_london` page, and a card linking Visit London. Render; check both pages.
-```
-:::
-
-::: {.cards .fragment}
-::: {}
-🏛️ **`{python} ldn_ch_types["Cathedral"]`**
-
-cathedrals
+one task each, own context, all at once
 :::
 ::: {}
-⛪ **`{python} ldn_ch_types["Gothic church"]`**
+[📄]{.big}
 
-Gothic churches
+**One file each**
+
+no two agents edit or render the same file
 :::
-::: {}
-🔔 **`{python} ldn_ch_types["Church"]`**
-
-churches
-:::
-::: {}
-🔗 **Visit London**
-
-a link on every name
-:::
-:::
-
-:::: {.columns}
-::: {.column width="50%"}
-::: {.agent}
-adds a `#` page, renders
-:::
-:::
-::: {.column width="50%"}
-::: {.you}
-open `london-dashboard.html`
-:::
-:::
-::::
-
-### Exercise · ⏱️ 2 min
-
-::: {.source .behind}
-😰 Stuck?
-
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/03-london-dashboard/README.md
-```
-:::
-
-::: {.done}
-the dashboard has an Attractions page and a Churches page.
-:::
-
-::: {.notes}
-A level-1 heading starts a dashboard page: "To introduce multiple pages, use level 1
-headings above the level 2 headings used to define rows and columns"
-(https://quarto.org/docs/dashboards/layout.html#pages, checked 2026-10-31).
-`data/churches.csv` came with `data/` at the code-cells step. It lists the
-`{python} ldn_ch_n` cathedrals and churches on Visit London's "Cathedrals and churches in
-London" page
-(https://www.visitlondon.com/things-to-do/sightseeing/london-attraction/historic/cathedrals-and-churches-in-london,
-retrieved 2026-10-31), in page order with the page's headings as `type`. Visit London is
-the city's official visitor guide, and the list is its choice of places tourists like, not
-a ranking, so the page shows no visitor numbers. `visit_london` is the church's own Visit
-London page, or the list itself where the list links none. The cards are counted by this
-deck from that file. This step is optional and self-paced; checkpoint 03 includes it.
-:::
-
-## 📧 Partners: a Word attachment · ⭐ optional {#email}
-
-::: {.prompt}
-```default
-Create london-email.qmd (format: docx), a partner brief to attach to an email: Why London (2025 numbers from data/attractions.csv, inline code), Five sights (table with official links), Getting around, Sources. Hide code; render.
-```
-:::
-
-:::: {.columns}
-::: {.column width="42%"}
-::: {.ldn-src}
-```{.markdown}
----
-title: "London visitor guide: partner brief"
-format: docx
-execute:
-  echo: false
----
-## Why London
-## Five sights to start with
-## Getting around
-## Sources
-```
-:::
-:::
-::: {.column width="58%"}
-::: {.preview .ldn-brief}
-**London visitor guide: partner brief**
-
-```{=html}
-<h3>Why London</h3>
-```
-
-`{python} ldn_total` visits to the top `{python} ldn_n` ALVA members in 2025 · `{python} ldn_n_free` free
-
-```{=html}
-<h3>Five sights to start with</h3>
-```
-
-| Sight | Plan a visit |
-|---|---|
-| British Museum | [britishmuseum.org](https://www.britishmuseum.org/visit) |
-| Tate Modern | [tate.org.uk](https://www.tate.org.uk/visit/tate-modern) |
-:::
-:::
-::::
-
-### Exercise · ⏱️ 2 min
-
-::: {.source .behind}
-😰 Stuck?
-
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/04-london-audiences/README.md
-```
-:::
-
-::: {.done}
-the Word file has headings, numbers and links.
-:::
-
-::: {.notes}
-The attachment is a structured document: Markdown headings become Word heading styles
-(Title, Heading 2), so the brief has a navigable outline, and every link stays clickable in
-Word. `execute: echo: false` hides every code cell. The numbers in the light card are
-computed by this deck from the same CSV, so the brief and the guide always agree. Official
-visitor pages: britishmuseum.org/visit, nhm.ac.uk/visit.html, tate.org.uk/visit/tate-modern,
-nationalgallery.org.uk/visiting, hrp.org.uk/tower-of-london/visit (checked 2026-10-30).
-Finished file: `quarto-workshop/examples/london/london-email.qmd`. Optional and
-self-paced, like the email and the flyer: not counted in the agenda.
-:::
-
-## ✉️ Partners: the email · ⭐ optional {#email-message}
-
-::: {.prompt}
-```default
-Create london-email-message.md: the email to partner hotels with london-email.docx attached, in one text code block: subject, greeting, what the brief covers, sign-off. No visit numbers: the brief has them. Show me the file.
-```
-:::
-
-:::: {.columns}
-::: {.column width="60%"}
-::: {.ldn-src}
-````{.markdown}
-```text
-Subject: London visitor guide for your guests
-
-Dear partner,
-
-Attached is our partner brief, london-email.docx,
-for your guests' welcome emails. …
-
-London Tourism Office
-```
-````
-:::
-:::
-::: {.column width="40%"}
-::: {.agent}
-writes `london-email-message.md`
-:::
-
-::: {.you}
-read it: would you send it?
-:::
-:::
-::::
-
-### Exercise · ⏱️ 1 min
-
-::: {.source .behind}
-😰 Stuck?
-
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/04-london-audiences/README.md
-```
-:::
-
-::: {.done}
-`london-email-message.md` holds the email in one text block.
-:::
-
-::: {.notes}
-The brief is the attachment; this is the message that carries it. A plain `.md` file needs
-no render: the `text` fence marks exactly what to copy and keeps the email's line breaks.
-To send it, copy the text between the fence lines (the `Subject:` line into the subject
-field, the rest into the message) and attach `london-email.docx`. It has no code cells, so
-it quotes no visit numbers: they stay in the brief, computed from `data/attractions.csv`
-and cited, as the project's rules require. Finished file:
-`quarto-workshop/examples/london/london-email-message.md`.
-:::
-
-## 🧾 Walk-ins: an A5 flyer · ⭐ optional {#flyer}
-
-::: {.prompt}
-```default
-Create london-flyer.qmd: a printable A5 flyer (format: typst, papersize: a5) with the Big Ben photo, a table of the five sights with price band and nearest tube, and the local tip. Render it and check it fits on one page.
-```
-:::
-
-:::: {.columns}
-::: {.column width="46%"}
-::: {.ldn-src}
-```{.yaml}
----
-title: "Visit London"
-subtitle: "Five sights for one great day"
-format:
-  typst:
-    papersize: a5
-    margin:
-      x: 1.2cm
-      y: 1.2cm
----
-```
-:::
-:::
-::: {.column width="54%"}
-::: {.agent}
-`uv run quarto render london-flyer.qmd` → `london-flyer.pdf`
 :::
 
 ::: {.bigline}
-🧾 148 × 210 mm · 1 page · 🖨️
+⏱️ four tasks ≈ the slowest one · 🪙 more tokens
 :::
-:::
-::::
 
-### Exercise · ⏱️ 2 min
+[[Claude Code](https://code.claude.com/docs/en/sub-agents) ·
+[Codex](https://learn.chatgpt.com/docs/agent-configuration/subagents) ·
+[Antigravity](https://antigravity.google/docs/subagents?tab=cli) · checked 2026-10-31]{.source}
+
+::: {.notes}
+A sub-agent is a separate assistant session that the lead starts for one task: it has its
+own context window, does the task and reports back, while the lead waits for all of them
+and checks the results. Independent tasks then take about as long as the slowest one, but
+each sub-agent does its own model and tool work, so a run uses more tokens. Claude Code
+runs sub-agents in parallel when a prompt asks for them, without any set-up; its own
+example is "Research the authentication, database, and API modules in parallel using
+separate subagents" (https://code.claude.com/docs/en/sub-agents). Codex enables sub-agents
+by default and starts them when asked; its docs warn that parallel edits "can create
+conflicts" and that sub-agent runs use more tokens
+(https://learn.chatgpt.com/docs/agent-configuration/subagents). Antigravity's CLI lets its
+primary agent delegate to parallel subagents (https://antigravity.google/docs/subagents?tab=cli);
+the docs do not say a prompt can require it, so `agy` may do the tasks itself. All checked
+2026-10-31. Two rules keep parallel work safe, and the prompt states both: each sub-agent
+writes only its own files and renders nothing, and the lead renders the files one at a
+time, because two Quarto renders, or two `uv run` environment updates, in one folder can
+collide. Sub-agents
+read `AGENTS.md` too, so the project's rules (cited numbers, open photos, `uv run`) still
+apply. This is the same split as this repository's own role contracts in its `AGENTS.md`.
+:::
+
+## 🗂️ One prompt, four audiences {#audiences-do}
+
+::: {.prompt .long}
+```default
+Run four sub-agents in parallel, one per item (none? do the items in turn). Each reads data/ and images/, hides code, follows AGENTS.md and only writes its own files: no rendering.
+1. london-dashboard.qmd (format: dashboard): Attractions page (value boxes: top attraction, total `visits_2025`, number free; Plotly bars by attraction; a Plotly line of visits by `year` from data/visits.csv); Churches page (data/churches.csv, names linked to `visit_london`).
+2. london-email.qmd: docx partner brief (2025 numbers as inline code, five sights with official links, getting around, sources); london-email-message.md: its covering email in a text block, no numbers.
+3. london-flyer.qmd: one A5 Typst page (papersize: a5): Big Ben photo, five sights with price band and nearest tube, local tip.
+4. london-social.qmd: one 12 cm square Typst page (raw Typst page size): "Visit London", photo, top attraction and its 2025 visits.
+Then render the four .qmd files yourself, one at a time, and check each.
+```
+:::
+
+### Exercise · ⏱️ 6 min
 
 ::: {.source .behind}
 😰 Stuck?
@@ -1376,84 +1134,55 @@ Catch me up: follow ../quarto-workshop/checkpoints/04-london-audiences/README.md
 :::
 
 ::: {.done}
-`london-flyer.pdf` is a single A5 page.
+you open a two-page dashboard, a Word brief and its email, a one-page flyer and a square ad.
 :::
 
 ::: {.notes}
-`papersize` takes any Typst paper name (`a5`, `a4`, `us-letter`, …); `margin` takes `x`, `y`
-or single sides. https://quarto.org/docs/output-formats/typst.html#page-layout (checked
-2026-10-30). If it spills onto a second page, ask the assistant to shrink the photo.
-Optional and self-paced: not counted in the agenda.
-:::
+One prompt, four independent jobs. Participants approve the assistant's commands and open
+the four outputs; the lead starts the sub-agents, waits, then renders
+`london-dashboard.qmd`, `london-email.qmd`, `london-flyer.qmd` and `london-social.qmd` in
+turn and checks them; `london-email-message.md` needs no render. Ask the room to watch the
+assistant report each sub-agent's progress. Finished files: `quarto-workshop/examples/london/`.
 
-## 📱 Social · a square ad · ⭐ optional {#social}
+Dashboard: `format: dashboard` turns `##` headings into rows and each cell output into a
+card, and a level-1 heading starts a page: "To introduce multiple pages, use level 1
+headings above the level 2 headings used to define rows and columns"
+(https://quarto.org/docs/dashboards/data-display.html and
+https://quarto.org/docs/dashboards/layout.html#pages, checked 2026-10-31). `data/visits.csv`
+holds 2015–2025 visits for five attractions from the ALVA yearly pages: 2020–2021 are
+pandemic years, and from 2024 the Natural History Museum count includes its reopened
+gardens (ALVA 2024 note v). `data/churches.csv` lists the `{python} ldn_ch_n` cathedrals and
+churches on Visit London's "Cathedrals and churches in London" page
+(https://www.visitlondon.com/things-to-do/sightseeing/london-attraction/historic/cathedrals-and-churches-in-london,
+retrieved 2026-10-31), in page order with the page's headings as `type`: Visit London's
+choice of places tourists like, not a ranking, so the page shows no visitor numbers;
+`visit_london` is the church's own Visit London page, or the list itself where the list
+links none. If a Plotly legend looks clipped, ask for a horizontal legend with a fixed
+`entrywidth`.
 
-::: {.prompt}
-```default
-Create london-social.qmd: a one-page 12 cm square social ad with Typst: a big "Visit London" headline, the photo, and the most visited attraction with its 2025 visits from data/attractions.csv. Render and check the page.
-```
-:::
+Partners: Markdown headings become Word heading styles (Title, Heading 2), so the brief has
+a navigable outline and its links stay clickable; `execute: echo: false` hides every code
+cell. Official visitor pages: britishmuseum.org/visit, nhm.ac.uk/visit.html,
+tate.org.uk/visit/tate-modern, nationalgallery.org.uk/visiting,
+hrp.org.uk/tower-of-london/visit (checked 2026-10-30). The covering email is a plain `.md`
+file: the `text` fence marks exactly what to copy and keeps its line breaks; to send it,
+copy the `Subject:` line into the subject field and the rest into the message, and attach
+`london-email.docx`. It quotes no visit numbers, so they stay in the brief, computed and
+cited, as the project's rules require.
 
-:::: {.columns}
-::: {.column width="54%"}
-::: {.ldn-src}
-````{.markdown}
-```{=typst}
-#set page(width: 12cm, height: 12cm,
-          fill: rgb("#0b2545"))
-```
-````
-:::
-
-🧩 no square `papersize` → raw Typst
-:::
-::: {.column width="46%"}
-:::: {.preview style="background: #0b2545; color: #fff; aspect-ratio: 1 / 1; width: 54%; margin-left: auto;"}
-[Visit London]{style="font-size: 1.7em; font-weight: 700;"}
-
-::: {.columns}
-::: {.column width="42%"}
-![](examples/london/images/big-ben.jpg){width="95%" fig-alt="Big Ben's clock tower against a blue sky."}
-:::
-::: {.column width="58%"}
-**`{python} ldn_top_short`**
-
-`{python} ldn_top_visits` visits in 2025
-
-`{python} ldn_entry`
-:::
-:::
-::::
-:::
-::::
-
-### Exercise · ⏱️ 2 min
-
-::: {.source .behind}
-😰 Stuck?
-
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/04-london-audiences/README.md
-```
-:::
-
-::: {.done}
-`london-social.pdf` is one 12 cm square page.
-:::
-
-::: {.notes}
-Quarto's `papersize` only accepts Typst's named paper sizes, and none is square, so the
-example sets the page in a raw `{=typst}` block (tested with Quarto 1.6.40 and its bundled
-Typst 0.11). Keep the document free of a title and level-1 headings: they would land on a
-letter-size first page before the square one. The card on the right sketches the real
-layout with numbers computed by this deck. This step is optional and self-paced: the
-website prompt lists only the files that exist, so a skipped card is not in the Downloads
-menu. Checkpoint 04 holds every ⭐ audience version, the social card included.
+Flyer and ad: `papersize` takes any Typst paper name (`a5`, `a4`, `us-letter`, …) and
+`margin` takes `x`, `y` or single sides
+(https://quarto.org/docs/output-formats/typst.html#page-layout, checked 2026-10-30); if the
+flyer spills onto a second page, ask for a smaller photo. No paper name is square, so the ad
+sets its page in a raw `{=typst}` block (`#set page(width: 12cm, height: 12cm)`; tested with
+Quarto 1.6.40 and its bundled Typst 0.11) and has no title or level-1 heading, which would
+land on a letter-size first page before the square one. Checkpoint 04 is the end of this
+block.
 :::
 
 # 🌍 Publish to GitHub Pages {#publish-london}
 
-[⏱️ 0:50]{.clock}
+[⏱️ 0:55]{.clock}
 
 ## 🌳 Git: every change, safely {#git-cycle}
 

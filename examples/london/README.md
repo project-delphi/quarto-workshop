@@ -19,4 +19,4 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 3. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
 4. Render the site: `uv run quarto render` (writes `_site/`).
 5. Check: `_site/index.html` opens with Guide, Dashboard and Downloads in the navbar.
-6. Rejoin: if your site is not live yet, paste the two prompts on 🚀 *Publish* ([slide](https://project-delphi.github.io/quarto-workshop/#/london-publish)); after the ☕ break, everyone starts 💧 *Part 2* together at 1:10 ([slide](https://project-delphi.github.io/quarto-workshop/#/part-2)).
+6. Rejoin: if your site is not live yet, paste the two prompts on 🚀 *Publish* ([slide](https://project-delphi.github.io/quarto-workshop/#/london-publish)); after the ☕ break, everyone starts 💧 *Part 2* together at 1:15 ([slide](https://project-delphi.github.io/quarto-workshop/#/part-2)).
