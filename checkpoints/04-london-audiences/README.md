@@ -1,6 +1,6 @@
-# Checkpoint 04 · Five audiences
+# Checkpoint 04 · Four audience versions
 
-State at the end of the audiences block, the four files that one prompt's sub-agents write: checkpoint 02 plus `london-dashboard.qmd` (an Attractions page with three value boxes and two Plotly charts, and a Churches page listing Visit London's ten churches from `data/churches.csv`, each linked to its Visit London page), `london-email.qmd` (docx partner brief), `london-email-message.md` (the email that carries it), `london-flyer.qmd` (A5 Typst PDF) and `london-social.qmd` (12 cm square Typst PDF). There is no checkpoint 03: the block is a single prompt.
+State at the end of the audiences block, the five files that one prompt's four sub-agents write: checkpoint 02 plus `london-dashboard.qmd` (an Attractions page with three value boxes and two Plotly charts, and a Churches page listing Visit London's ten churches from `data/churches.csv`, each linked to its Visit London page), `london-email.qmd` (docx partner brief), `london-email-message.md` (the email that carries it), `london-flyer.qmd` (A5 Typst PDF) and `london-social.qmd` (12 cm square Typst PDF). There is no checkpoint 03: the block is a single prompt.
 
 `AGENTS.md` holds the project's rules for the coding assistant, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
 

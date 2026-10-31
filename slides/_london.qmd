@@ -78,7 +78,7 @@ URL opens on a phone. Each hands-on block ends with a checkpoint in
 ::: {.notes}
 Twenty minutes for the first block, when the assistant, the project rules, the preview and
 the Python environment are new, then ten per block. The same times appear on the section
-dividers. Exercise times add up to 13, 8, 5 and 8 minutes; the rest of each block is for
+dividers. Exercise times add up to 13, 8, 6 and 8 minutes; the rest of each block is for
 showing results and helping someone recover. The ⭐ pptx, epub and revealjs exports are
 self-paced: demonstrate them. The four audience versions come from one prompt whose
 sub-agents run in parallel, so they take about as long as the dashboard alone.
@@ -995,34 +995,34 @@ with all six formats.
 
 📈 dashboard
 
-`london-dashboard.qmd`
+`format: dashboard`
 :::
 ::: {}
 [📧]{.big}
 
 **Partners**
 
-email attachment → docx
+email attachment
 
-`london-email.qmd`
+`format: docx`
 :::
 ::: {}
 [🧾]{.big}
 
 **Walk-ins**
 
-A5 flyer → pdf
+A5 flyer · pdf
 
-`london-flyer.qmd`
+`typst` · `papersize: a5`
 :::
 ::: {}
 [📱]{.big}
 
 **Social**
 
-square ad → pdf
+12 cm square ad · pdf
 
-`london-social.qmd`
+raw `{=typst}` page size
 :::
 ::: {}
 [🌐]{.big}
@@ -1031,7 +1031,7 @@ square ad → pdf
 
 website · next block
 
-`_quarto.yml`
+`project: website`
 :::
 :::
 
@@ -1041,9 +1041,18 @@ website · next block
 
 ::: {.notes}
 Every output reads the same `data/` files and the same photo, so one update to the data
-changes every audience's version at the next render. The first four are independent files,
-so one prompt can hand them to four sub-agents at once (next slide). The website comes
-last, in the publishing block, and links them all.
+changes every audience's version at the next render. Each card names the format setting
+that makes the difference, and the prompt two slides on asks for exactly these:
+`format: dashboard` turns `##` headings into rows and each cell output into a card, with a
+level-1 heading per page (https://quarto.org/docs/dashboards/); `format: docx` is Word;
+the flyer is a Typst PDF on A5 paper (`papersize: a5`,
+https://quarto.org/docs/output-formats/typst.html#page-layout); Typst has no square paper
+size, so the ad sets its page in a raw `{=typst}` block; and `project: website` in
+`_quarto.yml` comes in the publishing block (docs checked 2026-10-31). The files are
+`london-dashboard.qmd`, `london-email.qmd` (with `london-email-message.md`),
+`london-flyer.qmd` and `london-social.qmd`. The first four are independent, so one prompt
+can hand them to four sub-agents at once (next slide). The website comes last and links
+them all.
 :::
 
 ## 🤖 Sub-agents: one lead, many hands {#sub-agents}
@@ -1094,8 +1103,9 @@ conflicts" and that sub-agent runs use more tokens
 primary agent delegate to parallel subagents (https://antigravity.google/docs/subagents?tab=cli);
 the docs do not say a prompt can require it, so `agy` may do the tasks itself. All checked
 2026-10-31. Two rules keep parallel work safe, and the prompt states both: each sub-agent
-writes only its own files, and the lead renders the files one at a time, because two
-Quarto renders, or two `uv run` environment updates, in one folder can collide. Sub-agents
+writes only its own files and renders nothing, and the lead renders the files one at a
+time, because two Quarto renders, or two `uv run` environment updates, in one folder can
+collide. Sub-agents
 read `AGENTS.md` too, so the project's rules (cited numbers, open photos, `uv run`) still
 apply. This is the same split as this repository's own role contracts in its `AGENTS.md`.
 :::
@@ -1104,16 +1114,16 @@ apply. This is the same split as this repository's own role contracts in its `AG
 
 ::: {.prompt .long}
 ```default
-Run four sub-agents in parallel, one per item (none? do the items in turn). Each reads data/ and images/, hides code, writes only its own files, follows AGENTS.md:
-1. london-dashboard.qmd: Attractions page (value boxes: top attraction, total `visits_2025`, number free; Plotly bars; visits by `year` from data/visits.csv); Churches page (data/churches.csv, names linked to `visit_london`).
+Run four sub-agents in parallel, one per item (none? do the items in turn). Each reads data/ and images/, hides code, follows AGENTS.md and only writes its own files: no rendering.
+1. london-dashboard.qmd (format: dashboard): Attractions page (value boxes: top attraction, total `visits_2025`, number free; Plotly bars by attraction; a Plotly line of visits by `year` from data/visits.csv); Churches page (data/churches.csv, names linked to `visit_london`).
 2. london-email.qmd: docx partner brief (2025 numbers as inline code, five sights with official links, getting around, sources); london-email-message.md: its covering email in a text block, no numbers.
-3. london-flyer.qmd: one A5 Typst page: Big Ben photo, five sights with price band and nearest tube, local tip.
-4. london-social.qmd: one 12 cm square Typst ad: "Visit London", photo, top attraction and its 2025 visits.
-Then render the four .qmd files one at a time and check each.
+3. london-flyer.qmd: one A5 Typst page (papersize: a5): Big Ben photo, five sights with price band and nearest tube, local tip.
+4. london-social.qmd: one 12 cm square Typst page (raw Typst page size): "Visit London", photo, top attraction and its 2025 visits.
+Then render the four .qmd files yourself, one at a time, and check each.
 ```
 :::
 
-### Exercise · ⏱️ 5 min
+### Exercise · ⏱️ 6 min
 
 ::: {.source .behind}
 😰 Stuck?
@@ -1124,7 +1134,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/04-london-audiences/README.md
 :::
 
 ::: {.done}
-you open a two-page dashboard, a Word brief, a one-page flyer and a square ad.
+you open a two-page dashboard, a Word brief and its email, a one-page flyer and a square ad.
 :::
 
 ::: {.notes}
