@@ -2,11 +2,15 @@
 // Shared by both decks. Slides with spare room get more space between their blocks:
 // each content slide receives the largest --ws-space factor (theme.scss scales its
 // margins with it) whose content still ends above LIMIT of the slide height. Full
-// slides keep factor 1, i.e. the stylesheet's own spacing. Fragments are measured in
-// place: Reveal hides them with opacity, so they keep their space.
-// API: https://revealjs.com/api/ (getSlides, getConfig, layout), checked 2026-10-30.
+// slides keep factor 1, i.e. the stylesheet's own spacing. On a translated page, whose
+// text runs longer, overfull slides close up with the largest TIGHT factor that fits; an
+// English slide that overflows stays visible, to be split (AGENTS.md). Fragments are
+// measured in place: Reveal hides them with opacity, so they keep their space.
+// APIs: https://revealjs.com/api/ (getSlides, getSlidesElement, getConfig, layout) and
+// https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver, checked 2026-10-30.
 (() => {
   const STEPS = [1.8, 1.6, 1.4, 1.2];
+  const TIGHT = [0.8, 0.6];
   const LIMIT = 0.88;
 
   // Content height in slide units: the slide's own height once it may shrink to fit.
@@ -48,35 +52,84 @@
   }
 
   const measured = new WeakSet();
+  const texts = new WeakMap(); // each slide's text when it was last measured
+  const lang = document.documentElement.lang;
   let firstPass = true;
 
-  function space(slide, limit) {
+  // Google Translate marks <html> with a translated-ltr or translated-rtl class and the
+  // target lang (seen with its page element, 2026-10-30); either marks the page translated.
+  function translated() {
+    const html = document.documentElement;
+    return /\btranslated-/.test(html.className) || html.lang !== lang;
+  }
+
+  function space(slide, height) {
     if (measured.has(slide) || slide.matches("#title-slide, .level1")) return;
     if (!imagesReady(slide)) return;
     const changed = unhide(slide);
-    slide.style.setProperty("--ws-space", "1");
+    const fits = (step, limit) => {
+      slide.style.setProperty("--ws-space", String(step));
+      return contentBottom(slide) <= limit;
+    };
     let fit = 1;
-    if (contentBottom(slide) <= limit) {
-      fit = STEPS.find((step) => {
-        slide.style.setProperty("--ws-space", String(step));
-        return contentBottom(slide) <= limit;
-      }) || 1;
+    if (fits(1, height * LIMIT)) {
+      fit = STEPS.find((step) => fits(step, height * LIMIT)) || 1;
+    } else if (translated() && !fits(1, height)) {
+      fit = TIGHT.find((step) => fits(step, height)) || TIGHT[TIGHT.length - 1];
     }
     restore(changed);
     slide.style.setProperty("--ws-space", String(fit));
     measured.add(slide);
+    texts.set(slide, slide.textContent);
   }
 
   function spaceSlides(deck) {
-    const limit = deck.getConfig().height * LIMIT;
+    const height = deck.getConfig().height;
     const current = deck.getCurrentSlide();
     const initial = firstPass;
     firstPass = false;
     deck.getSlides().forEach((slide) => {
       // After the first pass, never change the slide that is on screen.
-      if (initial || slide !== current) space(slide, limit);
+      if (initial || slide !== current) space(slide, height);
     });
     deck.layout();
+  }
+
+  // Browser translation rewrites a slide's text when the slide is shown. Once its text
+  // settles, that slide is measured again, even on screen: the text has moved anyway.
+  // Changes that leave the text alone (a 3-D canvas, say) leave the spacing alone.
+  function watchText(deck) {
+    const changed = new Set();
+    let timer;
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = setTimeout(flush, 300);
+    };
+    function flush() {
+      changed.forEach((slide) => {
+        if (slide.textContent === texts.get(slide)) return;
+        // space() skips a slide whose images are loading: try again once one loads.
+        if (!imagesReady(slide)) {
+          slide.addEventListener("load", () => {
+            changed.add(slide);
+            schedule();
+          }, { capture: true, once: true });
+          return;
+        }
+        measured.delete(slide);
+        space(slide, deck.getConfig().height);
+      });
+      changed.clear();
+      deck.layout();
+    }
+    new MutationObserver((records) => {
+      records.forEach(({ target }) => {
+        const el = target.nodeType === Node.ELEMENT_NODE ? target : target.parentElement;
+        const slide = el?.closest("section.slide");
+        if (slide) changed.add(slide);
+      });
+      schedule();
+    }).observe(deck.getSlidesElement(), { childList: true, characterData: true, subtree: true });
   }
 
   function initialize() {
@@ -84,6 +137,7 @@
     if (!deck) return;
     const run = () => document.fonts.ready.then(() => {
       spaceSlides(deck);
+      watchText(deck);
       deck.on("slidechanged", () => spaceSlides(deck));
       document.addEventListener("load", (event) => {
         if (event.target.tagName === "IMG") spaceSlides(deck);
