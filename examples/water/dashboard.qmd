@@ -78,6 +78,37 @@ def band_map(zone):
     return fig
 ```
 
+```{python}
+#| label: pages-setup
+# The Kinds, Outcomes and Method pages read the other files analysis.py wrote.
+import plotly.express as px
+
+prof = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
+kind = {c: f"{c} · {n}" for c, n in prof["name"].items()}
+kind_color = {kind[c]: col for c, col in prof["color"].items()}
+short = {c: f"Kind {c}" for c in prof.index}          # narrow charts; colours match
+short_color = {short[c]: col for c, col in prof["color"].items()}
+by_year = pd.read_csv("outputs/outcomes_by_year.csv")
+rho = pd.read_csv("outputs/irca_infant.csv")
+bins = pd.read_csv("outputs/irca_infant_bins.csv")
+ksel = pd.read_csv("outputs/k_selection.csv")
+legend = dict(orientation="h", x=0, y=1.02, yanchor="bottom", title_text="", entrywidth=290)
+short_legend = legend | {"entrywidth": 75}
+
+
+def outcome_lines(outcome, label):
+    """Median outcome by year for each kind; years without data stay gaps."""
+    d = by_year[by_year["outcome"] == outcome].assign(kind=lambda x: x["cluster"].map(kind))
+    grid = pd.MultiIndex.from_product([list(kind.values()), years], names=["kind", "year"])
+    d = d.set_index(["kind", "year"]).reindex(grid).reset_index()
+    fig = px.line(d, x="year", y="median", color="kind", markers=True,
+                  color_discrete_map=kind_color, custom_data=["n"],
+                  labels={"median": label, "year": "", "kind": ""})
+    fig.update_traces(connectgaps=False,
+                      hovertemplate="%{x}: %{y:.1f} (n = %{customdata[0]})<extra></extra>")
+    return fig.update_layout(legend=legend, margin=dict(t=40))
+```
+
 # Map
 
 ## Row {height=130px}
@@ -139,6 +170,161 @@ IRCA is the **utility-supplied ("prestadores") IRCA** in INS open data, datos.go
 de 2007, art. 15. Pale grey: no value that year, or the zone-year was not clustered.
 Boundaries: DANE [MGN 2023](https://geoportal.dane.gov.co/descargas/mgn_2023/MGN2023_MPIO_POLITICO.zip).
 Descriptive only: no causal claim. Sources and caveats: `data/README.md`.
+:::
+
+# Kinds
+
+## Row {height=50%}
+
+```{python}
+#| title: "What sets each kind apart: mean z-score of each feature (0 = the year's average)"
+z = prof[[f"z_{c}" for c in analysis.FEATURES]]
+z.columns = [analysis.SHORT_LABELS[c] for c in analysis.FEATURES]
+z.index = [kind[c] for c in prof.index]
+zmax = z.abs().to_numpy().max()
+fig = px.imshow(z, color_continuous_scale=analysis.DIVERGING["light"], zmin=-zmax,
+                zmax=zmax, text_auto=".1f", aspect="auto", labels={"color": "z-score"})
+fig = fig.update_layout(margin=dict(t=10), coloraxis_colorbar_title_text="")
+fig
+```
+
+## Row {height=50%}
+
+```{python}
+#| title: "Size and typical values of each kind, 2016–2023"
+#| width: 62%
+sizes = pd.DataFrame({
+    "Kind": [kind[c] for c in prof.index],
+    "Zone-years": prof["rows"].map("{:,}".format),
+    "Municipalities": prof["municipalities"],
+    "Urban rows (%)": (100 * prof["urban_row_share"]).round().astype(int),
+    "Median IRCA (prestadores)": prof["irca_median"].round(1).astype(str)
+    + " · " + prof["irca_median_band"].str.lower(),
+    "Piped water (%)": prof["mean_water_coverage"].round().astype(int),
+    "Poverty, 2018 (%)": prof["mean_ipm"].round().astype(int),
+})
+Markdown(sizes.to_markdown(index=False))
+```
+
+::: {.card title="How to read the kinds"}
+k-means grouped zone-years on the nine features in the heatmap only; outcomes were never
+used. A z-score is the distance from that year's mean in standard deviations: red is above
+average, blue below. Names come from a fixed rule in `scripts/analysis.py`, and the risk
+word is the band of the kind's median IRCA, so single zone-years can sit in other bands.
+:::
+
+# Outcomes
+
+## Row {.tabset height=50%}
+
+```{python}
+#| title: "Infant mortality per 1,000 live births · median by kind"
+outcome_lines("infant_mortality", "per 1,000 live births")
+```
+
+```{python}
+#| title: "Saber 11 global score (0–500) · median by kind"
+outcome_lines("saber11_mean", "score (0–500)")
+```
+
+```{python}
+#| title: "School dropout, public schools (%) · median by kind"
+outcome_lines("dropout_rate", "dropout (%)")
+```
+
+## Row {height=50%}
+
+```{python}
+#| title: "Within each kind, IRCA vs infant mortality: Spearman ρ (municipality-years)"
+#| width: 30%
+d = rho.assign(kind=rho["cluster"].map(short))
+fig = px.bar(d, x="spearman_rho", y="kind", color="kind", orientation="h",
+             color_discrete_map=short_color, custom_data=["n"],
+             labels={"spearman_rho": "Spearman ρ (−1 to 1)", "kind": ""})
+fig = (fig.add_vline(x=rho["all_clusters_rho"].iloc[0], line_dash="dash",
+                     annotation_text="all kinds pooled", annotation_position="top")
+       .update_traces(hovertemplate="ρ = %{x:.2f} (n = %{customdata[0]:,})<extra></extra>")
+       .update_xaxes(range=[-1, 1])
+       .update_layout(showlegend=False, margin=dict(t=30)))
+fig
+```
+
+```{python}
+#| title: "Median infant mortality by IRCA band, within each kind"
+#| width: 45%
+d = bins.assign(kind=bins["cluster"].map(short))
+d["irca_band"] = pd.Categorical(d["irca_band"], analysis.IRCA_BANDS, ordered=True)
+fig = px.line(d.sort_values(["kind", "irca_band"]), x="irca_band", y="median",
+              color="kind", markers=True, color_discrete_map=short_color, custom_data=["n"],
+              labels={"irca_band": "IRCA band (prestadores)",
+                      "median": "per 1,000 live births", "kind": ""})
+fig = (fig.update_traces(hovertemplate="%{x}: %{y:.1f} (n = %{customdata[0]})<extra></extra>")
+       .update_xaxes(categoryorder="array", categoryarray=analysis.IRCA_BANDS)
+       .update_layout(legend=short_legend, margin=dict(t=40)))
+fig
+```
+
+::: {.card title="Read with care"}
+Kind 1–4 are the numbered kinds of the charts above, in the same colours.
+`{python} analysis.INFANT_NOTE` Saber 11 covers 2016, 2017, 2019, 2020 and 2022.
+Infant mortality and dropout are municipal; IRCA is per zone. These are descriptive
+comparisons: kinds differ in many ways at once, so they do not establish causal effects of
+water quality.
+:::
+
+# Method
+
+## Row {height=130px}
+
+::: {.valuebox icon="diagram-3" color="primary"}
+Kinds (k)
+
+`{python} s["k"]`
+:::
+
+::: {.valuebox icon="bullseye" color="info"}
+Silhouette at k (−1 to 1)
+
+`{python} f"{s['silhouette_at_k']:.3f}"`
+:::
+
+::: {.valuebox icon="arrow-repeat" color="success"}
+Seed stability (lowest ARI)
+
+`{python} analysis.floor_to(s["ari_min"])`
+:::
+
+::: {.valuebox icon="sliders" color="secondary"}
+Features clustered
+
+`{python} len(analysis.FEATURES)`
+:::
+
+## Row
+
+```{python}
+#| title: "Inertia by k: each extra kind must cut it by at least 10%"
+fig = px.line(ksel, x="k", y="inertia", markers=True,
+              labels={"inertia": "within-kind sum of squares", "k": "k"})
+fig = (fig.add_vline(x=s["k"], line_dash="dash", annotation_text=f"k = {s['k']}")
+       .update_layout(margin=dict(t=30)))
+fig
+```
+
+```{python}
+#| title: "Silhouette by k (higher = better separated kinds)"
+fig = px.line(ksel, x="k", y="silhouette", markers=True,
+              labels={"silhouette": "silhouette (−1 to 1)", "k": "k"})
+fig = (fig.add_vline(x=s["k"], line_dash="dash", annotation_text=f"k = {s['k']}")
+       .update_layout(margin=dict(t=30)))
+fig
+```
+
+::: {.card title="Why this k"}
+`{python} s["k_reason"]` Silhouette uses a fixed-seed sample of
+`{python} f"{analysis.SILHOUETTE_N:,}"` zone-years. Features: IRCA, piped water and sewer
+coverage, poverty, rural share, altitude, rainfall, municipal performance (MDM) and water
+transfers per person.
 :::
 
 # Municipalities
