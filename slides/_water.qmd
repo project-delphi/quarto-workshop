@@ -20,6 +20,10 @@
 .reveal .cards > div.wat-b4 { border-top-color: #f1944f; }
 .reveal .cards > div.wat-b5 { border-top-color: #ffbe8a; }
 .reveal .wat-flow pre { font-size: 0.62em; }
+/* Variable explorer: a dark menu above the selected box-plot image. */
+.reveal .wat-compare select { font-size: 0.6em; color: #f0f0f0; background: #2b2b2b;
+  border: 1px solid #8a8f96; border-radius: 0.25em; padding: 0.15em 0.4em; }
+.reveal .wat-compare img { display: block; margin: 0.3em auto 0; }
 /* IRCA scale: one card per band, with the values that fall in it. */
 .reveal .cards.wat-scale { grid-template-columns: repeat(5, 1fr); }
 .reveal .cards.wat-scale > div > div { margin-top: 0.6em; }
@@ -1276,10 +1280,11 @@ The page only reads `outputs/`; it never refits k-means. Run order:
 #| fig-alt: "Heatmap with four rows, clusters 1 to 4, and nine feature columns. Cluster 4 is red for IRCA and poverty and dark blue for water and sewer coverage. Cluster 1 is dark blue for rural share and SGP per person and red for municipal performance. Cluster 3 is dark blue for altitude. Cluster 2 is red for altitude, rural share and coverage."
 wat_zcols = [f"z_{wat_c}" for wat_c in wat_analysis.FEATURES]
 wat_cmap = wat_LSC.from_list("wat_div", wat_analysis.DIVERGING["dark"])
+wat_zlim = 1.5  # colour limit in z; the outcome heatmap uses the same scale
 with wat_plt.rc_context(wat_rc):
     wat_f, wat_ax = wat_plt.subplots(figsize=(11, 0.75 * wat_k + 1.6))
-    wat_im = wat_ax.imshow(wat_prof[wat_zcols].to_numpy(), cmap=wat_cmap, vmin=-1.5, vmax=1.5,
-                           aspect="auto")
+    wat_im = wat_ax.imshow(wat_prof[wat_zcols].to_numpy(), cmap=wat_cmap, vmin=-wat_zlim,
+                           vmax=wat_zlim, aspect="auto")
     wat_ax.set_xticks(range(len(wat_zcols)),
                       [wat_analysis.SHORT_LABELS[wat_c] for wat_c in wat_analysis.FEATURES],
                       rotation=25, ha="right")
@@ -1392,7 +1397,7 @@ good discussion point: these are small municipalities, where rates are noisy.
 #| label: fig-wat-outcome-heatmap
 #| echo: false
 #| fig-cap: "Cluster mean outcome in z units (SD above red, below blue the year's average); the mean itself in brackets. Colour scale as in the features heatmap."
-#| fig-alt: "Heatmap with four rows, clusters 1 to 4, and three outcome columns. Cluster 1 is blue for infant mortality and red for Saber 11. Cluster 2 is red for infant mortality and blue for dropout. Cluster 3 is the bluest for Saber 11. All cells are paler than in the features heatmap: no outcome mean is more than about two thirds of a standard deviation from the average."
+#| fig-alt: "Heatmap with one row per cluster and three outcome columns: infant mortality, Saber 11 and school dropout. Each cell prints the cluster's mean outcome in z units and, in brackets, the mean itself, coloured on the features heatmap's blue-to-red scale."
 # Like the features: standardise within year, then average over each cluster's rows.
 # Municipal outcomes count each municipality once per year (or cluster), as in profiles().
 wat_ocols = list(wat_analysis.OUTCOMES)
@@ -1412,9 +1417,14 @@ wat_ohead = {"infant_mortality": "Infant mortality\nper 1,000 · ↓ better",
              "saber11_mean": "Saber 11\nscore · ↑ better",
              "dropout_rate": "Dropout\n% · ↓ better"}
 wat_ofmt = {"infant_mortality": "{:.1f}", "saber11_mean": "{:.0f}", "dropout_rate": "{:.1f}%"}
+wat_omean = wat_prof[[f"{wat_c}_mean" for wat_c in wat_ocols]]
+wat_oname = {wat_c: f"cluster {wat_c} ({wat_names[wat_c].split(',')[0].lower()})"
+             for wat_c in wat_prof.index}
+wat_ozmax = f"{wat_oz.abs().to_numpy().max():.2f}"
 with wat_plt.rc_context(wat_rc):
     wat_f, wat_ax = wat_plt.subplots(figsize=(11, 0.65 * wat_k + 1.3))
-    wat_im = wat_ax.imshow(wat_oz.to_numpy(), cmap=wat_cmap, vmin=-1.5, vmax=1.5, aspect="auto")
+    wat_im = wat_ax.imshow(wat_oz.to_numpy(), cmap=wat_cmap, vmin=-wat_zlim, vmax=wat_zlim,
+                           aspect="auto")
     wat_ax.set_xticks(range(len(wat_ocols)), [wat_ohead[wat_c] for wat_c in wat_ocols])
     wat_ax.xaxis.tick_top()
     wat_ax.set_yticks(range(wat_k), [f"Cluster {wat_c}" for wat_c in wat_prof.index])
@@ -1444,10 +1454,14 @@ the cluster's mean z, with the cluster's mean outcome in brackets. Municipal out
 (infant mortality, dropout) count each municipality once per year for the year's mean and
 standard deviation, and once per cluster and year inside a cluster, as `profiles()` does.
 Years: infant mortality 2017–2019 and 2021–2023, Saber 11 2016, 2017, 2019, 2020 and 2022,
-dropout 2016–2023. The colour scale is the features heatmap's (±1.5), so the paler cells are
-the point: the clusters differ far less in outcomes than in the features that formed them.
-Cluster 1 (cities and large towns) has the lowest infant mortality and the best Saber 11
-scores; cluster 2 (highland towns) the highest infant mortality but the lowest dropout.
+dropout 2016–2023. The colour scale is the features heatmap's (±`{python} wat_zlim`), so the
+paler cells are the point: no cluster's mean outcome is more than `{python} wat_ozmax` SD
+from the average, and the clusters differ far less in outcomes than in the features that
+formed them. Lowest infant mortality:
+`{python} wat_oname[wat_omean["infant_mortality_mean"].idxmin()]`; highest:
+`{python} wat_oname[wat_omean["infant_mortality_mean"].idxmax()]`. Best Saber 11:
+`{python} wat_oname[wat_omean["saber11_mean_mean"].idxmax()]`. Lowest dropout:
+`{python} wat_oname[wat_omean["dropout_rate_mean"].idxmin()]`.
 :::
 
 ## 🎛️ Every variable, cluster by cluster {#water-compare}
@@ -1456,45 +1470,63 @@ scores; cluster 2 (highland towns) the highest infant mortality but the lowest d
 #| label: wat-compare
 #| echo: false
 #| output: asis
-# Box summaries per cluster for every feature and outcome; the dropdown switches variable.
-# Only the summaries are embedded (a few numbers per box), not the 11,000 rows.
-import plotly.graph_objects as wat_go
-from plotly.offline import get_plotlyjs_version as wat_plotlyjs_version
+# One box-plot image per feature and outcome; a plain menu shows one at a time, so the
+# slide needs no extra library and works offline.
+import base64 as wat_b64
+import html as wat_html
+import io as wat_io
+import textwrap as wat_textwrap
 
 wat_vars = {**{wat_c: wat_analysis.FEATURE_LABELS[wat_c] for wat_c in wat_analysis.FEATURES},
             **wat_analysis.OUTCOMES}
-wat_traces, wat_buttons = [], []
+wat_ids = list(wat_prof.index)
+wat_opts, wat_imgs = [], []
 for wat_i, (wat_col, wat_lab) in enumerate(wat_vars.items()):
     wat_r = wat_clusters
     if wat_col in wat_analysis.OUTCOMES:
         wat_r = wat_r[wat_r["year"].isin(wat_analysis.OUTCOME_YEARS[wat_col])]
         wat_r = wat_analysis.once_per_municipality(wat_r.dropna(subset=[wat_col]), wat_col)
-    for wat_c, wat_g in wat_r.groupby("cluster"):
-        wat_q = wat_g[wat_col].quantile([0.05, 0.25, 0.5, 0.75, 0.95]).to_numpy()
-        wat_traces.append(wat_go.Box(
-            x=[wat_names[wat_c].replace(", ", ",<br>", 1)], lowerfence=[wat_q[0]],
-            q1=[wat_q[1]], median=[wat_q[2]], q3=[wat_q[3]], upperfence=[wat_q[4]],
-            mean=[wat_g[wat_col].mean()], boxmean=True, name=f"Cluster {wat_c}",
-            marker_color=wat_colors[wat_c], line_width=2.5, showlegend=False,
-            visible=wat_i == 0))
-    wat_show = [wat_j // wat_k == wat_i for wat_j in range(len(wat_vars) * wat_k)]
-    wat_buttons.append(dict(label=wat_lab, method="update",
-                            args=[{"visible": wat_show}, {"yaxis.title.text": wat_lab}]))
-wat_fig = wat_go.Figure(wat_traces)
-wat_fig.update_layout(
-    width=1120, height=540, autosize=False, margin=dict(l=90, r=20, t=70, b=90),
-    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(color="#f0f0f0", size=18), yaxis_title=next(iter(wat_vars.values())),
-    yaxis=dict(gridcolor="#3a3a3a", zeroline=False), xaxis=dict(tickfont_size=16),
-    # Plotly highlights the open menu's rows in near-white, so the menu is light with dark text.
-    updatemenus=[dict(buttons=wat_buttons, active=0, x=0, y=1.13, xanchor="left",
-                      yanchor="bottom", bgcolor="#e8e8e6", bordercolor="#8a8f96",
-                      font=dict(color="#1d1d1d", size=17))])
+    wat_vals = [wat_r.loc[wat_r["cluster"] == wat_c, wat_col].dropna().to_numpy()
+                for wat_c in wat_ids]
+    with wat_plt.rc_context(wat_rc):
+        wat_f, wat_ax = wat_plt.subplots(figsize=(10.5, 4.4))
+        wat_bp = wat_ax.boxplot(wat_vals, whis=(5, 95), showfliers=False, showmeans=True,
+                                meanline=True, patch_artist=True, widths=0.5,
+                                medianprops=dict(color="#f0f0f0", linewidth=2.5),
+                                meanprops=dict(color="#f0f0f0", linestyle="--", linewidth=1.8))
+        for wat_j, wat_c in enumerate(wat_ids):
+            wat_bp["boxes"][wat_j].set(facecolor=wat_colors[wat_c] + "80",
+                                       edgecolor=wat_colors[wat_c], linewidth=2)
+            for wat_part in ("whiskers", "caps"):
+                for wat_line in wat_bp[wat_part][2 * wat_j:2 * wat_j + 2]:
+                    wat_line.set(color=wat_colors[wat_c], linewidth=2)
+        # Break each name before its risk word; the rural name has two commas.
+        wat_ax.set_xticks(range(1, len(wat_ids) + 1),
+                          [",\n".join(wat_names[wat_c].rsplit(", ", 1)) for wat_c in wat_ids],
+                          fontsize=13)
+        for wat_t, wat_c in zip(wat_ax.get_xticklabels(), wat_ids):
+            wat_t.set_color(wat_analysis.CLUSTER_TEXT_COLORS["dark"][wat_c - 1])
+        wat_ax.set_ylabel("\n".join(wat_textwrap.wrap(wat_lab, 26)))
+        wat_ax.yaxis.grid(True, color="#3a3a3a")
+        wat_ax.set_axisbelow(True)
+        wat_buf = wat_io.BytesIO()
+        wat_f.savefig(wat_buf, format="png", bbox_inches="tight")
+        wat_plt.close(wat_f)
+    wat_src = wat_b64.b64encode(wat_buf.getvalue()).decode()
+    wat_alt = (f"Box plots of {wat_lab}, one per cluster. Medians: "
+               + "; ".join(f"cluster {wat_c} {wat_np.median(wat_v):.1f}"
+                           if len(wat_v) else f"cluster {wat_c} no data"
+                           for wat_c, wat_v in zip(wat_ids, wat_vals)) + ".")
+    wat_opts.append(f'<option value="{wat_i}">{wat_html.escape(wat_lab)}</option>')
+    wat_imgs.append(f'<img data-i="{wat_i}" alt="{wat_html.escape(wat_alt)}" '
+                    f'src="data:image/png;base64,{wat_src}"'
+                    + (' style="display:none"' if wat_i else "") + ">")
 print("```{=html}")
-# The cartesian bundle (boxes, menus) is a third of full plotly.js; embed-resources inlines it.
-wat_js = f"https://cdn.plot.ly/plotly-cartesian-{wat_plotlyjs_version()}.min.js"
-print(wat_fig.to_html(include_plotlyjs=wat_js, full_html=False,
-                      config={"displayModeBar": False, "responsive": False}))
+print('<div class="wat-compare"><select aria-label="Variable" '
+      'onkeydown="event.stopPropagation()" onchange="for (const im of '
+      "this.parentNode.querySelectorAll('img')) im.style.display = "
+      "im.dataset.i === this.value ? '' : 'none'\">" + "".join(wat_opts) + "</select>"
+      + "".join(wat_imgs) + "</div>")
 print("```")
 ```
 
@@ -1507,10 +1539,10 @@ the overlaps are visible as well as the gaps between means. Features are the val
 went into the clustering, after imputation (`water_coverage` and `sewer_coverage` medians
 filled `{python} f"{wat_s['imputed_water_coverage']:,}"` and
 `{python} f"{wat_s['imputed_sewer_coverage']:,}"` rows); outcomes were never clustered on.
-Only the box summaries are embedded, not the rows. The deck sets `embed-resources`, so
-Quarto inlines Plotly's cartesian bundle (about 1.5 MB, enough for boxes and menus) and the
-slide works offline. It is descriptive: a gap between clusters is not an effect of water
-quality.
+Each variable is a small image drawn by this deck, and the menu only shows one at a time,
+so the slide needs no plotting library in the browser and works offline. The arrow keys
+change the menu's choice while it has focus; click the slide to move on. It is descriptive:
+a gap between clusters is not an effect of water quality.
 :::
 
 ## 🏷️ Outcome rules {#water-outcome-rules}

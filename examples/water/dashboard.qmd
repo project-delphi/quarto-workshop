@@ -84,6 +84,7 @@ def band_map(zone):
 import plotly.express as px
 
 prof = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
+first_kind, last_kind = prof.index.min(), prof.index.max()
 kind = {c: f"{c} · {n}" for c, n in prof["name"].items()}
 kind_color = {kind[c]: col for c, col in prof["color"].items()}
 short = {c: f"Kind {c}" for c in prof.index}          # narrow charts; colours match
@@ -94,6 +95,21 @@ bins = pd.read_csv("outputs/irca_infant_bins.csv")
 ksel = pd.read_csv("outputs/k_selection.csv")
 legend = dict(orientation="h", x=0, y=1.02, yanchor="bottom", title_text="", entrywidth=290)
 short_legend = legend | {"entrywidth": 75}
+
+
+def kinds_table(columns):
+    """One row per kind from cluster_profiles.csv; the Map and Kinds pages share it."""
+    table = pd.DataFrame({
+        "Kind": [kind[c] for c in prof.index],
+        "Zone-years": prof["rows"].map("{:,}".format).to_list(),
+        "Municipalities": prof["municipalities"].to_list(),
+        "Urban rows (%)": (100 * prof["urban_row_share"]).round().astype(int).to_list(),
+        "Median IRCA (prestadores)": (prof["irca_median"].round(1).astype(str) + " · "
+                                      + prof["irca_median_band"].str.lower()).to_list(),
+        "Piped water (%)": prof["mean_water_coverage"].round().astype(int).to_list(),
+        "Poverty, 2018 (%)": prof["mean_ipm"].round().astype(int).to_list(),
+    })
+    return table[["Kind", *columns]]
 
 
 def outcome_lines(outcome, label):
@@ -155,13 +171,7 @@ band_map("rural")
 
 ```{python}
 #| title: "Kinds of municipal zone, 2016–2023"
-g = clusters.groupby("cluster")
-kinds = pd.DataFrame({
-    "Kind": g["cluster"].first().astype(str) + " · " + g["cluster_name"].first(),
-    "Zone-years": g.size().map("{:,}".format),
-    "Median IRCA (prestadores)": g["irca"].median().round(1),
-})
-Markdown(kinds.to_markdown(index=False))
+Markdown(kinds_table(["Zone-years", "Median IRCA (prestadores)"]).to_markdown(index=False))
 ```
 
 ::: {.card title="About the map"}
@@ -191,23 +201,15 @@ fig
 ## Row {height=50%}
 
 ```{python}
-#| title: "Size and typical values of each kind, 2016–2023"
+#| title: "Size and typical values of each kind, all clustered years"
 #| width: 62%
-sizes = pd.DataFrame({
-    "Kind": [kind[c] for c in prof.index],
-    "Zone-years": prof["rows"].map("{:,}".format),
-    "Municipalities": prof["municipalities"],
-    "Urban rows (%)": (100 * prof["urban_row_share"]).round().astype(int),
-    "Median IRCA (prestadores)": prof["irca_median"].round(1).astype(str)
-    + " · " + prof["irca_median_band"].str.lower(),
-    "Piped water (%)": prof["mean_water_coverage"].round().astype(int),
-    "Poverty, 2018 (%)": prof["mean_ipm"].round().astype(int),
-})
+sizes = kinds_table(["Zone-years", "Municipalities", "Urban rows (%)",
+                     "Median IRCA (prestadores)", "Piped water (%)", "Poverty, 2018 (%)"])
 Markdown(sizes.to_markdown(index=False))
 ```
 
 ::: {.card title="How to read the kinds"}
-k-means grouped zone-years on the nine features in the heatmap only; outcomes were never
+k-means grouped zone-years on the `{python} len(analysis.FEATURES)` features in the heatmap only; outcomes were never
 used. A z-score is the distance from that year's mean in standard deviations: red is above
 average, blue below. Names come from a fixed rule in `scripts/analysis.py`, and the risk
 word is the band of the kind's median IRCA, so single zone-years can sit in other bands.
@@ -252,21 +254,25 @@ fig
 ```{python}
 #| title: "Median infant mortality by IRCA band, within each kind"
 #| width: 45%
-d = bins.assign(kind=bins["cluster"].map(short))
-d["irca_band"] = pd.Categorical(d["irca_band"], analysis.IRCA_BANDS, ordered=True)
-fig = px.line(d.sort_values(["kind", "irca_band"]), x="irca_band", y="median",
+grid = pd.MultiIndex.from_product([prof.index, analysis.IRCA_BANDS],
+                                  names=["cluster", "irca_band"])
+d = bins.set_index(["cluster", "irca_band"]).reindex(grid).reset_index()
+d["kind"] = d["cluster"].map(short)
+fig = px.line(d, x="irca_band", y="median",
               color="kind", markers=True, color_discrete_map=short_color, custom_data=["n"],
               labels={"irca_band": "IRCA band (prestadores)",
                       "median": "per 1,000 live births", "kind": ""})
-fig = (fig.update_traces(hovertemplate="%{x}: %{y:.1f} (n = %{customdata[0]})<extra></extra>")
+fig = (fig.update_traces(connectgaps=False,
+                         hovertemplate="%{x}: %{y:.1f} (n = %{customdata[0]})<extra></extra>")
        .update_xaxes(categoryorder="array", categoryarray=analysis.IRCA_BANDS)
        .update_layout(legend=short_legend, margin=dict(t=40)))
 fig
 ```
 
 ::: {.card title="Read with care"}
-Kind 1–4 are the numbered kinds of the charts above, in the same colours.
-`{python} analysis.INFANT_NOTE` Saber 11 covers 2016, 2017, 2019, 2020 and 2022.
+Kind `{python} first_kind`–`{python} last_kind` are the numbered kinds of the charts above,
+in the same colours. `{python} analysis.INFANT_NOTE` Saber 11 covers
+`{python} ", ".join(map(str, analysis.OUTCOME_YEARS["saber11_mean"]))`.
 Infant mortality and dropout are municipal; IRCA is per zone. These are descriptive
 comparisons: kinds differ in many ways at once, so they do not establish causal effects of
 water quality.
@@ -303,7 +309,7 @@ Features clustered
 ## Row
 
 ```{python}
-#| title: "Inertia by k: each extra kind must cut it by at least 10%"
+#| title: "Inertia by k (lower = tighter kinds)"
 fig = px.line(ksel, x="k", y="inertia", markers=True,
               labels={"inertia": "within-kind sum of squares", "k": "k"})
 fig = (fig.add_vline(x=s["k"], line_dash="dash", annotation_text=f"k = {s['k']}")
@@ -322,9 +328,8 @@ fig
 
 ::: {.card title="Why this k"}
 `{python} s["k_reason"]` Silhouette uses a fixed-seed sample of
-`{python} f"{analysis.SILHOUETTE_N:,}"` zone-years. Features: IRCA, piped water and sewer
-coverage, poverty, rural share, altitude, rainfall, municipal performance (MDM) and water
-transfers per person.
+`{python} f"{analysis.SILHOUETTE_N:,}"` zone-years. Features:
+`{python} "; ".join(analysis.FEATURE_LABELS[c] for c in analysis.FEATURES)`.
 :::
 
 # Municipalities
