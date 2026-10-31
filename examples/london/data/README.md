@@ -34,3 +34,17 @@ and National Gallery. ALVA pages: `details.cfm?p=` 606 (2015), 607, 608, 609,
 - 2020–2021 are COVID-19 pandemic years; they are not comparable with other years.
 - From 2024 the Natural History Museum count includes visitors to its reopened
   gardens (ALVA 2024 note v), so 2024–2025 are not like-for-like with earlier years.
+
+## churches.csv
+
+The ten cathedrals and churches on Visit London's "Cathedrals and churches in
+London" page (<https://www.visitlondon.com/things-to-do/sightseeing/london-attraction/historic/cathedrals-and-churches-in-london>),
+in page order, retrieved 2026-10-31. Visit London is the city's official visitor
+guide; the list is its editorial choice of places tourists like, not a ranking.
+It holds no visitor numbers.
+
+| Column | Meaning |
+|---|---|
+| `church` | name as Visit London heads it |
+| `type` | Visit London's heading: Cathedral, Gothic church or Church |
+| `visit_london` | the church's Visit London page where the list links one; otherwise the list itself |
