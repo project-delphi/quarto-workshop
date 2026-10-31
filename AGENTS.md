@@ -94,9 +94,15 @@ prompting a coding assistant.
 - Exercises use `### Exercise · ⏱️ N min` and a `::: {.done}` block whose text completes
   "You're done when …". Each hands-on block ends with a checkpoint in `checkpoints/` whose
   README lists the catch-up steps (back up to a new time-stamped folder, copy, copy water
-  data if missing, render, check a named output). The slide's `::: {.source .behind}`, placed
+  data if missing, render, check a named output, then rejoin at the next block's slide, linked
+  on the published deck). The slide's `::: {.source .behind}`, placed
   right after the exercise label so it shares its row, holds a copyable `default` fence:
-  "Catch me up: follow ../quarto-workshop/checkpoints/NN-…/README.md".
+  "Catch me up: follow ../quarto-workshop/checkpoints/NN-…/README.md". The room rule: two
+  minutes stuck → catch up; everyone is hands-on together again at the next block.
+- From Part 2's Cluster block on, each block opens with a 📤 prompt that copies its
+  checkpoint's `scripts/analysis.py` (the normal route); the prompts that write the analysis
+  are `· ⭐ challenge`. Page-building prompts are for everyone, and agenda times count the
+  📤 route.
 - Mark pre-work slides `[🏠 before the workshop]{.pace}` (`before the lab` in the AI lab) and
   optional slides `[⭐ self-paced]{.pace}`; when the pill would crowd a slide, end the title
   with `· ⭐ optional` or write `### Exercise · ⭐ self-paced`. Each deck's agenda explains ⭐.

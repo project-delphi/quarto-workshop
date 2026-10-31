@@ -127,6 +127,8 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 3. Render the site: `uv run quarto render` (the pre-render step runs `scripts/analysis.py` first).
 4. Check: `_site/index.html` lists one post, and `_site/dashboard.html` shows a map that
    changes with the year slider.
+5. Rejoin: if your site is not live yet, paste the two prompts on 🌍 *3:15 · Publish it*
+   ([slide](https://project-delphi.github.io/quarto-workshop/#/water-ship)).
 
 ## Notes
 

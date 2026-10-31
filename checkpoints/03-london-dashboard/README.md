@@ -19,3 +19,4 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 3. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
 4. Render: `uv run quarto render london-dashboard.qmd`.
 5. Check: `london-dashboard.html` has an Attractions page with three value boxes, a bar chart and a line chart, and a Churches page listing ten churches with Visit London links.
+6. Rejoin: your folder now holds the end of this block, so skip the block's remaining prompts and follow the slides. Start pasting prompts again at 🌍 *Publish to GitHub Pages* (⏱️ 0:50); the ⭐ audience slides before it are optional ([slide](https://project-delphi.github.io/quarto-workshop/#/publish-london)).

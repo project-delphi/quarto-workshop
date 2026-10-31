@@ -19,3 +19,4 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 3. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/11-water-slides/. .`
 4. Run: `uv run python scripts/analysis.py && uv run quarto render slides.qmd`.
 5. Check: `slides.html` and `slides.pptx` both have six slides.
+6. Rejoin: your folder now holds the end of this step. Start pasting prompts again at ✍️🌐 *2:55 · Blog + website*; the ⭐ ePub slide before it is optional ([slide](https://project-delphi.github.io/quarto-workshop/#/water-website)).
