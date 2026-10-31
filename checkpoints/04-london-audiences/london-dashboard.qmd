@@ -7,9 +7,11 @@ format: dashboard
 #| label: setup
 import pandas as pd
 import plotly.express as px
+from IPython.display import Markdown
 
 attractions = pd.read_csv("data/attractions.csv")
 visits = pd.read_csv("data/visits.csv")
+churches = pd.read_csv("data/churches.csv")
 
 top = attractions.loc[attractions["visits_2025"].idxmax()]
 top_name = top["attraction"].split(" (")[0]
@@ -18,6 +20,8 @@ top_visits = f"{top['visits_2025']:,}"
 n_free = int(attractions["admission"].str.startswith("Free").sum())
 free_share = f"{n_free}/{len(attractions)}"
 ```
+
+# Attractions
 
 ## Row {height=25%}
 
@@ -67,4 +71,29 @@ Source: ALVA annual visits to member attractions,
 [2025](https://www.alva.org.uk/details.cfm?p=423) and earlier years (see
 `data/visits.csv`), retrieved 2026-10-30. 2020–2021 are pandemic years. From 2024
 the Natural History Museum count includes its gardens.
+:::
+
+# Churches
+
+## Row {height=80%}
+
+```{python}
+#| title: "London churches tourists like, chosen by Visit London"
+rows = [f"| {i} | [{c.church}]({c.visit_london}) | {c.type} |"
+        for i, c in enumerate(churches.itertuples(), start=1)]
+Markdown("\n".join(["| | Church | Type |", "|--:|---|---|", *rows]))
+```
+
+::: {.card title="Plan a visit"}
+Each name opens its page on [Visit London](https://www.visitlondon.com/), the city's
+official visitor guide. Opening times, services and tickets change, so check there before
+you go.
+:::
+
+## Row {height=20%}
+
+::: {.card}
+Source: Visit London,
+[Cathedrals and churches in London](https://www.visitlondon.com/things-to-do/sightseeing/london-attraction/historic/cathedrals-and-churches-in-london)
+(see `data/churches.csv`), retrieved 2026-10-31. An editorial list, not a ranking by visits.
 :::

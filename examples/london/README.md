@@ -1,6 +1,6 @@
 # London guide: finished Part 1 project
 
-The finished Part 1 project: `london.qmd` in six formats, the dashboard, the partner brief and its covering email, the flyer and the social card, published as one website by `_quarto.yml`. Every number comes from `data/` (cited ALVA tables); photo credits are in `images/ATTRIBUTION.md`.
+The finished Part 1 project: `london.qmd` in six formats, the dashboard (attractions and churches pages), the partner brief and its covering email, the flyer and the social card, published as one website by `_quarto.yml`. Every number comes from `data/` (cited ALVA tables); photo credits are in `images/ATTRIBUTION.md`.
 
 `AGENTS.md` holds the project's rules for the coding assistant, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
 

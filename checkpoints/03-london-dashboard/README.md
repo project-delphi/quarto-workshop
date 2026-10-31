@@ -1,6 +1,6 @@
 # Checkpoint 03 · Dashboard
 
-Checkpoint 02 plus `london-dashboard.qmd`: three value boxes and two Plotly charts from `data/`.
+Checkpoint 02 plus `london-dashboard.qmd`: an Attractions page (three value boxes and two Plotly charts) and the optional Churches page (Visit London's ten churches from `data/churches.csv`, each linked to its Visit London page).
 
 `AGENTS.md` holds the project's rules for the coding assistant, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
 
@@ -18,4 +18,4 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 2. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/03-london-dashboard/. .`
 3. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
 4. Render: `uv run quarto render london-dashboard.qmd`.
-5. Check: `london-dashboard.html` shows three value boxes, a bar chart and a line chart.
+5. Check: `london-dashboard.html` has an Attractions page with three value boxes, a bar chart and a line chart, and a Churches page listing ten churches with Visit London links.

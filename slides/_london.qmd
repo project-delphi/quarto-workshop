@@ -39,6 +39,10 @@ ldn_total = f"{ldn_att['visits_2025'].sum():,}"
 ldn_n = len(ldn_att)
 ldn_n_free = int(ldn_att["admission"].str.startswith("Free").sum())
 ldn_entry = "Free to enter" if ldn_top["admission"].startswith("Free") else "Tickets needed"
+
+ldn_ch = pd.read_csv("examples/london/data/churches.csv")
+ldn_ch_types = {k: int(v) for k, v in ldn_ch["type"].value_counts().items()}
+ldn_ch_n = len(ldn_ch)
 ```
 
 ::: {.notes}
@@ -82,7 +86,7 @@ URL opens on a phone. Each hands-on block ends with a checkpoint in
 Twenty minutes for the first block, when the assistant, the project rules, the preview and
 the Python environment are new, then ten per block. The same times appear on the section
 dividers. Exercise times add up to 13, 9, 8 and 8 minutes; the rest of each block is for showing results and helping someone recover.
-The ⭐ social ad is self-paced. People who fall behind paste the 😰 catch-up prompt on the
+The ⭐ churches page and social ad are self-paced. People who fall behind paste the 😰 catch-up prompt on the
 hands-on slide and carry on. These times are estimates: rehearse with a stopwatch and
 adjust them together with the section clocks and README.
 :::
@@ -1021,6 +1025,79 @@ Plotly legend looks clipped, ask for a horizontal legend with a fixed `entrywidt
 Checkpoint 03 is the state after this step.
 :::
 
+## ⛪ Managers: churches · ⭐ optional {#dashboard-churches}
+
+::: {.prompt}
+```default
+Add a Churches page to london-dashboard.qmd: a table of the churches in data/churches.csv, each name linked to its `visit_london` page, and a card linking Visit London. Render; check both pages.
+```
+:::
+
+::: {.cards .fragment}
+::: {}
+🏛️ **`{python} ldn_ch_types["Cathedral"]`**
+
+cathedrals
+:::
+::: {}
+⛪ **`{python} ldn_ch_types["Gothic church"]`**
+
+Gothic churches
+:::
+::: {}
+🔔 **`{python} ldn_ch_types["Church"]`**
+
+churches
+:::
+::: {}
+🔗 **Visit London**
+
+a link on every name
+:::
+:::
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.agent}
+adds a `#` page, renders
+:::
+:::
+::: {.column width="50%"}
+::: {.you}
+open `london-dashboard.html`
+:::
+:::
+::::
+
+### Exercise · ⏱️ 2 min
+
+::: {.source .behind}
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/03-london-dashboard/README.md
+```
+:::
+
+::: {.done}
+the dashboard has an Attractions page and a Churches page.
+:::
+
+::: {.notes}
+A level-1 heading starts a dashboard page: "To introduce multiple pages, use level 1
+headings above the level 2 headings used to define rows and columns"
+(https://quarto.org/docs/dashboards/layout.html#pages, checked 2026-10-31).
+`data/churches.csv` came with `data/` at the code-cells step. It lists the
+`{python} ldn_ch_n` cathedrals and churches on Visit London's "Cathedrals and churches in
+London" page
+(https://www.visitlondon.com/things-to-do/sightseeing/london-attraction/historic/cathedrals-and-churches-in-london,
+retrieved 2026-10-31), in page order with the page's headings as `type`. Visit London is
+the city's official visitor guide, and the list is its choice of places tourists like, not
+a ranking, so the page shows no visitor numbers. `visit_london` is the church's own Visit
+London page, or the list itself where the list links none. The cards are counted by this
+deck from that file. This step is optional and self-paced; checkpoint 03 includes it.
+:::
+
 ## 📧 Partners: a Word attachment {#email}
 
 ::: {.prompt}
@@ -1277,6 +1354,79 @@ menu. Checkpoint 04 is the end of the audiences block and includes the social ca
 
 [⏱️ 0:55]{.clock}
 
+## 🌳 Git: every change, safely {#git-cycle}
+
+::: {.bigline}
+🕰️ every saved version kept · 🐙 shared on GitHub
+:::
+
+::: {.cards style="grid-template-columns: repeat(6, 1fr);"}
+::: {.fragment}
+[🌿]{.big}
+
+**[branch]{translate="no"}**
+
+`main` stays untouched
+:::
+::: {.fragment}
+[💾]{.big}
+
+**[commit]{translate="no"}**
+
+a snapshot + why
+:::
+::: {.fragment}
+[☁️]{.big}
+
+**[push]{translate="no"}**
+
+copy it to GitHub
+:::
+::: {.fragment}
+[🔀]{.big}
+
+**[pull request]{translate="no"}**
+
+propose the change
+:::
+::: {.fragment}
+[👀]{.big}
+
+**[review]{translate="no"}**
+
+someone reads the diff
+:::
+::: {.fragment}
+[✅]{.big}
+
+**[merge]{translate="no"}**
+
+into `main`
+:::
+:::
+
+::: {.fragment .bigline}
+👤 today: straight to `main` · 👥 a team: the whole loop
+:::
+
+::: {.notes}
+Concepts, not commands: the assistant runs git and you approve. The six terms stay in
+English when the deck is translated, as they do in git and on GitHub. A repository is the
+project folder plus its full history. A commit is a snapshot of every tracked file with a
+message saying why, so any earlier version can be restored or compared. A branch is a
+movable label on a line of commits: work happens on a branch while `main` stays working
+(https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell). Push copies commits
+to the remote repository on GitHub. A pull request proposes merging a branch, shows the
+diff and collects discussion and checks
+(https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests);
+a review comments on it, approves it or asks for changes
+(https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/about-pull-request-reviews);
+merging adds its commits to `main`. All checked 2026-10-31. Working alone today, the next
+slides commit straight to `main` and push; in a team, every change goes round the loop,
+and this workshop's own repository is built that way. Ask the assistant to "commit with a
+message that says why", and read its diffs before you approve.
+:::
+
 ## 🌐 GitHub Pages {#gh-pages}
 
 ![](assets/gh-pages-flow.svg){fig-alt="Three steps: your source lives in a GitHub repository; quarto publish gh-pages renders the site and pushes the HTML to a gh-pages branch; GitHub serves that branch at user.github.io/repo." width="92%"}
@@ -1432,7 +1582,8 @@ is `quarto-workshop/examples/london/`; Part 1 has no checkpoint after 04.
 :::
 
 ::: {.notes}
-Every number in Part 1 comes from `examples/london/data/attractions.csv` or `visits.csv`;
+Every number in Part 1 comes from `examples/london/data/attractions.csv` or `visits.csv`
+(`churches.csv` lists Visit London's churches, with no numbers);
 each row carries its source URL and retrieval date. ALVA lists only its members' sites.
 VisitBritain's town-level inbound visits were considered but left out. Its page
 (https://www.visitbritain.org/research-insights/inbound-visits-and-spend-trends-uk-town,

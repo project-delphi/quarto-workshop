@@ -23,7 +23,7 @@ water quality.
 | `report.qmd` | report: html page, `report.docx`, `report.pdf` (Typst) and `report.epub` |
 | `slides.qmd` | six-slide council briefing: `slides.html` (Reveal.js) and `slides.pptx` |
 | `posts/four-kinds-of-municipal-zone/` | blog post, titled with the actual k |
-| `dashboard.qmd` | IRCA band maps with a year slider and a searchable table |
+| `dashboard.qmd` | IRCA band maps with a year slider; Kinds (z-score heatmap), Outcomes (medians by year, IRCA–infant mortality ρ) and Method (k choice) pages read from `outputs/`; a searchable table |
 | `index.qmd`, `_quarto.yml` | the website: listing, navbar, pre-render, fresh execution |
 
 ## Rebuild
