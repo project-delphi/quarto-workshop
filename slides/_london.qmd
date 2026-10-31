@@ -81,7 +81,8 @@ the Python environment are new, then ten per block. The same times appear on the
 dividers. Exercise times add up to 13, 8, 6 and 8 minutes; the rest of each block is for
 showing results and helping someone recover. The ⭐ pptx, epub and revealjs exports are
 self-paced: demonstrate them. The four audience versions come from one prompt whose
-sub-agents run in parallel, so they take about as long as the dashboard alone.
+sub-agents run in parallel, so they take about as long as the dashboard alone; the ⭐ WSL
+and terminal-key slides fill that wait.
 People stuck for two minutes paste the 😰 catch-up prompt on the hands-on slide and rejoin
 at the next block. These times are estimates: rehearse with a stopwatch and adjust them
 together with the section clocks and README.
@@ -194,7 +195,7 @@ Render london.md with quarto render and tell me which file it wrote.
 in a second terminal tab (Windows Terminal: Ctrl+Shift+D):
 
 ```bash
-quarto preview london.md
+cd ~/london-guide && quarto preview london.md
 ```
 
 live view, reloads on every change · Ctrl+C stops it
@@ -221,7 +222,8 @@ Catch me up: follow ../quarto-workshop/checkpoints/01-london-markdown/README.md
 ::: {.notes}
 Plain Markdown is already a valid Quarto input: no front matter and no code are needed.
 `quarto preview` prints a local URL and re-renders whenever the file is saved, including
-by the assistant; run it in a second terminal tab and stop it with Ctrl+C. Keep it open
+by the assistant; run it in a second terminal tab and stop it with Ctrl+C. A new tab may
+open in the home folder, so `cd ~/london-guide` first. Keep it open
 from here on: every later Markdown step shows up there as soon as the assistant saves
 `london.md`. Checkpoint 01 is the state at the end of this block, so it also has the later
 Markdown steps.
@@ -584,6 +586,83 @@ the preview keeps the checklist's line breaks and brackets.
 Three backticks open and close a code fence; the word after them (`text`, `python`, …)
 names the language. Text inside is shown exactly as typed, which is why the brackets
 survive. Next section: write `{python}` after the backticks and the code runs.
+:::
+
+## 🧰 Environments: then and now {#environments}
+
+::: {.cards style="grid-template-columns: repeat(4, 1fr);"}
+::: {}
+[💻]{.big}
+
+**OS**
+
+macOS · Windows · Linux
+:::
+::: {}
+[🔩]{.big}
+
+**Chip**
+
+Intel/AMD `x86_64` · Apple/ARM `arm64`
+:::
+::: {}
+[🗣️]{.big}
+
+**Language**
+
+Python · R · JS … which version?
+:::
+::: {}
+[📦]{.big}
+
+**Dependencies**
+
+packages · versions · compiled C
+:::
+:::
+
+::: {.cards .fragment style="grid-template-columns: 1fr 1fr; margin-top: calc(0.5em * var(--ws-space));"}
+::: {style="border-top-color: var(--ws-muted);"}
+[🕰️]{.big}
+
+**Then**
+
+conda · compilers · `PATH` · kernels → ⏳ hours
+:::
+::: {style="border-top-color: var(--ws-green);"}
+[⚡]{.big}
+
+**Now** 🐍 `uv`
+
+🔒 one lockfile, every OS and chip → ⏱️ seconds
+:::
+:::
+
+::: {.bigline .fragment}
+🤖 either way: the assistant sets it up · you approve
+:::
+
+::: {.notes}
+Code runs on an operating system and a chip, in some version of its language, with
+packages at particular versions. That holds for most languages, not just Python. Many
+scientific packages contain compiled C, C++ or Fortran, built separately for each OS and
+chip: Python ships them as wheels whose platform tag names both, such as
+`macosx_11_0_arm64` ("compatibility with macOS 11 or later") or `manylinux_…_x86_64`
+(https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/).
+Setting this up used to be a lesson of its own: install conda or a system Python, sometimes
+a compiler, fix `PATH`, register a Jupyter kernel, then debug it on each laptop. For
+Python, uv now does it in one step. It fetches Python too ("uv automatically installs
+missing Python versions as needed", https://docs.astral.sh/uv/guides/install-python/), and
+`uv.lock` "captures the packages that would be installed across all possible Python markers
+such as operating system, architecture, and Python version"
+(https://docs.astral.sh/uv/concepts/projects/layout/), so one lockfile serves every Mac,
+Windows and Linux laptop in the room. Other languages pair a project file with a lockfile
+the same way: R's `renv.lock` (https://rstudio.github.io/renv/articles/renv.html), npm's
+`package-lock.json` (https://docs.npmjs.com/cli/v11/configuring-npm/package-lock-json) and
+Rust's `Cargo.lock` (https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html);
+all checked 2026-10-31. Either way, nobody needs to remember the commands: say what the
+project needs, and the assistant runs them while you approve. The next slide does exactly
+that. About a minute, no exercise, inside the block's slack.
 :::
 
 ## 📦 A Python environment for the guide {#london-env}
@@ -1178,6 +1257,135 @@ sets its page in a raw `{=typst}` block (`#set page(width: 12cm, height: 12cm)`;
 Quarto 1.6.40 and its bundled Typst 0.11) and has no title or level-1 heading, which would
 land on a letter-size first page before the square one. Checkpoint 04 is the end of this
 block.
+:::
+
+## 🪟 WSL ↔ Windows · ⭐ optional {#wsl-windows}
+
+::: {.cards .groups style="grid-template-columns: 1fr 1fr;"}
+::: {}
+[🐧 Ubuntu]{.group}
+
+- ➕ Ctrl+Shift+D, then `cd ~/london-guide`
+- 📂 `explorer.exe .` in File Explorer
+- 💽 `ls /mnt/c/Users/` Windows files
+- 🧑‍💻 `code .` VS Code, if installed
+:::
+::: {}
+[🪟 PowerShell]{.group}
+
+- ➕ ▾ menu → PowerShell
+- 📋 `wsl -l -v` Ubuntu · Running · 2
+- 🔑 `wsl --user root` reset a password
+- ⚠️ `wsl --shutdown` stops every Ubuntu tab
+:::
+:::
+
+🪟 Windows only · 🍎 `open .` · 👀 approve in the assistant's tab
+
+### Exercise · ⭐ self-paced
+
+::: {.done}
+File Explorer shows your `london-guide` files and `wsl -l -v` lists Ubuntu.
+:::
+
+::: {.notes}
+Windows only; on a Mac, `open .` opens the folder in Finder. Show it while the sub-agents
+work: nothing here changes the project. Optional and self-paced, done during the audiences
+wait, so not counted in the agenda. Ctrl+Shift+D duplicates the Ubuntu tab, but a new tab
+starts in the profile's starting folder unless the shell reports its folder to the Terminal
+(https://learn.microsoft.com/windows/terminal/tutorials/new-tab-same-directory), hence the
+`cd`; the ▾ menu beside the tabs opens a PowerShell tab. `explorer.exe .`
+opens the current Linux folder in File Explorer, where double-clicking an output such as
+`london-flyer.pdf` opens it in Windows. Windows drives appear under `/mnt/`, so
+`/mnt/c/Users/<user>/Downloads` is your Downloads folder; keep projects in `~`, which is
+faster (https://learn.microsoft.com/windows/wsl/filesystems). `code .` opens the folder in
+VS Code on Windows, connected to Ubuntu, if VS Code (Windows installer, "Add to PATH") and
+its WSL extension are installed (https://learn.microsoft.com/windows/wsl/tutorials/wsl-vscode);
+the workshop does not need it. In PowerShell (https://learn.microsoft.com/windows/wsl/basic-commands):
+`wsl -l -v` lists each distribution with its state and WSL version (from Ubuntu, type
+`wsl.exe -l -v`); `wsl --user root` opens a root shell, the documented way to reset a
+forgotten Linux password with `passwd <username>`
+(https://learn.microsoft.com/windows/wsl/setup/environment) in the default distribution,
+which `wsl --install` makes Ubuntu (if not, add `-d` and the name `wsl -l -v` shows);
+`wsl --shutdown` "Immediately
+terminates all running distributions", so it stops the assistant and the preview: use it
+only after the work is saved, for example after editing `.wslconfig`. All checked
+2026-10-31. Remind the room to look back at the assistant's tab for approvals.
+:::
+
+## ⌨️ Terminal keys · ⭐ optional {#terminal-keys}
+
+::: {.cards style="grid-template-columns: repeat(4, 1fr);"}
+::: {}
+📋 **Ctrl+Shift+C / V**
+
+copy · paste (🍎 ⌘C / ⌘V)
+:::
+::: {}
+🖱️ **Right-click**
+
+🪟 copy a selection, or paste
+:::
+::: {}
+✋ **Ctrl+C**
+
+stop a command (🪟 copies a selection)
+:::
+::: {}
+⇥ **Tab**
+
+complete a name
+:::
+::: {}
+↔️ **Ctrl+A / Ctrl+E**
+
+line start · end
+:::
+::: {}
+✂️ **Ctrl+U / Ctrl+K**
+
+delete before · after the cursor (🍎 U: whole line)
+:::
+::: {}
+🧹 **Ctrl+L**
+
+clear the screen
+:::
+::: {}
+🔎 **Ctrl+R**
+
+search past commands
+:::
+:::
+
+::: {.you}
+Ctrl+Shift+D (🍎 ⌘T) → `ls ~/quarto-w` Tab Enter → Ctrl+L → Ctrl+R `ls` → Ctrl+A → Ctrl+E → Ctrl+U
+:::
+
+### Exercise · ⭐ self-paced
+
+::: {.done}
+Ctrl+R found your `ls` command and Ctrl+U cleared it.
+:::
+
+::: {.notes}
+For everyone; also shown while the sub-agents work. Optional and self-paced, done during the
+audiences wait, so not counted in the agenda. In Windows Terminal, Ctrl+Shift+C and
+Ctrl+Shift+V always copy and paste. Ctrl+C copies only when text is selected; with nothing
+selected it goes to the program in that tab and stops it, so in the assistant's tab it
+interrupts the assistant. With the default settings a right-click copies the selection or,
+with none, pastes (https://learn.microsoft.com/windows/terminal/customize-settings/actions
+and https://learn.microsoft.com/windows/terminal/customize-settings/interaction). On a Mac,
+Terminal uses ⌘C, ⌘V and ⌘T
+(https://support.apple.com/guide/terminal/keyboard-shortcuts-trmlshtcts/mac), a right-click
+opens a menu, and Ctrl+C always stops a command. The editing keys are defaults in Bash (Ubuntu) and zsh (macOS):
+Ctrl+A and Ctrl+E jump to the start and end of the line, Ctrl+K deletes to the end, Ctrl+U
+deletes to the start in Bash and the whole line in zsh, Ctrl+L clears the screen, and Ctrl+R
+searches earlier commands as you type (Ctrl+R again for older matches, Enter runs it, Ctrl+G
+gives up). Tab completes file and command names and lists the choices when several match.
+Sources: https://www.gnu.org/software/bash/manual/html_node/Bindable-Readline-Commands.html
+and https://zsh.sourceforge.io/Doc/Release/Zsh-Line-Editor.html. All checked 2026-10-31.
+The exercise uses `~/quarto-workshop`, which everyone cloned, so Tab has one match.
 :::
 
 # 🌍 Publish to GitHub Pages {#publish-london}
