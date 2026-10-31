@@ -17,9 +17,12 @@ const near = (a, b) => b + Math.atan2(Math.sin(a - b), Math.cos(a - b));
 // vertical axis, zoom divides the fitted distance, spin turns ry (rad/s), focus fades the
 // other groups, and centre (optional) is the point the view turns about.
 // scene.build(group, data, el) adds its objects to group and returns { centre, half, aspect,
-// labels: [{ label, from, to }], focus(t) }: the data's centre and largest half-range, its
-// face-on width/height, HTML labels drawn at a line's end (they fade as the line turns
-// towards the reader), and a callback that fades the unfocused groups by t (0 to 1).
+// labels: [{ label, from, to, weight, hidden }], focus(t), arrange? }: the data's centre and
+// largest half-range, its face-on width/height, HTML labels drawn at to (with from, a line's
+// end: they fade as the line turns towards the reader; without, a place: hidden while off
+// the canvas), a callback that fades the unfocused groups by t (0 to 1) and labels by
+// weight, and optional arrange(spots, w, h), which lays the labels out on screen each frame
+// and sets hidden on those that do not fit, and remeasure(), called once fonts load.
 export function stage(el, deck, sceneType) {
   const data = JSON.parse(el.querySelector("script[type='application/json']").textContent);
   const slide = el.closest("section");
@@ -49,6 +52,8 @@ export function stage(el, deck, sceneType) {
     outer.add(inner);
     scene.add(outer);
     world = sceneType.build(inner, data, el);
+    // Labels measured in a fallback font are laid out again once the web fonts have loaded.
+    document.fonts?.ready.then(() => { world.remeasure?.(); resize(); });
     camera = new PerspectiveCamera(FOV, 1, world.half * 0.01, world.half * 40);
     // Far objects fade into the slide background, a depth cue when the scene turns.
     let background = "rgba(0, 0, 0, 0)";
@@ -138,12 +143,18 @@ export function stage(el, deck, sceneType) {
       return [((p.x + 1) / 2) * w, ((1 - p.y) / 2) * h];
     };
     scene.updateMatrixWorld();
-    world.labels.forEach(({ label, from, to }) => {
-      const [x, y] = screen(to);
-      const [fx, fy] = screen(from);
+    const spots = world.labels.map(({ to }) => screen(to));
+    world.arrange?.(spots, w, h);
+    world.labels.forEach(({ label, from, weight = 1, hidden = false }, i) => {
+      const [x, y] = spots[i];
       label.style.left = `${x}px`;
       label.style.top = `${y}px`;
-      label.style.opacity = Math.min(1, Math.max(0, (Math.hypot(x - fx, y - fy) - 40) / 60));
+      let shown = x >= 0 && x <= w && y >= 0 && y <= h ? 1 : 0;
+      if (from) {
+        const [fx, fy] = screen(from);
+        shown = Math.min(1, Math.max(0, (Math.hypot(x - fx, y - fy) - 40) / 60));
+      }
+      label.style.opacity = hidden ? 0 : shown * weight;
     });
   }
 

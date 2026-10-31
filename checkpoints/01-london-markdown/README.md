@@ -18,3 +18,4 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 2. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/01-london-markdown/. .`
 3. Render: `uv run quarto render london.md`.
 4. Check: `london.html` shows both lists, the photo with its credit, the five-row table and the checklist.
+5. Rejoin: your folder now holds the end of this block, so skip the block's remaining prompts and follow the slides. Start pasting prompts again at 🧪 *From .md to .qmd* (⏱️ 0:35) ([slide](https://project-delphi.github.io/quarto-workshop/#/md-to-qmd)).

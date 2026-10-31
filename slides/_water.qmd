@@ -5,7 +5,7 @@
 
 # 💧 Part 2 · Colombia water quality and infant mortality {#part-2}
 
-[⏱️ 1:05]{.clock}
+[⏱️ 1:10]{.clock}
 
 ```{=html}
 <style>
@@ -82,7 +82,7 @@ wat_accent, wat_muted = "#86cce8", "#b8c2cc"
 ::: {.notes}
 Part 2 audience: Part 1 graduates who can render a `.qmd`, use YAML formats and code cells,
 and publish a site. Objective: one analysis of real public data feeds every output.
-Completion: a published water-quality website with a report (html, docx, pdf and epub),
+Completion: a published water-quality website with a report (html, docx and pdf; ⭐ epub),
 slides, a blog post and a dashboard. Participants work in `water-quality/`, next to
 `quarto-workshop/`. Each hands-on step has a checkpoint in
 `quarto-workshop/checkpoints/05-water-*` to `13-water-*`; the finished project is
@@ -97,52 +97,54 @@ Part 2 is computed by this deck from `examples/water/data/water_municipal.csv` w
 ::: {}
 [💧]{.big}
 
-**1:05** why · rules · data
+**1:10** why · rules · data
 :::
 ::: {}
 [🔍]{.big}
 
-**1:20** explore
+**1:25** explore
 :::
 ::: {}
 [🧹]{.big}
 
-**1:35** prepare
+**1:40** prepare
 :::
 ::: {}
 [🧩]{.big}
 
-**1:50** cluster
+**1:55** cluster
 :::
 ::: {}
 [🏷️]{.big}
 
-**2:10** interpret
+**2:15** interpret
 :::
 ::: {}
 [⚠️]{.big}
 
-**2:25** correlation ≠ causation
+**2:30** correlation ≠ causation
 :::
 ::: {}
 [📤]{.big}
 
-**2:35** publish many
+**2:40** publish many
 :::
 :::
 
 ::: {.bigline}
-🏁 a live site: report · ePub · slides · blog · dashboard
+🏁 a live site: report · slides · blog · dashboard
 :::
 
 ::: {.notes}
-15 + 15 + 15 + 20 + 15 + 10 + 45 = 135 minutes, from 1:05 to 3:20. Section dividers show
-the same start times. The 45-minute publishing block has its own start times on each slide.
-Exercise times add up to 4, 10, 10, 12, 10, 6 and 36 minutes for why · rules · data to
-publish (the ⭐ dashboard pages are self-paced and not counted); the rest
-of each block is for the concept slides, showing results and recovering from a failed
-command. Several exercises have two prompts, one task each. These are estimates: rehearse
-with a stopwatch and change the clocks, this slide and README together.
+15 + 15 + 15 + 20 + 15 + 10 + 40 = 130 minutes, from 1:10 (after the break) to 3:20.
+Section dividers show the same start times. The 40-minute publishing block has its own start
+times on each slide. Exercise times add up to 4, 10, 10, 8, 6, 5 and 32 minutes for
+why · rules · data to publish, on the normal 📤 route through the analysis: from the Cluster
+block on, a 📤 prompt copies each block's finished `scripts/analysis.py` and everyone builds
+the pages. The ⭐ challenge prompts that write the analysis, the ePub and the extra dashboard
+pages are self-paced and not counted. The rest of each block is for the concept slides,
+showing results and recovering from a failed command. These are estimates: rehearse with a
+stopwatch and change the clocks, this slide and README together.
 :::
 
 ## 📏 Two measures: IRCA and Saber 11 {#water-measures}
@@ -510,7 +512,7 @@ anywhere.
 
 # 🔍 Explore {#water-explore}
 
-[⏱️ 1:20]{.clock}
+[⏱️ 1:25]{.clock}
 
 ## 🔍 Look before you model {#water-explore-what}
 
@@ -631,7 +633,7 @@ sources only. Check the missingness table: if
 
 # 🧹 Prepare {#water-prepare}
 
-[⏱️ 1:35]{.clock}
+[⏱️ 1:40]{.clock}
 
 ## 🧹 Four steps from table to features {#water-prepare-steps}
 
@@ -818,7 +820,7 @@ is missing, the assistant will install it in your environment.
 
 # 🧩 Cluster {#water-cluster}
 
-[⏱️ 1:50]{.clock}
+[⏱️ 1:55]{.clock}
 
 ## 🧩 k-means in four steps {#water-kmeans}
 
@@ -1143,6 +1145,35 @@ wat_relief = {
     # The focus view turns about the highest cluster's middle column, halfway up.
     "view": [round(wat_hi_xy[0]), round(wat_hi_xy[1]), round(wat_hi_alt / 1000 * wat_exag / 2)],
 }
+# City labels: the ten most populous department capitals (DIVIPOLA codes ending 001) by
+# head-town population that year, plus Tunja, among the cities with a column on this map, so
+# every label marks a column. Suburbs such as Soacha are left out: their labels would cover
+# their capitals'. Each label sits at the top of its city's column; the list is in priority
+# order (relief.js hides the last ones first where labels collide), with Tunja, Boyacá's
+# capital, second.
+wat_towns = wat_raw[(wat_raw["zone"] == "urban") & (wat_raw["year"] == wat_rel_year)
+                    & (wat_raw["entity_type"] == "municipality")].set_index("divipola")
+wat_col_of = wat_rel.set_index("divipola")[["altitude_m", "cluster"]]
+wat_capitals = wat_towns[wat_towns.index.str.endswith("001") & wat_towns.index.isin(wat_col_of.index)]
+wat_city_top = list(wat_capitals["population"].nlargest(10).index)
+# Tunja must have a column too: a data refresh that drops it fails the render below.
+wat_city_codes = wat_city_top[:1] + ["15001"] + [c for c in wat_city_top[1:] if c != "15001"]
+# Short names for the four whose official names are long; the rest from `municipio`.
+wat_city_names = {"11001": "Bogotá", "76001": "Cali", "13001": "Cartagena", "54001": "Cúcuta"}
+
+
+def wat_city(c):
+    return wat_city_names.get(c, wat_towns.loc[c, "municipio"].title())
+
+
+wat_relief["cities"] = [
+    int(v) for c in wat_city_codes
+    for v in (*(round(t) for t in wat_km(*wat_centroid[c])),
+              round(wat_col_of.loc[c, "altitude_m"]), wat_col_of.loc[c, "cluster"])]
+wat_city_labels = "".join(
+    f'<span class="place-label" translate="no">'
+    f'{wat_html.escape(wat_city(c))}</span>'
+    for c in wat_city_codes)
 wat_rel_medians = {c: (f"{wat_alt_med[c]:,.0f} m" if c in wat_alt_med else f"no {wat_rel_year} urban zones")
                    for c in sorted(wat_colors)}
 wat_rel_legend = "".join(
@@ -1152,13 +1183,14 @@ wat_rel_alt = (f"3-D map of mainland Colombia with one column for each of the {l
                f"urban zones in {wat_rel_year}, at its municipality's centroid, as tall as its head town's "
                f"altitude and coloured by cluster. Cluster {wat_high}'s columns are the tallest (median "
                f"{wat_alt_med[wat_high]:,.0f} m); cluster {wat_low}'s are the shortest "
-               f"({wat_alt_med[wat_low]:,.0f} m).")
+               f"({wat_alt_med[wat_low]:,.0f} m). Labels name the ten most populous department "
+               "capitals and Tunja.")
 wat_region_top = {c: wat_rel.loc[wat_rel["cluster"] == c, "region"].value_counts(normalize=True)
                   for c in (wat_high, wat_low)}
 print("```{=html}")
 print(f'<div class="deck-3d" data-scene="relief" role="img" aria-label="{wat_html.escape(wat_rel_alt)}">'
       f'<script type="application/json">{wat_json.dumps(wat_relief, separators=(",", ":"))}</script>'
-      f'<div class="legend">{wat_rel_legend}</div>'
+      f'<div class="legend">{wat_rel_legend}</div>{wat_city_labels}'
       '<p class="fallback" hidden>🗺️ This 3-D view needs WebGL. Median head-town altitude, '
       f'{wat_rel_year} urban zones: '
       + "; ".join(f"cluster {c}: {m}" for c, m in wat_rel_medians.items()) + '.</p></div>')
@@ -1177,7 +1209,7 @@ print("```")
 :::
 :::
 
-[Columns stand at municipality centroids; heights are derived SRTM altitudes of the head towns · 🖱️ drag to turn · scroll to zoom]{.source}
+[Columns stand at municipality centroids; heights are derived SRTM altitudes of the head towns · labels: the 10 most populous department capitals and Tunja · 🖱️ drag to turn · scroll to zoom]{.source}
 
 ::: {.notes}
 The previous slide's PC3 ≈ `{python} wat_pc3_text`; this slide puts the clusters on the
@@ -1191,10 +1223,67 @@ stay bright. Cluster `{python} wat_high`'s urban zones are
 `{python} f"{wat_region_top[wat_high].iloc[0]:.0%}"` in the DNP region
 `{python} wat_region_top[wat_high].index[0]`; cluster `{python} wat_low`'s are
 `{python} f"{wat_region_top[wat_low].iloc[0]:.0%}"` in `{python} wat_region_top[wat_low].index[0]`.
-This shows where the kinds are, not why they differ. About a minute.
+This shows where the kinds are, not why they differ. The labels name the
+`{python} len(wat_city_top)` most populous department capitals on the map by `{python} wat_rel_year`
+head-town population (DANE projections in the dataset: `{python} ", ".join(wat_city(c) for c in wat_city_top)`)
+and Tunja, Boyacá's capital at `{python} f"{wat_col_of.loc['15001', 'altitude_m']:,.0f}"` m. Large
+suburbs (Soacha, Soledad, Bello) are left out because their labels would cover their
+capitals'. About a minute.
 :::
 
-## 🧩 Run k-means {#water-cluster-do}
+## 🛤️ Use the model, or build it {#water-routes}
+
+::: {.cards style="grid-template-columns: repeat(2, 1fr);"}
+::: {}
+[📤]{.big}
+
+**Use it** · the normal route
+
+copy each block's finished `analysis.py`, then build the pages
+:::
+::: {}
+[🧗]{.big}
+
+**Build it** · ⭐ challenge
+
+paste the ⭐ prompts · stuck? the 📤 prompt
+:::
+:::
+
+::: {.prompt}
+```default
+Copy ../quarto-workshop/checkpoints/07-water-cluster/scripts/analysis.py over scripts/analysis.py (keep mine as scripts/analysis-before-07.py), run it with `uv run python scripts/analysis.py`, and tell me k.
+```
+:::
+
+### Exercise · ⏱️ 2 min
+
+::: {.source .behind}
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
+```
+:::
+
+::: {.done}
+`outputs/clusters.parquet` exists and you know k.
+:::
+
+::: {.notes}
+This is a Quarto workshop: the lesson is computed results feeding every page and
+publication, so using the finished model is the normal route, not a fallback. Both routes
+write the same `outputs/`, and everyone builds the same pages and publications. Demonstrate
+the modelling choices while the room copies: paste the next slide's ⭐ prompt on the
+projector (or open `choose_k()` in checkpoint 07) and talk through k = 2–8, 20 starts with
+a fixed seed, the elbow rule with the silhouette check, stability across seeds (ARI) and
+numbering by centroid IRCA. Builders paste the ⭐ prompts instead; if they get stuck, the 📤
+prompt on this slide puts them back on the normal route. In the Interpret and Causation
+blocks, the first hands-on slide after the concept slides is the 📤 prompt for their part
+of `analysis.py`.
+:::
+
+## 🧩 Run k-means · ⭐ challenge {#water-cluster-do}
 
 ::: {.prompt}
 ```default
@@ -1224,7 +1313,8 @@ Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
 The finished script computes the silhouette on a fixed-seed sample of 5,000 rows, which
 keeps it fast. Your k may differ if your preparation differs; that is fine if the reason is sound. Do not
 force a number of clusters to make a nicer story. Order the clusters by a fixed rule (here,
-centroid IRCA) so a re-run keeps the same ids and colours.
+centroid IRCA) so a re-run keeps the same ids and colours. ⭐ challenge route: self-paced
+and not counted in the agenda.
 :::
 
 ## 🧩 The clusters page {#water-cluster-page}
@@ -1265,11 +1355,12 @@ Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
 ::: {.notes}
 The page only reads `outputs/`; it never refits k-means. Run order:
 `uv run python scripts/analysis.py && uv run quarto render clusters.qmd`. Checkpoint 07 holds both files.
+Both routes do this step.
 :::
 
 # 🏷️ Interpret {#water-interpret}
 
-[⏱️ 2:10]{.clock}
+[⏱️ 2:15]{.clock}
 
 ## 🌡️ What sets each cluster apart? {#water-heatmap}
 
@@ -1281,6 +1372,13 @@ The page only reads `outputs/`; it never refits k-means. Run order:
 wat_zcols = [f"z_{wat_c}" for wat_c in wat_analysis.FEATURES]
 wat_cmap = wat_LSC.from_list("wat_div", wat_analysis.DIVERGING["dark"])
 wat_zlim = 1.5  # colour limit in z; the outcome heatmap uses the same scale
+# An example answer for the 💬 check on #water-interpret-page: the highest-IRCA cluster's
+# two features farthest from the year's average.
+wat_ex_c = int(wat_prof.index.max())
+wat_ex = wat_prof.loc[wat_ex_c, wat_zcols].astype(float)
+wat_ex = wat_ex[wat_ex.abs().nlargest(2).index]
+wat_ex_text = f"cluster {wat_ex_c}: " + " and ".join(
+    f"{wat_word(wat_c[2:])} {wat_v:+.1f} SD" for wat_c, wat_v in wat_ex.items())
 with wat_plt.rc_context(wat_rc):
     wat_f, wat_ax = wat_plt.subplots(figsize=(11, 0.75 * wat_k + 1.6))
     wat_im = wat_ax.imshow(wat_prof[wat_zcols].to_numpy(), cmap=wat_cmap, vmin=-wat_zlim,
@@ -1545,7 +1643,41 @@ change the menu's choice while it has focus; click the slide to move on. It is d
 a gap between clusters is not an effect of water quality.
 :::
 
-## 🏷️ Outcome rules {#water-outcome-rules}
+## 📤 Use the outcome rules and names {#water-interpret-use}
+
+::: {.prompt}
+```default
+Copy ../quarto-workshop/checkpoints/08-water-interpret/scripts/analysis.py over scripts/analysis.py (keep mine as scripts/analysis-before-08.py), run it with `uv run python scripts/analysis.py`, and show me the cluster names.
+```
+:::
+
+::: {.agent}
+copies · runs · writes `outputs/outcomes_by_year.csv` and `outputs/cluster_profiles.csv`
+:::
+
+🧗 building it yourself? the next two ⭐ slides instead
+
+### Exercise · ⏱️ 2 min
+
+::: {.source .behind}
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
+```
+:::
+
+::: {.done}
+the assistant shows a name for every cluster.
+:::
+
+::: {.notes}
+The normal 📤 route for this block: the finished outcome rules and naming rule, in the
+same `analysis.py` as checkpoint 08. The next two ⭐ slides are the challenge route that
+writes them. Everyone then builds the heatmap and outcome page.
+:::
+
+## 🏷️ Outcome rules · ⭐ challenge {#water-outcome-rules}
 
 ::: {.prompt}
 ```default
@@ -1578,9 +1710,10 @@ mortality changes method in 2017 (modelled estimates before, observed rates afte
 looks like a different source (data README, caveat 8). Infant mortality and dropout are
 measured for the whole municipality and repeated on both zone rows; Saber 11 is measured per
 zone. Checkpoint 08 is the end of the Interpret block, so it also has the next two steps.
+⭐ challenge route: self-paced and not counted in the agenda.
 :::
 
-## 🏷️ Profiles and names {#water-interpret-do}
+## 🏷️ Profiles and names · ⭐ challenge {#water-interpret-do}
 
 ::: {.prompt}
 ```default
@@ -1610,7 +1743,7 @@ every cluster has a name you can defend from its profile.
 A naming rule keeps names stable across re-runs and makes them checkable; pages read the
 names from `outputs/cluster_profiles.csv`. "Low-coverage" states a position relative to the
 year's average; a name like "unserved" would claim that no service exists, which a z-score
-cannot show.
+cannot show. ⭐ challenge route: self-paced and not counted in the agenda.
 :::
 
 ## 🏷️ Heatmap and outcomes {#water-interpret-page}
@@ -1634,6 +1767,10 @@ reload `clusters.html` in your browser
 :::
 ::::
 
+::: {.check}
+💬 while it renders, with a neighbour: describe one cluster using two features.
+:::
+
 ### Exercise · ⏱️ 4 min
 
 ::: {.source .behind}
@@ -1652,12 +1789,14 @@ Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
 The page only reads `outputs/`: the year windows and once-per-municipality counts were set
 in `analysis.py` on the previous slide. Each line is drawn over every year, so excluded or
 unpublished years (2020 for infant mortality; 2018, 2021 and 2023 for Saber 11) show as
-gaps rather than as a line across them.
+gaps rather than as a line across them. Both routes do this step. The 💬 check asks people
+to read the 🌡️ heatmap, not just render it: a good answer names two features and their
+direction, such as `{python} wat_ex_text`. Then ask whether the cluster's name says the same.
 :::
 
 # ⚠️ Correlation ≠ causation {#water-causation}
 
-[⏱️ 2:25]{.clock}
+[⏱️ 2:30]{.clock}
 
 ## 📉 Worse water, more infant deaths? {#water-within}
 
@@ -1742,7 +1881,42 @@ and access. A causal claim would need a design that handles these, such as befor
 changes in treatment plants with comparison places.
 :::
 
-## 🧮 Within-cluster check {#water-causation-calc}
+## 📤 Use the within-cluster check {#water-causation-use}
+
+::: {.prompt}
+```default
+Copy ../quarto-workshop/checkpoints/09-water-causation/scripts/analysis.py over scripts/analysis.py (keep mine as scripts/analysis-before-09.py), run it with `uv run python scripts/analysis.py`, and print Spearman rho and n per cluster from outputs/irca_infant.csv.
+```
+:::
+
+::: {.agent}
+copies · runs · writes `outputs/irca_infant.csv` and `outputs/irca_infant_bins.csv`
+:::
+
+🧗 building it yourself? the next ⭐ slide instead
+
+### Exercise · ⏱️ 2 min
+
+::: {.source .behind}
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/09-water-causation/README.md
+```
+:::
+
+::: {.done}
+ρ and n are printed for every cluster.
+:::
+
+::: {.notes}
+The normal 📤 route for this block: the finished within-cluster check, in the same
+`analysis.py` as checkpoint 09 and the finished project. The next ⭐ slide is the
+challenge route that writes it. Everyone then adds it to the clusters page and discusses
+confounders.
+:::
+
+## 🧮 Within-cluster check · ⭐ challenge {#water-causation-calc}
 
 ::: {.prompt}
 ```default
@@ -1772,7 +1946,8 @@ Catch me up: follow ../quarto-workshop/checkpoints/09-water-causation/README.md
 The unit follows the outcome: infant mortality is municipal, so within a cluster each
 municipality-year counts once, with the mean IRCA of its zones in that cluster; blank rates
 (which may mean no recorded deaths) are left out. The computation goes in `analysis.py`, so
-the page, the report and the slides read the same numbers.
+the page, the report and the slides read the same numbers. ⭐ challenge route: self-paced
+and not counted in the agenda.
 :::
 
 ## ⚠️ Show it + discuss {#water-causation-do}
@@ -1787,7 +1962,9 @@ Add a section to clusters.qmd that reads those outputs: median infant_mortality 
 edits `clusters.qmd` · `uv run quarto render clusters.qmd`
 :::
 
+::: {.check}
 💬 while it runs, with a neighbour: pick one confounder: could it hide a real effect, or create a fake one?
+:::
 
 ### Exercise · ⏱️ 3 min
 
@@ -1811,9 +1988,9 @@ an effect). Checkpoint 09 holds the finished `scripts/analysis.py` and `clusters
 
 # 📤 Publish many {#water-publish}
 
-[⏱️ 2:35]{.clock}
+[⏱️ 2:40]{.clock}
 
-## 📄 2:35 · Report → docx + PDF {#water-report}
+## 📄 2:40 · Report → docx + PDF {#water-report}
 
 ::: {.prompt}
 ```default
@@ -1857,7 +2034,7 @@ Typst is bundled with Quarto and takes `papersize` (default `us-letter`; Part 1'
 https://quarto.org/docs/output-formats/typst.html (checked 2026-10-30).
 :::
 
-## 📊 2:45 · Slides → revealjs + pptx {#water-slides}
+## 📊 2:50 · Slides → revealjs + pptx {#water-slides}
 
 ::: {.prompt}
 ```default
@@ -1901,7 +2078,7 @@ only" message. Options: https://quarto.org/docs/reference/formats/presentations/
 (checked 2026-10-30).
 :::
 
-## 📖 2:50 · Report → ePub {#water-epub}
+## 📖 Report → ePub · ⭐ optional {#water-epub}
 
 ::: {.prompt}
 ```default
@@ -1957,6 +2134,7 @@ an ePub download beside Word and PDF on the HTML page. Open the file in Apple Bo
 or Calibre (https://calibre-ebook.com/). Options:
 https://quarto.org/docs/reference/formats/epub.html; links:
 https://quarto.org/docs/output-formats/html-multi-format.html (checked 2026-10-30).
+Optional and self-paced, not counted in the agenda: demonstrate it if there is time.
 :::
 
 ## ✍️🌐 2:55 · Blog + website {#water-website}
@@ -2044,7 +2222,7 @@ the site lists one post whose title states the real k.
 ::: {.notes}
 Never force a number into the title: the finished post asserts that k is 4 and fails the
 render if the analysis changes it. Navbar: Explore, Clusters, Report, Slides and a
-Downloads menu linking `report.docx`, `report.pdf`, `report.epub` and `slides.pptx`.
+Downloads menu linking `report.docx`, `report.pdf`, `report.epub` (if made) and `slides.pptx`.
 :::
 
 ## 📈 3:05 · Dashboard {#water-dashboard}
@@ -2224,6 +2402,10 @@ Publish the site with `uv run quarto publish gh-pages --no-prompt` and tell me t
 approve the `gh` and `quarto publish` commands · open the live URL
 :::
 
+::: {.check}
+💬 while it publishes: which file would you change to update every publication?
+:::
+
 ### Exercise · ⏱️ 4 min
 
 ::: {.source .behind}
@@ -2246,7 +2428,10 @@ answer (`quarto publish --help`, Quarto 1.6.40); it renders locally (running the
 script), creates the `gh-pages` branch on its first run, pushes `_site/` and opens the site.
 A project site needs no Settings → Pages change; that page only shows the URL and status.
 Docs: https://quarto.org/docs/publishing/github-pages.html (checked 2026-10-30). The data is public (CC BY-SA 4.0 and CC BY 4.0 sources, see
-`data/README.md`), so publishing `data/` with the site is fine; keep the attributions.
+`data/README.md`), so publishing `data/` with the site is fine; keep the attributions. The 💬
+check is the workshop's lesson in one question: `scripts/analysis.py` for a method choice
+(or `data/` for new data); `pre-render` re-runs it and `freeze: false` re-runs every page,
+so one `uv run quarto render` updates the report, slides, blog and dashboard together.
 :::
 
 ## 🚀 Extra challenges {#water-stretch}

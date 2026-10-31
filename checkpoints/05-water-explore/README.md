@@ -19,3 +19,4 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 3. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/05-water-explore/. .`
 4. Render: `uv run quarto render explore.qmd`.
 5. Check: `explore.html` shows missing values by zone and IRCA by band, zone and year for 2010–2023.
+6. Rejoin: your folder now holds the end of this block, so skip the block's remaining prompts and follow the slides. Start pasting prompts again at 🧹 *Prepare* (⏱️ 1:40) ([slide](https://project-delphi.github.io/quarto-workshop/#/water-prepare)).

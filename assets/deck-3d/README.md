@@ -5,7 +5,8 @@ The workshop deck's two three.js slides in Part 2:
 - `cloud.js` turns the cluster cloud on `#water-pca-3d`: zone-years on the first three
   principal components.
 - `relief.js` raises the clustered urban zones as columns at their head towns' altitude
-  on `#water-relief`.
+  on `#water-relief`, and names the cities the deck cell picks, each on the side of its
+  column where it covers no other label.
 
 `stage.js` runs a 3-D slide. Fragments with `data-view` set the view, the reader can drag
 to turn and scroll to zoom, rendering stops while the slide is not shown, and

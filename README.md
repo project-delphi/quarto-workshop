@@ -1,8 +1,8 @@
 # Quarto Workshop
 
 Create reproducible content you can share with the world, using Quarto. In a hands-on
-3 h 20 min session, participants turn plain-text Markdown into **docx, pdf, pptx, revealjs slides, epub, a
-website, a blog and a dashboard**, with a coding assistant (Claude Code, Codex or Antigravity)
+3 h 20 min session (with a 10-minute break), participants turn plain-text Markdown into **docx, pdf,
+pptx, revealjs slides, a website, a blog and a dashboard** (and, optionally, epub), with a coding assistant (Claude Code, Codex or Antigravity)
 writing the computations. The slides are the course resource: everything needed to follow along alone is
 on them.
 
@@ -27,7 +27,9 @@ folders; it holds the checkpoints and the data:
 cd ~ && git clone https://github.com/project-delphi/quarto-workshop.git
 ```
 
-Also before the workshop: run the setup check on the slides and read
+Also before the workshop: run the setup check on the slides, do the 🧪 test run (your assistant
+renders a tiny Quarto document with a Python calculation to HTML and PDF through `uv run`) and
+tell the organiser it worked, and read
 [Markdown in Y minutes](https://learnxinyminutes.com/markdown/). PDFs in both decks use
 Quarto's bundled Typst engine, so no LaTeX install is needed. Each project creates its own
 Python environment with uv during the workshop (one prompt, a few seconds), and its Quarto
@@ -49,8 +51,8 @@ Hands-on slides use three coloured boxes:
 | ⌨️ **You type** (green) | The few things only you can do: start the assistant, sign in, approve its commands, run `quarto preview`, open results |
 
 Every exercise shows a ⏱️ time box and a ✅ "you're done when…" check. 🏠 slides are
-pre-work and ⭐ slides are optional and self-paced. If you fall behind, copy the exercise's
-😰 **Catch me up** prompt into your assistant, for example:
+pre-work and ⭐ slides are optional and self-paced. Stuck for two minutes? Copy the
+exercise's 😰 **Catch me up** prompt into your assistant, for example:
 
 ```text
 Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
@@ -59,9 +61,16 @@ Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
 Each checkpoint README lists the steps, which also work by hand from inside your project
 folder: back up the folder to a new time-stamped `../<folder>-backup-NN-<time>` (earlier
 backups are kept), copy the checkpoint in, copy the water `data/` if it is missing (Part 2
-checkpoints hold sources only), render, and check a named output. A checkpoint is the state at the end of its block, so it can be ahead of the
-step you are on. The finished projects, `examples/london/` and `examples/water/`, have the
-same catch-up section in their READMEs.
+checkpoints hold sources only), render, check a named output, and rejoin at the slide the
+README names. A checkpoint is the state at the end of its block, so it can be ahead of the
+step you are on: skip the block's remaining prompts and follow the slides until the next ⏱️
+block, where everyone is hands-on together again. The finished projects, `examples/london/`
+and `examples/water/`, have the same catch-up section in their READMEs.
+
+From Part 2's Cluster block on, the analysis has two routes. The normal 📤 route copies each
+block's finished `scripts/analysis.py` from its checkpoint and spends the time on the pages;
+the ⭐ challenge route writes the analysis with the ⭐ prompts. Both write the same
+`outputs/`, so everyone builds the same report, slides, blog and dashboard.
 
 Prompts are examples, not transcripts: assistants vary, so check the rendered result and read
 the diff.
@@ -72,12 +81,13 @@ the diff.
 |---|---|
 | 0:00 | 👋 Welcome · 🎯 objective · 🏁 outcome |
 | 0:05 | 🧭 What is Quarto? |
-| 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install and [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) are pre-work) |
+| 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install, the test run and [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) are pre-work) |
 | 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment |
-| 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, many formats |
-| 0:45 | 🗂️ Part 1 · One guide, five audiences + dashboard |
-| 0:55 | 🌍 Part 1 · Publish to GitHub Pages |
-| 1:05 | 💧 Part 2 · Colombia water quality and infant mortality (135 min) |
+| 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, docx + PDF |
+| 0:45 | 🗂️ Part 1 · 📈 Dashboard (⭐ more audiences) |
+| 0:50 | 🌍 Part 1 · Publish to GitHub Pages |
+| 1:00 | ☕ Break · 🛟 catch up |
+| 1:10 | 💧 Part 2 · Colombia water quality and infant mortality (130 min) |
 | 3:20 | 🏁 Done |
 
 ## For instructors and contributors

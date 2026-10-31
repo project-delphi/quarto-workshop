@@ -73,7 +73,8 @@ The slides are the course resource: participants follow them alone and do most w
 prompting a coding assistant.
 
 - One concept per slide, introduced in order (Markdown → render → YAML → code cells →
-  formats → projects → publishing). Never use a concept before its slide.
+  formats → projects → publishing). Never use a concept before its slide
+  (the 🏠 test run is the exception: a black-box check that the tools work together).
 - Emoji over words: at most about 30 words of prose per slide; detail goes in `::: {.notes}`.
   Build examples progressively with fragments (`. . .`, `.fragment`) instead of walls of text.
 - Section dividers are `# <emoji> Title {#id}` followed by `[⏱️ h:mm]{.clock}` matching the agenda.
@@ -94,9 +95,17 @@ prompting a coding assistant.
 - Exercises use `### Exercise · ⏱️ N min` and a `::: {.done}` block whose text completes
   "You're done when …". Each hands-on block ends with a checkpoint in `checkpoints/` whose
   README lists the catch-up steps (back up to a new time-stamped folder, copy, copy water
-  data if missing, render, check a named output). The slide's `::: {.source .behind}`, placed
+  data if missing, render, check a named output, then rejoin at the next block's slide, linked
+  on the published deck). The slide's `::: {.source .behind}`, placed
   right after the exercise label so it shares its row, holds a copyable `default` fence:
-  "Catch me up: follow ../quarto-workshop/checkpoints/NN-…/README.md".
+  "Catch me up: follow ../quarto-workshop/checkpoints/NN-…/README.md". The room rule: two
+  minutes stuck → catch up; everyone is hands-on together again at the next block.
+- From Part 2's Cluster block on, each block's first hands-on slide, after its concept
+  slides, is a 📤 prompt that copies its checkpoint's `scripts/analysis.py` (the normal
+  route); the prompts that write the analysis are `· ⭐ challenge`. Page-building prompts
+  are for everyone, and agenda times count the 📤 route.
+- Understanding checks are a `::: {.check}` line starting 💬, asked while the assistant
+  runs; put a good answer in the notes.
 - Mark pre-work slides `[🏠 before the workshop]{.pace}` (`before the lab` in the AI lab) and
   optional slides `[⭐ self-paced]{.pace}`; when the pill would crowd a slide, end the title
   with `· ⭐ optional` or write `### Exercise · ⭐ self-paced`. Each deck's agenda explains ⭐.

@@ -19,3 +19,4 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 3. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/07-water-cluster/. .`
 4. Run: `uv run python scripts/analysis.py && uv run quarto render clusters.qmd`.
 5. Check: `outputs/clusters.parquet` exists and `clusters.html` shows the elbow, the silhouette and the PCA picture.
+6. Rejoin: your folder now holds the end of this block, so skip the block's remaining prompts and follow the slides. Start pasting prompts again at 🏷️ *Interpret* (⏱️ 2:15) ([slide](https://project-delphi.github.io/quarto-workshop/#/water-interpret)).
