@@ -21,8 +21,8 @@ $code-block-font-size: 0.6em;
   --ws-muted: #{$ws-muted};
   --ws-panel: rgba(134, 204, 232, 0.08);
   /* Spacing factor per slide, set by slide-spacing.html: 1 on full slides, up to 1.8 on
-     slides with spare room, down to 0.6 on overfull (translated) ones. Margins scale
-     with it; at 1 the layout is unchanged. */
+     slides with spare room, down to 0.6 on overfull slides of a translated page. Margins
+     scale with it; at 1 the layout is unchanged. */
   --ws-space: 1;
 }
 
@@ -358,11 +358,13 @@ $code-block-font-size: 0.6em;
 .reveal .behind pre code,
 .reveal .behind pre > .prompt-text { padding: 0.2em 2.4em 0.2em 0.5em; color: #e6e6e6; }
 .reveal .behind ~ .done { clear: both; }
-/* A float's top ignores margin collapsing, so the block before the label (and its last
-   child, whose margin would pass through it) gives up its bottom margin; the label's and
-   the prompt's own top margins then set the gap. */
+/* A float's top ignores margin collapsing, so the block before the label gives up its
+   bottom margin, as does the last child of an unpadded block (a .bigline, say), whose
+   margin would pass through it; the label's and the prompt's top margins set the gap. */
 .reveal .slides section > :has(+ h3[id^="exercise"] + .behind),
-.reveal .slides section > :has(+ h3[id^="exercise"] + .behind) > :last-child { margin-bottom: 0; }
+.reveal .slides section > :has(+ h3[id^="exercise"] + .behind):not(.prompt, .agent, .you) > :last-child {
+  margin-bottom: 0;
+}
 
 /* Pace marker under a slide title: 🏠 pre-work or ⭐ optional, self-paced. */
 .reveal .pace {
