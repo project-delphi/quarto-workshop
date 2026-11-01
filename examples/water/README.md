@@ -136,7 +136,9 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 
 - The first `uv run quarto publish gh-pages` must be interactive: answer its question with
   Enter. With `--no-prompt`, Quarto 1.6.40 stops with "the remote origin does not have a
-  branch named gh-pages". Once the `gh-pages` branch exists, `--no-prompt` works for updates.
+  branch named gh-pages"; Quarto's guide asks for one local publish first
+  (https://quarto.org/docs/publishing/github-pages.html, checked 2026-11-01). Once the
+  `gh-pages` branch exists, `--no-prompt` works for updates.
 - A push that fails with `HTTP 400` (`RPC failed`, `the remote end hung up unexpectedly`)
   usually succeeds after `git config http.postBuffer 524288000`.
 - A 404 right after publishing: wait a minute and reload.

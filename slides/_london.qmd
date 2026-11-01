@@ -945,6 +945,10 @@ formats.
 
 ## 🖨️ One source, three formats {#formats}
 
+::: {.you}
+first: Ctrl+C in the preview tab, so two renders don't collide · restart it after
+:::
+
 ::: {.prompt}
 ```default
 In london.qmd, add docx and typst (label "PDF") formats with download links on the HTML page. Render all three; check each has the computed sentence and chart.
@@ -968,10 +972,6 @@ format:
 ::: {.column width="52%"}
 ::: {.agent}
 `uv run quarto render london.qmd` → `london.html` · `london.docx` · `london.pdf`
-:::
-
-::: {.you}
-preview tab: Ctrl+C first, restart it after
 :::
 
 🎯 one format only: `--to docx`
@@ -1515,7 +1515,7 @@ writes 3 files · `uv run quarto render` → `_site/`
 :::
 
 ::: {.you}
-preview tab: Ctrl+C, then `uv run quarto preview`
+after its render: preview tab Ctrl+C, then `uv run quarto preview`
 :::
 :::
 ::::
@@ -1578,7 +1578,10 @@ the GitHub repository from this folder and pushes the commits
 The first `quarto publish gh-pages` is the participant's: it asks one question, then renders
 locally, creates the `gh-pages` branch, pushes the site and opens it. `--no-prompt` cannot
 make that first run: Quarto 1.6.40 stops with "the remote origin does not have a branch named
-gh-pages" (its source, and the dry run of 2026-11-01). Once the branch exists, an assistant
+gh-pages" (dry run of 2026-11-01). Quarto's GitHub Pages guide asks for one local `quarto
+publish gh-pages` before any non-interactive publish
+(https://quarto.org/docs/publishing/github-pages.html, checked 2026-11-01). Once the branch
+exists, an assistant
 can update the site with `uv run quarto publish gh-pages --no-prompt`. If a push fails with
 `HTTP 400` (seen with Git 2.37), run `git config http.postBuffer 524288000` and push again.
 For a project site no
@@ -1595,26 +1598,24 @@ is `quarto-workshop/examples/london/`; Part 1 has no checkpoint after 04.
 
 ::: {.prompt}
 ```default
-Create london-whitepaper.qmd, an A4 Typst white paper in "New Computer Modern": an abstract (no inline code), numbered Introduction, Methods, Results and Conclusions, then References (references.bib from `url`). Analyse data/visits.csv vs 2019 and data/attractions.csv by `admission`. Add it to `render` and the "Downloads" menu; render; check citations.
+Create london-whitepaper.qmd, an A4 Typst white paper in "New Computer Modern": an abstract (no inline code), numbered Introduction, Methods, Results and Conclusions, then References via `#set bibliography(title: [References])` (references.bib from `url`). Analyse data/visits.csv vs 2019 and data/attractions.csv by `admission`. Add it to `render` and the "Downloads" menu; render; check citations.
 ```
 :::
 
 :::: {.columns}
-::: {.column width="56%"}
+::: {.column width="50%"}
 ```{.yaml}
 bibliography: references.bib
-include-in-header:
-  text: |
-    #set bibliography(title: [References])
 format:
   typst:
     mainfont: "New Computer Modern"
     section-numbering: "1.1"
+    bibliographystyle: ieee
 ```
 :::
-::: {.column width="44%"}
+::: {.column width="50%"}
 ::: {.agent}
-`uv run quarto render london-whitepaper.qmd`
+renders `london-whitepaper.qmd`
 :::
 
 ::: {.you}
@@ -1643,9 +1644,10 @@ results, conclusions and references, with every number computed from `data/` (th
 project's `AGENTS.md` says so, so the prompt need not). It looks like a LaTeX article
 without a LaTeX install: Quarto 1.6.40 bundles Typst 0.11, which embeds New Computer Modern, the OpenType version of LaTeX's Computer Modern (checked with
 `typst fonts`). `section-numbering` numbers the headings, `bibliography` reads the BibTeX
-file, and `bibliographystyle: ieee` (in the finished example) picks Typst's numbered style. Typst prints its own
-"Bibliography" heading, so the YAML renames it with `#set bibliography(title: [References])`
-in `include-in-header`; the paper then needs no References heading of its own. The finished
+file, and `bibliographystyle: ieee` picks Typst's numbered style. Typst prints its own
+"Bibliography" heading, so the prompt asks for `#set bibliography(title: [References])`, which
+goes in the Typst format's `include-in-header`; the paper then needs no References heading of
+its own. The finished
 example also wraps Quarto's Typst `article` function so that the title is set in New Computer
 Modern too. `[@key]` cites a
 reference; `@fig-…`, `@tbl-…`, `@eq-…` and `@sec-…` refer to labelled figures, tables,

@@ -89,7 +89,8 @@ prompting a coding assistant.
   lists only what needs the participant: starting the assistant, accounts and sign-in,
   approving the assistant's commands, `quarto preview`, the first interactive
   `quarto publish gh-pages` (Quarto 1.6.40's `--no-prompt` cannot create the `gh-pages`
-  branch), and opening results. Work an assistant can run (rendering, git,
+  branch; https://quarto.org/docs/publishing/github-pages.html asks for one local publish
+  first, checked 2026-11-01), and opening results. Work an assistant can run (rendering, git,
   `gh repo create`, later `quarto publish … --no-prompt` updates) belongs in a prompt.
   Browser translation translates prompts, so write each literal the assistant must find
   or match in existing files or data as code (backticks for a bare
