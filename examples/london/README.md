@@ -26,6 +26,8 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 
 ## Publishing troubleshooting
 
+*(See also the repository-wide [Troubleshooting Guide](../../TROUBLESHOOTING.md).)*
+
 - The first `uv run quarto publish gh-pages` must be interactive: answer its question with
   Enter. With `--no-prompt`, Quarto 1.6.40 stops with "the remote origin does not have a
   branch named gh-pages"; Quarto's guide asks for one local publish first

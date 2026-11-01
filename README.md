@@ -15,30 +15,52 @@ on them.
 
 ## For attendees
 
-Before the workshop, install [Quarto](https://quarto.org/docs/get-started/),
-[uv](https://docs.astral.sh/uv/getting-started/installation/) (it brings Python), Git,
-an editor, the [GitHub CLI](https://cli.github.com/) (signed in with `gh auth login`), and one
-coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
-[Codex](https://github.com/openai/codex) or Google's
-[Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli), `agy`). Then clone this repository next to your working
-folders; it holds the checkpoints and the data:
+Quick links: [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLESHOOTING.md)
 
-```bash
-cd ~ && git clone https://github.com/project-delphi/quarto-workshop.git
-```
+### Pre-work (before the workshop)
 
-Also before the workshop: run the setup check on the slides, do the 🧪 test run (your assistant
-renders a tiny Quarto document with a Python calculation to HTML and PDF through `uv run`) and
-tell the organiser it worked, and read
-[Markdown in Y minutes](https://learnxinyminutes.com/markdown/). PDFs in both decks use
-Quarto's bundled Typst engine, so no LaTeX install is needed. Each project creates its own
-Python environment with uv during the workshop (one prompt, a few seconds), and its Quarto
-and Python commands run through `uv run`. To follow the slides
-in another language such as Spanish, use the
+1. **Install tools**: Install [Quarto](https://quarto.org/docs/get-started/) (≥ 1.4; 1.6.40 validated),
+   [uv](https://docs.astral.sh/uv/getting-started/installation/) (it brings Python automatically), Git,
+   an editor, the [GitHub CLI](https://cli.github.com/) (run `gh auth login`), and one
+   coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
+   [Codex](https://github.com/openai/codex) or Google's
+   [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli), `agy`).
+   *Windows users:* Run inside Ubuntu on WSL2.
+
+2. **Clone the repository**: Clone this repository beside your project workspace folders to get the data and checkpoints:
+   ```bash
+   cd ~ && git clone https://github.com/project-delphi/quarto-workshop.git
+   ```
+
+3. **Run the setup check** ([slide](https://project-delphi.github.io/quarto-workshop/#/setup-check)):
+   ```bash
+   quarto check      # Jupyter "not available"? Fine — uv handles Python per project
+   uv --version
+   gh auth status
+   claude --version  # or: codex --version, agy --version
+   git config --global user.name "Your Name"         # skip if already set
+   git config --global user.email "you@example.com"  # skip if already set
+   ```
+
+4. **Do the 🧪 test run** ([slide](https://project-delphi.github.io/quarto-workshop/#/test-run)):
+   In a terminal, create a test directory and launch your coding assistant:
+   ```bash
+   mkdir -p ~/quarto-test && cd ~/quarto-test
+   claude    # or: codex, agy
+   ```
+   Paste this prompt into your assistant:
+   ```default
+   Run `uv init --bare` and `uv add ipykernel nbclient nbformat pyyaml`. Create hello.qmd (html and typst formats): a Python cell computing `6 * 7` and an inline-code sentence showing it. Render it with `uv run quarto render hello.qmd`; check hello.html and hello.pdf both say 42.
+   ```
+   Once `hello.html` and `hello.pdf` both output 42, tell the organizer it succeeded!
+
+5. **Read [Markdown in Y minutes](https://learnxinyminutes.com/markdown/)** (5 min).
+
+PDFs use Quarto's bundled Typst engine, so no LaTeX install is needed. Each project creates its own
+Python environment with uv during the workshop (one prompt, a few seconds), and all Quarto
+and Python commands run through `uv run`. To follow the slides in another language such as Spanish, use the
 [Google Translate extension](https://chromewebstore.google.com/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb);
-code blocks are marked not to be translated, and prompts are translated with the file
-names, columns, options and commands in them kept in English. Shell examples assume
-macOS, Linux, or WSL.
+code blocks stay in English.
 
 ### How the slides work
 
@@ -78,26 +100,31 @@ the diff.
 
 ### Agenda
 
-| Time | Block |
-|---|---|
-| 0:00 | 👋 Welcome · 🎯 objective · 🏁 outcome |
-| 0:05 | 🧭 What is Quarto? |
-| 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install, the test run and [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) are pre-work) |
-| 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment |
-| 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, docx + PDF |
-| 0:45 | 🗂️ Part 1 · Four audiences, 🤖 sub-agents in parallel |
-| 0:54 | 🌍 Part 1 · Publish to GitHub Pages |
-| 1:05 | ☕ Break · 🛟 catch up |
-| 1:15 | 💧 Part 2 · Colombia water quality and infant mortality (125 min) |
-| 3:20 | 🏁 Done |
+| Time | Block | Slide |
+|---|---|---|
+| 0:00 | 👋 Welcome · 🎯 objective · 🏁 outcome | [Slide](https://project-delphi.github.io/quarto-workshop/#/objective) |
+| 0:05 | 🧭 What is Quarto? | [Slide](https://project-delphi.github.io/quarto-workshop/#/what-is-quarto) |
+| 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install, test run and Markdown are pre-work) | [Slide](https://project-delphi.github.io/quarto-workshop/#/setup-check) |
+| 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-1) |
+| 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, docx + PDF | [Slide](https://project-delphi.github.io/quarto-workshop/#/md-to-qmd) |
+| 0:45 | 🗂️ Part 1 · Four audiences, 🤖 sub-agents in parallel | [Slide](https://project-delphi.github.io/quarto-workshop/#/five-audiences) |
+| 0:54 | 🌍 Part 1 · Publish to GitHub Pages | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-publish) |
+| 1:05 | ☕ Break · 🛟 catch up | [Slide](https://project-delphi.github.io/quarto-workshop/#/break) |
+| 1:15 | 💧 Part 2 · Colombia water quality and infant mortality (125 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
+| 3:20 | 🏁 Done | |
 
 ## For instructors and contributors
+
+Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [Troubleshooting](TROUBLESHOOTING.md)
 
 | Path | Purpose |
 |---|---|
 | `index.qmd` | Workshop deck: Part 0 intro and setup; includes the two parts below |
 | `slides/_london.qmd`, `slides/_water.qmd` | Part 1 and Part 2 slides, included from `index.qmd` |
 | `ai-workflows.qmd` | Optional marketing-experiment lab on agent-assisted Quarto authoring |
+| `INSTRUCTOR.md` | Facilitator guide: pacing, the 2-minute rule, room logistics, troubleshooting |
+| `CHEATSHEET.md` | Quick reference: Quarto YAML formats, cell options, dashboards, uv commands |
+| `TROUBLESHOOTING.md` | Common gotchas: first publish, buffer size, preview locks, Typst sizing |
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, ⭐ white paper, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
