@@ -1,9 +1,9 @@
 # Quarto Workshop
 
-Create reproducible content you can share with the world, using Quarto. In a hands-on
-3 h 20 min session (with a 10-minute break), participants turn plain-text Markdown into **docx, pdf,
-pptx, revealjs slides, a website, a blog and a dashboard** (and, optionally, epub and academic white papers), with a coding assistant (Claude Code, Codex or Antigravity)
-writing the computations. The slides are the course resource: everything needed to follow along alone is
+AI-assisted reproducible publishing with Quarto. In a hands-on
+3 h 20 min session (with a 10-minute break), participants direct a coding assistant (Claude Code, Codex or Antigravity)
+that writes the computations, check its work, and turn plain-text Markdown into **docx, pdf,
+pptx, revealjs slides, a website, a blog and a dashboard** (and, optionally, epub and academic white papers). Each part ends with a task that has no supplied prompt: change an input, rebuild, and explain which outputs update. The slides are the course resource: everything needed to follow along alone is
 on them.
 
 - **[Quarto workshop](https://project-delphi.github.io/quarto-workshop/)**: Part 1 builds a
@@ -93,7 +93,7 @@ and `examples/water/`, have the same catch-up section in their READMEs.
 From Part 2's Cluster block on, the analysis has two routes. The normal 📤 route copies each
 block's finished `scripts/analysis.py` from its checkpoint and spends the time on the pages;
 the ⭐ challenge route writes the analysis with the ⭐ prompts. Both write the same
-`outputs/`, so everyone builds the same report, slides, blog and dashboard.
+`outputs/`, so everyone builds the same report, slides and blog (and, optionally, dashboard).
 
 Prompts are examples, not transcripts: assistants vary, so check the rendered result and read
 the diff.
@@ -107,10 +107,11 @@ the diff.
 | 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install, test run and Markdown are pre-work) | [Slide](https://project-delphi.github.io/quarto-workshop/#/setup-check) |
 | 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-1) |
 | 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, docx + PDF | [Slide](https://project-delphi.github.io/quarto-workshop/#/md-to-qmd) |
-| 0:45 | 🗂️ Part 1 · Four audiences, 🤖 sub-agents in parallel | [Slide](https://project-delphi.github.io/quarto-workshop/#/five-audiences) |
+| 0:45 | 🗂️ Part 1 · Three audiences, 🤖 sub-agents in parallel | [Slide](https://project-delphi.github.io/quarto-workshop/#/five-audiences) |
 | 0:54 | 🌍 Part 1 · Publish to GitHub Pages | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-publish) |
-| 1:05 | ☕ Break · 🛟 catch up | [Slide](https://project-delphi.github.io/quarto-workshop/#/break) |
-| 1:15 | 💧 Part 2 · Colombia water safety and infant mortality (125 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
+| 1:05 | 🔁 Part 1 · Change an input, rebuild, explain | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-change) |
+| 1:10 | ☕ Break · 🛟 catch up | [Slide](https://project-delphi.github.io/quarto-workshop/#/break) |
+| 1:20 | 💧 Part 2 · Colombia water safety and infant mortality (120 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
 | 3:20 | 🏁 Done | |
 
 ## For instructors and contributors

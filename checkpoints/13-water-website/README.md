@@ -19,4 +19,4 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 3. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/13-water-website/. .`
 4. Render the site: `uv run quarto render` (the pre-render step runs `scripts/analysis.py` first).
 5. Check: `_site/index.html` lists one post whose title states the real k.
-6. Rejoin: your folder now holds the end of this step. Start pasting prompts again at 📈 *3:03 · Dashboard* ([slide](https://project-delphi.github.io/quarto-workshop/#/water-dashboard)).
+6. Rejoin: your folder now holds the end of this step. Start pasting prompts again at 🌍 *3:07 · Publish it* ([slide](https://project-delphi.github.io/quarto-workshop/#/water-ship)).
