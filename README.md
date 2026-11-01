@@ -110,7 +110,7 @@ the diff.
 | 0:45 | 🗂️ Part 1 · Four audiences, 🤖 sub-agents in parallel | [Slide](https://project-delphi.github.io/quarto-workshop/#/five-audiences) |
 | 0:54 | 🌍 Part 1 · Publish to GitHub Pages | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-publish) |
 | 1:05 | ☕ Break · 🛟 catch up | [Slide](https://project-delphi.github.io/quarto-workshop/#/break) |
-| 1:15 | 💧 Part 2 · Colombia water quality and infant mortality (125 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
+| 1:15 | 💧 Part 2 · Colombia water safety and infant mortality (125 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
 | 3:20 | 🏁 Done | |
 
 ## For instructors and contributors

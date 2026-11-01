@@ -18,7 +18,7 @@ The workshop is designed as a **3 h 20 min hands-on session** (200 minutes total
 | **0:45** (9m) | Part 1: Four Audiences | Parallel sub-agents writing flyer, email, social ad, dashboard | `checkpoints/04-london-audiences` |
 | **0:54** (11m) | Part 1: Publish to GitHub Pages | First interactive publish to GitHub Pages | `examples/london` |
 | **1:05** (10m) | **Break & Catch-up** | Rest, pair struggling participants, verify live sites | — |
-| **1:15** (125m) | Part 2: Colombia Water Quality | Explore, prepare, cluster, report, dashboard, multi-site publish | `checkpoints/05`–`13`, `examples/water` |
+| **1:15** (125m) | Part 2: Colombia Water Safety | Explore, prepare, cluster, report, dashboard, multi-site publish | `checkpoints/05`–`13`, `examples/water` |
 | **3:20** | **Wrap-up** | Showcase live websites; next steps | — |
 
 ---
@@ -93,7 +93,7 @@ cd examples/london
 uv run quarto render
 test -f _site/index.html && test -f _site/london-whitepaper.pdf && echo "Part 1 OK"
 
-# Test Part 2 (Water Quality)
+# Test Part 2 (Water Safety)
 cd ../water
 uv run python scripts/analysis.py
 uv run quarto render
