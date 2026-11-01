@@ -19,7 +19,7 @@ Quick links: [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLES
 
 ### Pre-work (before the workshop)
 
-1. **Install tools**: Install [Quarto](https://quarto.org/docs/get-started/) (≥ 1.4; 1.6.40 validated),
+1. **Install tools**: Install [Quarto](https://quarto.org/docs/get-started/) (≥ 1.10 for the white-paper examples; 1.10.20 validated),
    [uv](https://docs.astral.sh/uv/getting-started/installation/) (it brings Python automatically), Git,
    an editor, the [GitHub CLI](https://cli.github.com/) (run `gh auth login`), and one
    coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
@@ -158,8 +158,9 @@ QUARTO_PYTHON="$PWD/.conda/bin/python" \
 ```
 
 Preview does not open a browser automatically: open the URL printed in the terminal.
-Quarto 1.6.40 (with bundled Typst 0.11) is the locally validated baseline; dashboards and
-Typst need Quarto ≥ 1.4.
+Quarto 1.10.20 (with bundled Typst 0.15) is the locally validated baseline; dashboards and
+Typst need Quarto ≥ 1.4. The white-paper examples use `#set par(spacing: …)`, which Quarto
+1.6.40's Typst rejects, so they need a newer Quarto (checked 2026-11-01).
 
 The bottom bar divides the deck into coloured sections that match the agenda. The active
 segment has a white marker, and a label shows the current section and its slide count. Click a

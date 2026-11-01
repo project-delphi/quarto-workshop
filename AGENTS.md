@@ -172,7 +172,7 @@ jupyter nbconvert --to notebook --execute --inplace report.ipynb
 
 Run from the lab root with the selected Python/Jupyter environment. Do not assume
 `quarto render --to ipynb` preserves executable cells: the locally validated
-Quarto 1.6.40 export can turn analysis code into Markdown. Check notebook cell
+Quarto 1.6.40 export can turn analysis code into Markdown (a simple cell stayed code in 1.10.20, checked 2026-11-01). Check notebook cell
 types, saved outputs, and execution from a fresh kernel. Include readable
 reference links in notebook Markdown and verify bibliography rendering in PDF
 and DOCX. Test changed instructional commands in a disposable workspace without

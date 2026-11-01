@@ -7,7 +7,7 @@ date: today
 date-format: "D MMMM YYYY"
 bibliography: references.bib
 # Size table columns to their contents, as LaTeX does, instead of spreading wide tables
-# over the full width (tested with Quarto 1.6.40's Typst output).
+# over the full width (tested with Quarto 1.10.20's Typst output).
 tbl-colwidths: false
 format:
   typst:
@@ -31,7 +31,7 @@ format:
             ..args,
           )
           #set par(first-line-indent: 1.5em)
-          #show par: set block(spacing: 0.65em)
+          #set par(spacing: 0.65em)
           #show heading: set block(above: 1.4em, below: 0.9em)
           #set figure(placement: auto)
           #set table(stroke: none, inset: (x: 5pt, y: 3.5pt))
@@ -50,6 +50,7 @@ execute:
 import matplotlib.pyplot as plt
 import pandas as pd
 from IPython.display import Markdown
+from matplotlib_inline.backend_inline import set_matplotlib_formats
 
 visits = pd.read_csv("data/visits.csv")
 top10 = pd.read_csv("data/attractions.csv")
@@ -148,6 +149,8 @@ others = listing(f"the {a} ({ADMISSION_WORDS.get(adm, adm)})"
                  for a, adm in top10.loc[~free, ["attraction", "admission"]].itertuples(index=False))
 uk_top10_in_london = int((top10["rank_uk"] <= 10).sum())
 
+# Quarto 1.6.40 with ipykernel 7 ignored `fig-format: svg` (fixed in 1.10.20); this keeps older versions vector.
+set_matplotlib_formats("svg")
 plt.rcParams.update({
     "font.family": "serif", "font.serif": ["STIXGeneral"], "mathtext.fontset": "stix",
     "font.size": 9, "axes.spines.top": False, "axes.spines.right": False,
