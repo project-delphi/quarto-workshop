@@ -18,10 +18,11 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 
 1. Keep your work: `cp -R . "../london-guide-backup-final-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `london-guide/`, so earlier backups are kept).
 2. Copy the finished project here: `cp -R ../quarto-workshop/examples/london/. .`
-3. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
-4. Render the site: `uv run quarto render` (writes `_site/`).
-5. Check: `_site/index.html` opens with Guide, Dashboard and Downloads in the navbar, and Downloads links the white paper, `_site/london-whitepaper.pdf`.
-6. Rejoin: if your site is not live yet, paste the prompt and run the publish command on 🚀 *Publish* ([slide](https://project-delphi.github.io/quarto-workshop/#/london-publish)); after the ☕ break, everyone starts 💧 *Part 2* together at 1:15 ([slide](https://project-delphi.github.io/quarto-workshop/#/part-2)).
+3. If you have published already, keep your repository's README, which step 2 overwrote: `git checkout -- README.md`.
+4. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
+5. Render the site: `uv run quarto render` (writes `_site/`).
+6. Check: `_site/index.html` opens with Guide, Dashboard and Downloads in the navbar, and Downloads links the white paper, `_site/london-whitepaper.pdf`.
+7. Rejoin: if your site is not live yet, paste the prompt and run the publish command on 🚀 *Publish* ([slide](https://project-delphi.github.io/quarto-workshop/#/london-publish)); after the ☕ break, everyone starts 💧 *Part 2* together at 1:15 ([slide](https://project-delphi.github.io/quarto-workshop/#/part-2)).
 
 ## Publishing troubleshooting
 

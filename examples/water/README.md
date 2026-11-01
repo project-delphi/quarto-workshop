@@ -126,10 +126,12 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 
 1. Keep your work: `cp -R . "../water-quality-backup-final-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `water-quality/`, so earlier backups are kept).
 2. Copy the finished project here, data included: `cp -R ../quarto-workshop/examples/water/. .`
-3. Render the site: `uv run quarto render` (the pre-render step runs `scripts/analysis.py` first).
-4. Check: `_site/index.html` lists one post, `_site/dashboard.html` shows a map that
+3. If you have published already, keep your repository's README, which step 2 overwrote:
+   `git checkout -- README.md`.
+4. Render the site: `uv run quarto render` (the pre-render step runs `scripts/analysis.py` first).
+5. Check: `_site/index.html` lists one post, `_site/dashboard.html` shows a map that
    changes with the year slider, and `_site/whitepaper.pdf` opens with its references.
-5. Rejoin: if your site is not live yet, paste the prompt and run the publish command on 🌍 *3:15 · Publish it*
+6. Rejoin: if your site is not live yet, paste the prompt and run the publish command on 🌍 *3:15 · Publish it*
    ([slide](https://project-delphi.github.io/quarto-workshop/#/water-ship)).
 
 ## Publishing troubleshooting
