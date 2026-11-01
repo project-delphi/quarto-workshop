@@ -227,12 +227,12 @@ assistants writing to one folder.
 
 ::: {.you}
 ```bash
-quarto check
+quarto check      # Jupyter "not available"? fine
 uv --version
 gh auth status
 claude --version
-git config --global user.name "Your Name"
-git config --global user.email "you@example.com"
+git config --global user.name "Your Name"   # skip if set
+git config --global user.email "you@example.com"   # skip if set
 cd ~ && git clone https://github.com/project-delphi/quarto-workshop.git
 ```
 :::
@@ -246,14 +246,18 @@ No `uv`? [Install uv](https://docs.astral.sh/uv/getting-started/installation/) �
 :::
 
 ::: {.notes}
-`quarto check` reports Pandoc and Typst. Its Python and Jupyter lines may show "(None)":
+`quarto check` reports Pandoc and Typst. Its Python and Jupyter lines may show "(None)", or
+"Jupyter is not available" with an install hint to ignore:
 each project gets its own Python environment from uv, by a prompt in each part, so there is
 nothing to install for Python now. uv also downloads a Python if the computer has none.
 Install uv with `curl -LsSf https://astral.sh/uv/install.sh | sh` (on Windows, inside
 Ubuntu) or `brew install uv`: https://docs.astral.sh/uv/getting-started/installation/
 (checked 2026-10-30). Do not debug kernels on stage. A fresh Git has no identity and `git commit`
 fails, hence `git config`: use the name and email of your GitHub account (or its
-noreply address). The cloned workshop repository supplies the checkpoints and the
+noreply address). Skip the `git config` lines if `git config user.name` already prints a
+name. If `~/quarto-workshop` already exists, update it with `git -C ~/quarto-workshop pull`
+instead of cloning, so the checkpoints and catch-up steps are current. The cloned workshop
+repository supplies the checkpoints and the
 water data. `gh auth status` must show a logged-in account before publishing.
 PDFs use `format: typst`, bundled with Quarto, so no LaTeX is needed:
 https://quarto.org/docs/output-formats/typst.html. GitHub CLI install and `gh auth login`:
@@ -277,7 +281,7 @@ Run `uv init --bare` and `uv add ipykernel nbclient nbformat pyyaml`. Create hel
 ```
 :::
 
-🤷 no need to understand `hello.qmd` yet: Part 1 explains every piece
+🤷 no need to understand `hello.qmd` yet: Part 1 explains every piece · ⚠️ "Kernel is running over TCP" warning: harmless
 
 ### Exercise · ⏱️ 5 min
 
@@ -293,7 +297,10 @@ writes a PDF. It also fills uv's cache, so Part 1's environment step is quicker.
 `codex` or `agy` instead of `claude` if that is your assistant. Ask participants to confirm
 before the day (a reply to the invitation is enough) and follow up with anyone who has not,
 or whose run failed: these are the problems that otherwise surface in the tightest block.
-Tested 2026-10-31 with Quarto 1.6.40 and uv in an empty folder (commands run by hand, not
+Every render prints `[IPKernelApp] WARNING | Kernel is running over TCP without encryption`;
+in the dry run of 2026-11-01 (ipykernel 7.4) it came with every successful render and changed
+nothing in the output. Tested 2026-10-31 with Quarto 1.6.40 and uv in an empty folder
+(commands run by hand, not
 through an assistant). The folder is disposable: delete `~/quarto-test` afterwards. It uses
 YAML, a code cell and inline code before their slides on purpose: it is a black-box check
 that the tools work together, not a lesson, and the slide says Part 1 explains it.

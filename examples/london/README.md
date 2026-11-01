@@ -21,4 +21,15 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 3. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
 4. Render the site: `uv run quarto render` (writes `_site/`).
 5. Check: `_site/index.html` opens with Guide, Dashboard and Downloads in the navbar, and Downloads links the white paper, `_site/london-whitepaper.pdf`.
-6. Rejoin: if your site is not live yet, paste the two prompts on 🚀 *Publish* ([slide](https://project-delphi.github.io/quarto-workshop/#/london-publish)); after the ☕ break, everyone starts 💧 *Part 2* together at 1:15 ([slide](https://project-delphi.github.io/quarto-workshop/#/part-2)).
+6. Rejoin: if your site is not live yet, paste the prompt and run the publish command on 🚀 *Publish* ([slide](https://project-delphi.github.io/quarto-workshop/#/london-publish)); after the ☕ break, everyone starts 💧 *Part 2* together at 1:15 ([slide](https://project-delphi.github.io/quarto-workshop/#/part-2)).
+
+## Publishing troubleshooting
+
+- The first `uv run quarto publish gh-pages` must be interactive: answer its question with
+  Enter. With `--no-prompt`, Quarto 1.6.40 stops with "the remote origin does not have a
+  branch named gh-pages"; Quarto's guide asks for one local publish first
+  (https://quarto.org/docs/publishing/github-pages.html, checked 2026-11-01). Once the
+  `gh-pages` branch exists, `--no-prompt` works for updates.
+- A push that fails with `HTTP 400` (`RPC failed`, `the remote end hung up unexpectedly`)
+  usually succeeds after `git config http.postBuffer 524288000`.
+- A 404 right after publishing: wait a minute and reload.

@@ -400,7 +400,7 @@ the Tower of London.
 
 ::: {.prompt}
 ```default
-Copy ../quarto-workshop/examples/london/images here. In london.md, add "Plan your visit": a TfL Journey Planner link, images/big-ben.jpg with alt text and a credit caption from images/ATTRIBUTION.md, and a "Tip from a local" blockquote.
+Copy ../quarto-workshop/examples/london/images here. In london.md, add "Plan your visit": a TfL Journey Planner link, images/big-ben.jpg at 30% width with alt text and a credit caption from images/ATTRIBUTION.md, and a "Tip from a local" blockquote.
 ```
 :::
 
@@ -467,7 +467,7 @@ holders skip the queues and a free entry ticket guarantees entry
 
 ::: {.prompt}
 ```default
-In london.md, add a "Sights at a glance" table: a photo from images/ (60 px high, alt text), Sight, Area, Price band, Nearest tube and a "Read more" link to the official page. Credit the photos from images/ATTRIBUTION.md.
+In london.md, add a "Sights at a glance" table: a photo from images/ (height=60, no unit; alt text), Sight, Area, Price band, Nearest tube and a "Read more" link to the official page. Credit the photos from images/ATTRIBUTION.md.
 ```
 :::
 
@@ -813,7 +813,7 @@ this step.
 
 ::: {.prompt}
 ```default
-Copy ../quarto-workshop/examples/london/data here. In london.qmd, add a Python cell that reads data/attractions.csv and finds the most visited attraction and total visits_2025, plus a sentence showing both with inline code. Render it.
+Copy ../quarto-workshop/examples/london/data here. In london.qmd, add a Python cell that reads data/attractions.csv and finds the most visited attraction and total visits_2025, plus a sentence showing both with inline code. The preview re-renders it: check london.html.
 ```
 :::
 
@@ -878,7 +878,7 @@ render, not when the CSV is saved.
 
 ::: {.prompt}
 ```default
-Add a matplotlib cell: a horizontal bar chart of visits_2025 by attraction. Hide its code, label it fig-top10, add a caption and alt text. Render it.
+Add a matplotlib cell: a horizontal bar chart of visits_2025 by attraction. Hide its code, label it fig-top10, add a caption and alt text. The preview re-renders it: check london.html.
 ```
 :::
 
@@ -945,6 +945,10 @@ formats.
 
 ## 🖨️ One source, three formats {#formats}
 
+::: {.you}
+first: Ctrl+C in the preview tab, so two renders don't collide · restart it after
+:::
+
 ::: {.prompt}
 ```default
 In london.qmd, add docx and typst (label "PDF") formats with download links on the HTML page. Render all three; check each has the computed sentence and chart.
@@ -994,7 +998,10 @@ the static matplotlib figure appear in every file without copying anything by ha
 `typst` makes the PDF with the Typst engine bundled in Quarto (no LaTeX). `format-links`
 lists the other formats on the HTML page; an entry that is an object takes `format` and
 `text`. Docs: https://quarto.org/docs/output-formats/typst.html and
-https://quarto.org/docs/output-formats/html-multi-format.html (checked 2026-10-30). The
+https://quarto.org/docs/output-formats/html-multi-format.html (checked 2026-10-30). Stop the
+preview before this render: the preview re-renders `london.qmd` on every save, and two renders
+of one file at once fail (`readfile 'london.quarto_ipynb'`, dry run 2026-11-01); that is also
+why the two previous prompts let the preview render. The
 next slide's three formats are demonstrated, not required, so this block keeps time for
 explanation and recovery.
 :::
@@ -1193,8 +1200,8 @@ apply. This is the same split as this repository's own role contracts in its `AG
 
 ::: {.prompt .long}
 ```default
-Run four sub-agents in parallel, one per item (none? do the items in turn). Each reads data/ and images/, hides code, follows AGENTS.md and only writes its own files: no rendering.
-1. london-dashboard.qmd (format: dashboard): Attractions page (value boxes: top attraction, total `visits_2025`, number free; Plotly bars by attraction; a Plotly line of visits by `year` from data/visits.csv); Churches page (data/churches.csv, names linked to `visit_london`).
+Run four sub-agents in parallel, one per item (none? do the items in turn). Each reads london.qmd, data/ and images/, hides code, follows AGENTS.md and only writes its own files: no rendering.
+1. london-dashboard.qmd (format: dashboard): Attractions page (value boxes: top attraction, total `visits_2025`, number free; Plotly bars by attraction; a Plotly line of visits by `year` from data/visits.csv; end each chart cell with `fig`, assigning `fig = fig.update_layout(…)`); Churches page (data/churches.csv, names linked to `visit_london`).
 2. london-email.qmd: docx partner brief (2025 numbers as inline code, five sights with official links, getting around, sources); london-email-message.md: its covering email in a text block, no numbers.
 3. london-flyer.qmd: one A5 Typst page (papersize: a5): Big Ben photo, five sights with price band and nearest tube, local tip.
 4. london-social.qmd: one 12 cm square Typst page (raw Typst page size): "Visit London", photo, top attraction and its 2025 visits.
@@ -1482,7 +1489,7 @@ Quarto renders locally and pushes only the rendered site to a `gh-pages` branch.
 
 ::: {.prompt}
 ```default
-Make this folder a Quarto website: _quarto.yml (render only the .qmd files; navbar: Guide, Dashboard, a Downloads menu for the docx, pdf, pptx, epub and london-slides.html files that exist), index.qmd, and a .gitignore for /_site/, /.quarto/ and /.venv/. Render and check the links.
+Make this folder a Quarto website: _quarto.yml (render only the .qmd files; navbar: Guide, Dashboard, a Downloads menu for the docx, pdf, pptx, epub and london-slides.html files that exist), index.qmd, and a .gitignore for /_site/, /.quarto/, /.venv/ and *_files/. Render and check the links.
 ```
 :::
 
@@ -1508,7 +1515,7 @@ writes 3 files · `uv run quarto render` → `_site/`
 :::
 
 ::: {.you}
-`uv run quarto preview`
+after its render: preview tab Ctrl+C, then `uv run quarto preview`
 :::
 :::
 ::::
@@ -1542,18 +1549,12 @@ finished project, `quarto-workshop/examples/london/`.
 
 ::: {.prompt}
 ```default
-Initialise a git repository here and commit everything except _site/, .quarto/ and .venv/. Then create a public GitHub repository named `london-guide` with gh and push to it.
-```
-:::
-
-::: {.prompt}
-```default
-Publish the site with `uv run quarto publish gh-pages --no-prompt` and tell me the live URL.
+Initialise a git repository here and commit everything except _site/, .quarto/, .venv/ and *_files/. Then create a public GitHub repository named `london-guide` with gh and push to it.
 ```
 :::
 
 ::: {.you}
-approve the `gh` and `quarto publish` commands · open the URL on your phone 📱 · 404? wait a minute, reload
+approve `gh` · second tab: `uv run quarto publish gh-pages`, Enter at "Publish site … (Y/n)" · open the URL on your phone 📱 · 404? wait a minute, reload
 :::
 
 ### Exercise · ⏱️ 5 min
@@ -1574,9 +1575,16 @@ Catch me up: follow ../quarto-workshop/examples/london/README.md
 The assistant runs `gh repo create london-guide --public --source=. --push`, which creates
 the GitHub repository from this folder and pushes the commits
 (https://cli.github.com/manual/gh_repo_create), using the `gh` sign-in from the setup check.
-`quarto publish gh-pages --no-prompt` skips the confirmation question an assistant cannot
-answer (`quarto publish --help`, Quarto 1.6.40); it renders locally, creates the `gh-pages`
-branch on its first run, pushes the site and opens it. For a project site no
+The first `quarto publish gh-pages` is the participant's: it asks one question, then renders
+locally, creates the `gh-pages` branch, pushes the site and opens it. `--no-prompt` cannot
+make that first run: Quarto 1.6.40 stops with "the remote origin does not have a branch named
+gh-pages" (dry run of 2026-11-01). Quarto's GitHub Pages guide asks for one local `quarto
+publish gh-pages` before any non-interactive publish
+(https://quarto.org/docs/publishing/github-pages.html, checked 2026-11-01). Once the branch
+exists, an assistant
+can update the site with `uv run quarto publish gh-pages --no-prompt`. If a push fails with
+`HTTP 400` (seen with Git 2.37), run `git config http.postBuffer 524288000` and push again.
+For a project site no
 Settings → Pages change is needed; that page shows the URL and status
 (https://quarto.org/docs/publishing/github-pages.html,
 checked 2026-10-30). Alternative: a GitHub Action renders on every push using
@@ -1590,7 +1598,7 @@ is `quarto-workshop/examples/london/`; Part 1 has no checkpoint after 04.
 
 ::: {.prompt}
 ```default
-Create london-whitepaper.qmd, an A4 Typst white paper in "New Computer Modern" with numbered sections: abstract, Introduction, Methods, Results, Conclusions, References (references.bib from the `url` column). Analyse data/visits.csv against 2019 and data/attractions.csv by `admission`. Add it to `render` and the "Downloads" menu; render; check citations.
+Create london-whitepaper.qmd, an A4 Typst white paper in "New Computer Modern": an abstract (no inline code), numbered Introduction, Methods, Results and Conclusions, then References via `#set bibliography(title: [References])` (references.bib from `url`). Analyse data/visits.csv vs 2019 and data/attractions.csv by `admission`. Add it to `render` and the "Downloads" menu; render; check citations.
 ```
 :::
 
@@ -1607,7 +1615,7 @@ format:
 :::
 ::: {.column width="50%"}
 ::: {.agent}
-changes 3 files · `uv run quarto render london-whitepaper.qmd`
+renders `london-whitepaper.qmd`
 :::
 
 ::: {.you}
@@ -1637,8 +1645,11 @@ project's `AGENTS.md` says so, so the prompt need not). It looks like a LaTeX ar
 without a LaTeX install: Quarto 1.6.40 bundles Typst 0.11, which embeds New Computer Modern, the OpenType version of LaTeX's Computer Modern (checked with
 `typst fonts`). `section-numbering` numbers the headings, `bibliography` reads the BibTeX
 file, and `bibliographystyle: ieee` picks Typst's numbered style. Typst prints its own
-"Bibliography" heading, so the finished example renames it with
-`#set bibliography(title: [References])` in `include-in-header`. `[@key]` cites a
+"Bibliography" heading, so the prompt asks for `#set bibliography(title: [References])`, which
+goes in the Typst format's `include-in-header`; the paper then needs no References heading of
+its own. The finished
+example also wraps Quarto's Typst `article` function so that the title is set in New Computer
+Modern too. `[@key]` cites a
 reference; `@fig-…`, `@tbl-…`, `@eq-…` and `@sec-…` refer to labelled figures, tables,
 equations and sections. An inline expression in a YAML `abstract` runs before the setup
 cell and fails, so the finished example writes its abstract in the body, wrapped in a raw
@@ -1651,8 +1662,8 @@ https://quarto.org/docs/output-formats/typst.html,
 https://quarto.org/docs/reference/formats/typst.html,
 https://quarto.org/docs/authoring/citations.html and
 https://quarto.org/docs/authoring/cross-references.html (checked 2026-11-01). To update a
-live site, paste the publish prompt again. Optional and self-paced: not counted in the
-agenda. The finished paper is `quarto-workshop/examples/london/london-whitepaper.qmd`.
+live site, ask the assistant to run `uv run quarto publish gh-pages --no-prompt`. Optional
+and self-paced: not counted in the agenda. The finished paper is `quarto-workshop/examples/london/london-whitepaper.qmd`.
 :::
 
 ## 📚 Part 1 sources {#london-sources}

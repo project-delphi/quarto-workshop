@@ -87,10 +87,13 @@ prompting a coding assistant.
   and checks each (set in `::: {.prompt .long}` so it shows in full); with `code-line-numbers: false` a `text` fence
   gets no copy button); `::: {.agent}` lists what the assistant will likely run; `::: {.you}`
   lists only what needs the participant: starting the assistant, accounts and sign-in,
-  approving the assistant's commands, `quarto preview`, and opening results. Work an
-  assistant can run (rendering, git, `gh repo create`, `quarto publish … --no-prompt`)
-  belongs in a prompt. Browser translation translates prompts, so write each literal the
-  assistant must find or match in existing files or data as code (backticks for a bare
+  approving the assistant's commands, `quarto preview`, the first interactive
+  `quarto publish gh-pages` (Quarto 1.6.40's `--no-prompt` cannot create the `gh-pages`
+  branch; https://quarto.org/docs/publishing/github-pages.html asks for one local publish
+  first, checked 2026-11-01), and opening results. Work an assistant can run (rendering, git,
+  `gh repo create`, later `quarto publish … --no-prompt` updates) belongs in a prompt.
+  Browser translation translates prompts, so write each literal the assistant must find
+  or match in existing files or data as code (backticks for a bare
   name such as a column, repo or option; paths, file names, `snake_case` columns, calls,
   `name=value` need none) or in double quotes (a heading to replace, a data value);
   `translate-safe.html` keeps those in English. New titles the assistant writes may be
