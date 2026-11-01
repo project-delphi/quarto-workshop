@@ -1,9 +1,10 @@
 # London data
 
 Real, published visit counts from the Association of Leading Visitor
-Attractions (ALVA). Every row carries its `source`, `url` and `retrieved` date.
-Retrieved 2026-10-30. Visits are counts reported by each attraction to ALVA;
-one row is one attraction (and, in `visits.csv`, one year).
+Attractions (ALVA), the five sights' visitor facts, Visit London's churches,
+their map coordinates and the London borough boundaries. Every CSV row carries
+its `source`, `url` and `retrieved` date. Visits are counts reported by each
+attraction to ALVA; one row is one attraction (and, in `visits.csv`, one year).
 
 ## attractions.csv
 
@@ -48,3 +49,41 @@ It holds no visitor numbers.
 | `church` | name as Visit London heads it |
 | `type` | Visit London's heading: Cathedral, Gothic church or Church |
 | `visit_london` | the church's Visit London page where the list links one; otherwise the list itself |
+
+## sights.csv
+
+The facts behind the guide's "Sights at a glance" table, the partner brief and
+the flyer, for the five sights in `visits.csv`. Long format: one row per sight
+and fact, each with its own source.
+
+| `fact` | `value` | Source |
+|---|---|---|
+| `price_band` | `Free` (free general admission; special exhibitions may charge) or `Paid` | ALVA 2025 admissions code, as in `attractions.csv` (`p=423`, retrieved 2026-10-30) |
+| `nearest_tube` | the Underground station the sight's own visitor page names as nearest, or the closest it lists | each sight's visitor or getting-here page; the National Gallery names none, so TfL's StopPoint search around the Gallery's own map point gives it |
+| `official_page` | the sight's official visitor page, for "Read more" links | that page |
+
+The visitor pages were checked on 2026-11-01. The British Museum's and Historic
+Royal Palaces' sites answer scripts (such as `curl`) with `403 Forbidden`, so an
+automated link check can report them as broken: open them in a browser.
+
+## places.csv
+
+Map coordinates (WGS84 latitude and longitude, 5 decimals) of the five sights and
+the ten churches in `churches.csv`, from each place's Wikidata item (coordinate
+location, P625; Wikidata is CC0), retrieved 2026-11-01. `kind` is `sight` or
+`church`; `place` uses the names in `sights.csv` and `churches.csv`. Where a
+sight's own page publishes coordinates they agree to within about 10 m (British
+Museum, National Gallery).
+
+## london-boroughs.geojson
+
+The 33 London local authority districts (32 boroughs and the City of London),
+`LAD24CD` codes `E09000001`–`E09000033`, from ONS, *Local Authority Districts
+(December 2024) Boundaries UK BGC* (generalised to 20 m, clipped to the coastline
+at Mean High Water, so the tidal Thames is a gap between boroughs), unchanged from
+the ONS Open Geography Portal feature service query
+<https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Local_Authority_Districts_December_2024_Boundaries_UK_BGC/FeatureServer/0/query?where=LAD24CD%20LIKE%20%27E09%25%27&outFields=LAD24CD,LAD24NM&outSR=4326&f=geojson>,
+retrieved 2026-11-01 (SHA-256 `6abd0326…ca31f20`). Licence
+(<https://www.ons.gov.uk/methodology/geography/licences>, checked 2026-11-01):
+Source: Office for National Statistics licensed under the Open Government Licence
+v.3.0. Contains OS data © Crown copyright and database right 2024.

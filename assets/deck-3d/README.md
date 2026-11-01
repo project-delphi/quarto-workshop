@@ -1,12 +1,15 @@
 # Deck 3-D slides
 
-The workshop deck's two three.js slides in Part 2:
+The workshop deck's three three.js slides:
 
-- `cloud.js` turns the cluster cloud on `#water-pca-3d`: zone-years on the first three
-  principal components.
+- `cloud.js` turns the cluster cloud on `#water-pca-3d` (Part 2): zone-years on the first
+  three principal components.
 - `relief.js` raises the clustered urban zones as columns at their head towns' altitude
-  on `#water-relief`, and names the cities the deck cell picks, each on the side of its
-  column where it covers no other label.
+  on `#water-relief` (Part 2), and names the cities the deck cell picks, each on the side
+  of its column where it covers no other label. Part 1's `#london-map` reuses it in
+  metres: the five sights as columns as tall as their visits, Visit London's churches as
+  short markers, and the borough borders with the Thames between them (`data.footprint`
+  sets its wider columns).
 
 `stage.js` runs a 3-D slide. Fragments with `data-view` set the view, the reader can drag
 to turn and scroll to zoom, rendering stops while the slide is not shown, and
@@ -15,8 +18,8 @@ note; a PDF export (`?print-pdf`) gets one still frame of the last view. `main.j
 a stage for each `.deck-3d` element by its `data-scene`. The deck cells compute every
 point, number and border and write them into the slides as JSON. The scripts only draw.
 
-The deck loads the prebuilt bundle `../deck-3d.min.js` once, from the cluster cloud's
-cell. Quarto embeds it in `docs/index.html`, so rendering needs neither npm nor a
+The deck loads the prebuilt bundle `../deck-3d.min.js` once, from the London map's
+cell (the first 3-D slide). Quarto embeds it in `docs/index.html`, so rendering needs neither npm nor a
 network. After editing a script here, rebuild the bundle and render the deck again:
 
 ```bash

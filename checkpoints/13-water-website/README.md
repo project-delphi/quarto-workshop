@@ -14,9 +14,9 @@ Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
 
 The steps, run inside `water-quality/` (by the assistant, or by you in a terminal):
 
-1. Keep your work: `cp -R . "../water-quality-backup-13-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `water-quality/`, so earlier backups are kept).
+1. Keep your work, all but the `.venv/` environment (`uv run` rebuilds it from `uv.lock`): `b="../water-quality-backup-13-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclude=.venv . | tar -xf - -C "$b"` (a new time-stamped copy beside `water-quality/`, so earlier backups are kept).
 2. Copy the data if `data/water_municipal.csv` is missing (checkpoints hold sources only): `cp -R ../quarto-workshop/examples/water/data .`
 3. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/13-water-website/. .`
 4. Render the site: `uv run quarto render` (the pre-render step runs `scripts/analysis.py` first).
 5. Check: `_site/index.html` lists one post whose title states the real k.
-6. Rejoin: your folder now holds the end of this step. Start pasting prompts again at 📈 *3:05 · Dashboard* ([slide](https://project-delphi.github.io/quarto-workshop/#/water-dashboard)).
+6. Rejoin: your folder now holds the end of this step. Start pasting prompts again at 📈 *3:03 · Dashboard* ([slide](https://project-delphi.github.io/quarto-workshop/#/water-dashboard)).

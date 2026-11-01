@@ -233,6 +233,22 @@ def load_divipola() -> pd.DataFrame:
     return out.sort_values("divipola").reset_index(drop=True)
 
 
+def department_capital(div: pd.DataFrame) -> pd.Series:
+    """1 for the 32 department capitals, else 0, from the DIVIPOLA codes.
+
+    DIVIPOLA gives each department's capital the municipality number 001 (ddd001), so
+    05001 is Medellín and 15001 Tunja. Cundinamarca is the exception: its capital is
+    Bogotá D.C., the district 11001 (department 11), and its own 25001 is Agua de Dios,
+    which is not a capital. The checks fail the build if a refresh breaks the rule: one
+    capital in every department except Cundinamarca.
+    """
+    capital = div["divipola"].str.endswith("001") & (div["divipola"] != "25001")
+    per_dpto = capital.groupby(div["dpto_code"]).sum()
+    assert (per_dpto.drop("25") == 1).all() and per_dpto["25"] == 0, "one capital per department"
+    assert capital.sum() == div["dpto_code"].nunique() - 1 == 32, "32 department capitals"
+    return capital.astype(int)
+
+
 TD_NUM = re.compile(r"^-?\d{1,3}(\.\d{3})*(,\d+)?$")
 
 
@@ -541,18 +557,19 @@ def write_geojson(polys, div: pd.DataFrame) -> dict:
 # Assembly
 # --------------------------------------------------------------------------------------
 COLUMNS = ["divipola", "municipio", "dpto_code", "departamento", "region", "entity_type",
-           "zone", "year", "irca", "irca_missing", "water_coverage", "sewer_coverage",
-           "water_coverage_total", "sewer_coverage_total", "population", "rural_share", "rurality_category", "altitude_m", "ipm", "mdm", "idf",
-           "idf_new", "sgp_water_pc", "rainfall_mm", "infant_mortality", "saber11_mean",
-           "saber11_n", "dropout_rate"]
+           "department_capital", "zone", "year", "irca", "irca_missing", "water_coverage",
+           "sewer_coverage", "water_coverage_total", "sewer_coverage_total", "population",
+           "rural_share", "rurality_category", "altitude_m", "ipm", "mdm", "idf", "idf_new",
+           "sgp_water_pc", "rainfall_mm", "infant_mortality", "saber11_mean", "saber11_n",
+           "dropout_rate"]
 ZONE_SPECIFIC = ["irca", "irca_missing", "water_coverage", "sewer_coverage", "population", "ipm",
                  "saber11_mean", "saber11_n"]
 ROUNDING = {"irca": 1, "water_coverage": 2, "sewer_coverage": 2, "water_coverage_total": 2,
             "sewer_coverage_total": 2, "rural_share": 4,
             "ipm": 2, "mdm": 2, "idf": 2, "idf_new": 2, "sgp_water_pc": 0, "rainfall_mm": 0,
             "altitude_m": 0, "infant_mortality": 2, "saber11_mean": 1, "dropout_rate": 2}
-INT_COLS = ["year", "irca_missing", "population", "saber11_n", "altitude_m", "sgp_water_pc",
-            "rainfall_mm"]
+INT_COLS = ["year", "department_capital", "irca_missing", "population", "saber11_n",
+            "altitude_m", "sgp_water_pc", "rainfall_mm"]
 
 
 def build() -> pd.DataFrame:
@@ -614,6 +631,7 @@ def build() -> pd.DataFrame:
         f"{div.loc[div['region'].isna(), 'divipola'].tolist()}")
     rur = td1[(td1["var"] == "rurality_category")].set_index("divipola")["text"]
     div["rurality_category"] = div["divipola"].map(rur)
+    div["department_capital"] = department_capital(div)
 
     print("INS IRCA")
     irca = load_irca()
@@ -639,7 +657,7 @@ def build() -> pd.DataFrame:
 
     # ---- grid -------------------------------------------------------------------------
     grid = (div[["divipola", "municipio", "dpto_code", "departamento", "region",
-                 "entity_type", "rurality_category"]]
+                 "entity_type", "department_capital", "rurality_category"]]
             .merge(pd.DataFrame({"zone": ZONES}), how="cross")
             .merge(pd.DataFrame({"year": YEARS}), how="cross"))
 
@@ -741,6 +759,8 @@ def validate(df: pd.DataFrame) -> None:
     assert df["ipm"].dropna().between(0, 100).all()
     assert df["rural_share"].dropna().between(0, 1).all()
     assert ((df["irca_missing"] == 1) == df["irca"].isna()).all()
+    caps = df.loc[df["department_capital"] == 1, "divipola"].unique()
+    assert len(caps) == 32 and "25001" not in caps and "11001" in caps, "department capitals"
     for c in ("mdm", "idf", "idf_new"):
         assert df[c].dropna().between(0, 100).all(), c
     assert df["saber11_mean"].dropna().between(0, 500).all()
