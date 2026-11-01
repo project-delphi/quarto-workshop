@@ -87,8 +87,15 @@ high_has_least_services = (prof["mean_water_coverage"].idxmin() == high
                            and prof["mean_sewer_coverage"].idxmin() == high)
 
 # The k rule (analysis.choose_k): the cut made by one more cluster, and the silhouettes.
-next_cut = 100 * ksel.loc[k + 1, "inertia_drop"]
+if k + 1 in ksel.index:
+    k_next = f"one more cluster would reduce $W$ by only {100 * ksel.loc[k + 1, 'inertia_drop']:.0f}%"
+else:
+    k_next = "it is the largest number of clusters tried"
 best_sil = ksel.loc[ksel.index >= 3, "silhouette"].max()
+sil = s["silhouette_at_k"]
+n_features = len(analysis.FEATURES)
+# The overlap wording follows the computed silhouette, with 0.5 as a rule-of-thumb threshold.
+overlap = sil < 0.5
 
 
 WORDS = dict(enumerate(["no", "one", "two", "three", "four", "five", "six", "seven",
@@ -101,11 +108,16 @@ def word(n):
 
 def listing(items):
     items = [str(i) for i in items]
-    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+    if len(items) < 2:
+        return "".join(items)
+    return ", ".join(items[:-1]) + " and " + items[-1]
 
 
 def spans(years):
     """(2017, 2018, 2019, 2021) -> "2017–2019 and 2021"."""
+    years = sorted(years)
+    if not years:
+        return ""
     runs, start = [], years[0]
     for a, b in zip(years, list(years[1:]) + [None]):
         if b != a + 1:
@@ -138,7 +150,7 @@ We group `{python} f"{s['kept']:,}"` municipal zone-years, the urban and rural z
 `{python} f"{s['municipalities']:,}"` Colombian municipalities from `{python} s['first_year']`
 to `{python} s['last_year']`, by drinking-water quality, water services and context.
 Drinking-water quality is the utility-supplied ("prestadores") water-quality risk index
-(IRCA) in Colombia's open data. k-means on nine features, standardised within each year,
+(IRCA) in Colombia's open data. k-means on `{python} word(n_features)` features, standardised within each year,
 gives `{python} word(k)` kinds of zone (silhouette `{python} f"{s['silhouette_at_k']:.2f}"`; adjusted
 Rand index across seeds ≥ `{python} analysis.floor_to(s['ari_min'])`). The highest-risk kind,
 *`{python} names[high].lower()`*, has a median IRCA of
@@ -207,14 +219,14 @@ dropping `{python} f"{s['dropped_not_municipality']:,}"` rows for San Andrés, w
 TerriData values, and the non-municipalised areas. We then drop
 `{python} f"{s['dropped_no_irca']:,}"` rows without IRCA, mostly rural zones without
 sampling, and `{python} word(s['dropped_too_many_missing'])` rows missing more than
-`{python} word(analysis.MAX_MISSING)` of the nine features. The analysis uses
+`{python} word(analysis.MAX_MISSING)` of the `{python} word(n_features)` features. The analysis uses
 `{python} f"{s['kept']:,}"` zone-years (`{python} f"{s['kept_urban']:,}"` urban,
 `{python} f"{s['kept_rural']:,}"` rural) from `{python} f"{s['municipalities']:,}"`
 municipalities.
 
 ## Features
 
-The nine features are IRCA, piped-water and sewer coverage, multidimensional poverty,
+The `{python} word(n_features)` features are IRCA, piped-water and sewer coverage, multidimensional poverty,
 rural share of the population, altitude, rainfall, MDM and the logarithm of SGP water
 transfers per person. The fiscal performance index is left out because its method changes
 in 2020. Department capitals have no urban/rural coverage split, so their
@@ -264,7 +276,7 @@ urban rows, rural share, altitude), "low-coverage" when mean piped-water coverag
 least 0.5 standard deviations below the year's mean, and the risk band of the cluster's
 median IRCA.
 
-## Outcomes and association
+## Outcomes and association {#sec-outcomes}
 
 Outcomes describe the clusters and are never used to form them. Infant mortality (deaths
 under one year per 1,000 live births) changes method in 2017, and 2020 appears to come
@@ -286,14 +298,13 @@ comparison is ecological, and associations between areas need not hold for indiv
 
 ## Number of kinds
 
-@tbl-k shows the clustering criteria. At $k =$ `{python} k`, one more cluster would reduce
-$W$ by only `{python} f"{next_cut:.0f}"`%, and the silhouette,
-`{python} f"{s['silhouette_at_k']:.3f}"`, is within `{python} analysis.SILHOUETTE_TOL` of the
-best value for $k \ge 3$ (`{python} f"{best_sil:.3f}"`), so the rule chooses
-`{python} word(k)` kinds. Refits with other seeds reproduce the labels (ARI ≥
+@tbl-k shows the clustering criteria. At $k =$ `{python} k`, `{python} k_next`; its
+silhouette, `{python} f"{sil:.3f}"`, is `{python} f"{best_sil - sil:.3f}"` below the best value
+for $k \ge 3$ (`{python} f"{best_sil:.3f}"`). The rule therefore chooses `{python} word(k)`
+kinds. Refits with other seeds reproduce the labels (ARI ≥
 `{python} analysis.floor_to(s['ari_min'])`). At $k = 2$, the ARI between the clusters and
-the urban/rural split is `{python} f"{ksel.loc[2, 'ari_vs_zone']:.2f}"`. A silhouette near
-0.2 means that the kinds overlap: they summarise a continuum rather than separate groups.
+the urban/rural split is `{python} f"{ksel.loc[2, 'ari_vs_zone']:.2f}"`. A silhouette of
+`{python} f"{sil:.2f}"` means that `{python} "the kinds overlap: they summarise a continuum rather than separate groups" if overlap else "the kinds are reasonably separated"`.
 
 ```{python}
 #| label: tbl-k
@@ -384,7 +395,7 @@ in *`{python} names[high_drop].lower()`*.
 
 ```{python}
 #| label: fig-outcomes
-#| fig-cap: "Median outcome by kind and year. Infant mortality: 2017–2019 and 2021–2023 only (method change in 2017; 2020 appears to come from another source). Saber 11: published years. Infant mortality and dropout are municipal values, counted once per kind and year."
+#| fig-cap: "Median outcome by kind and year. Infant mortality: only the years given in @sec-outcomes (its method changes in 2017, and 2020 appears to come from another source). Saber 11: published years. Infant mortality and dropout are municipal values, counted once per kind and year."
 #| fig-alt: "Three small line charts by year, one line per kind. Cities and large towns have the lowest infant mortality and the highest Saber 11 scores; highland towns have the highest infant mortality. Lowland towns have the lowest Saber 11 scores. Dropout medians stay between about 1.7 and 4.7 percent, lowest in highland towns, and dip in 2020 for every kind."
 fig, axes = plt.subplots(1, 3, figsize=(6.3, 2.5))
 for ax, (col, label) in zip(axes, analysis.OUTCOMES.items()):
@@ -435,13 +446,14 @@ association does not show that water quality has no effect, for the reasons in
 
 ```{python}
 #| label: fig-within
-#| fig-cap: "Within each kind: median infant mortality by IRCA band (utility-supplied, prestadores IRCA), pooled over 2017–2019 and 2021–2023, with Spearman's ρ and the number of municipality-years. Bands with fewer than 20 municipality-years are not drawn."
+#| fig-cap: "Within each kind: median infant mortality by IRCA band (utility-supplied, prestadores IRCA), pooled over the infant-mortality years (@sec-outcomes), with Spearman's ρ and the number of municipality-years. Bands with fewer than 20 municipality-years are not drawn."
 #| fig-alt: "Four small panels in a two-by-two grid, one per kind, each showing median infant mortality across IRCA risk bands. The lines are nearly flat in every kind, and the Spearman correlations printed on each panel are close to zero."
 shown = bins[bins["n"] >= 20]
 nrow = int(np.ceil(k / 2))
 fig, axes = plt.subplots(nrow, 2, figsize=(6.3, 1.8 * nrow + 0.3), sharey=True,
                          sharex=True, squeeze=False)
-for ax, (c, g) in zip(axes.flat, shown.groupby("cluster")):
+for ax, c in zip(axes.flat, prof.index):   # one panel per kind, even if no band is drawn
+    g = shown[shown["cluster"] == c]
     pos = [analysis.IRCA_BANDS.index(b) for b in g["irca_band"]]
     ax.plot(pos, g["median"], marker=analysis.CLUSTER_MARKERS[c - 1], markersize=3.5,
             color=colors[c], linewidth=1.2)
@@ -463,7 +475,7 @@ plt.show()
 
 # Conclusions {#sec-conclusions}
 
-Colombia's municipal zones fall into `{python} word(k)` overlapping kinds when described by
+Colombia's municipal zones fall into `{python} word(k)` `{python} "overlapping " if overlap else ""`kinds when described by
 drinking-water quality, water services and context. Water risk is concentrated in one
 kind, *`{python} names[high].lower()`*, which combines a median utility-supplied IRCA in
 the `{python} prof.loc[high, 'irca_median_band'].lower()` band with
@@ -488,7 +500,7 @@ of one. Five limits apply:
 - **Selection.** Rows without IRCA, `{python} f"{s['dropped_no_irca']:,}"` in the window and
   mostly rural, are excluded, so the rural kind describes sampled rural water systems only.
 - **Overlap.** k-means assumes compact clusters of similar spread, and a silhouette of
-  `{python} f"{s['silhouette_at_k']:.2f}"` means that the kinds summarise a continuum.
+  `{python} f"{sil:.2f}"` means that `{python} "the kinds summarise a continuum" if overlap else "the kinds still overlap at their edges"`.
 
 Better evidence on the health effects of water quality would need outcomes closer to
 water exposure, such as diarrhoeal disease in young children, and designs that compare
