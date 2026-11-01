@@ -1,0 +1,377 @@
+---
+title: "Visits to London's leading ALVA member attractions, 2015–2025"
+subtitle: "Pandemic loss and recovery: a descriptive analysis"
+author:
+  - name: "London Tourism Office"
+date: today
+date-format: "D MMMM YYYY"
+bibliography: references.bib
+# Size table columns to their contents, as LaTeX does, instead of spreading wide tables
+# over the full width (tested with Quarto 1.6.40's Typst output).
+tbl-colwidths: false
+format:
+  typst:
+    papersize: a4
+    mainfont: "New Computer Modern"
+    fontsize: 11pt
+    margin: {x: 2.5cm, y: 2.5cm}
+    section-numbering: "1.1"
+    bibliographystyle: ieee
+    fig-format: svg
+    # The LaTeX look: the title in the body font and not hyphenated (Quarto's Typst
+    # template defines `article`; the first lines wrap it), indented paragraphs,
+    # figures and tables that float to the top or bottom of a page, booktabs-style
+    # tables, and a "References" heading (Typst's default is "Bibliography").
+    include-in-header:
+      - text: |
+          #let quarto-article = article
+          #let article(title: none, ..args) = quarto-article(
+            title: if title != none { text(hyphenate: false, title) },
+            heading-family: "New Computer Modern",
+            ..args,
+          )
+          #set par(first-line-indent: 1.5em)
+          #show par: set block(spacing: 0.65em)
+          #show heading: set block(above: 1.4em, below: 0.9em)
+          #set figure(placement: auto)
+          #set table(stroke: none, inset: (x: 5pt, y: 3.5pt))
+          #set table.hline(stroke: 0.5pt)
+          #show table: set text(size: 0.9em)
+          #show table: set par(justify: false)
+          #show table: it => box(stroke: (top: 0.8pt, bottom: 0.8pt), it)
+          #show figure.caption: set text(size: 0.9em)
+          #set bibliography(title: [References])
+execute:
+  echo: false
+---
+
+```{python}
+#| label: setup
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import Markdown
+
+visits = pd.read_csv("data/visits.csv")
+top10 = pd.read_csv("data/attractions.csv")
+
+# One row per year, one column per attraction: the unit of analysis is the attraction-year.
+wide = visits.pivot(index="year", columns="attraction", values="visits")
+first, last = int(wide.index.min()), int(wide.index.max())
+n_sites = wide.shape[1]
+NHM = "Natural History Museum"
+retrieved = pd.to_datetime(visits["retrieved"]).max()
+
+index = 100 * wide / wide.loc[2019]                   # R(a, t): @eq-recovery
+index_pre = 100 * wide / wide.loc[2015:2019].mean()   # baseline check: 2015-2019 mean
+total = wide.sum(axis=1)
+total_index = 100 * total / total[2019]
+total_pre = 100 * total[last] / total.loc[2015:2019].mean()
+like = wide.drop(columns=NHM).sum(axis=1)             # without the gardens change
+like_index = 100 * like / like[2019]
+
+WORDS = dict(enumerate(["no", "one", "two", "three", "four", "five", "six", "seven",
+                        "eight", "nine", "ten"]))
+
+
+def word(n):
+    return WORDS.get(n, str(n))
+
+
+def pct(x):
+    return f"{x:.0f}"
+
+
+def millions(x):
+    return f"{x / 1e6:.1f} million"
+
+
+def listing(items):
+    items = list(items)
+    if len(items) < 2:
+        return "".join(items)
+    return ", ".join(items[:-1]) + " and " + items[-1]
+
+
+def were(items):
+    return "was" if len(items) == 1 else "were"
+
+
+def md_table(df, align):
+    """A Markdown pipe table (the project has no tabulate dependency)."""
+    rule = {"l": ":--", "r": "--:"}
+    lines = ["| " + " | ".join(df.columns) + " |",
+             "|" + "|".join(rule[a] for a in align) + "|"]
+    lines += ["| " + " | ".join(map(str, row)) + " |" for row in df.itertuples(index=False)]
+    return Markdown("\n".join(lines))
+
+
+# The pandemic trough and the recovery, attraction by attraction.
+low20, high20 = index.loc[2020].idxmin(), index.loc[2020].idxmax()
+low25, high25 = index.loc[last].idxmin(), index.loc[last].idxmax()
+after = index.loc[2021:]
+back = {a: int(s[s >= 100].index.min()) for a, s in after.items() if (s >= 100).any()}
+not_back = [a for a in index.columns if a not in back]
+at_or_above = list(index.columns[index.loc[last] >= 100])
+below = list(index.columns[index.loc[last] < 100])
+same_order = bool((index.loc[last].rank() == index_pre.loc[last].rank()).all())
+
+# Sentences whose wording depends on which attractions recovered.
+parts = []
+if back:
+    firsts = listing(f"the {a} in {y}" for a, y in sorted(back.items(), key=lambda kv: kv[1]))
+    parts.append(f"{firsts} first matched or exceeded the 2019 level")
+if not_back:
+    parts.append(f"the {listing(not_back)} had not returned to it by {last}")
+recovery_sentence = "; ".join(parts)
+recovery_sentence = recovery_sentence[0].upper() + recovery_sentence[1:] + "."
+parts = []
+if at_or_above:
+    parts.append(f"the {listing(at_or_above)} {were(at_or_above)} at or above "
+                 f"{'its' if len(at_or_above) == 1 else 'their'} 2019 level")
+if below:
+    parts.append(f"the {listing(below)} remained below "
+                 f"{'it' if at_or_above else 'their 2019 levels'}")
+levels_sentence = ", while ".join(parts)
+
+# London's ten most visited ALVA member attractions, in the year of attractions.csv's
+# `visits_YYYY` column (which need not be the last year of visits.csv).
+top_col = next(c for c in top10.columns if c.startswith("visits_"))
+top_year = int(top_col.removeprefix("visits_"))
+free = top10["admission"].str.startswith("Free")
+n_free = int(free.sum())
+n_paid_exhibitions = int((top10["admission"] == "Free (paid exhibitions)").sum())
+paid_exhibitions_text = ("all of them" if n_paid_exhibitions == n_free
+                         else f"{word(n_paid_exhibitions)} of them")
+free_share = 100 * top10.loc[free, top_col].sum() / top10[top_col].sum()
+ADMISSION_WORDS = {"Paid": "paid admission", "Other": "ALVA’s “other” category"}
+others = listing(f"the {a} ({ADMISSION_WORDS.get(adm, adm)})"
+                 for a, adm in top10.loc[~free, ["attraction", "admission"]].itertuples(index=False))
+uk_top10_in_london = int((top10["rank_uk"] <= 10).sum())
+
+plt.rcParams.update({
+    "font.family": "serif", "font.serif": ["STIXGeneral"], "mathtext.fontset": "stix",
+    "font.size": 9, "axes.spines.top": False, "axes.spines.right": False,
+    "axes.linewidth": 0.6, "xtick.major.width": 0.6, "ytick.major.width": 0.6,
+})
+# Okabe-Ito hues in a fixed order (checked with a palette validator), plus a marker per
+# attraction, so the lines stay apart in greyscale and for colour-blind readers.
+STYLE = dict(zip(sorted(wide.columns), [("#0072b2", "o"), ("#d55e00", "s"), ("#009e73", "^"),
+                                        ("#cc79a7", "D"), ("#e69f00", "v")]))
+```
+
+```{=typst}
+#block(inset: (x: 2.5em, top: 0.5em, bottom: 1em))[
+#set text(size: 0.9em)
+#set par(first-line-indent: 0em)
+#align(center)[#text(weight: "bold")[Abstract]]
+```
+
+We describe annual visits to `{python} word(n_sites)` of London's leading ALVA member
+attractions, the `{python} listing(wide.columns)`, from `{python} first` to
+`{python} last`, using the counts each attraction reports to the Association of Leading
+Visitor Attractions (ALVA). Combined visits fell to `{python} pct(total_index[2020])`% of
+their 2019 level in 2020 and were `{python} pct(total_index[2021])`% of it in 2021. By
+`{python} last` they had returned to `{python} pct(total_index[last])`% of the 2019 level,
+or `{python} pct(like_index[last])`% without the Natural History Museum, whose count
+includes its reopened gardens from 2024. Recovery was uneven, from
+`{python} pct(index.loc[last, low25])`% of the 2019 level at the `{python} low25` to
+`{python} pct(index.loc[last, high25])`% at the `{python} high25`. In `{python} top_year`,
+`{python} word(n_free)` of London's ten most visited ALVA member attractions offered free
+general admission. These comparisons are descriptive: they cover ALVA members only and
+cannot show why visits changed.
+
+```{=typst}
+]
+```
+
+# Introduction
+
+Every year the Association of Leading Visitor Attractions (ALVA) publishes the number of
+visits made to each of its member attractions [@alva2015; @alva2016; @alva2017; @alva2018;
+@alva2019; @alva2020; @alva2021; @alva2022; @alva2023; @alva2024; @alva2025]. London's
+national museums and historic sites lead these tables: in `{python} top_year`,
+`{python} word(uk_top10_in_london)` of the ten ALVA member attractions with the most visits
+in the UK were in London [@alva2025]. The series spans the COVID-19 pandemic, and ALVA's
+notes for 2020 and 2021 record sites that closed, or admitted fewer visitors, because of
+it [@alva2020; @alva2021].
+
+This paper asks how far visits to London's leading attractions had recovered by
+`{python} last`, measured against 2019, the last year before the pandemic, and how evenly
+that recovery was shared. @sec-methods defines the data and a recovery index;
+@sec-results reports the pandemic loss, the recovery, and the admission policies of
+London's ten most visited ALVA member attractions; and @sec-conclusions sets out what the
+figures can and cannot show. The paper is a worked example for a Quarto workshop: every
+number in it is computed from the cited public data when the document is rendered.
+
+# Methods {#sec-methods}
+
+## Data
+
+The data are ALVA's annual tables of visits made to visitor attractions in membership
+with ALVA, `{python} first` to `{python} last` [@alva2015; @alva2016; @alva2017;
+@alva2018; @alva2019; @alva2020; @alva2021; @alva2022; @alva2023; @alva2024; @alva2025],
+retrieved on `{python} f"{retrieved:%-d %B %Y}"`. Each count is the total number of visits
+an attraction reported to ALVA for the calendar year. ALVA counts only its members, so the
+tables do not cover every London attraction.
+
+Two files are used. The first holds `{python} len(visits)` attraction-years: the
+`{python} word(n_sites)` attractions above, in every year from `{python} first` to
+`{python} last`, with the name each table used, so that renamed entries can be matched
+across years. The unit of analysis is the **attraction-year**. The second lists London's
+ten most visited ALVA member attractions in `{python} top_year`, with each site's UK rank and
+ALVA admission category [@alva2025].
+
+## Recovery index
+
+For attraction $a$ in year $t$, with $V_{a,t}$ visits, the recovery index is
+
+$$
+R_{a,t} = 100 \, \frac{V_{a,t}}{V_{a,2019}},
+$$ {#eq-recovery}
+
+so that $R_{a,t} = 100$ is the 2019 level. The combined index replaces $V_{a,t}$ with the
+sum over the attractions. To check that the results do not depend on the choice of 2019,
+the index is also computed against each attraction's mean over the five years before the
+pandemic:
+
+$$
+R^{*}_{a,t} = 100 \, \frac{V_{a,t}}{\frac{1}{5} \sum_{s=2015}^{2019} V_{a,s}}.
+$$ {#eq-baseline}
+
+## Comparability
+
+Three breaks limit comparisons across years:
+
+- **Pandemic years.** 2020 and 2021 reflect closures and reduced capacity
+  [@alva2020; @alva2021] and are not comparable with other years.
+- **Natural History Museum gardens.** From 2024 the museum's count includes visitors to
+  its reopened gardens (ALVA 2024, note v [@alva2024]). Its 2024 and 2025 values are not
+  like-for-like with earlier years, so the combined index is also given without it.
+- **National Gallery, 2025.** ALVA links the year's count to the reopened Sainsbury Wing,
+  the end of the NG200 bicentenary year and a re-hang of the collection (note w
+  [@alva2025]).
+
+## Analysis
+
+The analysis is descriptive. The `{python} word(n_sites)` attractions are the sights of
+the London Tourism Office's visitor guide, not a sample of London attractions, so no
+statistical inference is attempted. All numbers are computed with pandas from the two
+files when the document is rendered; none is typed by hand.
+
+# Results {#sec-results}
+
+## Pandemic loss
+
+Combined visits to the `{python} word(n_sites)` attractions were
+`{python} millions(total[2019])` in 2019 and `{python} millions(total[2020])` in 2020,
+`{python} pct(total_index[2020])`% of the 2019 level (@fig-visits). The 2020 index ranged
+from `{python} pct(index.loc[2020, low20])` at the `{python} low20` to
+`{python} pct(index.loc[2020, high20])` at the `{python} high20`. Visits stayed low in 2021
+(`{python} pct(total_index[2021])`% combined) and rose again in 2022
+(`{python} pct(total_index[2022])`%).
+
+```{python}
+#| label: fig-visits
+#| fig-cap: "Annual visits to the attractions studied (left) and the recovery index $R_{a,t}$, 2019 = 100 (right). The shaded years 2020–2021 are pandemic years. Open markers: the Natural History Museum's count includes its gardens from 2024."
+#| fig-alt: "Two line charts, one line per attraction. Left: visits in millions by year; all five attractions are steady between about 2.7 and 7 million a year from 2015 to 2019, fall to between about 0.5 and 1.6 million in 2020 and 2021, and climb again from 2022. Right: the index with 2019 at 100; by 2025 the British Museum is just above 100 and the Natural History Museum, gardens included, well above it, while the Tower of London is slightly below and Tate Modern and the National Gallery remain about a quarter to a third below 100."
+fig, (left, right) = plt.subplots(1, 2, figsize=(6.3, 2.9))
+for ax in (left, right):
+    ax.axvspan(2019.5, 2021.5, color="#e9e9e6", linewidth=0, zorder=0)
+    ax.grid(axis="y", color="#d9d9d6", linewidth=0.5)
+    ax.set_axisbelow(True)
+for a in sorted(wide.columns):
+    color, marker = STYLE[a]
+    s = index.loc[2019:, a]
+    left.plot(wide.index, wide[a] / 1e6, color=color, marker=marker, markersize=3.5,
+              linewidth=1.2, label=a)
+    right.plot(s.index, s, color=color, marker=marker, markersize=3.5, linewidth=1.2)
+    if a == NHM:   # not like-for-like from 2024: open markers
+        open_marks = dict(linestyle="none", marker=marker, markersize=3.5,
+                          markerfacecolor="white", markeredgecolor=color)
+        left.plot(wide.loc[2024:].index, wide.loc[2024:, a] / 1e6, **open_marks)
+        right.plot(s.loc[2024:].index, s.loc[2024:], **open_marks)
+right.axhline(100, color="#555555", linewidth=0.7)
+left.set_ylabel("Visits (millions)")
+left.set_ylim(0, None)
+left.set_xticks(range(first, last + 1, 2))
+right.set_ylabel("Index, 2019 = 100")
+right.set_ylim(0, None)
+right.set_xticks(range(2019, last + 1))
+fig.legend(*left.get_legend_handles_labels(), loc="lower center", ncol=3, frameon=False,
+           bbox_to_anchor=(0.5, -0.13))
+fig.tight_layout()
+plt.show()
+```
+
+## Recovery by `{python} last`
+
+By `{python} last`, combined visits stood at `{python} pct(total_index[last])`% of the 2019
+level, and at `{python} pct(like_index[last])`% for the other `{python} word(n_sites - 1)`
+attractions, whose counts are like-for-like (@tbl-recovery).
+`{python} recovery_sentence` The Natural History
+Museum's index of `{python} pct(index.loc[2023, NHM])` in 2023 came before its count began
+to include the gardens. Against the 2015–2019 mean (@eq-baseline), the `{python} last`
+index ranges from `{python} pct(index_pre.loc[last].min())` to
+`{python} pct(index_pre.loc[last].max())`, against `{python} pct(index.loc[last].min())`
+to `{python} pct(index.loc[last].max())` with the 2019 baseline;
+`{python} "the attractions rank in the same order under both baselines" if same_order else "the order of the attractions changes with the baseline"`.
+
+```{python}
+#| label: tbl-recovery
+#| tbl-cap: "Visits (millions) and recovery index by attraction. $R_t$: index with 2019 = 100 (@eq-recovery); $R^{*}_t$: index against the 2015–2019 mean (@eq-baseline). The Natural History Museum's last-year count includes its gardens."
+t = pd.DataFrame({
+    "Attraction": wide.columns,
+    "2019": (wide.loc[2019] / 1e6).map("{:.2f}".format).to_numpy(),
+    "2020": (wide.loc[2020] / 1e6).map("{:.2f}".format).to_numpy(),
+    f"{last}": (wide.loc[last] / 1e6).map("{:.2f}".format).to_numpy(),
+    "$R_{2020}$": index.loc[2020].round().astype(int).to_numpy(),
+    f"$R_{{{last}}}$": index.loc[last].round().astype(int).to_numpy(),
+    f"$R^{{*}}_{{{last}}}$": index_pre.loc[last].round().astype(int).to_numpy(),
+})
+t.loc[len(t)] = [f"All {word(n_sites)} combined", f"{total[2019] / 1e6:.2f}",
+                 f"{total[2020] / 1e6:.2f}", f"{total[last] / 1e6:.2f}",
+                 round(total_index[2020]), round(total_index[last]), round(total_pre)]
+md_table(t, "lrrrrrr")
+```
+
+## Admission at London's most visited attractions
+
+Of London's ten most visited ALVA member attractions in `{python} top_year`,
+`{python} word(n_free)` offered free general admission, `{python} paid_exhibitions_text`
+charging only for special exhibitions or events (@tbl-top10). Together these free
+sites received `{python} pct(free_share)`% of the ten attractions'
+`{python} millions(top10[top_col].sum())` visits. The others were
+`{python} others`.
+
+```{python}
+#| label: tbl-top10
+#| tbl-cap: "London's ten most visited ALVA member attractions in the year of the attractions table, with UK rank and ALVA admission category."
+t = pd.DataFrame({
+    "UK rank": top10["rank_uk"],
+    "Attraction": top10["attraction"],
+    "Visits (millions)": (top10[top_col] / 1e6).map("{:.2f}".format),
+    "Admission": top10["admission"],
+})
+md_table(t, "rlrl")
+```
+
+# Conclusions {#sec-conclusions}
+
+Visits to London's leading ALVA member attractions collapsed in 2020, to
+`{python} pct(total_index[2020])`% of the 2019 level for the `{python} word(n_sites)`
+attractions studied, and had returned to `{python} pct(total_index[last])`% of it by
+`{python} last`, unevenly: `{python} levels_sentence`. Free general admission is
+the norm among London's ten most visited ALVA member attractions.
+
+These are descriptive comparisons, and four limits apply. First, ALVA counts only its
+members, and each count is reported by the attraction itself. Second, the
+`{python} word(n_sites)` attractions are the guide's sights, not a sample, so the results
+do not describe London's attractions in general. Third, what is counted changes: the
+Natural History Museum's gardens from 2024, and closures, refurbishments and exhibitions in
+particular years. Fourth, the data say nothing about why visits changed. That most of the
+most visited sites are free does not show that free admission causes higher visits, and
+the uneven recovery cannot be attributed to any one cause, such as international travel,
+exhibitions or building works, without further evidence.
+
+Extending the series to more ALVA member attractions, and comparing it with official
+statistics on visitors to London, would show whether the pattern holds more widely.
