@@ -1,0 +1,495 @@
+---
+title: "Drinking-water quality and infant mortality in Colombian municipal zones"
+subtitle: "A descriptive cluster analysis, 2016–2023"
+author:
+  - name: "Quarto workshop, worked example"
+date: today
+date-format: "D MMMM YYYY"
+lang: en
+bibliography: references.bib
+# Size table columns to their contents, as LaTeX does, instead of spreading wide tables
+# over the full width (tested with Quarto 1.6.40's Typst output).
+tbl-colwidths: false
+format:
+  typst:
+    papersize: a4
+    mainfont: "New Computer Modern"
+    fontsize: 11pt
+    margin: {x: 2.5cm, y: 2.5cm}
+    section-numbering: "1.1"
+    bibliographystyle: ieee
+    fig-format: svg
+    # The LaTeX look: the title in the body font and not hyphenated (Quarto's Typst
+    # template defines `article`; the first lines wrap it), indented paragraphs,
+    # figures and tables that float to the top or bottom of a page, booktabs-style
+    # tables, and a "References" heading (Typst's default is "Bibliography").
+    include-in-header:
+      - text: |
+          #let quarto-article = article
+          #let article(title: none, ..args) = quarto-article(
+            title: if title != none { text(hyphenate: false, title) },
+            heading-family: "New Computer Modern",
+            ..args,
+          )
+          #set par(first-line-indent: 1.5em)
+          #show par: set block(spacing: 0.65em)
+          #show heading: set block(above: 1.4em, below: 0.9em)
+          #set figure(placement: auto)
+          #set table(stroke: none, inset: (x: 5pt, y: 3.5pt))
+          #set table.hline(stroke: 0.5pt)
+          #show table: set text(size: 0.9em)
+          #show table: set par(justify: false)
+          #show table: it => box(stroke: (top: 0.8pt, bottom: 0.8pt), it)
+          #show figure.caption: set text(size: 0.9em)
+          #set bibliography(title: [References])
+execute:
+  echo: false
+---
+
+```{python}
+#| label: setup
+import json
+import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from IPython.display import Markdown
+from matplotlib.colors import LinearSegmentedColormap
+
+sys.path.insert(0, "scripts")
+import analysis  # design constants only; every number comes from outputs/
+
+prof = pd.read_csv("outputs/cluster_profiles.csv", index_col="cluster")
+ksel = pd.read_csv("outputs/k_selection.csv").set_index("k")
+outcomes = pd.read_csv("outputs/outcomes_by_year.csv")
+rho = pd.read_csv("outputs/irca_infant.csv").set_index("cluster")
+bins = pd.read_csv("outputs/irca_infant_bins.csv")
+s = json.loads(open("outputs/summary.json").read())
+k = s["k"]
+names = prof["name"].to_dict()
+colors = prof["color"].to_dict()
+kinds = [f"{c} · {names[c]}" for c in prof.index]
+
+high = prof["irca_median"].idxmax()
+low = prof["irca_median"].idxmin()
+best_im = prof["infant_mortality_median"].idxmin()
+worst_im = prof["infant_mortality_median"].idxmax()
+best_saber = prof["saber11_mean_median"].idxmax()
+worst_saber = prof["saber11_mean_median"].idxmin()
+low_drop = prof["dropout_rate_median"].idxmin()
+high_drop = prof["dropout_rate_median"].idxmax()
+
+# Statements whose wording depends on the data are decided here, not typed by hand.
+irca_order = list(prof.sort_values("irca_median").index)
+im_follows_irca = irca_order == list(prof.sort_values("infant_mortality_median").index)
+high_has_least_services = (prof["mean_water_coverage"].idxmin() == high
+                           and prof["mean_sewer_coverage"].idxmin() == high)
+
+# The k rule (analysis.choose_k): the cut made by one more cluster, and the silhouettes.
+next_cut = 100 * ksel.loc[k + 1, "inertia_drop"]
+best_sil = ksel.loc[ksel.index >= 3, "silhouette"].max()
+
+
+WORDS = dict(enumerate(["no", "one", "two", "three", "four", "five", "six", "seven",
+                        "eight", "nine", "ten"]))
+
+
+def word(n):
+    return WORDS.get(n, str(n))
+
+
+def listing(items):
+    items = [str(i) for i in items]
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+
+
+def spans(years):
+    """(2017, 2018, 2019, 2021) -> "2017–2019 and 2021"."""
+    runs, start = [], years[0]
+    for a, b in zip(years, list(years[1:]) + [None]):
+        if b != a + 1:
+            runs.append(f"{start}–{a}" if a != start else f"{a}")
+            start = b
+    return listing(runs)
+
+
+def bands_text():
+    lows = [0] + [b + 0.1 for b in analysis.IRCA_BINS[1:-1]]
+    return listing(f"{lo:g}–{hi:g} {name.lower()}" for lo, hi, name in
+                   zip(lows, analysis.IRCA_BINS[1:], analysis.IRCA_BANDS))
+
+
+plt.rcParams.update({
+    "font.family": "serif", "font.serif": ["STIXGeneral"], "mathtext.fontset": "stix",
+    "font.size": 8.5, "axes.spines.top": False, "axes.spines.right": False,
+    "axes.linewidth": 0.6, "xtick.major.width": 0.6, "ytick.major.width": 0.6,
+})
+```
+
+```{=typst}
+#block(inset: (x: 2.5em, top: 0.5em, bottom: 1em))[
+#set text(size: 0.9em)
+#set par(first-line-indent: 0em)
+#align(center)[#text(weight: "bold")[Abstract]]
+```
+
+We group `{python} f"{s['kept']:,}"` municipal zone-years, the urban and rural zones of
+`{python} f"{s['municipalities']:,}"` Colombian municipalities from `{python} s['first_year']`
+to `{python} s['last_year']`, by drinking-water quality, water services and context.
+Drinking-water quality is the utility-supplied ("prestadores") water-quality risk index
+(IRCA) in Colombia's open data. k-means on nine features, standardised within each year,
+gives `{python} word(k)` kinds of zone (silhouette `{python} f"{s['silhouette_at_k']:.2f}"`; adjusted
+Rand index across seeds ≥ `{python} analysis.floor_to(s['ari_min'])`). The highest-risk kind,
+*`{python} names[high].lower()`*, has a median IRCA of
+`{python} f"{prof.loc[high, 'irca_median']:.1f}"` and `{python} f"{prof.loc[high, 'mean_water_coverage']:.0f}"`%
+mean piped-water coverage. Median infant mortality is lowest in
+*`{python} names[best_im].lower()`* (`{python} f"{prof.loc[best_im, 'infant_mortality_median']:.1f}"`
+per 1,000 live births) and highest in *`{python} names[worst_im].lower()`*
+(`{python} f"{prof.loc[worst_im, 'infant_mortality_median']:.1f}"`). Within each kind,
+Spearman's ρ between IRCA and infant mortality lies between
+`{python} f"{rho['spearman_rho'].min():+.2f}"` and `{python} f"{rho['spearman_rho'].max():+.2f}"`.
+The comparisons are descriptive and do not establish a causal effect of water quality on
+infant mortality or on any other outcome.
+
+```{=typst}
+]
+```
+
+# Introduction
+
+Unsafe drinking water harms children's health. The World Health Organization estimates
+that microbiologically contaminated drinking water causes approximately 505,000
+diarrhoeal deaths each year, and that the deaths of 395,000 children under five could be
+avoided each year if unsafe drinking water, sanitation and hand hygiene were addressed
+[@who2023].
+
+In Colombia, the quality of drinking water is summarised by the *Índice de Riesgo de la
+Calidad del Agua para consumo humano* (IRCA), a score from 0 (no risk) to 100 (unfit)
+computed from surveillance samples. Resolución 2115 de 2007, article 15, divides it into
+five risk bands: `{python} bands_text()` [@res2115]. The national report for 2023 gives an
+IRCA of 16.4 for the country, 7.4 for samples from utilities (prestadores), 5.7 for urban
+areas and 36.5 for rural areas [@inca2023, Tabla 4]: risk is concentrated in rural zones.
+
+This paper asks which kinds of municipal zone exist in Colombia, judged by drinking-water
+quality, water services and context, and how infant mortality and two education outcomes
+differ between those kinds. @sec-methods describes the data, the features and the
+clustering; @sec-results reports the kinds, their outcomes and the association between
+water quality and infant mortality within each kind; and @sec-conclusions sets out what the
+comparison can and cannot show. The paper is a worked example for a Quarto workshop: every
+number in it is computed from public data when the document is rendered.
+
+# Methods {#sec-methods}
+
+## Data and unit of analysis
+
+One row is a **municipality × zone × year**, where the zone is the urban head town or the
+rest of the municipality (rural area), joined on DANE's DIVIPOLA municipal codes
+[@dane_divipola]. Water quality is the IRCA in the open table of the Instituto Nacional de
+Salud [@ins_irca]. That table holds the **utility-supplied ("prestadores") IRCA**, not the
+national total: its 2023 department rows match the prestadores column of the national
+report [@inca2023], and every mention of IRCA below refers to it. Piped-water and sewer
+coverage, multidimensional poverty (2018 census), municipal performance (MDM), water
+transfers from the *Sistema General de Participaciones* (SGP) and infant mortality come
+from DNP's TerriData [@dnp_terridata]; population, for rural shares and transfers per
+person, from DANE's projections [@dane_pop2005; @dane_pop2018]; annual rainfall from
+CHIRPS v3 [@funk2026; @chc_chirps3; @funk2015], averaged over DANE's municipal boundaries
+[@dane_mgn2023]; and altitude from SRTM [@nasa_srtm] via Open Topo Data [@opentopodata], at
+the head-town coordinate, which is a derived value, not an official altitude. Saber 11
+scores come from ICFES [@icfes_saber11; @icfes_saber11_2020] and school dropout from the
+Ministry of Education [@men_dropout].
+
+## Sample
+
+The window is `{python} s['first_year']`–`{python} s['last_year']`, the years with MDM,
+which hold `{python} f"{s['rows_2016_2023']:,}"` zone-years. We keep municipalities only,
+dropping `{python} f"{s['dropped_not_municipality']:,}"` rows for San Andrés, which has no
+TerriData values, and the non-municipalised areas. We then drop
+`{python} f"{s['dropped_no_irca']:,}"` rows without IRCA, mostly rural zones without
+sampling, and `{python} word(s['dropped_too_many_missing'])` rows missing more than
+`{python} word(analysis.MAX_MISSING)` of the nine features. The analysis uses
+`{python} f"{s['kept']:,}"` zone-years (`{python} f"{s['kept_urban']:,}"` urban,
+`{python} f"{s['kept_rural']:,}"` rural) from `{python} f"{s['municipalities']:,}"`
+municipalities.
+
+## Features
+
+The nine features are IRCA, piped-water and sewer coverage, multidimensional poverty,
+rural share of the population, altitude, rainfall, MDM and the logarithm of SGP water
+transfers per person. The fiscal performance index is left out because its method changes
+in 2020. Department capitals have no urban/rural coverage split, so their
+`{python} s['capital_urban_rows_filled_from_total']` urban rows take the municipal total
+(flagged); their rural rows are imputed. Missing values are filled with the median of the
+same year and zone, in `{python} s['rows_with_any_imputed']` rows (flagged). Each feature
+$f$ of row $i$, observed in year $y(i)$, is then standardised within its year:
+
+$$
+z_{i,f} = \frac{x_{i,f} - \mu_{f,y(i)}}{\sigma_{f,y(i)}},
+$$ {#eq-z}
+
+where $\mu_{f,y}$ and $\sigma_{f,y}$ are the mean and standard deviation of feature $f$
+over the rows of year $y$. This removes the drift in nominal pesos and any year-level
+shifts, so that one clustering covers all years and a zone can change kind over time.
+
+## Clustering
+
+The k-means algorithm partitions the rows into $k$ clusters $C_1, \dots, C_k$ with centroids
+$\mathbf{m}_1, \dots, \mathbf{m}_k$ that minimise the within-cluster sum of squares
+[@lloyd1982]
+
+$$
+W(k) = \sum_{c=1}^{k} \sum_{i \in C_c} \lVert \mathbf{z}_i - \mathbf{m}_c \rVert^2 .
+$$ {#eq-kmeans}
+
+We fit it with scikit-learn [@pedregosa2011], using its default k-means++ seeding,
+`{python} analysis.N_INIT` starts and seed `{python} s['seed']`, for $k$ from
+`{python} min(analysis.K_RANGE)` to `{python} max(analysis.K_RANGE)`. The silhouette of row
+$i$ [@rousseeuw1987] compares its mean distance $a(i)$ to the other rows of its cluster
+with its mean distance $b(i)$ to the rows of the nearest other cluster:
+
+$$
+s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}},
+$$ {#eq-silhouette}
+
+averaged over a fixed sample of `{python} f"{analysis.SILHOUETTE_N:,}"` rows. A value near
+1 means well-separated clusters, and a value near 0 means overlapping ones. $k = 2$ is not
+considered, because it mostly separates urban from rural rows. The rule takes the smallest
+$k \ge 3$ after which one more cluster reduces $W$ by less than
+`{python} f"{100 * analysis.ELBOW_DROP:.0f}"`%, provided its silhouette is within
+`{python} analysis.SILHOUETTE_TOL` of the best $k \ge 3$. Stability is the adjusted Rand
+index (ARI) [@hubert1985] between the chosen labels and refits with
+`{python} word(len(analysis.STABILITY_SEEDS))` other seeds. Clusters are numbered by centroid
+IRCA, from low to high, and named by a fixed rule on their profile: the setting (share of
+urban rows, rural share, altitude), "low-coverage" when mean piped-water coverage is at
+least 0.5 standard deviations below the year's mean, and the risk band of the cluster's
+median IRCA.
+
+## Outcomes and association
+
+Outcomes describe the clusters and are never used to form them. Infant mortality (deaths
+under one year per 1,000 live births) changes method in 2017, and 2020 appears to come
+from a different source, so it is used for
+`{python} spans(analysis.OUTCOME_YEARS['infant_mortality'])` only. Saber 11 scores (0–500)
+are used for the years published in the window,
+`{python} listing(analysis.OUTCOME_YEARS['saber11_mean'])`, and school dropout (public
+schools, %) for every year. Infant mortality and dropout are municipal values, repeated on
+both zone rows, so each municipality counts once per cluster and year.
+
+Within each cluster, we measure the association between water quality and infant
+mortality with Spearman's rank correlation ρ [@spearman1904], on municipality-years: a
+municipality's rate is paired with the mean IRCA of its zones in that cluster. Because
+IRCA is measured for a zone and infant mortality for the whole municipality, the
+comparison is ecological, and associations between areas need not hold for individuals
+[@robinson1950].
+
+# Results {#sec-results}
+
+## Number of kinds
+
+@tbl-k shows the clustering criteria. At $k =$ `{python} k`, one more cluster would reduce
+$W$ by only `{python} f"{next_cut:.0f}"`%, and the silhouette,
+`{python} f"{s['silhouette_at_k']:.3f}"`, is within `{python} analysis.SILHOUETTE_TOL` of the
+best value for $k \ge 3$ (`{python} f"{best_sil:.3f}"`), so the rule chooses
+`{python} word(k)` kinds. Refits with other seeds reproduce the labels (ARI ≥
+`{python} analysis.floor_to(s['ari_min'])`). At $k = 2$, the ARI between the clusters and
+the urban/rural split is `{python} f"{ksel.loc[2, 'ari_vs_zone']:.2f}"`. A silhouette near
+0.2 means that the kinds overlap: they summarise a continuum rather than separate groups.
+
+```{python}
+#| label: tbl-k
+#| tbl-cap: "Choosing the number of kinds $k$. $W$: within-cluster sum of squares (@eq-kmeans); cut: the reduction in $W$ from $k - 1$ to $k$ clusters; silhouette: mean $s(i)$ on a fixed sample (@eq-silhouette); ARI with zone: agreement between the clusters and the urban/rural split. The chosen $k$ is in bold."
+t = ksel.reset_index()
+bold = t["k"] == k
+fmt = pd.DataFrame({
+    "$k$": t["k"].astype(str),
+    "$W$": t["inertia"].map("{:,.0f}".format),
+    "Cut (%)": (100 * t["inertia_drop"]).map(lambda v: "" if pd.isna(v) else f"{v:.1f}"),
+    "Silhouette": t["silhouette"].map("{:.3f}".format),
+    "ARI with zone": t["ari_vs_zone"].map("{:.2f}".format),
+})
+fmt.loc[bold] = fmt.loc[bold].map(lambda v: f"**{v}**" if v else v)
+Markdown(fmt.to_markdown(index=False, colalign=["right"] * 5, disable_numparse=True))
+```
+
+## Kinds of municipal zone
+
+@fig-heatmap shows each kind's centroid in z units, and @tbl-kinds its size and typical
+values. The highest-risk kind, *`{python} names[high].lower()`*, holds
+`{python} f"{prof.loc[high, 'rows']:,}"` zone-years from
+`{python} f"{prof.loc[high, 'municipalities']:,}"` municipalities, of which
+`{python} f"{100 * prof.loc[high, 'urban_row_share']:.0f}"`% are urban. Its median IRCA,
+`{python} f"{prof.loc[high, 'irca_median']:.1f}"`, lies in the
+`{python} prof.loc[high, 'irca_median_band'].lower()` band, and its mean piped-water and
+sewer coverage are `{python} f"{prof.loc[high, 'mean_water_coverage']:.0f}"`% and
+`{python} f"{prof.loc[high, 'mean_sewer_coverage']:.0f}"`%. At the other end,
+*`{python} names[low].lower()`* have a median IRCA of
+`{python} f"{prof.loc[low, 'irca_median']:.1f}"`, mean poverty of
+`{python} f"{prof.loc[low, 'mean_ipm']:.0f}"`% and municipal performance
+`{python} f"{prof.loc[low, 'z_mdm']:+.1f}"` standard deviations from the year's mean. Names describe a kind's typical profile,
+not every member: zone-years in any kind can fall in other IRCA bands.
+
+```{python}
+#| label: fig-heatmap
+#| fig-cap: "Cluster centroids in z units (@eq-z): standard deviations from the year's mean. Blue is below the mean, red above."
+#| fig-alt: "Heatmap with one row per kind and one column per feature. The rural, low-coverage, high-risk kind is red for IRCA and poverty and dark blue for water and sewer coverage. Cities and large towns are dark blue for rural share and transfers per person and red for municipal performance. Lowland towns are dark blue for altitude."
+zcols = [f"z_{f}" for f in analysis.FEATURES]
+cmap = LinearSegmentedColormap.from_list("div", analysis.DIVERGING["light"])
+fig, ax = plt.subplots(figsize=(6.3, 0.42 * k + 1.5))
+im = ax.imshow(prof[zcols].to_numpy(), cmap=cmap, vmin=-1.5, vmax=1.5, aspect="auto")
+ax.set_xticks(range(len(zcols)), [analysis.SHORT_LABELS[f] for f in analysis.FEATURES],
+              rotation=35, ha="right")
+ax.set_yticks(range(k), kinds)
+for i, row in enumerate(prof[zcols].to_numpy()):
+    for j, v in enumerate(row):
+        ax.text(j, i, f"{v:+.1f}", ha="center", va="center", fontsize=7.5,
+                color="white" if abs(v) > 1 else "#1d1d1d")
+ax.spines[:].set_visible(False)
+ax.tick_params(length=0)
+fig.colorbar(im, ax=ax, label="z", shrink=0.85)
+plt.show()
+```
+
+```{python}
+#| label: tbl-kinds
+#| tbl-cap: "Size and typical values of each kind. Munic.: distinct municipalities; Urban: share of urban zone-years (%); IRCA: median utility-supplied (prestadores) IRCA; Water, Sewer: mean piped-water and sewer coverage (%); Poverty: mean multidimensional poverty (%)."
+t = pd.DataFrame({
+    "Kind": kinds,
+    "Zone-years": prof["rows"].map("{:,}".format),
+    "Munic.": prof["municipalities"].map("{:,}".format),
+    "Urban": (100 * prof["urban_row_share"]).map("{:.0f}".format),
+    "IRCA": prof["irca_median"].map("{:.1f}".format),
+    "Water": prof["mean_water_coverage"].map("{:.0f}".format),
+    "Sewer": prof["mean_sewer_coverage"].map("{:.0f}".format),
+    "Poverty": prof["mean_ipm"].map("{:.0f}".format),
+})
+Markdown(t.to_markdown(index=False, colalign=["left"] + ["right"] * 7, disable_numparse=True))
+```
+
+## Outcomes by kind
+
+Outcomes differ between the kinds, `{python} "in the same order as their median IRCA" if im_follows_irca else "but infant mortality does not follow the order of their median IRCA"`
+(@fig-outcomes, @tbl-outcomes). Pooled over `{python} spans(analysis.OUTCOME_YEARS['infant_mortality'])`,
+median infant mortality is lowest in *`{python} names[best_im].lower()`*
+(`{python} f"{prof.loc[best_im, 'infant_mortality_median']:.1f}"` per 1,000 live births)
+and highest in *`{python} names[worst_im].lower()`*
+(`{python} f"{prof.loc[worst_im, 'infant_mortality_median']:.1f}"`), while the highest-risk
+kind has `{python} f"{prof.loc[high, 'infant_mortality_median']:.1f}"`. Median Saber 11 scores
+are highest in *`{python} names[best_saber].lower()`*
+(`{python} f"{prof.loc[best_saber, 'saber11_mean_median']:.0f}"`) and lowest in
+*`{python} names[worst_saber].lower()`*
+(`{python} f"{prof.loc[worst_saber, 'saber11_mean_median']:.0f}"`). Median dropout ranges
+from `{python} f"{prof.loc[low_drop, 'dropout_rate_median']:.1f}"`% in
+*`{python} names[low_drop].lower()`* to `{python} f"{prof.loc[high_drop, 'dropout_rate_median']:.1f}"`%
+in *`{python} names[high_drop].lower()`*.
+
+```{python}
+#| label: fig-outcomes
+#| fig-cap: "Median outcome by kind and year. Infant mortality: 2017–2019 and 2021–2023 only (method change in 2017; 2020 appears to come from another source). Saber 11: published years. Infant mortality and dropout are municipal values, counted once per kind and year."
+#| fig-alt: "Three small line charts by year, one line per kind. Cities and large towns have the lowest infant mortality and the highest Saber 11 scores; highland towns have the highest infant mortality. Lowland towns have the lowest Saber 11 scores. Dropout medians stay between about 1.7 and 4.7 percent, lowest in highland towns, and dip in 2020 for every kind."
+fig, axes = plt.subplots(1, 3, figsize=(6.3, 2.5))
+for ax, (col, label) in zip(axes, analysis.OUTCOMES.items()):
+    o = outcomes[outcomes["outcome"] == col]
+    yrs = analysis.OUTCOME_YEARS[col]
+    for c, g in o.groupby("cluster"):
+        # Every year of the span: excluded years become gaps, not joined lines.
+        g = g.set_index("year").reindex(range(min(yrs), max(yrs) + 1))
+        ax.plot(g.index, g["median"], marker=analysis.CLUSTER_MARKERS[c - 1], markersize=3,
+                color=colors[c], linewidth=1.2, label=f"{c} · {names[c]}")
+    ax.set_title(label.replace(" (", "\n("), fontsize=8.5, loc="left")
+    ax.set_xticks([2016, 2019, 2022])
+    ax.grid(axis="y", color="#d9d9d6", linewidth=0.5)
+    ax.set_axisbelow(True)
+fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2,
+           frameon=False, bbox_to_anchor=(0.5, -0.17))
+fig.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: tbl-outcomes
+#| tbl-cap: "Pooled outcome medians by kind, with the number of observations in brackets (years as in @fig-outcomes): municipality-years for infant mortality and dropout, zone-years for Saber 11."
+def with_n(col, fmt):
+    return [f"{fmt.format(m)} ({n:,})" for m, n in zip(prof[f"{col}_median"], prof[f"{col}_n"])]
+
+
+t = pd.DataFrame({
+    "Kind": kinds,
+    "Infant mortality per 1,000": with_n("infant_mortality", "{:.1f}"),
+    "Saber 11 (0–500)": with_n("saber11_mean", "{:.0f}"),
+    "Dropout (%)": with_n("dropout_rate", "{:.2f}"),
+})
+Markdown(t.to_markdown(index=False, colalign=["left"] + ["right"] * 3, disable_numparse=True))
+```
+
+## Water quality and infant mortality within kinds
+
+If the differences in infant mortality between kinds came mainly from water quality,
+zones with worse water would also have higher infant mortality within a kind. They barely
+do (@fig-within): within each kind, Spearman's ρ between IRCA and infant mortality lies
+between `{python} f"{rho['spearman_rho'].min():+.2f}"` and
+`{python} f"{rho['spearman_rho'].max():+.2f}"`, and across all kinds together it is
+`{python} f"{rho['all_clusters_rho'].iloc[0]:+.2f}"`
+(n = `{python} f"{rho['all_clusters_n'].iloc[0]:,}"` municipality-years). A weak
+association does not show that water quality has no effect, for the reasons in
+@sec-conclusions.
+
+```{python}
+#| label: fig-within
+#| fig-cap: "Within each kind: median infant mortality by IRCA band (utility-supplied, prestadores IRCA), pooled over 2017–2019 and 2021–2023, with Spearman's ρ and the number of municipality-years. Bands with fewer than 20 municipality-years are not drawn."
+#| fig-alt: "Four small panels in a two-by-two grid, one per kind, each showing median infant mortality across IRCA risk bands. The lines are nearly flat in every kind, and the Spearman correlations printed on each panel are close to zero."
+shown = bins[bins["n"] >= 20]
+nrow = int(np.ceil(k / 2))
+fig, axes = plt.subplots(nrow, 2, figsize=(6.3, 1.8 * nrow + 0.3), sharey=True,
+                         sharex=True, squeeze=False)
+for ax, (c, g) in zip(axes.flat, shown.groupby("cluster")):
+    pos = [analysis.IRCA_BANDS.index(b) for b in g["irca_band"]]
+    ax.plot(pos, g["median"], marker=analysis.CLUSTER_MARKERS[c - 1], markersize=3.5,
+            color=colors[c], linewidth=1.2)
+    ax.set_title(f"{c} · {names[c]}", fontsize=8.5, loc="left")
+    ax.text(0.03, 0.08, f"$\\rho$ = {rho.loc[c, 'spearman_rho']:+.2f}, n = {rho.loc[c, 'n']:,}",
+            transform=ax.transAxes, fontsize=8)
+    ax.grid(axis="y", color="#d9d9d6", linewidth=0.5)
+    ax.set_axisbelow(True)
+for ax in axes.flat[k:]:
+    ax.set_visible(False)
+axes[0, 0].set_ylim(0, shown["median"].max() * 1.2)
+for ax in axes[-1]:
+    ax.set_xticks(range(len(analysis.IRCA_BANDS)), analysis.IRCA_BANDS)
+for ax in axes[:, 0]:
+    ax.set_ylabel("Infant mortality\nper 1,000")
+fig.tight_layout()
+plt.show()
+```
+
+# Conclusions {#sec-conclusions}
+
+Colombia's municipal zones fall into `{python} word(k)` overlapping kinds when described by
+drinking-water quality, water services and context. Water risk is concentrated in one
+kind, *`{python} names[high].lower()`*, which combines a median utility-supplied IRCA in
+the `{python} prof.loc[high, 'irca_median_band'].lower()` band with
+`{python} "the lowest coverage of piped water and sewers" if high_has_least_services else "low coverage of piped water and sewers"`.
+Infant mortality, Saber 11 scores and school dropout differ between the kinds;
+`{python} "the kind with the worst water also has the highest median infant mortality" if worst_im == high else "the kind with the worst water does not have the highest median infant mortality"`,
+and within each kind water quality and infant mortality are barely related.
+
+These comparisons are descriptive and **do not establish a causal effect of water quality**
+on infant mortality or on any other outcome; nor does a weak association show the absence
+of one. Five limits apply:
+
+- **Confounding.** Poverty, rurality, access to health services and the quality of
+  reporting differ between and within kinds, and each affects both water quality and
+  health.
+- **Ecological level.** IRCA and Saber 11 are measured for a zone, infant mortality and
+  dropout for the whole municipality [@robinson1950].
+- **Measurement.** The infant mortality series changes method in 2017, a blank rate from
+  2017 may mean that no infant deaths were recorded, and small municipalities produce
+  extreme rates. Coverage values are municipal self-reports, and transfers are in nominal
+  pesos, of which within-year standardisation removes only the common drift.
+- **Selection.** Rows without IRCA, `{python} f"{s['dropped_no_irca']:,}"` in the window and
+  mostly rural, are excluded, so the rural kind describes sampled rural water systems only.
+- **Overlap.** k-means assumes compact clusters of similar spread, and a silhouette of
+  `{python} f"{s['silhouette_at_k']:.2f}"` means that the kinds summarise a continuum.
+
+Better evidence on the health effects of water quality would need outcomes closer to
+water exposure, such as diarrhoeal disease in young children, and designs that compare
+the same places before and after a change in water supply.

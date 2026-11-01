@@ -1,6 +1,8 @@
 # London guide: finished Part 1 project
 
-The finished Part 1 project: `london.qmd` in six formats, the dashboard (attractions and churches pages), the partner brief and its covering email, the flyer and the social card, published as one website by `_quarto.yml`. Every number comes from `data/` (cited ALVA tables); photo credits are in `images/ATTRIBUTION.md`.
+The finished Part 1 project: `london.qmd` in six formats, the dashboard (attractions and churches pages), the partner brief and its covering email, the flyer, the social card and the ⭐ white paper, published as one website by `_quarto.yml`. Every number comes from `data/` (cited ALVA tables); photo credits are in `images/ATTRIBUTION.md`.
+
+`london-whitepaper.qmd` is an academic-style paper (abstract, introduction, methods, results, conclusions and references from `references.bib`) on the pandemic loss and recovery of visits, 2015–2025. It is a Typst PDF styled like a LaTeX article: New Computer Modern, the font Typst bundles, so it needs no LaTeX install.
 
 `AGENTS.md` holds the project's rules for the coding assistant, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
 
@@ -18,5 +20,5 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 2. Copy the finished project here: `cp -R ../quarto-workshop/examples/london/. .`
 3. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
 4. Render the site: `uv run quarto render` (writes `_site/`).
-5. Check: `_site/index.html` opens with Guide, Dashboard and Downloads in the navbar.
+5. Check: `_site/index.html` opens with Guide, Dashboard and Downloads in the navbar, and Downloads links the white paper, `_site/london-whitepaper.pdf`.
 6. Rejoin: if your site is not live yet, paste the two prompts on 🚀 *Publish* ([slide](https://project-delphi.github.io/quarto-workshop/#/london-publish)); after the ☕ break, everyone starts 💧 *Part 2* together at 1:15 ([slide](https://project-delphi.github.io/quarto-workshop/#/part-2)).

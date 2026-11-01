@@ -2,7 +2,7 @@
 
 Create reproducible content you can share with the world, using Quarto. In a hands-on
 3 h 20 min session (with a 10-minute break), participants turn plain-text Markdown into **docx, pdf,
-pptx, revealjs slides, a website, a blog and a dashboard** (and, optionally, epub), with a coding assistant (Claude Code, Codex or Antigravity)
+pptx, revealjs slides, a website, a blog and a dashboard** (and, optionally, epub and academic white papers), with a coding assistant (Claude Code, Codex or Antigravity)
 writing the computations. The slides are the course resource: everything needed to follow along alone is
 on them.
 
@@ -97,8 +97,8 @@ the diff.
 | `index.qmd` | Workshop deck: Part 0 intro and setup; includes the two parts below |
 | `slides/_london.qmd`, `slides/_water.qmd` | Part 1 and Part 2 slides, included from `index.qmd` |
 | `ai-workflows.qmd` | Optional marketing-experiment lab on agent-assisted Quarto authoring |
-| `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, website |
-| `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis and outputs |
+| `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, ⭐ white paper, website |
+| `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
 | `assets/` | Hub and publishing diagrams (SVG); `deck-3d/` builds the three.js bundle for the two 3-D slides in Part 2 |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |

@@ -40,7 +40,7 @@ ldn_ch_n = len(ldn_ch)
 ::: {.notes}
 Part 1 audience: newcomers to Quarto. Objective: one Markdown guide becomes HTML, Word,
 PDF, a dashboard, a partner brief, a flyer, a social ad and a published website
-(⭐ PowerPoint, slides and an e-book). Completion: the published dashboard
+(⭐ PowerPoint, slides, an e-book and a white paper). Completion: the published dashboard
 URL opens on a phone. Each hands-on block ends with a checkpoint in
 `quarto-workshop/checkpoints/` (01, 02 and 04); the finished project is
 `quarto-workshop/examples/london/`.
@@ -79,10 +79,10 @@ URL opens on a phone. Each hands-on block ends with a checkpoint in
 Twenty minutes for the first block, when the assistant, the project rules, the preview and
 the Python environment are new, then ten per block. The same times appear on the section
 dividers. Exercise times add up to 13, 8, 6 and 8 minutes; the rest of each block is for
-showing results and helping someone recover. The ⭐ pptx, epub and revealjs exports are
-self-paced: demonstrate them. The four audience versions come from one prompt whose
-sub-agents run in parallel, so they take about as long as the dashboard alone; the ⭐ WSL
-and terminal-key slides fill that wait.
+showing results and helping someone recover. The ⭐ pptx, epub and revealjs exports and
+the ⭐ white paper after publishing are self-paced: demonstrate them. The four audience
+versions come from one prompt whose sub-agents run in parallel, so they take about as long
+as the dashboard alone; the ⭐ WSL and terminal-key slides fill that wait.
 People stuck for two minutes paste the 😰 catch-up prompt on the hands-on slide and rejoin
 at the next block. These times are estimates: rehearse with a stopwatch and adjust them
 together with the section clocks and README.
@@ -1586,6 +1586,75 @@ Python and the packages (or `freeze: auto` with `_freeze/` committed). The finis
 is `quarto-workshop/examples/london/`; Part 1 has no checkpoint after 04.
 :::
 
+## 📑 A white paper · ⭐ optional {#london-whitepaper}
+
+::: {.prompt}
+```default
+Create london-whitepaper.qmd, an A4 Typst white paper in "New Computer Modern" with numbered sections: abstract, Introduction, Methods, Results, Conclusions, References (references.bib from the data's `url` column). Analyse data/visits.csv against 2019 and data/attractions.csv by `admission`. Add it to the "Downloads" menu; render; check citations.
+```
+:::
+
+:::: {.columns}
+::: {.column width="50%"}
+```{.yaml}
+bibliography: references.bib
+format:
+  typst:
+    mainfont: "New Computer Modern"
+    section-numbering: "1.1"
+    bibliographystyle: ieee
+```
+:::
+::: {.column width="50%"}
+::: {.agent}
+writes 2 files · `uv run quarto render london-whitepaper.qmd`
+:::
+
+::: {.you}
+open `london-whitepaper.pdf`
+:::
+:::
+::::
+
+### Exercise · ⏱️ 8 min
+
+::: {.source .behind}
+😰 Stuck?
+
+```default
+Catch me up: follow ../quarto-workshop/examples/london/README.md
+```
+:::
+
+::: {.done}
+`london-whitepaper.pdf` shows an abstract and numbered references.
+:::
+
+::: {.notes}
+A white paper is the academic version of the guide: abstract, introduction, methods,
+results, conclusions and references, with every number computed from `data/` (the
+project's `AGENTS.md` says so, so the prompt need not). It looks like a LaTeX article
+without a LaTeX install: Quarto 1.6.40 bundles Typst 0.11, which embeds New Computer Modern, the OpenType version of LaTeX's Computer Modern (checked with
+`typst fonts`). `section-numbering` numbers the headings, `bibliography` reads the BibTeX
+file, and `bibliographystyle: ieee` picks Typst's numbered style. Typst prints its own
+"Bibliography" heading, so the finished example renames it with
+`#set bibliography(title: [References])` in `include-in-header`. `[@key]` cites a
+reference; `@fig-…`, `@tbl-…`, `@eq-…` and `@sec-…` refer to labelled figures, tables,
+equations and sections. An inline expression in a YAML `abstract` runs before the setup
+cell and fails, so the finished example writes its abstract in the body, wrapped in a raw
+`{=typst}` block. It also floats figures, draws booktabs-style table rules and sizes table
+columns to their contents (`tbl-colwidths: false`). ALVA counts only its members, so the
+paper says "ALVA member attractions" and treats the five sights as a description, not a
+sample. Genuine LaTeX output is `format: pdf`, which needs a TeX distribution
+(`quarto install tinytex`): https://quarto.org/docs/output-formats/pdf-basics.html. Docs:
+https://quarto.org/docs/output-formats/typst.html,
+https://quarto.org/docs/reference/formats/typst.html,
+https://quarto.org/docs/authoring/citations.html and
+https://quarto.org/docs/authoring/cross-references.html (checked 2026-11-01). To update a
+live site, paste the publish prompt again. Optional and self-paced: not counted in the
+agenda. The finished paper is `quarto-workshop/examples/london/london-whitepaper.qmd`.
+:::
+
 ## 📚 Part 1 sources {#london-sources}
 
 ::: {style="font-size: 0.7em"}
@@ -1618,6 +1687,9 @@ is `quarto-workshop/examples/london/`; Part 1 has no checkpoint after 04.
   [dashboards](https://quarto.org/docs/dashboards/data-display.html) ·
   [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html) ·
   [gh repo create](https://cli.github.com/manual/gh_repo_create), checked 2026-10-30
+- 📑 White paper: [citations](https://quarto.org/docs/authoring/citations.html) ·
+  [cross-references](https://quarto.org/docs/authoring/cross-references.html) ·
+  [Typst options](https://quarto.org/docs/reference/formats/typst.html), checked 2026-11-01
 :::
 
 ::: {.notes}

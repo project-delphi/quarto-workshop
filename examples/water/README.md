@@ -2,7 +2,8 @@
 
 The finished project for Part 2 of the workshop. One script computes everything once; a
 Quarto website publishes it many ways. The pages are explore, clusters, a report (html,
-docx, Typst PDF and ePub), council slides (revealjs and pptx), a blog post and a dashboard.
+docx, Typst PDF and ePub), council slides (revealjs and pptx), a blog post, a dashboard
+and a ⭐ white paper (Typst PDF).
 
 The question: which kinds of municipal zone exist, judged by drinking-water quality,
 services and context, and how do health and education outcomes differ between them? One
@@ -21,6 +22,7 @@ water quality.
 | `explore.qmd` | first look: shape, missing values, IRCA by band, zone and year |
 | `clusters.qmd` | choosing k, PCA picture, profiles, outcomes, correlation ≠ causation |
 | `report.qmd` | report: html page, `report.docx`, `report.pdf` (Typst) and `report.epub` |
+| `whitepaper.qmd`, `references.bib` | ⭐ white paper: `whitepaper.pdf`, an academic-style Typst PDF (abstract, introduction, methods with equations, results, conclusions, IEEE-numbered references) styled like a LaTeX article in New Computer Modern, the font Typst bundles, so no LaTeX install |
 | `slides.qmd` | six-slide council briefing: `slides.html` (Reveal.js) and `slides.pptx` |
 | `posts/four-kinds-of-municipal-zone/` | blog post, titled with the actual k |
 | `dashboard.qmd` | IRCA band maps with a year slider; Kinds (z-score heatmap), Outcomes (medians by year, IRCA–infant mortality ρ) and Method (k choice) pages read from `outputs/`; a searchable table |
@@ -125,8 +127,8 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 1. Keep your work: `cp -R . "../water-quality-backup-final-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `water-quality/`, so earlier backups are kept).
 2. Copy the finished project here, data included: `cp -R ../quarto-workshop/examples/water/. .`
 3. Render the site: `uv run quarto render` (the pre-render step runs `scripts/analysis.py` first).
-4. Check: `_site/index.html` lists one post, and `_site/dashboard.html` shows a map that
-   changes with the year slider.
+4. Check: `_site/index.html` lists one post, `_site/dashboard.html` shows a map that
+   changes with the year slider, and `_site/whitepaper.pdf` opens with its references.
 5. Rejoin: if your site is not live yet, paste the two prompts on 🌍 *3:15 · Publish it*
    ([slide](https://project-delphi.github.io/quarto-workshop/#/water-ship)).
 
