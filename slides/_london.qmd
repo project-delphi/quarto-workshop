@@ -67,7 +67,7 @@ URL opens on a phone. Each hands-on block ends with a checkpoint in
 ::: {}
 [🌍]{.big}
 
-**0:55** publish to GitHub Pages
+**0:54** publish to GitHub Pages
 :::
 :::
 
@@ -77,8 +77,10 @@ URL opens on a phone. Each hands-on block ends with a checkpoint in
 
 ::: {.notes}
 Twenty minutes for the first block, when the assistant, the project rules, the preview and
-the Python environment are new, then ten per block. The same times appear on the section
-dividers. Exercise times add up to 13, 8, 6 and 9 minutes; the rest of each block is for
+the Python environment are new, then ten for the 🧪 block, nine for the audiences and
+eleven for publishing, whose first publish was timed in the dry run of 2026-11-01. The same
+times appear on the section dividers. Exercise times add up to 14, 8, 6 and 9 minutes; the
+rest of each block is for
 showing results and helping someone recover. The ⭐ pptx, epub and revealjs exports and
 the ⭐ white paper after publishing are self-paced: demonstrate them. The four audience
 versions come from one prompt whose sub-agents run in parallel, so they take about as long
@@ -494,7 +496,7 @@ Copy ../quarto-workshop/examples/london/data here. In london.md, add a "Sights a
 :::
 ::::
 
-### Exercise · ⏱️ 1 min
+### Exercise · ⏱️ 2 min
 
 ::: {.source .behind}
 😰 Stuck?
@@ -1329,16 +1331,14 @@ for ldn_feat in ldn_geo["features"]:
                 ldn_edges[(ldn_a, ldn_b) if ldn_a < ldn_b else (ldn_b, ldn_a)] += 1
 
 
-def ldn_segments(shared):
-    """Flat [x, y, x, y, …] metres of the shared (or unshared) edges inside the frame."""
-    ldn_out = []
-    for (ldn_a, ldn_b), ldn_n in sorted(ldn_edges.items()):
-        ldn_p = [ldn_m(*(ldn_np.array(q) * 0.0004)) for q in (ldn_a, ldn_b)]
-        if (ldn_n > 1) == shared and all(
-                ldn_x0 <= x <= ldn_x1 and ldn_y0 <= y <= ldn_y1 for x, y in ldn_p):
-            ldn_out += [round(c) for q in ldn_p for c in q]
-    return ldn_out
-
+# One pass: each snapped vertex is projected once, and each edge inside the frame goes to
+# the banks (one borough) or the borders (two), as flat [x, y, x, y, …] metres.
+ldn_vert = {v: ldn_m(v[0] * 0.0004, v[1] * 0.0004) for e in ldn_edges for v in e}
+ldn_banks, ldn_borders = [], []
+for (ldn_a, ldn_b), ldn_n in sorted(ldn_edges.items()):
+    ldn_p = (ldn_vert[ldn_a], ldn_vert[ldn_b])
+    if all(ldn_x0 <= x <= ldn_x1 and ldn_y0 <= y <= ldn_y1 for x, y in ldn_p):
+        (ldn_borders if ldn_n > 1 else ldn_banks).extend(round(c) for q in ldn_p for c in q)
 
 ldn_exag = 0.25  # metres of column per 1,000 visits: a million visits stand 250 m tall
 ldn_kinds = [(0, "#86cce8", "free sight"), (1, "#e9b86e", "paid sight"),
@@ -1349,10 +1349,9 @@ ldn_sxy = ldn_np.array([c[:2] for c in ldn_cols[:5]])
 ldn_map = {
     "exaggeration": ldn_exag,
     "footprint": 110,
-    "cols": [int(round(v)) for c in ldn_cols for v in c],
-    "cities": [int(round(v)) for c in ldn_cols for v in c],  # one label per column
-    "outline": ldn_segments(False),
-    "departments": ldn_segments(True),
+    "cols": [int(round(v)) for c in ldn_cols for v in c],  # no "cities": a label per column
+    "outline": ldn_banks,
+    "departments": ldn_borders,
     "extent": [round(v) for v in (ldn_x0, ldn_x1, ldn_y0, ldn_y1)],
     "clusters": [{"id": k, "color": c} for k, c, _ in ldn_kinds],
     "focus": [0, 1],
@@ -1545,7 +1544,7 @@ The exercise uses `~/quarto-workshop`, which everyone cloned, so Tab has one mat
 
 # 🌍 Publish to GitHub Pages {#publish-london}
 
-[⏱️ 0:55]{.clock}
+[⏱️ 0:54]{.clock}
 
 ## 🌳 Git: every change, safely {#git-cycle}
 
@@ -1735,7 +1734,8 @@ make that first run: Quarto 1.6.40 stops with "the remote origin does not have a
 gh-pages" (dry run of 2026-11-01). In that dry run the first publish of each site took
 about 1.5–2 minutes from creating the branch to pushing the built site, and GitHub Pages
 then built it in 20–35 s, so the step is timed at 6 minutes with the assistant's git and
-`gh` work before it; anything longer runs into the break, which is for catching up.
+`gh` work before it, and the block starts a minute earlier (0:54) to keep two minutes of
+slack; anything longer runs into the break, which is for catching up.
 Quarto's GitHub Pages guide asks for one local `quarto
 publish gh-pages` before any non-interactive publish
 (https://quarto.org/docs/publishing/github-pages.html, checked 2026-11-01). Once the branch

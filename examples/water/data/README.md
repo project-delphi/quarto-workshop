@@ -14,8 +14,13 @@ that step later.
 | `raw/` | cached downloads and `raw/manifest.json`. Git ignores this folder. |
 
 <!-- BEGIN GENERATED: summary -->
-Rows: **31,416** (1,122 DIVIPOLA codes × 2 zones × 14 years); columns: **29**; file size 5.1 MB. GeoJSON: 1,121 polygons, 2.70 MB, simplification tolerance 0.0039°; CSV codes without a polygon: 27493. Built 2026-10-30.
+Rows: **31,416** (1,122 DIVIPOLA codes × 2 zones × 14 years); columns: **29**; file size 5.1 MB. GeoJSON: 1,121 polygons, 2.70 MB, simplification tolerance 0.0039°; CSV codes without a polygon: 27493. Built 2026-11-01.
 <!-- END GENERATED: summary -->
+
+The `department_capital` column was added on 2026-11-01 by running the build script's
+`department_capital()` on the 2026-10-30 build, without downloading the sources again;
+every other value is unchanged, and the summary and coverage blocks above and below were
+rewritten by the script's own `summary_text()` and `coverage_table()`.
 
 ## Unit of analysis
 

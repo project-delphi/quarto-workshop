@@ -759,8 +759,9 @@ def validate(df: pd.DataFrame) -> None:
     assert df["ipm"].dropna().between(0, 100).all()
     assert df["rural_share"].dropna().between(0, 1).all()
     assert ((df["irca_missing"] == 1) == df["irca"].isna()).all()
-    caps = df.loc[df["department_capital"] == 1, "divipola"].unique()
-    assert len(caps) == 32 and "25001" not in caps and "11001" in caps, "department capitals"
+    codes = df.drop_duplicates("divipola")
+    assert (codes["department_capital"].to_numpy()
+            == department_capital(codes).to_numpy()).all(), "department_capital"
     for c in ("mdm", "idf", "idf_new"):
         assert df[c].dropna().between(0, 100).all(), c
     assert df["saber11_mean"].dropna().between(0, 500).all()
@@ -814,6 +815,16 @@ def replace_block(text: str, name: str, body: str) -> str:
     return pat.sub(lambda m: m.group(1) + body.rstrip("\n") + "\n" + m.group(2), text)
 
 
+def summary_text(df: pd.DataFrame, geo: dict) -> str:
+    """The README's generated summary line."""
+    return (f"Rows: **{len(df):,}** ({df['divipola'].nunique():,} DIVIPOLA codes × 2 zones × "
+            f"{df['year'].nunique()} years); columns: **{df.shape[1]}**; file size "
+            f"{OUT_CSV.stat().st_size / 1e6:.1f} MB. GeoJSON: {geo['features']:,} polygons, "
+            f"{geo['bytes'] / 1e6:.2f} MB, simplification tolerance "
+            f"{geo['tolerance_deg']:.4f}°; CSV codes without a polygon: "
+            f"{', '.join(geo['csv_without_polygon']) or 'none'}. Built {date.today()}.")
+
+
 def update_readme(df: pd.DataFrame, geo: dict) -> None:
     cov = coverage_table(df)
     print(cov.to_string(index=False))
@@ -826,12 +837,7 @@ def update_readme(df: pd.DataFrame, geo: dict) -> None:
                          "bytes": f"{v.get('bytes', 0):,}", "SHA-256": f"`{v.get('sha256')}`"}
                         for k, v in sorted(MANIFEST.items())])
     sab = pd.DataFrame(REPORT["saber11_checks"])
-    summary = (f"Rows: **{len(df):,}** ({df['divipola'].nunique():,} DIVIPOLA codes × 2 zones × "
-               f"{df['year'].nunique()} years); columns: **{df.shape[1]}**; file size "
-               f"{OUT_CSV.stat().st_size / 1e6:.1f} MB. GeoJSON: {geo['features']:,} polygons, "
-               f"{geo['bytes'] / 1e6:.2f} MB, simplification tolerance "
-               f"{geo['tolerance_deg']:.4f}°; CSV codes without a polygon: "
-               f"{', '.join(geo['csv_without_polygon']) or 'none'}. Built {date.today()}.")
+    summary = summary_text(df, geo)
     notes = "\n".join(f"- {n}" for n in REPORT["notes"])
     if not README.exists():
         print("  README.md not found; generated blocks not written")

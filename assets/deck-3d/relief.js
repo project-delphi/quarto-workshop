@@ -138,18 +138,21 @@ export const relief = {
     group.add(sky, sun, sun.target);
 
     // The .place-label elements, in data.cities order (x, y, altitude, cluster), each at the
-    // top of its city's column; they dim with their cluster in the focus view.
+    // top of its city's column; they dim with their cluster in the focus view. Without
+    // data.cities, label k names column k (the London map labels every column).
+    const places = data.cities ?? data.cols;
     const cities = [...el.querySelectorAll(".place-label")].map((label, k) => {
-      const [x, y, altitude, cluster] = data.cities.slice(k * 4, k * 4 + 4);
+      const [x, y, altitude, cluster] = places.slice(k * 4, k * 4 + 4);
       return { label, to: new Vector3(x, top(altitude), -y), cluster, weight: 1 };
     });
     const labelState = { cities, el };
 
     return {
       centre: [(x0 + x1) / 2, 0, -(y0 + y1) / 2],
-      // The stage fits this half-height to the canvas (and the aspect to its width): the
-      // north-south half-range, as a wide map such as London's is fitted by its width.
-      half: (y1 - y0) / 2,
+      half,
+      // Face on, the map is fitted by its north-south half-range (and its aspect), so a
+      // map wider than tall, such as London's, is not drawn too small.
+      fitHalf: (y1 - y0) / 2,
       aspect: (x1 - x0) / (y1 - y0),
       labels: cities,
       arrange: (spots, w, h) => labelState.cities.length && arrangeLabels(labelState, spots, w, h),
