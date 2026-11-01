@@ -19,7 +19,7 @@ Quick links: [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLES
 
 ### Pre-work (before the workshop)
 
-1. **Install tools**: Install [Quarto](https://quarto.org/docs/get-started/) (≥ 1.4; 1.6.40 validated),
+1. **Install tools**: Install [Quarto](https://quarto.org/docs/get-started/) (≥ 1.10 for the white-paper examples; 1.10.20 validated),
    [uv](https://docs.astral.sh/uv/getting-started/installation/) (it brings Python automatically), Git,
    an editor, the [GitHub CLI](https://cli.github.com/) (run `gh auth login`), and one
    coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
@@ -110,7 +110,7 @@ the diff.
 | 0:45 | 🗂️ Part 1 · Four audiences, 🤖 sub-agents in parallel | [Slide](https://project-delphi.github.io/quarto-workshop/#/five-audiences) |
 | 0:54 | 🌍 Part 1 · Publish to GitHub Pages | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-publish) |
 | 1:05 | ☕ Break · 🛟 catch up | [Slide](https://project-delphi.github.io/quarto-workshop/#/break) |
-| 1:15 | 💧 Part 2 · Colombia water quality and infant mortality (125 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
+| 1:15 | 💧 Part 2 · Colombia water safety and infant mortality (125 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
 | 3:20 | 🏁 Done | |
 
 ## For instructors and contributors
@@ -158,8 +158,9 @@ QUARTO_PYTHON="$PWD/.conda/bin/python" \
 ```
 
 Preview does not open a browser automatically: open the URL printed in the terminal.
-Quarto 1.6.40 (with bundled Typst 0.11) is the locally validated baseline; dashboards and
-Typst need Quarto ≥ 1.4.
+Quarto 1.10.20 (with bundled Typst 0.15) is the locally validated baseline; dashboards and
+Typst need Quarto ≥ 1.4. The white-paper examples use `#set par(spacing: …)`, which Quarto
+1.6.40's Typst rejects, so they need a newer Quarto (checked 2026-11-01).
 
 The bottom bar divides the deck into coloured sections that match the agenda. The active
 segment has a white marker, and a label shows the current section and its slide count. Click a
