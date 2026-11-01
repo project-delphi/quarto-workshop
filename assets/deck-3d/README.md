@@ -8,8 +8,9 @@ The workshop deck's three three.js slides:
   on `#water-relief` (Part 2), and names the cities the deck cell picks, each on the side
   of its column where it covers no other label. Part 1's `#london-map` reuses it in
   metres: the five sights as columns as tall as their visits, Visit London's churches as
-  short markers, and the borough borders with the Thames between them (`data.footprint`
-  sets its wider columns).
+  short markers, and the boroughs as muted fills on a blue water plane, so the Thames
+  shows blue between them (`data.footprint` sets its wider columns; `data.areas` and
+  `data.water` the fills).
 
 `stage.js` runs a 3-D slide. Fragments with `data-view` set the view, the reader can drag
 to turn and scroll to zoom, rendering stops while the slide is not shown, and

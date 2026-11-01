@@ -1321,14 +1321,19 @@ ldn_x1, ldn_y1 = ldn_xy_all.max(0) + (1200, 900)
 # kept where both ends lie in the frame.
 ldn_geo = ldn_json.loads(open("examples/london/data/london-boroughs.geojson", encoding="utf-8").read())
 ldn_edges = ldn_collections.Counter()
+ldn_owners = ldn_collections.defaultdict(set)  # edge -> the boroughs it bounds
+ldn_rings = []  # (borough name, snapped ring); the boroughs have no holes
 for ldn_feat in ldn_geo["features"]:
     ldn_gm = ldn_feat["geometry"]
     ldn_polys = [ldn_gm["coordinates"]] if ldn_gm["type"] == "Polygon" else ldn_gm["coordinates"]
     for ldn_ring in (r for p in ldn_polys for r in p):
         ldn_pts = [tuple(ldn_np.round(ldn_np.array(v) / 0.0004).astype(int)) for v in ldn_ring]
+        ldn_rings.append((ldn_feat["properties"]["LAD24NM"], ldn_pts))
         for ldn_a, ldn_b in zip(ldn_pts, ldn_pts[1:]):
             if ldn_a != ldn_b:
-                ldn_edges[(ldn_a, ldn_b) if ldn_a < ldn_b else (ldn_b, ldn_a)] += 1
+                ldn_e = (ldn_a, ldn_b) if ldn_a < ldn_b else (ldn_b, ldn_a)
+                ldn_edges[ldn_e] += 1
+                ldn_owners[ldn_e].add(ldn_feat["properties"]["LAD24NM"])
 
 
 # One pass: each snapped vertex is projected once, and each edge inside the frame goes to
@@ -1339,6 +1344,45 @@ for (ldn_a, ldn_b), ldn_n in sorted(ldn_edges.items()):
     ldn_p = (ldn_vert[ldn_a], ldn_vert[ldn_b])
     if all(ldn_x0 <= x <= ldn_x1 and ldn_y0 <= y <= ldn_y1 for x, y in ldn_p):
         (ldn_borders if ldn_n > 1 else ldn_banks).extend(round(c) for q in ldn_p for c in q)
+
+
+def ldn_clip(ring):
+    """Clip a ring to the frame (Sutherland–Hodgman), one side of the frame at a time."""
+    for ldn_ax, ldn_lim, ldn_sgn in ((0, ldn_x0, 1), (0, ldn_x1, -1), (1, ldn_y0, 1), (1, ldn_y1, -1)):
+        ldn_out = []
+        for ldn_k, ldn_q in enumerate(ring):
+            ldn_o = ring[ldn_k - 1]  # the previous point; ring[-1] closes the ring
+            ldn_qin = (ldn_q[ldn_ax] - ldn_lim) * ldn_sgn >= 0
+            if ldn_qin != ((ldn_o[ldn_ax] - ldn_lim) * ldn_sgn >= 0):
+                ldn_t = (ldn_lim - ldn_o[ldn_ax]) / (ldn_q[ldn_ax] - ldn_o[ldn_ax])
+                ldn_out.append(tuple(ldn_o[i] + ldn_t * (ldn_q[i] - ldn_o[i]) for i in (0, 1)))
+            if ldn_qin:
+                ldn_out.append(ldn_q)
+        ring = ldn_out
+    return ring
+
+
+# Borough fills, clipped to the frame on the same snapped vertices as the borders, so the
+# two meet exactly. relief.js lays them on a blue water plane, so the Thames shows blue
+# where no borough covers it. Bordering boroughs get different muted tones, picked in
+# name order (the first tone no neighbour has); a data change that needs a fifth fails.
+ldn_tones = ["#313b47", "#463f31", "#33423a", "#45364a"]
+ldn_water = "#2f6db5"
+ldn_fills = ldn_collections.defaultdict(list)
+for ldn_name, ldn_pts in ldn_rings:
+    ldn_ring = ldn_clip([ldn_vert[v] for v in ldn_pts[:-1]])  # [:-1]: GeoJSON repeats the start
+    ldn_flat = [(round(x), round(y)) for x, y in ldn_ring]
+    ldn_flat = [q for k, q in enumerate(ldn_flat) if q != ldn_flat[k - 1]]
+    if len(ldn_flat) >= 3:
+        ldn_fills[ldn_name].append([c for q in ldn_flat for c in q])
+ldn_nbrs = {b: set().union(*(o for o in ldn_owners.values() if b in o)) - {b} for b in ldn_fills}
+ldn_tone = {}
+for ldn_name in sorted(ldn_fills):
+    ldn_used = {ldn_tone.get(b) for b in ldn_nbrs[ldn_name]}
+    ldn_tone[ldn_name] = next(i for i in range(len(ldn_tones)) if i not in ldn_used)
+ldn_areas = [{"color": c, "polys": [p for b in sorted(ldn_fills) if ldn_tone[b] == i
+                                    for p in ldn_fills[b]]}
+             for i, c in enumerate(ldn_tones) if i in ldn_tone.values()]
 
 ldn_exag = 0.25  # metres of column per 1,000 visits: a million visits stand 250 m tall
 ldn_kinds = [(0, "#86cce8", "free sight"), (1, "#e9b86e", "paid sight"),
@@ -1352,6 +1396,8 @@ ldn_map = {
     "cols": [int(round(v)) for c in ldn_cols for v in c],  # no "cities": a label per column
     "outline": ldn_banks,
     "departments": ldn_borders,
+    "water": ldn_water,
+    "areas": ldn_areas,
     "extent": [round(v) for v in (ldn_x0, ldn_x1, ldn_y0, ldn_y1)],
     "clusters": [{"id": k, "color": c} for k, c, _ in ldn_kinds],
     "focus": [0, 1],
@@ -1361,9 +1407,11 @@ ldn_map = {
 ldn_top_s, ldn_paid_s = ldn_sights.iloc[0], ldn_sights[ldn_sights["paid"]]
 ldn_labels = "".join(f'<span class="place-label" translate="no">{ldn_html.escape(p)}</span>'
                      for p in [*ldn_sights["place"], *ldn_churches["place"]])
-ldn_legend = "".join(f'<span><span style="color:{c}">■</span> {t}</span>' for _, c, t in ldn_kinds)
-ldn_map_alt = (f"3-D map of central London's borough borders, with the Thames as a gap between "
-               f"them. Five columns stand at the five sights, as tall as their {ldn_map_year} visits: "
+ldn_legend = "".join(f'<span><span style="color:{c}">■</span> {t}</span>'
+                     for _, c, t in [*ldn_kinds, (None, ldn_water, "the Thames")])
+ldn_map_alt = (f"3-D map of central London: the {len(ldn_fills)} boroughs in view, each in a muted "
+               f"tone that differs from its neighbours', with the Thames in blue between them. "
+               f"Five columns stand at the five sights, as tall as their {ldn_map_year} visits: "
                + "; ".join(f"{r.place} {r.visits / 1e6:.1f} million" for r in ldn_sights.itertuples())
                + f". Ten short markers show the cathedrals and churches on Visit London's list.")
 print("```{=html}")
@@ -1400,11 +1448,13 @@ map: one column per sight from `examples/london/data/places.csv`, as tall as its
 `{python} ldn_map_year` visits in `visits.csv` (ALVA), coloured by `price_band` in
 `sights.csv`; the ten churches of `churches.csv` (Visit London's list) stand as short
 markers, because the data hold no visit counts for them. Coordinates are each place's
-Wikidata coordinate location (CC0, retrieved 2026-11-01). The lines are the London borough
-borders from ONS's December 2024 generalised boundaries, clipped at Mean High Water, so
-the tidal Thames shows as the gap between the boroughs on its two banks
-(`london-boroughs.geojson`, Open Government Licence v3.0, retrieved 2026-11-01). This
-deck cell computes every point, height and border in metres; the three.js bundle
+Wikidata coordinate location (CC0, retrieved 2026-11-01). The boroughs are ONS's December
+2024 generalised boundaries, clipped at Mean High Water (`london-boroughs.geojson`, Open
+Government Licence v3.0, retrieved 2026-11-01), so the tidal Thames is the gap between the
+boroughs on its two banks: the map lays the boroughs on blue water, and the river shows
+blue where no borough covers it. The tones only tell neighbours apart; they encode no data.
+In view: `{python} ", ".join(sorted(ldn_fills))`. This deck cell computes every point,
+height, border and fill in metres; the three.js bundle
 (`assets/deck-3d/`, the scene Part 2's relief view uses) only draws them. Press → to tilt
 the map, and again to turn about the five sights while the churches fade. The tallest
 column is the `{python} ldn_top_s["place"]` (`{python} f"{ldn_top_s['visits']:,}"` visits);

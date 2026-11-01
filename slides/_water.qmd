@@ -1426,6 +1426,10 @@ use a lighter blue for cluster 1 as text, so every label has at least 4.5:1 cont
 #| label: wat-names
 #| echo: false
 #| output: asis
+# From here on the deck calls the clusters by these names. wat_tick breaks a name before
+# its risk word; wat_kind drops the risk word, for panels whose axis is the IRCA band.
+wat_tick = {wat_c: f"{wat_c} · " + ",\n".join(wat_n.rsplit(", ", 1)) for wat_c, wat_n in wat_names.items()}
+wat_kind = {wat_c: wat_n.rsplit(", ", 1)[0] for wat_c, wat_n in wat_names.items()}
 print("| | Kind | Zone-years | Municipalities | Median IRCA |")
 print("|---|---|--:|--:|--:|")
 for wat_c, wat_p in wat_prof.iterrows():
@@ -1439,7 +1443,8 @@ band of the cluster's **median** utility-supplied (prestadores) IRCA, not every 
 
 ::: {.notes}
 `name_rule()` in `analysis.py` turns each profile into a name, so names never depend on
-which id k-means happened to give. Setting: "Rural" if fewer than 40% of the cluster's rows
+which id k-means happened to give. From this slide on, the deck's charts call each cluster
+by its id and name, as the project's pages do from checkpoint 08. Setting: "Rural" if fewer than 40% of the cluster's rows
 are urban zones; otherwise "Cities and large towns" (rural share ≤ −0.5 SD), "Lowland towns"
 (altitude ≤ −0.5 SD) or "Highland towns" (altitude ≥ +0.5 SD). Coverage: "low-coverage" if
 the cluster's mean piped-water coverage is ≤ −0.5 SD. That is a relative position: the rural
@@ -1500,7 +1505,7 @@ good discussion point: these are small municipalities, where rates are noisy.
 #| label: fig-wat-outcome-heatmap
 #| echo: false
 #| fig-cap: "Cluster mean outcome in z units (SD above red, below blue the year's average); the mean itself in brackets. Colour scale as in the features heatmap."
-#| fig-alt: "Heatmap with one row per cluster and three outcome columns: infant mortality, Saber 11 and school dropout. Each cell prints the cluster's mean outcome in z units and, in brackets, the mean itself, coloured on the features heatmap's blue-to-red scale."
+#| fig-alt: "Heatmap with one row per named cluster and three outcome columns: infant mortality, Saber 11 and school dropout. Each cell prints the cluster's mean outcome in z units and, in brackets, the mean itself, coloured on the features heatmap's blue-to-red scale."
 # Like the features: standardise within year, then average over each cluster's rows.
 # Municipal outcomes count each municipality once per year (or cluster), as in profiles().
 wat_ocols = list(wat_analysis.OUTCOMES)
@@ -1530,7 +1535,7 @@ with wat_plt.rc_context(wat_rc):
                            aspect="auto")
     wat_ax.set_xticks(range(len(wat_ocols)), [wat_ohead[wat_c] for wat_c in wat_ocols])
     wat_ax.xaxis.tick_top()
-    wat_ax.set_yticks(range(wat_k), [f"Cluster {wat_c}" for wat_c in wat_prof.index])
+    wat_ax.set_yticks(range(wat_k), [wat_tick[wat_c] for wat_c in wat_prof.index])
     for wat_t, wat_c in zip(wat_ax.get_yticklabels(), wat_prof.index):
         wat_t.set_color(wat_analysis.CLUSTER_TEXT_COLORS["dark"][wat_c - 1])  # ≥ 4.5:1 text
         wat_t.set_fontweight("bold")
@@ -1617,8 +1622,8 @@ for wat_i, (wat_col, wat_lab) in enumerate(wat_vars.items()):
         wat_plt.close(wat_f)
     wat_src = wat_b64.b64encode(wat_buf.getvalue()).decode()
     wat_alt = (f"Box plots of {wat_lab}, one per cluster. Medians: "
-               + "; ".join(f"cluster {wat_c} {wat_np.median(wat_v):.1f}"
-                           if len(wat_v) else f"cluster {wat_c} no data"
+               + "; ".join(f"cluster {wat_c} ({wat_names[wat_c]}) {wat_np.median(wat_v):.1f}"
+                           if len(wat_v) else f"cluster {wat_c} ({wat_names[wat_c]}) no data"
                            for wat_c, wat_v in zip(wat_ids, wat_vals)) + ".")
     wat_opts.append(f'<option value="{wat_i}">{wat_html.escape(wat_lab)}</option>')
     wat_imgs.append(f'<img data-i="{wat_i}" alt="{wat_html.escape(wat_alt)}" '
@@ -1809,7 +1814,7 @@ direction, such as `{python} wat_ex_text`. Then ask whether the cluster's name s
 #| label: fig-wat-within
 #| echo: false
 #| fig-cap: "Median infant mortality by utility-supplied (prestadores) IRCA band, per cluster. Infant mortality changes method in 2017, and 2020 looks like another source: 2017–2019 and 2021–2023 are pooled. Bands under 20 municipality-years are not drawn."
-#| fig-alt: "Four small panels, one per cluster, each showing median infant mortality across the five IRCA risk bands, labelled N, L, M, H and U for no risk, low, medium, high and unfit. The lines are nearly flat in every cluster, and the Spearman correlations printed on the panels are all close to zero."
+#| fig-alt: "Four small panels, one per cluster: cities and large towns, highland towns, lowland towns, and rural, low-coverage. Each shows median infant mortality across the five IRCA risk bands, labelled N, L, M, H and U for no risk, low, medium, high and unfit. The lines are nearly flat in every cluster, and the Spearman correlations printed on the panels are all close to zero."
 wat_rho = wat_res["irca_infant"].set_index("cluster")
 wat_bins = wat_res["irca_infant_bins"]
 wat_bins = wat_bins[wat_bins["n"] >= 20]
@@ -1821,7 +1826,8 @@ with wat_plt.rc_context(wat_rc):
         wat_pos = [wat_analysis.IRCA_BANDS.index(wat_b) for wat_b in wat_g["irca_band"]]
         wat_ax.plot(wat_pos, wat_g["median"], marker=wat_analysis.CLUSTER_MARKERS[wat_c - 1],
                     markersize=8, color=wat_colors[wat_c])
-        wat_ax.set_title(f"Cluster {wat_c}", fontsize=15, loc="left", fontweight="bold",
+        wat_ax.set_title(wat_textwrap.fill(f"{wat_c} · {wat_kind[wat_c]}", 18, break_on_hyphens=False),
+                         fontsize=15, loc="left", fontweight="bold",
                          color=wat_analysis.CLUSTER_TEXT_COLORS["dark"][wat_c - 1])
         wat_ax.text(0.04, 0.05, f"ρ = {wat_rho.loc[wat_c, 'spearman_rho']:+.2f}\n"
                     f"n = {wat_rho.loc[wat_c, 'n']:,}", transform=wat_ax.transAxes, fontsize=14)

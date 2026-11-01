@@ -5,10 +5,12 @@
 // (stage.js). Altitude is the scene's y axis, so the stage turns the map about its
 // vertical; north is -z. The London map (slides/_london.qmd, #london-map) reuses it in
 // metres: a column per sight as tall as its visits, short markers for the churches, the
-// borough borders and the Thames, and data.footprint for its wider columns.
+// borough borders, data.footprint for its wider columns, and data.areas and data.water
+// for the filled boroughs on the blue Thames.
 import {
-  BoxGeometry, BufferAttribute, BufferGeometry, DirectionalLight, HemisphereLight,
-  InstancedMesh, LineBasicMaterial, LineSegments, MeshLambertMaterial, Object3D, Vector3,
+  BoxGeometry, BufferAttribute, BufferGeometry, DirectionalLight, DoubleSide, HemisphereLight,
+  InstancedMesh, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshLambertMaterial,
+  Object3D, PlaneGeometry, Shape, ShapeGeometry, Vector2, Vector3,
 } from "three";
 
 // Lays out the city labels on screen for one frame (stage.js calls it with each label's
@@ -129,6 +131,27 @@ export const relief = {
     };
     lines(data.outline, 0.8);
     lines(data.departments, 0.25);
+
+    // Optional flat fills (the London map): data.water, a plane over the extent, and on it
+    // data.areas, each a colour and polygons as flat [x, y, …] rings, so the water shows
+    // wherever no area covers it. Unlit, so the deck cell's colours hold; polygon offsets
+    // keep the borders in front of the areas, and the areas in front of the water.
+    const fill = (geometry, color, offset) => {
+      geometry.rotateX(-Math.PI / 2); // the shape's y (north) becomes -z
+      group.add(new Mesh(geometry, new MeshBasicMaterial({
+        color, side: DoubleSide, polygonOffset: true,
+        polygonOffsetFactor: offset, polygonOffsetUnits: offset,
+      })));
+    };
+    if (data.water) {
+      fill(new PlaneGeometry(x1 - x0, y1 - y0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0),
+        data.water, 2);
+    }
+    for (const area of data.areas ?? []) {
+      fill(new ShapeGeometry(area.polys.map((flat) => new Shape(Array.from(
+        { length: flat.length / 2 }, (_, i) => new Vector2(flat[2 * i], flat[2 * i + 1]))))),
+      area.color, 1);
+    }
 
     // Sky from above and sun from the north-west; both turn with the map.
     const sky = new HemisphereLight(0xffffff, 0x3a3a3a, 1.8);
