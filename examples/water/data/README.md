@@ -324,8 +324,9 @@ retrieval date and the SHA-256 of every cached file are in the
    some 0s probably mean "not reported" rather than "no service". Tunja's municipal total,
    for example, is 0.00 in 2021 and about 60–93 in neighbouring years. The values are
    left as published.
-   **Department capitals have no urban/rural REC split** in TerriData: the 31
-   municipalities whose code ends in `001`, including Bogotá, Medellín and Cali. Their
+   **Department capitals have no urban/rural REC split** in TerriData: the 31 capitals,
+   whose codes end in `001`, including Bogotá, Medellín and Cali. Agua de Dios (`25001`)
+   also ends in `001` but is not a capital and has the split. Their
    `water_coverage` / `sewer_coverage` are empty, and only `water_coverage_total` /
    `sewer_coverage_total` are available. The same is true of San Andrés (`88001`),
    Barrancominas (`94343`), the non-municipalised areas and Nuevo Belén de Bajirá.

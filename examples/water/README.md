@@ -129,8 +129,17 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 3. Render the site: `uv run quarto render` (the pre-render step runs `scripts/analysis.py` first).
 4. Check: `_site/index.html` lists one post, `_site/dashboard.html` shows a map that
    changes with the year slider, and `_site/whitepaper.pdf` opens with its references.
-5. Rejoin: if your site is not live yet, paste the two prompts on 🌍 *3:15 · Publish it*
+5. Rejoin: if your site is not live yet, paste the prompt and run the publish command on 🌍 *3:15 · Publish it*
    ([slide](https://project-delphi.github.io/quarto-workshop/#/water-ship)).
+
+## Publishing troubleshooting
+
+- The first `uv run quarto publish gh-pages` must be interactive: answer its question with
+  Enter. With `--no-prompt`, Quarto 1.6.40 stops with "the remote origin does not have a
+  branch named gh-pages". Once the `gh-pages` branch exists, `--no-prompt` works for updates.
+- A push that fails with `HTTP 400` (`RPC failed`, `the remote end hung up unexpectedly`)
+  usually succeeds after `git config http.postBuffer 524288000`.
+- A 404 right after publishing: wait a minute and reload.
 
 ## Notes
 

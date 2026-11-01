@@ -399,7 +399,7 @@ Give this project its own Python environment with `uv`: run `uv init --bare`, th
 :::
 ::: {.column width="45%"}
 ::: {.you}
-approve · preview from now on: `uv run quarto preview`
+approve · preview each page you make: `uv run quarto preview explore.qmd`
 :::
 :::
 ::::
@@ -762,7 +762,7 @@ would dominate.
 
 ::: {.prompt}
 ```default
-Read data/README.md. Create scripts/analysis.py with prepare(df): rows with entity_type "municipality", 2016–2023, with irca; features irca, water_coverage, sewer_coverage, ipm, rural_share, altitude_m, rainfall_mm, mdm, log(sgp_water_pc); "urban" rows of capitals (code ends 001) take *_total coverage, flagged in <col>_from_total. Run it.
+Read data/README.md. Create scripts/analysis.py with prepare(df): rows with entity_type "municipality", 2016–2023, with irca; features irca, water_coverage, sewer_coverage, ipm, rural_share, altitude_m, rainfall_mm, mdm, log(sgp_water_pc); fill missing coverage of capitals' "urban" rows (codes ending 001, except 25001) from *_total, flagged in <col>_from_total. Run it.
 ```
 :::
 
@@ -1324,7 +1324,7 @@ and not counted in the agenda.
 
 ::: {.prompt}
 ```default
-Create clusters.qmd that reads outputs/k_selection.csv and outputs/clusters.parquet and shows an elbow plot, a silhouette plot and a PCA scatter (pc1, pc2) coloured by cluster, each with a caption and alt text. Render it and tell me about errors.
+Create clusters.qmd that reads outputs/k_selection.csv and outputs/clusters.parquet and shows an elbow plot, silhouette by k and a PCA scatter (pc1, pc2) coloured by cluster, each with a caption and alt text. Render it and tell me about errors.
 ```
 :::
 
@@ -1997,7 +1997,7 @@ an effect). Checkpoint 09 holds the finished `scripts/analysis.py` and `clusters
 
 ::: {.prompt}
 ```default
-Create report.qmd (formats html, docx, typst) from outputs/: summary, question, data (IRCA = utility-supplied prestadores IRCA), method, heatmap, outcomes, correlation ≠ causation, limits, sources. Matplotlib figures with captions and alt text; hide code. Render all formats; report errors.
+Create report.qmd (formats html, docx, typst) from outputs/: summary, question, data (IRCA = utility-supplied prestadores IRCA), method, heatmap, outcomes, correlation ≠ causation (with its figure), limits, sources. Matplotlib figures with captions and alt text; hide code. Render all formats; report errors.
 ```
 :::
 
@@ -2025,7 +2025,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/10-water-report/README.md
 :::
 
 ::: {.done}
-`report.docx` and `report.pdf` open with the heatmap and the outcomes figure.
+`report.docx` and `report.pdf` open with the heatmap, the outcomes and the within-cluster figures.
 :::
 
 ::: {.notes}
@@ -2302,7 +2302,7 @@ components: https://quarto.org/docs/dashboards/ (checked 2026-10-30).
 
 ::: {.prompt}
 ```default
-Create dashboard.qmd (format: dashboard): a Plotly choropleth of "urban" IRCA band from data/municipios.geojson (featureidkey="properties.divipola"), a year slider (frames update only z), an itables table of outputs/clusters.parquet. Make it polished: IRCA bands in order from no risk to unfit, light to dark, with a legend, titled cards and readable labels. Add it to the navbar; render, check it looks good at laptop size and report errors.
+Create dashboard.qmd (format: dashboard): a Plotly choropleth of "urban" IRCA band from data/municipios.geojson (featureidkey="properties.divipola"), a year slider (frames update only z), an itables table of outputs/clusters.parquet (maxBytes=0); end each chart cell with `fig`. Make it polished: IRCA bands in order from no risk to unfit, light to dark, with a legend, titled cards and readable labels. Add it to the navbar; render, check it looks good at laptop size and report errors.
 ```
 :::
 
@@ -2391,18 +2391,12 @@ The finished dashboard is `quarto-workshop/examples/water/dashboard.qmd`.
 
 ::: {.prompt}
 ```default
-Initialise a git repository here with a .gitignore for _site/, .quarto/, .venv/ and outputs/, and commit everything else. Then create a public GitHub repository named `water-quality` with gh and push to it.
-```
-:::
-
-::: {.prompt}
-```default
-Publish the site with `uv run quarto publish gh-pages --no-prompt` and tell me the live URL.
+Initialise a git repository here with a .gitignore for _site/, .quarto/, .venv/, outputs/ and *_files/, and commit everything else. Then create a public GitHub repository named `water-quality` with gh and push to it.
 ```
 :::
 
 ::: {.you}
-approve the `gh` and `quarto publish` commands · open the live URL
+approve `gh` · second tab: `uv run quarto publish gh-pages`, Enter at "Publish site … (Y/n)" · open the live URL
 :::
 
 ::: {.check}
@@ -2426,9 +2420,11 @@ Catch me up: follow ../quarto-workshop/examples/water/README.md
 ::: {.notes}
 Same steps as Part 1. The assistant runs `gh repo create water-quality --public --source=.
 --push` with the `gh` sign-in from the setup check (https://cli.github.com/manual/gh_repo_create).
-`quarto publish gh-pages --no-prompt` skips the confirmation question an assistant cannot
-answer (`quarto publish --help`, Quarto 1.6.40); it renders locally (running the pre-render
-script), creates the `gh-pages` branch on its first run, pushes `_site/` and opens the site.
+As in Part 1, the first `quarto publish gh-pages` is the participant's: `--no-prompt` cannot
+create the `gh-pages` branch in Quarto 1.6.40. It renders locally (running the pre-render
+script), creates the branch, pushes `_site/` and opens the site; it took about two minutes in
+the dry run of 2026-11-01. Later updates can use `--no-prompt`. A push that fails with
+`HTTP 400` usually succeeds after `git config http.postBuffer 524288000`.
 A project site needs no Settings → Pages change; that page only shows the URL and status.
 Docs: https://quarto.org/docs/publishing/github-pages.html (checked 2026-10-30). The data is public (CC BY-SA 4.0 and CC BY 4.0 sources, see
 `data/README.md`), so publishing `data/` with the site is fine; keep the attributions. The 💬
@@ -2441,7 +2437,7 @@ so one `uv run quarto render` updates the report, slides, blog and dashboard tog
 
 ::: {.prompt}
 ```default
-Create whitepaper.qmd from outputs/: A4 Typst, "New Computer Modern", numbered sections: abstract, Introduction, Methods with equations, Results, Conclusions, References. Cite data/README.md's sources and the k-means, silhouette and ARI papers in references.bib; open each DOI. Add it to `render` and the "Downloads" menu; render; check equations and citations.
+Create whitepaper.qmd from outputs/: A4 Typst, "New Computer Modern"; an abstract (no inline code), numbered Introduction, Methods with equations, Results and Conclusions, then References via `#set bibliography(title: [References])`. Cite data/README.md's sources and the k-means, silhouette and ARI papers in references.bib; open each DOI. Add it to `render` and the "Downloads" menu; render; check equations and citations.
 ```
 :::
 
@@ -2457,7 +2453,7 @@ k-means [@lloyd1982] minimises @eq-kmeans.
 :::
 ::: {.column width="50%"}
 ::: {.agent}
-changes 3 files · `uv run quarto render whitepaper.qmd`
+`uv run quarto render whitepaper.qmd`
 :::
 
 ::: {.you}
@@ -2482,7 +2478,10 @@ Catch me up: follow ../quarto-workshop/examples/water/README.md
 
 ::: {.notes}
 The same article format as Part 1's white paper (#london-whitepaper): Typst styled like a
-LaTeX article, with no LaTeX install. New here are equations: `$$ … $$ {#eq-kmeans}` numbers
+LaTeX article, with no LaTeX install; `#set bibliography(title: [References])` goes in the
+Typst format's `include-in-header`, so the paper needs no References heading of its own. An
+inline expression in a YAML `abstract` fails (it runs before the setup cell), hence "no
+inline code". New here are equations: `$$ … $$ {#eq-kmeans}` numbers
 an equation and `@eq-kmeans` refers to it. The methods cite the papers behind each step:
 k-means, Lloyd (1982), https://doi.org/10.1109/TIT.1982.1056489; the silhouette,
 Rousseeuw (1987), https://doi.org/10.1016/0377-0427(87)90125-7; the adjusted Rand index,
@@ -2496,7 +2495,7 @@ causal. The finished paper, `quarto-workshop/examples/water/whitepaper.qmd`, als
 WHO drinking-water fact sheet and Robinson (1950) on ecological correlation. Docs:
 https://quarto.org/docs/authoring/cross-references.html and
 https://quarto.org/docs/authoring/citations.html (checked 2026-11-01). To update the live
-site, paste the publish prompt again. Optional and self-paced: not counted in the agenda.
+site, ask the assistant to run `uv run quarto publish gh-pages --no-prompt`. Optional and self-paced: not counted in the agenda.
 :::
 
 ## 🚀 Extra challenges {#water-stretch}
