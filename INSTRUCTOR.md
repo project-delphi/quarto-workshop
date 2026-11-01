@@ -15,10 +15,11 @@ The workshop is designed as a **3 h 20 min hands-on session** (200 minutes total
 | **0:10** (5m) | Setup Check & Boxes | Triage broken pre-work; explain the three boxes | — |
 | **0:15** (20m) | Part 1: London in Markdown | First render, project rules (`AGENTS.md`), uv environment | `checkpoints/01-london-markdown` |
 | **0:35** (10m) | Part 1: `.md` → `.qmd` | YAML headers, Python cells, multi-format export (docx/pdf) | `checkpoints/02-london-qmd` |
-| **0:45** (9m) | Part 1: Four Audiences | Parallel sub-agents writing flyer, email, social ad, dashboard | `checkpoints/04-london-audiences` |
+| **0:45** (9m) | Part 1: Three Audiences | Parallel sub-agents writing flyer, email, dashboard (⭐ social ad is self-paced) | `checkpoints/04-london-audiences` |
 | **0:54** (11m) | Part 1: Publish to GitHub Pages | First interactive publish to GitHub Pages | `examples/london` |
-| **1:05** (10m) | **Break & Catch-up** | Rest, pair struggling participants, verify live sites | — |
-| **1:15** (125m) | Part 2: Colombia Water Safety | Explore, prepare, cluster, report, dashboard, multi-site publish | `checkpoints/05`–`13`, `examples/water` |
+| **1:05** (5m) | Part 1: Change an Input | No supplied prompt: change a value, rebuild, explain which outputs update | `examples/london` |
+| **1:10** (10m) | **Break & Catch-up** | Rest, pair struggling participants, verify live sites | — |
+| **1:20** (120m) | Part 2: Colombia Water Safety | Explore, prepare, cluster, report, multi-site publish, change an input (⭐ dashboard is self-paced) | `checkpoints/05`–`13`, `examples/water` |
 | **3:20** | **Wrap-up** | Showcase live websites; next steps | — |
 
 ---
@@ -67,7 +68,7 @@ From Part 2's *Cluster* block onward, the analysis offers two paths:
 ## 5. Publishing Pacing & Common Failure Points
 
 ### First Publish Takes ~2 Minutes
-During `#london-publish` (0:54) and `#water-ship` (3:13):
+During `#london-publish` (0:54) and `#water-ship` (3:07):
 - Rendering pre-computations and generating assets takes 40–50 seconds.
 - Pushing 12–20 MB of site assets to GitHub Pages takes 20–40 seconds.
 - GitHub Pages CDN deployment takes 30–60 seconds.
