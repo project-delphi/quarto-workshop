@@ -1426,10 +1426,12 @@ use a lighter blue for cluster 1 as text, so every label has at least 4.5:1 cont
 #| label: wat-names
 #| echo: false
 #| output: asis
-# From here on the deck calls the clusters by these names. wat_tick breaks a name before
-# its risk word; wat_kind drops the risk word, for panels whose axis is the IRCA band.
-wat_tick = {wat_c: f"{wat_c} · " + ",\n".join(wat_n.rsplit(", ", 1)) for wat_c, wat_n in wat_names.items()}
+# From here on the deck calls the clusters by these names. wat_kind drops a name's risk
+# word (rsplit: the rural name has two commas), for panels whose axis is the IRCA band;
+# wat_lines breaks the name before it, for tick labels, and wat_tick adds the id.
 wat_kind = {wat_c: wat_n.rsplit(", ", 1)[0] for wat_c, wat_n in wat_names.items()}
+wat_lines = {wat_c: f"{wat_kind[wat_c]},\n{wat_n.rsplit(', ', 1)[1]}" for wat_c, wat_n in wat_names.items()}
+wat_tick = {wat_c: f"{wat_c} · {wat_l}" for wat_c, wat_l in wat_lines.items()}
 print("| | Kind | Zone-years | Municipalities | Median IRCA |")
 print("|---|---|--:|--:|--:|")
 for wat_c, wat_p in wat_prof.iterrows():
@@ -1608,9 +1610,7 @@ for wat_i, (wat_col, wat_lab) in enumerate(wat_vars.items()):
             for wat_part in ("whiskers", "caps"):
                 for wat_line in wat_bp[wat_part][2 * wat_j:2 * wat_j + 2]:
                     wat_line.set(color=wat_colors[wat_c], linewidth=2)
-        # Break each name before its risk word; the rural name has two commas.
-        wat_ax.set_xticks(range(1, len(wat_ids) + 1),
-                          [",\n".join(wat_names[wat_c].rsplit(", ", 1)) for wat_c in wat_ids],
+        wat_ax.set_xticks(range(1, len(wat_ids) + 1), [wat_lines[wat_c] for wat_c in wat_ids],
                           fontsize=13)
         for wat_t, wat_c in zip(wat_ax.get_xticklabels(), wat_ids):
             wat_t.set_color(wat_analysis.CLUSTER_TEXT_COLORS["dark"][wat_c - 1])
@@ -1814,7 +1814,7 @@ direction, such as `{python} wat_ex_text`. Then ask whether the cluster's name s
 #| label: fig-wat-within
 #| echo: false
 #| fig-cap: "Median infant mortality by utility-supplied (prestadores) IRCA band, per cluster. Infant mortality changes method in 2017, and 2020 looks like another source: 2017–2019 and 2021–2023 are pooled. Bands under 20 municipality-years are not drawn."
-#| fig-alt: "Four small panels, one per cluster: cities and large towns, highland towns, lowland towns, and rural, low-coverage. Each shows median infant mortality across the five IRCA risk bands, labelled N, L, M, H and U for no risk, low, medium, high and unfit. The lines are nearly flat in every cluster, and the Spearman correlations printed on the panels are all close to zero."
+#| fig-alt: "Four small panels, one per cluster, each titled with the cluster's number and name. Each shows median infant mortality across the five IRCA risk bands, labelled N, L, M, H and U for no risk, low, medium, high and unfit. The lines are nearly flat in every cluster, and the Spearman correlations printed on the panels are all close to zero."
 wat_rho = wat_res["irca_infant"].set_index("cluster")
 wat_bins = wat_res["irca_infant_bins"]
 wat_bins = wat_bins[wat_bins["n"] >= 20]
