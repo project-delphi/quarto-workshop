@@ -3,7 +3,9 @@
 // coloured by cluster, standing on the national and department borders. The deck cell
 // computes the columns, borders and city labels in km; this scene only draws them
 // (stage.js). Altitude is the scene's y axis, so the stage turns the map about its
-// vertical; north is -z.
+// vertical; north is -z. The London map (slides/_london.qmd, #london-map) reuses it in
+// metres: a column per sight as tall as its visits, short markers for the churches, the
+// borough borders and the Thames, and data.footprint for its wider columns.
 import {
   BoxGeometry, BufferAttribute, BufferGeometry, DirectionalLight, HemisphereLight,
   InstancedMesh, LineBasicMaterial, LineSegments, MeshLambertMaterial, Object3D, Vector3,
@@ -94,7 +96,7 @@ export const relief = {
   build(group, data, el) {
     const [x0, x1, y0, y1] = data.extent;
     const half = Math.max(x1 - x0, y1 - y0) / 2;
-    const width = half * 0.014; // column footprint, km
+    const width = data.footprint ?? half * 0.014; // column footprint, in the map's units
     const box = new BoxGeometry(1, 1, 1).translate(0, 0.5, 0); // stands on the map
     const top = (altitude) => Math.max((altitude / 1000) * data.exaggeration, width * 0.3);
     const place = new Object3D();
@@ -136,9 +138,11 @@ export const relief = {
     group.add(sky, sun, sun.target);
 
     // The .place-label elements, in data.cities order (x, y, altitude, cluster), each at the
-    // top of its city's column; they dim with their cluster in the focus view.
+    // top of its city's column; they dim with their cluster in the focus view. Without
+    // data.cities, label k names column k (the London map labels every column).
+    const places = data.cities ?? data.cols;
     const cities = [...el.querySelectorAll(".place-label")].map((label, k) => {
-      const [x, y, altitude, cluster] = data.cities.slice(k * 4, k * 4 + 4);
+      const [x, y, altitude, cluster] = places.slice(k * 4, k * 4 + 4);
       return { label, to: new Vector3(x, top(altitude), -y), cluster, weight: 1 };
     });
     const labelState = { cities, el };
@@ -146,6 +150,9 @@ export const relief = {
     return {
       centre: [(x0 + x1) / 2, 0, -(y0 + y1) / 2],
       half,
+      // Face on, the map is fitted by its north-south half-range (and its aspect), so a
+      // map wider than tall, such as London's, is not drawn too small.
+      fitHalf: (y1 - y0) / 2,
       aspect: (x1 - x0) / (y1 - y0),
       labels: cities,
       arrange: (spots, w, h) => labelState.cities.length && arrangeLabels(labelState, spots, w, h),

@@ -10,12 +10,17 @@ that step later.
 |---|---|
 | `water_municipal.csv` | the analysis table (UTF-8, comma-separated, empty cell = missing) |
 | `municipios.geojson` | simplified DANE municipal boundaries (WGS84) for maps, joined on `divipola` |
-| `README.md` | this guide; the blocks marked "generated" are rewritten by the build script |
+| `README.md` | this guide; the blocks marked "generated" are rewritten by the build script, `examples/water/scripts/build_dataset.py` in the `quarto-workshop` repository (it is not copied with `data/`) |
 | `raw/` | cached downloads and `raw/manifest.json`. Git ignores this folder. |
 
 <!-- BEGIN GENERATED: summary -->
-Rows: **31,416** (1,122 DIVIPOLA codes × 2 zones × 14 years); columns: **28**; file size 5.1 MB. GeoJSON: 1,121 polygons, 2.70 MB, simplification tolerance 0.0039°; CSV codes without a polygon: 27493. Built 2026-10-30.
+Rows: **31,416** (1,122 DIVIPOLA codes × 2 zones × 14 years); columns: **29**; file size 5.1 MB. GeoJSON: 1,121 polygons, 2.70 MB, simplification tolerance 0.0039°; CSV codes without a polygon: 27493. Built 2026-11-01.
 <!-- END GENERATED: summary -->
+
+The `department_capital` column was added on 2026-11-01 by running the build script's
+`department_capital()` on the 2026-10-30 build, without downloading the sources again;
+every other value is unchanged, and the summary and coverage blocks above and below were
+rewritten by the script's own `summary_text()` and `coverage_table()`.
 
 ## Unit of analysis
 
@@ -35,8 +40,8 @@ Rows: **31,416** (1,122 DIVIPOLA codes × 2 zones × 14 years); columns: **28**;
   marked "zone-specific" below differ between the urban and rural rows. If you sum or
   average a municipality-level column over all rows, count each municipality-year only
   once.
-- **Static variables** (`region`, `entity_type`, `rurality_category`, `altitude_m`,
-  `ipm`) have one value per municipality (or municipality × zone for `ipm`), repeated
+- **Static variables** (`region`, `entity_type`, `department_capital`,
+  `rurality_category`, `altitude_m`, `ipm`) have one value per municipality (or municipality × zone for `ipm`), repeated
   in every year.
 
 ## Column dictionary
@@ -52,6 +57,7 @@ table below lists the years each column actually has data.
 | `departamento` | department name as written in DIVIPOLA | text | – | DIVIPOLA |
 | `region` | DANE region of the department: Caribe, Centro Oriente, Centro Sur, Eje Cafetero, Llanos, Pacífico or Bogotá | category | – (static) | DNP TerriData Dim1, indicator "Región" (source given as DANE), department rows |
 | `entity_type` | `municipality`, `island` (San Andrés) or `non_municipalised_area` | category | – (static) | DIVIPOLA `tipo_municipio` |
+| `department_capital` | 1 for the 32 department capitals, else 0. DIVIPOLA numbers each capital `001` (`05001` Medellín, `11001` Bogotá D.C.); Cundinamarca's capital is Bogotá, so its own `25001` (Agua de Dios) is 0. The build checks one capital per department. | 0/1 | – (static) | derived from DIVIPOLA codes |
 | `zone` | `urban` (cabecera) or `rural` (centros poblados y rural disperso) | category | key | – |
 | `year` | calendar year | year | key | – |
 | `irca` | *Índice de Riesgo de la Calidad del Agua para consumo humano*: INS risk score for drinking water quality, from the surveillance samples of the year. 0 means no risk and 100 means unfit. The bands in Resolución 2115 de 2007, art. 15, are 0–5 no risk, 5.1–14 low, 14.1–35 medium, 35.1–80 high and 80.1–100 *inviable sanitariamente* (unfit). **This is utility-supplied ("prestadores") IRCA; see the caveats.** | % (0–100) | ✅ | INS, datos.gov.co `nxt2-39c3`, columns `ircaurbano` / `ircarural` (CC BY-SA 4.0) |
@@ -86,6 +92,7 @@ table below lists the years each column actually has data.
 | `departamento` | 100.0 | 2010–2023 | 100.0 |
 | `region` | 100.0 | 2010–2023 | 100.0 |
 | `entity_type` | 100.0 | 2010–2023 | 100.0 |
+| `department_capital` | 100.0 | 2010–2023 | 100.0 |
 | `zone` | 100.0 | 2010–2023 | 100.0 |
 | `year` | 100.0 | 2010–2023 | 100.0 |
 | `irca` | 66.3 | 2010–2023 | 66.3 (urban 85.5 / rural 47.1) |
@@ -324,12 +331,12 @@ retrieval date and the SHA-256 of every cached file are in the
    some 0s probably mean "not reported" rather than "no service". Tunja's municipal total,
    for example, is 0.00 in 2021 and about 60–93 in neighbouring years. The values are
    left as published.
-   **Department capitals have no urban/rural REC split** in TerriData: the 31 capitals,
-   whose codes end in `001`, including Bogotá, Medellín and Cali. Agua de Dios (`25001`)
-   also ends in `001` but is not a capital and has the split. Their
+   **Department capitals have no urban/rural REC split** in TerriData: the rows with
+   `department_capital == 1`, including Bogotá, Medellín and Cali. Their
    `water_coverage` / `sewer_coverage` are empty, and only `water_coverage_total` /
-   `sewer_coverage_total` are available. The same is true of San Andrés (`88001`),
-   Barrancominas (`94343`), the non-municipalised areas and Nuevo Belén de Bajirá.
+   `sewer_coverage_total` are available, except for San Andrés (`88001`), which has
+   neither. The zone values are also empty for Barrancominas (`94343`), the
+   non-municipalised areas and Nuevo Belén de Bajirá.
    If you cluster on zone-specific coverage, decide explicitly how to treat capitals, for
    example by using the municipal total for the urban zone and saying so. Do not do it
    silently. The total REC series has two monthly cuts in 2016 and 2018 (September and
@@ -378,7 +385,9 @@ retrieval date and the SHA-256 of every cached file are in the
 14. **Polygon winding.** `municipios.geojson` follows RFC 7946: exterior rings run
     counter-clockwise. Plotly and d3 maps expect the opposite winding and draw each
     municipality inverted (the world minus the polygon). Reverse the rings in memory
-    before `go.Choropleth`, as `scripts/analysis.py` does in `load_geojson()`.
+    before `go.Choropleth`, as the finished project's `scripts/analysis.py` does in
+    `load_geojson()` (`quarto-workshop/examples/water/`; your own project gets that
+    script later in Part 2).
 
 ### TODO: sources not included
 
@@ -398,8 +407,9 @@ retrieval date and the SHA-256 of every cached file are in the
 
 ## Rebuilding
 
-From the repository root (needs [uv](https://docs.astral.sh/uv/) and an internet
-connection the first time):
+From the root of the `quarto-workshop` repository, which holds the build script (a
+participant's copy of `data/` does not; it needs [uv](https://docs.astral.sh/uv/) and an
+internet connection the first time):
 
 ```bash
 uv run examples/water/scripts/build_dataset.py            # reuse cached downloads in data/raw/

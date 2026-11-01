@@ -16,7 +16,7 @@ Catch me up: follow ../quarto-workshop/examples/london/README.md
 
 The steps, run inside `london-guide/` (by the assistant, or by you in a terminal):
 
-1. Keep your work: `cp -R . "../london-guide-backup-final-$(date +%Y%m%d-%H%M%S)"` (a new time-stamped copy beside `london-guide/`, so earlier backups are kept).
+1. Keep your work, all but the `.venv/` environment (`uv run` rebuilds it from `uv.lock`): `b="../london-guide-backup-final-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclude=.venv . | tar -xf - -C "$b"` (a new time-stamped copy beside `london-guide/`, so earlier backups are kept).
 2. Copy the finished project here: `cp -R ../quarto-workshop/examples/london/. .`
 3. If you have published already, keep your repository's README, which step 2 overwrote: `git checkout -- README.md`.
 4. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.

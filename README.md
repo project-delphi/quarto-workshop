@@ -59,9 +59,10 @@ Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
 ```
 
 Each checkpoint README lists the steps, which also work by hand from inside your project
-folder: back up the folder to a new time-stamped `../<folder>-backup-NN-<time>` (earlier
-backups are kept), copy the checkpoint in, copy the water `data/` if it is missing (Part 2
-checkpoints hold sources only), render, check a named output, and rejoin at the slide the
+folder: back up the folder, all but its `.venv/` (`uv run` rebuilds it), to a new
+time-stamped `../<folder>-backup-NN-<time>` (earlier backups are kept), copy the
+checkpoint in, copy the water `data/` if it is missing (Part 2 checkpoints hold sources
+only), render, check a named output, and rejoin at the slide the
 README names. A checkpoint is the state at the end of its block, so it can be ahead of the
 step you are on: skip the block's remaining prompts and follow the slides until the next ⏱️
 block, where everyone is hands-on together again. The finished projects, `examples/london/`
@@ -85,7 +86,7 @@ the diff.
 | 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment |
 | 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, docx + PDF |
 | 0:45 | 🗂️ Part 1 · Four audiences, 🤖 sub-agents in parallel |
-| 0:55 | 🌍 Part 1 · Publish to GitHub Pages |
+| 0:54 | 🌍 Part 1 · Publish to GitHub Pages |
 | 1:05 | ☕ Break · 🛟 catch up |
 | 1:15 | 💧 Part 2 · Colombia water quality and infant mortality (125 min) |
 | 3:20 | 🏁 Done |
@@ -100,7 +101,7 @@ the diff.
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, ⭐ white paper, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
-| `assets/` | Hub and publishing diagrams (SVG); `deck-3d/` builds the three.js bundle for the two 3-D slides in Part 2 |
+| `assets/` | Hub and publishing diagrams (SVG); `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief) |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |

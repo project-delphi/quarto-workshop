@@ -16,13 +16,16 @@ const near = (a, b) => b + Math.atan2(Math.sin(a - b), Math.cos(a - b));
 // scene.views(data) names the views: rx tilts towards the reader, ry turns about the
 // vertical axis, zoom divides the fitted distance, spin turns ry (rad/s), focus fades the
 // other groups, and centre (optional) is the point the view turns about.
-// scene.build(group, data, el) adds its objects to group and returns { centre, half, aspect,
-// labels: [{ label, from, to, weight, hidden }], focus(t), arrange? }: the data's centre and
-// largest half-range, its face-on width/height, HTML labels drawn at to (with from, a line's
-// end: they fade as the line turns towards the reader; without, a place: hidden while off
-// the canvas), a callback that fades the unfocused groups by t (0 to 1) and labels by
-// weight, and optional arrange(spots, w, h), which lays the labels out on screen each frame
-// and sets hidden on those that do not fit, and remeasure(), called once fonts load.
+// scene.build(group, data, el) adds its objects to group and returns { centre, half, fitHalf?,
+// aspect, labels: [{ label, from, to, weight, hidden }], focus(t), arrange? }: the data's
+// centre and largest half-range (it scales the camera's range, fog and settling), the
+// face-on half-height to fit to the canvas (default half, a margin for a scene that turns
+// its longest axis into view), its face-on width/height, HTML labels drawn at to (with
+// from, a line's end: they fade as the line turns towards the reader; without, a place:
+// hidden while off the canvas), a callback that fades the unfocused groups by t (0 to 1)
+// and labels by weight, and optional arrange(spots, w, h), which lays the labels out on
+// screen each frame and sets hidden on those that do not fit, and remeasure(), called once
+// fonts load.
 export function stage(el, deck, sceneType) {
   const data = JSON.parse(el.querySelector("script[type='application/json']").textContent);
   const slide = el.closest("section");
@@ -96,9 +99,10 @@ export function stage(el, deck, sceneType) {
     return true;
   }
 
-  // Camera distance at which the data's largest half-range fits the canvas height, and the
-  // distance for the current view and wheel zoom.
-  const fit = () => (world.half * 1.1) / Math.tan((FOV * Math.PI) / 360) /
+  // Camera distance at which the data's face-on half-height fits the canvas height and its
+  // half-width (half-height × aspect) the canvas width, and the distance for the current
+  // view and wheel zoom.
+  const fit = () => ((world.fitHalf ?? world.half) * 1.1) / Math.tan((FOV * Math.PI) / 360) /
     Math.min(1, camera.aspect / world.aspect);
   const aim = () => (fit() / view.zoom) * zoom;
 
