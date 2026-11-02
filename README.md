@@ -103,15 +103,15 @@ the diff.
 | Time | Block | Slide |
 |---|---|---|
 | 0:00 | 👋 Welcome · 🎯 objective · 🏁 outcome | [Slide](https://project-delphi.github.io/quarto-workshop/#/objective) |
-| 0:05 | 🧭 What is Quarto? | [Slide](https://project-delphi.github.io/quarto-workshop/#/what-is-quarto) |
-| 0:10 | 🛠️ Setup check · 🧰 boxes · 🗣️ prompting (install, test run and Markdown are pre-work) | [Slide](https://project-delphi.github.io/quarto-workshop/#/setup-check) |
+| 0:05 | 🧭 What Is Quarto? | [Slide](https://project-delphi.github.io/quarto-workshop/#/what-is-quarto) |
+| 0:10 | 🛠️ Setup Check · 🧰 boxes · 🗣️ prompting (install, test run and Markdown are pre-work) | [Slide](https://project-delphi.github.io/quarto-workshop/#/setup-check) |
 | 0:15 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-1) |
 | 0:35 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, docx + PDF | [Slide](https://project-delphi.github.io/quarto-workshop/#/md-to-qmd) |
 | 0:45 | 🗂️ Part 1 · Three audiences, 🤖 sub-agents in parallel | [Slide](https://project-delphi.github.io/quarto-workshop/#/five-audiences) |
 | 0:54 | 🌍 Part 1 · Publish to GitHub Pages | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-publish) |
-| 1:05 | 🔁 Part 1 · Change an input, rebuild, explain | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-change) |
+| 1:05 | 🔁 Part 1 · Change an Input, Rebuild, Explain | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-change) |
 | 1:10 | ☕ Break · 🛟 catch up | [Slide](https://project-delphi.github.io/quarto-workshop/#/break) |
-| 1:20 | 💧 Part 2 · Colombia water safety and infant mortality (120 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
+| 1:20 | 💧 Part 2 · Colombia Water Safety and Infant Mortality (120 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
 | 3:20 | 🏁 Done | |
 
 ## For instructors and contributors
