@@ -25,15 +25,27 @@ const near = (a, b) => b + Math.atan2(Math.sin(a - b), Math.cos(a - b));
 // hidden while off the canvas), a callback that fades the unfocused groups by t (0 to 1)
 // and labels by weight, and optional arrange(spots, w, h), which lays the labels out on
 // screen each frame and sets hidden on those that do not fit, and remeasure(), called once
-// fonts load.
+// fonts load. A scene that changes over time (meta-*.js) also returns setState(i), which
+// picks one of data.states (a year), setCluster(c), which focuses cluster c (0 = all), and
+// animate(dt) -> moving, which steps its lerps and springs by dt seconds (Infinity finishes
+// them) and tells the stage to keep drawing while it returns true. The stage owns the year
+// and cluster: buttons .t-picker [data-state], .c-picker [data-cluster], a .t-play button
+// (the years play by themselves until fixed) and fragments data-step="i" all go through
+// pick() and pickCluster() (a fragment moves one year on, or back). data-source names a
+// shared JSON script (by id); its slide must come first in the deck.
 export function stage(el, deck, sceneType) {
-  const data = JSON.parse(el.querySelector("script[type='application/json']").textContent);
+  const source = el.dataset.source ? document.getElementById(el.dataset.source)
+    : el.querySelector("script[type='application/json']");
+  if (!source) throw new Error(`3-D slide: no data script "${el.dataset.source}" on the page`);
+  const data = JSON.parse(source.textContent);
   const slide = el.closest("section");
   const views = sceneType.views(data);
   const printing = deck.isPrintView?.() ?? document.documentElement.classList.contains("reveal-print");
   let renderer, scene, camera, outer, inner, world, raf = 0, last = 0, userUntil = 0;
   let view = views.flat;
   let zoom = 1; // the reader's wheel zoom within the current view
+  let state = 0, cluster = 0, lastFragment = 0; // the year and cluster the reader picked
+  let playing = false, timer = 0;
   const cur = Object.fromEntries(KEYS.map((key) => [key, 0]));
   const target = { ...cur };
 
@@ -96,6 +108,8 @@ export function stage(el, deck, sceneType) {
     setView(view);
     resize();
     Object.assign(cur, target);
+    pick(state, true);
+    pickCluster(cluster, true);
     return true;
   }
 
@@ -117,6 +131,55 @@ export function stage(el, deck, sceneType) {
     draw();
     start();
   }
+
+  // Choose year i (a button, a fragment or the autoplay); now = skip the animation.
+  function pick(i, now = false) {
+    state = i;
+    el.querySelectorAll(".t-picker [data-state]").forEach((b) => {
+      b.setAttribute("aria-pressed", String(Number(b.dataset.state) === i));
+    });
+    const note = slide.querySelector(".t-note");
+    if (note && data.states?.[i]?.note) note.textContent = data.states[i].note;
+    if (!world?.setState) return;
+    world.setState(i);
+    if (now) world.animate?.(Infinity);
+    start();
+  }
+  // Choose cluster c (0 = all) to keep in colour.
+  function pickCluster(c, now = false) {
+    cluster = c;
+    el.querySelectorAll(".c-picker [data-cluster]").forEach((b) => {
+      b.setAttribute("aria-pressed", String(Number(b.dataset.cluster) === c));
+    });
+    if (!world?.setCluster) return;
+    world.setCluster(c);
+    if (now) world.animate?.(Infinity);
+    start();
+  }
+  // The years play on by themselves, one every few seconds, until the reader fixes one.
+  function play(on) {
+    on = on && !reduceMotion.matches && !printing; // with motion off nothing plays: show ▶ play
+    playing = on;
+    clearInterval(timer);
+    const button = el.querySelector(".t-play");
+    if (button) {
+      button.setAttribute("aria-pressed", String(on));
+      button.textContent = on ? "⏸ fix" : "▶ play";
+    }
+    if (on) {
+      timer = setInterval(() => {
+        if (deck.getCurrentSlide() === slide && !document.hidden) pick((state + 1) % data.states.length);
+      }, 3500);
+    }
+  }
+  el.querySelector(".t-play")?.addEventListener("click", () => play(!playing));
+  el.querySelectorAll(".t-picker [data-state]").forEach((b) => b.addEventListener("click", () => {
+    play(false);
+    pick(Number(b.dataset.state));
+  }));
+  el.querySelectorAll(".c-picker [data-cluster]").forEach((b) => b.addEventListener("click", () => {
+    pickCluster(Number(b.dataset.cluster));
+  }));
 
   function setView(next) {
     view = next;
@@ -169,8 +232,9 @@ export function stage(el, deck, sceneType) {
     if (view.spin && !still && t > userUntil) target.ry += view.spin * dt;
     const k = still ? 1 : 1 - Math.exp(-dt * 2.5);
     for (const key of KEYS) cur[key] += (target[key] - cur[key]) * k;
+    const moving = world.animate?.(still ? Infinity : dt) ?? false;
     draw();
-    const settled = KEYS.every((key) => Math.abs(target[key] - cur[key]) < 1e-3 * (key === "dist" || key[0] === "c" ? world.half : 1));
+    const settled = !moving && KEYS.every((key) => Math.abs(target[key] - cur[key]) < 1e-3 * (key === "dist" || key[0] === "c" ? world.half : 1));
     raf = settled && !(view.spin && !still) ? 0 : requestAnimationFrame(frame);
   }
 
@@ -184,6 +248,18 @@ export function stage(el, deck, sceneType) {
   function update() {
     const shown = [...slide.querySelectorAll("[data-view].visible")].pop();
     setView(views[shown?.dataset.view] ?? views.flat);
+    // The last shown fragment's year; stepping the fragments fixes the years.
+    const step = [...slide.querySelectorAll("[data-step].visible")].pop();
+    const fromFragments = Number(step?.dataset.step ?? 0);
+    if (fromFragments !== lastFragment) {
+      // → moves on from the year now shown (after autoplay or a click too), ← moves back;
+      // print shows every fragment, so the last year.
+      const next = printing ? fromFragments
+        : Math.max(0, Math.min(data.states.length - 1, state + Math.sign(fromFragments - lastFragment)));
+      lastFragment = fromFragments;
+      play(false);
+      pick(next, printing);
+    }
     if (printing) {
       if (renderer || build()) {
         resize();
@@ -211,5 +287,6 @@ export function stage(el, deck, sceneType) {
     cancelAnimationFrame(raf);
     raf = 0;
   });
+  play(el.querySelector(".t-play") !== null); // a time-based scene starts playing its years
   update();
 }
