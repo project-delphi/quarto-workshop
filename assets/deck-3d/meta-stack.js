@@ -57,7 +57,7 @@ export const metaStack = {
 
     const y = new Float32Array(layers), yT = new Float32Array(layers);
     const alpha = new Float32Array(layers), alphaT = new Float32Array(layers);
-    let focus = 0;
+    let focus = 0, settled = false;
     function recolour() {
       planes.forEach((p, s) => {
         for (let i = 0; i < n; i++) {
@@ -82,7 +82,13 @@ export const metaStack = {
       links.forEach((l) => {
         const a = planes[l.s], b = planes[l.s + 1], arr = l.geometry.attributes.position.array;
         l.ids.forEach((i, j) => {
-          arr.set([a.pos[i * 3], y[l.s], a.pos[i * 3 + 2], b.pos[i * 3], y[l.s + 1], b.pos[i * 3 + 2]], j * 6);
+          const o = j * 6;
+          arr[o] = a.pos[i * 3];
+          arr[o + 1] = y[l.s];
+          arr[o + 2] = a.pos[i * 3 + 2];
+          arr[o + 3] = b.pos[i * 3];
+          arr[o + 4] = y[l.s + 1];
+          arr[o + 5] = b.pos[i * 3 + 2];
         });
         l.geometry.attributes.position.needsUpdate = true;
         l.material.opacity = l.opacity * Math.min(alpha[l.s], alpha[l.s + 1]);
@@ -107,12 +113,14 @@ export const metaStack = {
       },
       setCluster(c) {
         focus = c;
+        settled = false;
         recolour();
       },
       animate(dt) {
         const k = ease(dt, 3.5);
         const moving = chase(y, yT, k) | chase(alpha, alphaT, k);
-        update();
+        if (moving || !settled) update();
+        settled = !moving;
         return Boolean(moving);
       },
     });

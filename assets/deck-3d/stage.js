@@ -31,10 +31,12 @@ const near = (a, b) => b + Math.atan2(Math.sin(a - b), Math.cos(a - b));
 // them) and tells the stage to keep drawing while it returns true. The stage owns the year
 // and cluster: buttons .t-picker [data-state], .c-picker [data-cluster], a .t-play button
 // (the years play by themselves until fixed) and fragments data-step="i" all go through
-// pick() and pickCluster(). data-source names a shared JSON script (by id).
+// pick() and pickCluster() (a fragment moves one year on, or back). data-source names a
+// shared JSON script (by id); its slide must come first in the deck.
 export function stage(el, deck, sceneType) {
   const source = el.dataset.source ? document.getElementById(el.dataset.source)
     : el.querySelector("script[type='application/json']");
+  if (!source) throw new Error(`3-D slide: no data script "${el.dataset.source}" on the page`);
   const data = JSON.parse(source.textContent);
   const slide = el.closest("section");
   const views = sceneType.views(data);
@@ -156,6 +158,7 @@ export function stage(el, deck, sceneType) {
   }
   // The years play on by themselves, one every few seconds, until the reader fixes one.
   function play(on) {
+    on = on && !reduceMotion.matches && !printing; // with motion off nothing plays: show ▶ play
     playing = on;
     clearInterval(timer);
     const button = el.querySelector(".t-play");
@@ -163,7 +166,7 @@ export function stage(el, deck, sceneType) {
       button.setAttribute("aria-pressed", String(on));
       button.textContent = on ? "⏸ fix" : "▶ play";
     }
-    if (on && !reduceMotion.matches && !printing) {
+    if (on) {
       timer = setInterval(() => {
         if (deck.getCurrentSlide() === slide && !document.hidden) pick((state + 1) % data.states.length);
       }, 3500);
@@ -249,9 +252,13 @@ export function stage(el, deck, sceneType) {
     const step = [...slide.querySelectorAll("[data-step].visible")].pop();
     const fromFragments = Number(step?.dataset.step ?? 0);
     if (fromFragments !== lastFragment) {
+      // → moves on from the year now shown (after autoplay or a click too), ← moves back;
+      // print shows every fragment, so the last year.
+      const next = printing ? fromFragments
+        : Math.max(0, Math.min(data.states.length - 1, state + Math.sign(fromFragments - lastFragment)));
       lastFragment = fromFragments;
       play(false);
-      pick(fromFragments, printing);
+      pick(next, printing);
     }
     if (printing) {
       if (renderer || build()) {

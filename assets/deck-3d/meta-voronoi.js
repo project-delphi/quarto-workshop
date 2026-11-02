@@ -1,8 +1,9 @@
 // Voronoi extrusion (slides/_water.qmd, #water-meta-voronoi): the Saber 11 x infant-mortality
 // plane is split into the cells nearest each cluster's mean, and each cell is raised to its
 // cluster's mean school dropout. A new year moves the borders and re-extrudes the cells;
-// a focused cluster keeps its colour and the other cells fade. The deck cell computes which cluster owns each square of a 36 x 36 grid and the
-// means; the squares ease in height and colour, so borders slide.
+// a focused cluster keeps its colour and the other cells fade. The deck cell computes which
+// cluster owns each square of a 36 x 36 grid (nearest mean on the clipped 0-1 scales) and
+// the means; the squares ease in height and colour, so borders slide.
 import {
   BoxGeometry, Color, InstancedMesh, Matrix4, Mesh, MeshLambertMaterial, SphereGeometry,
 } from "three";

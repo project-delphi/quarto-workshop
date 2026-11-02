@@ -13,12 +13,15 @@ The workshop deck's three three.js slides:
   `data.water` the fills).
 
 - `meta.js` and `meta-*.js` draw Part 2's five optional slides (`#water-meta-terrain`, `-hulls`,
-  `-stack`, `-orbits`, `-voronoi`): the outcomes the clustering never used (Saber 11,
-  infant mortality, school dropout) per municipality under k-means with k = 2 to 5. All six read
-  one shared JSON (`data-source`); buttons `.k-picker [data-state]` and fragments
-  `data-step` pick k. A scene's `setState(i)` sets targets and `animate(dt)` eases or springs
-  towards them (`dt` = Infinity finishes at once, for reduced motion and PDF export).
-  Hulls use three.js's `ConvexGeometry` (examples/jsm, bundled).
+  `-stack`, `-orbits`, `-voronoi`): the outcomes the clustering never used (Saber 11, infant
+  mortality, school dropout) per municipality and year, on the clusters the deck already chose
+  (k fixed). A scene's state is a year (2017, 2019, 2022) and its focus a cluster (0 = all). All
+  five read one shared JSON (`data-source`, embedded in the first of them, so keep it first).
+  The stage owns the state: `.t-picker [data-state]` year buttons, a `.t-play` button (the
+  years autoplay until fixed), `.c-picker [data-cluster]` buttons and fragments `data-step`
+  (→ one year on) all go through it. A scene's `setState(i)` and `setCluster(c)` set targets
+  and `animate(dt)` eases or springs towards them (`dt` = Infinity finishes at once, for
+  reduced motion and PDF export). Hulls use three.js's `ConvexGeometry` (examples/jsm, bundled).
 
 `stage.js` runs a 3-D slide. Fragments with `data-view` set the view, the reader can drag
 to turn and scroll to zoom, rendering stops while the slide is not shown, and
