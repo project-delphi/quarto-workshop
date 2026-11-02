@@ -62,17 +62,21 @@ export function world(extra) {
   return { centre: [0, 0.35, 0], half: HALF, aspect: 1.7, labels: [], focus() {}, ...extra };
 }
 
-// World position of municipality i pulled `pull` of the way to its cluster's centroid.
-export function pulled(data, state, i, pull) {
-  const s = data.scale, c = data.states[state].centroids[data.labels[state][i] - 1];
-  const x = wx(data.u[i] / s), z = wz(data.v[i] / s), y = data.w[i] / s;
-  return [x + (wx(c.u) - x) * pull, y + (c.w - y) * pull, z + (wz(c.v) - z) * pull];
+// World position of municipality i in state s (a year): data.u[s][i] etc. are ints / scale.
+export const at = (data, s, i) => [
+  wx(data.u[s][i] / data.scale), data.w[s][i] / data.scale, wz(data.v[s][i] / data.scale)];
+
+// A cluster's colour, faded into the background when another cluster is in focus.
+const DIM = new Color(0x3a4048);
+export function tone(colors, cluster, focus) {
+  const c = colors[cluster - 1];
+  return focus && cluster !== focus ? c.clone().lerp(DIM, 0.85) : c;
 }
 
-// A cloud of the municipalities as points: each eases to where(state, i) -> [x, y, z] and to
-// its cluster's colour under the picked state.
-export function morphPoints(group, data, where, { size = 0.05, opacity = 1 } = {}) {
-  const n = data.u.length, colors = palette(data);
+// A cloud of the municipalities as points: each eases to its place in the picked year and to
+// its cluster's colour (dimmed outside the focused cluster).
+export function morphPoints(group, data, { size = 0.05, opacity = 1 } = {}) {
+  const n = data.u[0].length, colors = palette(data);
   const pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
   const tgt = new Float32Array(n * 3), tcol = new Float32Array(n * 3);
   const geometry = new BufferGeometry();
@@ -87,10 +91,10 @@ export function morphPoints(group, data, where, { size = 0.05, opacity = 1 } = {
   group.add(points);
   return {
     points, pos,
-    set(state) {
+    set(state, focus) {
       for (let i = 0; i < n; i++) {
-        tgt.set(where(state, i), i * 3);
-        const c = colors[data.labels[state][i] - 1];
+        tgt.set(at(data, state, i), i * 3);
+        const c = tone(colors, data.labels[state][i], focus);
         tcol.set([c.r, c.g, c.b], i * 3);
       }
     },

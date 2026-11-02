@@ -1,13 +1,13 @@
 // Meta-feature stack (slides/_water.qmd, #water-meta-stack): one Saber 11 x infant-mortality
-// plane per clustering (k = 2 to 5), stacked upward. Picking a larger k lifts the next plane
-// into place; lines join the same municipality on adjacent planes, bright where its cluster
-// changed. Municipalities sit pulled towards their cluster's mean on each plane. The deck
-// cell computes the sample of municipalities and every label.
+// plane per year, stacked upward. Picking a later year lifts its plane into place; lines join
+// the same municipality on adjacent planes, bright where its cluster changed. A focused
+// cluster keeps its colour (and only its municipalities' lines show). The deck cell computes
+// the sample of municipalities and every label.
 import {
   BufferAttribute, BufferGeometry, DoubleSide, Group, LineBasicMaterial, LineLoop, LineSegments,
   Mesh, MeshBasicMaterial, PlaneGeometry, Points, PointsMaterial, Vector3,
 } from "three";
-import { chase, ease, palette, wx, wz, world } from "./meta.js";
+import { chase, ease, palette, tone, wx, wz, world } from "./meta.js";
 
 const GAP = 0.5;
 
@@ -17,14 +17,11 @@ export const metaStack = {
   }),
 
   build(group, data, el) {
-    const colors = palette(data), n = data.u.length, layers = data.states.length;
-    const planes = data.states.map((state, s) => {
+    const colors = palette(data), n = data.u[0].length, layers = data.states.length;
+    const planes = data.states.map((_, s) => {
       const pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) {
-        const c = state.centroids[data.labels[s][i] - 1], col3 = colors[data.labels[s][i] - 1];
-        const x = wx(data.u[i] / data.scale), z = wz(data.v[i] / data.scale);
-        pos.set([x + (wx(c.u) - x) * data.pull, 0, z + (wz(c.v) - z) * data.pull], i * 3);
-        col.set([col3.r, col3.g, col3.b], i * 3);
+        pos.set([wx(data.u[s][i] / data.scale), 0, wz(data.v[s][i] / data.scale)], i * 3);
       }
       const geometry = new BufferGeometry();
       geometry.setAttribute("position", new BufferAttribute(pos, 3));
@@ -40,29 +37,40 @@ export const metaStack = {
       const holder = new Group();
       holder.add(sheet, edge, dots);
       group.add(holder);
-      return { holder, sheet, edge, dots, pos };
+      return { holder, sheet, edge, dots, pos, col };
     });
 
-    // Links between adjacent planes for the sampled municipalities.
+    // Links between adjacent planes for the sampled municipalities: unchanged and changed.
     const links = [];
     for (let s = 0; s + 1 < layers; s++) {
-      const changed = [], same = [];
-      data.sample.forEach((i) => {
-        (data.labels[s][i] === data.labels[s + 1][i] ? same : changed).push(i);
-      });
-      [[same, 0x8a929c, 0.28], [changed, 0xfff2b0, 0.95]].forEach(([ids, color, opacity]) => {
+      [[false, 0x8a929c, 0.28], [true, 0xfff2b0, 0.95]].forEach(([moved, color, opacity]) => {
+        const all = data.sample.filter((i) => (data.labels[s][i] !== data.labels[s + 1][i]) === moved);
         const geometry = new BufferGeometry();
-        geometry.setAttribute("position", new BufferAttribute(new Float32Array(ids.length * 6), 3));
+        geometry.setAttribute("position", new BufferAttribute(new Float32Array(all.length * 6), 3));
         const material = new LineBasicMaterial({ color, transparent: true, opacity, depthWrite: false });
         const lines = new LineSegments(geometry, material);
         lines.frustumCulled = false;
         group.add(lines);
-        links.push({ s, ids, geometry, material, opacity, lines });
+        links.push({ s, all, ids: all, geometry, material, opacity, lines });
       });
     }
 
     const y = new Float32Array(layers), yT = new Float32Array(layers);
     const alpha = new Float32Array(layers), alphaT = new Float32Array(layers);
+    let focus = 0;
+    function recolour() {
+      planes.forEach((p, s) => {
+        for (let i = 0; i < n; i++) {
+          const c = tone(colors, data.labels[s][i], focus);
+          p.col.set([c.r, c.g, c.b], i * 3);
+        }
+        p.dots.geometry.attributes.color.needsUpdate = true;
+      });
+      links.forEach((l) => {
+        l.ids = focus ? l.all.filter((i) => data.labels[l.s][i] === focus || data.labels[l.s + 1][i] === focus) : l.all;
+        l.geometry.setDrawRange(0, l.ids.length * 2);
+      });
+    }
     function update() {
       planes.forEach((p, s) => {
         p.holder.position.y = y[s];
@@ -81,6 +89,7 @@ export const metaStack = {
         l.lines.visible = l.material.opacity > 0.01;
       });
     }
+    recolour();
 
     // Axis labels beside the bottom plane: x and z as on the other slides, and the stack.
     const labels = [...el.querySelectorAll(".axis-label")].map((label, i) => ({
@@ -91,10 +100,14 @@ export const metaStack = {
       labels,
       setState(i) {
         for (let s = 0; s < layers; s++) {
-          // Planes above the picked one wait stacked on the first, hidden.
+          // Planes after the picked year wait stacked on the first, hidden.
           yT[s] = s <= i ? s * GAP : 0;
           alphaT[s] = s <= i ? 1 : 0;
         }
+      },
+      setCluster(c) {
+        focus = c;
+        recolour();
       },
       animate(dt) {
         const k = ease(dt, 3.5);

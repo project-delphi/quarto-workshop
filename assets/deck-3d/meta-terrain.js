@@ -1,13 +1,15 @@
 // Deforming meta-terrain (slides/_water.qmd, #water-meta-terrain): the surface over Saber 11
 // (x) and infant mortality (z) rises to the school dropout of the cluster that owns each
-// place, and glowing lines mark where one cluster hands over to the next. The deck cell
-// computes the heights, the owner of each place and the border edges for every state.
+// place, and glowing lines mark where one cluster hands over to the next. Each year reshapes
+// it; a focused cluster keeps its colour and the rest fade. The deck cell computes the
+// heights, the owner of each place and the border edges for every year.
 import {
   AdditiveBlending, BufferAttribute, BufferGeometry, Color, LineBasicMaterial, LineSegments,
   Mesh, MeshLambertMaterial, PlaneGeometry,
 } from "three";
-import { chase, ease, frame, lights, palette, world } from "./meta.js";
+import { chase, ease, frame, lights, palette, tone, world } from "./meta.js";
 
+const WHITE = new Color(0xffffff);
 const LIFT = 2.4; // dropout (0-1) to height: exaggerated, as the slide says
 
 export const metaTerrain = {
@@ -32,7 +34,7 @@ export const metaTerrain = {
       new Mesh(geometry, new MeshLambertMaterial({
         color: 0xffffff, wireframe: true, transparent: true, opacity: 0.1, depthWrite: false })));
 
-    // Two border sets cross-fade when the state changes: the one leaving, the one arriving.
+    // Two border sets cross-fade when the year changes: the one leaving, the one arriving.
     const maxEdges = Math.max(...t.edges.map((e) => e.length));
     const borders = [0, 1].map(() => {
       const geo = new BufferGeometry();
@@ -49,6 +51,7 @@ export const metaTerrain = {
     const h = new Float32Array(n), hT = new Float32Array(n);
     const rgb = new Float32Array(n * 3), rgbT = new Float32Array(n * 3);
     const mix = [1];
+    let state = 0, focus = 0;
     function update() {
       for (let v = 0; v < n; v++) position.setY(v, h[v] * LIFT);
       position.needsUpdate = true;
@@ -68,19 +71,27 @@ export const metaTerrain = {
       borders[1].material.opacity = mix[0];
       borders[0].material.opacity = 1 - mix[0];
     }
+    function retarget() {
+      for (let v = 0; v < n; v++) {
+        hT[v] = t.h[state][v] / data.scale;
+        // Lighter on the heights so relief reads as relief.
+        const lit = tone(colors, t.dom[state][v], focus).clone().lerp(WHITE, 0.3 * hT[v]);
+        rgbT.set([lit.r, lit.g, lit.b], v * 3);
+      }
+    }
 
     return world({
       labels: frame(group, el),
       setState(i) {
-        for (let v = 0; v < n; v++) {
-          hT[v] = t.h[i][v] / data.scale;
-          // Lighter on the heights so relief reads as relief.
-          const lit = new Color(colors[t.dom[i][v] - 1]).lerp(new Color(0xffffff), 0.3 * hT[v]);
-          rgbT.set([lit.r, lit.g, lit.b], v * 3);
-        }
+        state = i;
         borders[0].ends = borders[1].ends;
         borders[1].ends = t.edges[i];
         mix[0] = 0;
+        retarget();
+      },
+      setCluster(c) {
+        focus = c;
+        retarget();
       },
       animate(dt) {
         const k = ease(dt, 3.5);

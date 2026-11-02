@@ -25,11 +25,13 @@ const near = (a, b) => b + Math.atan2(Math.sin(a - b), Math.cos(a - b));
 // hidden while off the canvas), a callback that fades the unfocused groups by t (0 to 1)
 // and labels by weight, and optional arrange(spots, w, h), which lays the labels out on
 // screen each frame and sets hidden on those that do not fit, and remeasure(), called once
-// fonts load. A scene that changes with the clustering (meta-*.js) also returns
-// setState(i), which picks one of data.states, and animate(dt) -> moving, which steps its
-// lerps and springs by dt seconds (Infinity finishes them) and tells the stage to keep
-// drawing while it returns true. Buttons .k-picker [data-state] and fragments with
-// data-step="i" choose the state; data-source names a shared JSON script (by id).
+// fonts load. A scene that changes over time (meta-*.js) also returns setState(i), which
+// picks one of data.states (a year), setCluster(c), which focuses cluster c (0 = all), and
+// animate(dt) -> moving, which steps its lerps and springs by dt seconds (Infinity finishes
+// them) and tells the stage to keep drawing while it returns true. The stage owns the year
+// and cluster: buttons .t-picker [data-state], .c-picker [data-cluster], a .t-play button
+// (the years play by themselves until fixed) and fragments data-step="i" all go through
+// pick() and pickCluster(). data-source names a shared JSON script (by id).
 export function stage(el, deck, sceneType) {
   const source = el.dataset.source ? document.getElementById(el.dataset.source)
     : el.querySelector("script[type='application/json']");
@@ -40,8 +42,8 @@ export function stage(el, deck, sceneType) {
   let renderer, scene, camera, outer, inner, world, raf = 0, last = 0, userUntil = 0;
   let view = views.flat;
   let zoom = 1; // the reader's wheel zoom within the current view
-  let lastFragment = 0;
-  let state = 0, buttonState = null; // the picked state; a button's choice until the next fragment
+  let state = 0, cluster = 0, lastFragment = 0; // the year and cluster the reader picked
+  let playing = false, timer = 0;
   const cur = Object.fromEntries(KEYS.map((key) => [key, 0]));
   const target = { ...cur };
 
@@ -105,6 +107,7 @@ export function stage(el, deck, sceneType) {
     resize();
     Object.assign(cur, target);
     pick(state, true);
+    pickCluster(cluster, true);
     return true;
   }
 
@@ -127,24 +130,52 @@ export function stage(el, deck, sceneType) {
     start();
   }
 
-  // Choose state i (a click on a picker button or a fragment); now = skip the animation.
+  // Choose year i (a button, a fragment or the autoplay); now = skip the animation.
   function pick(i, now = false) {
     state = i;
-    el.querySelectorAll(".k-picker [data-state]").forEach((b) => {
+    el.querySelectorAll(".t-picker [data-state]").forEach((b) => {
       b.setAttribute("aria-pressed", String(Number(b.dataset.state) === i));
     });
-    const k = data.states?.[i]?.k;
-    if (k) el.querySelectorAll(".legend [data-c]").forEach((e) => { e.hidden = Number(e.dataset.c) > k; });
-    const note = slide.querySelector(".k-note");
+    const note = slide.querySelector(".t-note");
     if (note && data.states?.[i]?.note) note.textContent = data.states[i].note;
     if (!world?.setState) return;
     world.setState(i);
     if (now) world.animate?.(Infinity);
     start();
   }
-  el.querySelectorAll(".k-picker [data-state]").forEach((b) => b.addEventListener("click", () => {
-    buttonState = Number(b.dataset.state);
-    pick(buttonState);
+  // Choose cluster c (0 = all) to keep in colour.
+  function pickCluster(c, now = false) {
+    cluster = c;
+    el.querySelectorAll(".c-picker [data-cluster]").forEach((b) => {
+      b.setAttribute("aria-pressed", String(Number(b.dataset.cluster) === c));
+    });
+    if (!world?.setCluster) return;
+    world.setCluster(c);
+    if (now) world.animate?.(Infinity);
+    start();
+  }
+  // The years play on by themselves, one every few seconds, until the reader fixes one.
+  function play(on) {
+    playing = on;
+    clearInterval(timer);
+    const button = el.querySelector(".t-play");
+    if (button) {
+      button.setAttribute("aria-pressed", String(on));
+      button.textContent = on ? "⏸ fix" : "▶ play";
+    }
+    if (on && !reduceMotion.matches && !printing) {
+      timer = setInterval(() => {
+        if (deck.getCurrentSlide() === slide && !document.hidden) pick((state + 1) % data.states.length);
+      }, 3500);
+    }
+  }
+  el.querySelector(".t-play")?.addEventListener("click", () => play(!playing));
+  el.querySelectorAll(".t-picker [data-state]").forEach((b) => b.addEventListener("click", () => {
+    play(false);
+    pick(Number(b.dataset.state));
+  }));
+  el.querySelectorAll(".c-picker [data-cluster]").forEach((b) => b.addEventListener("click", () => {
+    pickCluster(Number(b.dataset.cluster));
   }));
 
   function setView(next) {
@@ -214,14 +245,14 @@ export function stage(el, deck, sceneType) {
   function update() {
     const shown = [...slide.querySelectorAll("[data-view].visible")].pop();
     setView(views[shown?.dataset.view] ?? views.flat);
-    // The last shown fragment's state, unless a button was clicked since the fragments changed.
+    // The last shown fragment's year; stepping the fragments fixes the years.
     const step = [...slide.querySelectorAll("[data-step].visible")].pop();
     const fromFragments = Number(step?.dataset.step ?? 0);
-    if (fromFragments !== state && (buttonState === null || fromFragments !== lastFragment)) {
-      buttonState = null;
+    if (fromFragments !== lastFragment) {
+      lastFragment = fromFragments;
+      play(false);
       pick(fromFragments, printing);
     }
-    lastFragment = fromFragments;
     if (printing) {
       if (renderer || build()) {
         resize();
@@ -249,5 +280,6 @@ export function stage(el, deck, sceneType) {
     cancelAnimationFrame(raf);
     raf = 0;
   });
+  play(el.querySelector(".t-play") !== null); // a time-based scene starts playing its years
   update();
 }
