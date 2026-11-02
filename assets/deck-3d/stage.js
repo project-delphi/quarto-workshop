@@ -25,15 +25,23 @@ const near = (a, b) => b + Math.atan2(Math.sin(a - b), Math.cos(a - b));
 // hidden while off the canvas), a callback that fades the unfocused groups by t (0 to 1)
 // and labels by weight, and optional arrange(spots, w, h), which lays the labels out on
 // screen each frame and sets hidden on those that do not fit, and remeasure(), called once
-// fonts load.
+// fonts load. A scene that changes with the clustering (meta-*.js) also returns
+// setState(i), which picks one of data.states, and animate(dt) -> moving, which steps its
+// lerps and springs by dt seconds (Infinity finishes them) and tells the stage to keep
+// drawing while it returns true. Buttons .k-picker [data-state] and fragments with
+// data-step="i" choose the state; data-source names a shared JSON script (by id).
 export function stage(el, deck, sceneType) {
-  const data = JSON.parse(el.querySelector("script[type='application/json']").textContent);
+  const source = el.dataset.source ? document.getElementById(el.dataset.source)
+    : el.querySelector("script[type='application/json']");
+  const data = JSON.parse(source.textContent);
   const slide = el.closest("section");
   const views = sceneType.views(data);
   const printing = deck.isPrintView?.() ?? document.documentElement.classList.contains("reveal-print");
   let renderer, scene, camera, outer, inner, world, raf = 0, last = 0, userUntil = 0;
   let view = views.flat;
   let zoom = 1; // the reader's wheel zoom within the current view
+  let lastFragment = 0;
+  let state = 0, buttonState = null; // the picked state; a button's choice until the next fragment
   const cur = Object.fromEntries(KEYS.map((key) => [key, 0]));
   const target = { ...cur };
 
@@ -96,6 +104,7 @@ export function stage(el, deck, sceneType) {
     setView(view);
     resize();
     Object.assign(cur, target);
+    pick(state, true);
     return true;
   }
 
@@ -117,6 +126,26 @@ export function stage(el, deck, sceneType) {
     draw();
     start();
   }
+
+  // Choose state i (a click on a picker button or a fragment); now = skip the animation.
+  function pick(i, now = false) {
+    state = i;
+    el.querySelectorAll(".k-picker [data-state]").forEach((b) => {
+      b.setAttribute("aria-pressed", String(Number(b.dataset.state) === i));
+    });
+    const k = data.states?.[i]?.k;
+    if (k) el.querySelectorAll(".legend [data-c]").forEach((e) => { e.hidden = Number(e.dataset.c) > k; });
+    const note = slide.querySelector(".k-note");
+    if (note && data.states?.[i]?.note) note.textContent = data.states[i].note;
+    if (!world?.setState) return;
+    world.setState(i);
+    if (now) world.animate?.(Infinity);
+    start();
+  }
+  el.querySelectorAll(".k-picker [data-state]").forEach((b) => b.addEventListener("click", () => {
+    buttonState = Number(b.dataset.state);
+    pick(buttonState);
+  }));
 
   function setView(next) {
     view = next;
@@ -169,8 +198,9 @@ export function stage(el, deck, sceneType) {
     if (view.spin && !still && t > userUntil) target.ry += view.spin * dt;
     const k = still ? 1 : 1 - Math.exp(-dt * 2.5);
     for (const key of KEYS) cur[key] += (target[key] - cur[key]) * k;
+    const moving = world.animate?.(still ? Infinity : dt) ?? false;
     draw();
-    const settled = KEYS.every((key) => Math.abs(target[key] - cur[key]) < 1e-3 * (key === "dist" || key[0] === "c" ? world.half : 1));
+    const settled = !moving && KEYS.every((key) => Math.abs(target[key] - cur[key]) < 1e-3 * (key === "dist" || key[0] === "c" ? world.half : 1));
     raf = settled && !(view.spin && !still) ? 0 : requestAnimationFrame(frame);
   }
 
@@ -184,6 +214,14 @@ export function stage(el, deck, sceneType) {
   function update() {
     const shown = [...slide.querySelectorAll("[data-view].visible")].pop();
     setView(views[shown?.dataset.view] ?? views.flat);
+    // The last shown fragment's state, unless a button was clicked since the fragments changed.
+    const step = [...slide.querySelectorAll("[data-step].visible")].pop();
+    const fromFragments = Number(step?.dataset.step ?? 0);
+    if (fromFragments !== state && (buttonState === null || fromFragments !== lastFragment)) {
+      buttonState = null;
+      pick(fromFragments, printing);
+    }
+    lastFragment = fromFragments;
     if (printing) {
       if (renderer || build()) {
         resize();

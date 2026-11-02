@@ -129,7 +129,7 @@ Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [T
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, ⭐ white paper, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
-| `assets/` | Hub and publishing diagrams (SVG); `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief) |
+| `assets/` | Hub and publishing diagrams (SVG); `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and six optional meta-feature slides) |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |

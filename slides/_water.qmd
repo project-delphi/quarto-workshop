@@ -145,7 +145,8 @@ block on, a 📤 prompt copies each block's finished `scripts/analysis.py` and e
 the pages. The dashboard (3 slides, once 8 minutes in this block) became ⭐ optional and
 moved after the final change-an-input task; London's own change-an-input task took 5 of the
 freed minutes (Part 2 was 125 minutes). The ⭐ challenge prompts that write the analysis, the
-ePub, the dashboard and the white paper are self-paced and not counted. The rest of each block is for the
+ePub, the dashboard, the white paper and the six optional 3-D slides on the outcomes by cluster (after the
+Interpret block) are self-paced and not counted. The rest of each block is for the
 concept slides, showing results and recovering from a failed command. The 15-minute Cluster block is the
 tightest: keep each 3-D view to about a minute and demonstrate the modelling choices while
 the room runs the 📤 step. These are estimates: rehearse with a stopwatch and change the
@@ -1805,6 +1806,298 @@ gaps rather than as a line across them. Both routes do this step. The 💬 check
 to read the 🌡️ heatmap, not just render it: a good answer names two features and their
 direction, such as `{python} wat_ex_text`. Then ask whether the cluster's name says the same.
 :::
+
+## 🏔️ Dropout Terrain by Cluster · ⭐ optional {#water-meta-terrain}
+
+```{python}
+#| label: wat-meta-data
+#| echo: false
+#| output: asis
+# Optional slides: the three outcomes the clustering never saw, per municipality, under
+# k-means with k = 2 to 5 on the same 9 z-scored features. This cell computes every point,
+# mean, count and border; assets/deck-3d.min.js only draws them.
+import html as wat_html
+import json as wat_json
+
+wat_KS = (2, 3, 4, 5)
+assert wat_k in wat_KS  # the picked k is one of the states
+wat_OUT = ["saber11_mean", "infant_mortality", "dropout_rate"]  # x, z, y
+wat_SC, wat_PULL, wat_G, wat_VG = 1000, 0.4, 40, 36
+
+# One row per municipality: each outcome averaged over its published years (all zone rows).
+wat_mm = wat_pd.DataFrame({
+    o: wat_clusters[wat_clusters["year"].isin(wat_analysis.OUTCOME_YEARS[o])]
+    .dropna(subset=[o]).groupby("divipola")[o].mean() for o in wat_OUT}).dropna()
+# 2nd-98th percentile to [0, 1]; values beyond are drawn at the edge.
+wat_rng = {o: wat_np.percentile(wat_mm[o], [2, 98]) for o in wat_OUT}
+wat_unit = wat_pd.DataFrame({o: ((wat_mm[o] - wat_rng[o][0]) / (wat_rng[o][1] - wat_rng[o][0])).clip(0, 1)
+                             for o in wat_OUT})
+wat_mu, wat_mv, wat_mw = (wat_unit[o].to_numpy() for o in wat_OUT)
+wat_mn = len(wat_mm)
+
+wat_meta_labels, wat_meta_states = [], []
+wat_X = wat_analysis.zmatrix(wat_res["prepared"])
+for wat_kk in wat_KS:
+    wat_rowlab = wat_clusters["cluster"].to_numpy() if wat_kk == wat_k else wat_analysis.fit(wat_X, wat_kk)[0]
+    # A municipality's cluster: the one most of its zone-years fall in (ties: the lower).
+    wat_ml = (wat_pd.Series(wat_rowlab, index=wat_clusters["divipola"].to_numpy())
+              .groupby(level=0).agg(lambda s: s.mode().iloc[0]).reindex(wat_mm.index).to_numpy())
+    wat_meta_labels.append(wat_ml)
+
+wat_all_u, wat_all_v = wat_mu.mean(), wat_mv.mean()
+wat_rs = wat_np.random.default_rng(wat_analysis.SEED)
+wat_sample = sorted(wat_rs.choice(wat_mn, 140, replace=False).tolist())
+wat_cent = []
+for wat_si, wat_kk in enumerate(wat_KS):
+    wat_ml = wat_meta_labels[wat_si]
+    wat_cs, wat_core, wat_swarm = [], wat_np.zeros(wat_mn, dtype=int), []
+    for wat_c in range(1, wat_kk + 1):
+        wat_in = wat_ml == wat_c
+        wat_cu, wat_cv, wat_cw = wat_mu[wat_in].mean(), wat_mv[wat_in].mean(), wat_mw[wat_in].mean()
+        wat_d = wat_np.sqrt((wat_mu - wat_cu) ** 2 + (wat_mv - wat_cv) ** 2 + (wat_mw - wat_cw) ** 2)
+        wat_core[wat_in & (wat_d <= wat_np.percentile(wat_d[wat_in], 85))] = 1
+        wat_cs.append({"u": round(float(wat_cu), 4), "v": round(float(wat_cv), 4),
+                       "w": round(float(wat_cw), 4), "n": int(wat_in.sum()),
+                       "r": round(float(wat_np.hypot(wat_cu - wat_all_u, wat_cv - wat_all_v)), 4),
+                       "theta": round(float(wat_np.arctan2(wat_cv - wat_all_v, wat_cu - wat_all_u)), 4),
+                       "dropout": float(wat_mm.loc[wat_in, "dropout_rate"].mean())})
+        wat_mem = wat_np.flatnonzero(wat_in)[:36]
+        wat_swarm.append([round(float(x), 3) for i in wat_mem
+                          for x in (wat_mu[i] - wat_cu, wat_mv[i] - wat_cv)])
+    wat_meta_states.append({"k": wat_kk, "centroids": wat_cs, "core": wat_core.tolist(),
+                            "swarm": wat_swarm})
+
+
+def wat_surface(si):
+    """Heights and owners on a fine lattice: even points are vertices, odd are cell centres."""
+    wat_ml, wat_cs = wat_meta_labels[si], wat_meta_states[si]["centroids"]
+    wat_L = 2 * wat_G - 1
+    wat_ax = wat_np.linspace(0, 1, wat_L)
+    wat_gu, wat_gv = wat_np.meshgrid(wat_ax, wat_ax)  # rows run along v (z), columns along u (x)
+    wat_P = wat_np.c_[wat_gu.ravel(), wat_gv.ravel()]
+    wat_W = wat_np.exp(-((wat_P[:, None, 0] - wat_mu) ** 2 + (wat_P[:, None, 1] - wat_mv) ** 2) / (2 * 0.08 ** 2))
+    wat_D = wat_np.stack([wat_W[:, wat_ml == c].sum(axis=1) for c in range(1, len(wat_cs) + 1)], axis=1)
+    wat_pr = wat_D / wat_D.sum(axis=1, keepdims=True)
+    wat_hh = (wat_pr @ wat_np.array([c["w"] for c in wat_cs])).reshape(wat_L, wat_L)
+    wat_dom = (wat_pr.argmax(axis=1) + 1).reshape(wat_L, wat_L)
+    wat_cell = wat_dom[1::2, 1::2]
+    wat_edges = []
+    for wat_i in range(wat_G - 1):
+        for wat_j in range(wat_G - 1):
+            if wat_j + 1 < wat_G - 1 and wat_cell[wat_i, wat_j] != wat_cell[wat_i, wat_j + 1]:
+                wat_edges += [wat_i * wat_G + wat_j + 1, (wat_i + 1) * wat_G + wat_j + 1]
+            if wat_i + 1 < wat_G - 1 and wat_cell[wat_i, wat_j] != wat_cell[wat_i + 1, wat_j]:
+                wat_edges += [(wat_i + 1) * wat_G + wat_j, (wat_i + 1) * wat_G + wat_j + 1]
+    return ((wat_np.rint(wat_hh[::2, ::2] * wat_SC).astype(int).ravel().tolist()),
+            wat_dom[::2, ::2].ravel().tolist(), wat_edges)
+
+
+wat_surf = [wat_surface(si) for si in range(len(wat_KS))]
+# Squares of a wat_VG x wat_VG grid, each owned by the nearest cluster mean (Voronoi cells).
+wat_gc = (wat_np.arange(wat_VG) + 0.5) / wat_VG
+wat_vor = []
+for wat_st in wat_meta_states:
+    wat_cu = wat_np.array([[c["u"], c["v"]] for c in wat_st["centroids"]])
+    wat_gu2, wat_gv2 = wat_np.meshgrid(wat_gc, wat_gc)  # rows run along v (z), columns along u (x)
+    wat_d2 = ((wat_gu2[None] - wat_cu[:, 0][:, None, None]) ** 2
+              + (wat_gv2[None] - wat_cu[:, 1][:, None, None]) ** 2)
+    wat_vor.append((wat_d2.argmin(axis=0) + 1).ravel().tolist())
+# Municipalities per (k = 2 cluster, cluster under each state): the rivers' flows.
+wat_flows = [[[int(((wat_meta_labels[0] == a) & (wat_meta_labels[si] == b)).sum())
+               for b in range(1, wat_KS[si] + 1)] for a in range(1, wat_KS[0] + 1)]
+             for si in range(len(wat_KS))]
+
+wat_meta = {
+    "scale": wat_SC, "pull": wat_PULL, "colors": [wat_analysis.CLUSTER_COLORS[i] for i in range(5)],
+    "u": wat_np.rint(wat_mu * wat_SC).astype(int).tolist(),
+    "v": wat_np.rint(wat_mv * wat_SC).astype(int).tolist(),
+    "w": wat_np.rint(wat_mw * wat_SC).astype(int).tolist(),
+    "labels": [wat_l.tolist() for wat_l in wat_meta_labels],
+    "states": [{"k": s["k"], "core": s["core"], "centroids": s["centroids"]} for s in wat_meta_states],
+    "swarm": [s["swarm"] for s in wat_meta_states],
+    "terrain": {"g": wat_G, "h": [s[0] for s in wat_surf], "dom": [s[1] for s in wat_surf],
+                "edges": [s[2] for s in wat_surf]},
+    "voronoi": {"g": wat_VG, "cell": wat_vor},
+    "flows": wat_flows, "sample": wat_sample,
+}
+# Words for the slides: dropout means across the clusters of each state, silhouette from the k table.
+wat_ms = []
+for wat_st in wat_meta_states:
+    wat_dr = [c["dropout"] for c in wat_st["centroids"]]
+    wat_ms.append({"k": wat_st["k"], "lo": min(wat_dr), "hi": max(wat_dr),
+                   "sil": wat_ktab.loc[wat_st["k"], "silhouette"]})
+    wat_meta["states"][len(wat_ms) - 1]["note"] = (
+        f"🧩 k = {wat_st['k']} · cluster dropout means {min(wat_dr):.2f}–{max(wat_dr):.2f} %"
+        + (" · ✅ the k used so far" if wat_st["k"] == wat_k else ""))
+wat_glyph2 = ["●", "■", "▲", "◆", "▼"]
+wat_ax_text = [f"Saber 11 · {wat_rng[wat_OUT[0]][0]:.0f}→{wat_rng[wat_OUT[0]][1]:.0f}",
+               f"infant mortality · {wat_rng[wat_OUT[1]][0]:.0f}→{wat_rng[wat_OUT[1]][1]:.0f}",
+               f"dropout · {wat_rng[wat_OUT[2]][0]:.1f}→{wat_rng[wat_OUT[2]][1]:.1f} %"]
+
+
+def wat_meta_html(scene, alt, first=False, ytext=None):
+    """The .deck-3d element of one optional slide; the first carries the shared data."""
+    wat_legend2 = "".join(
+        f'<span data-c="{c + 1}"><span style="color:{wat_analysis.CLUSTER_COLORS[c]}">{wat_glyph2[c]}</span> '
+        f'Cluster {c + 1}</span>' for c in range(5))
+    wat_pick = "".join(f'<button data-state="{i}" aria-pressed="false">k = {kk}</button>'
+                       for i, kk in enumerate(wat_KS))
+    wat_data = (f'<script type="application/json" id="wat-meta-json">'
+                f'{wat_json.dumps(wat_meta, separators=(",", ":"))}</script>') if first else ""
+    wat_axl = "".join(f'<span class="axis-label">{t}</span>' for t in wat_ax_text[:2] + [ytext or wat_ax_text[2]])
+    print("```{=html}")
+    print(f'<div class="deck-3d meta" data-scene="{scene}" data-source="wat-meta-json" role="img" '
+          f'aria-label="{wat_html.escape(alt)}">{wat_data}<div class="legend">{wat_legend2}</div>'
+          f'{wat_axl}<div class="k-picker" role="group" aria-label="Number of clusters">{wat_pick}</div>'
+          '<p class="fallback" hidden>🫧 This 3-D view needs WebGL; the heatmap on '
+          'the earlier slides shows the same clusters.</p></div>')
+    print("```")
+
+
+def wat_meta_steps(lead):
+    """The slide's lead line and a live note (set by the stage from data.states[i].note).
+
+    One empty fragment per later state makes → step through k as the buttons do.
+    """
+    wat_frag = "".join(f'<span class="fragment" data-step="{i}" hidden></span>' for i in range(1, len(wat_ms)))
+    print(f'\n::: {{.steps-3d}}\n{lead}\n\n<span class="k-note">{wat_meta["states"][0]["note"]}</span>'
+          f'{wat_frag}\n\n:::\n')
+
+
+wat_meta_html("meta-terrain",
+              "A 3-D terrain over Saber 11 and infant mortality, rising to the school dropout of the "
+              "cluster that owns each place, with glowing lines at the borders between clusters. "
+              "The buttons choose k = 2 to 5 and the terrain reshapes.", first=True)
+wat_meta_steps("📊 The outcomes were never clustered on: here they sit on the clusters.")
+print("[Per municipality: Saber 11 → x, infant mortality → z (depth), school dropout → height, ×2.4 (outcome years averaged; "
+      "beyond the 2nd–98th percentile drawn at the edge) · 🖱️ drag to turn · descriptive, not causal]{.source}")
+print("""
+::: {.notes}
+Optional. The three outcomes are never clustered on: the clustering used only the nine
+features. Here each municipality (`""" + f"{wat_mn:,}" + """` with all three outcomes) sits at its Saber 11
+mean (x) and infant mortality (z), and the terrain's height is the school dropout of the cluster
+that owns that place (a kernel-weighted blend of the clusters' mean dropout). The glowing lines
+are where the owner changes. The buttons or → re-cluster the same features with k = 2 to 5 and
+the terrain follows. A municipality's cluster is the one most of its zone-years fall in. This
+is descriptive: the clusters do not show that water quality causes any of these outcomes.
+:::
+""")
+```
+
+## 🫧 Clusters as Hulls · ⭐ optional {#water-meta-hulls}
+
+```{python}
+#| label: wat-meta-hulls
+#| echo: false
+#| output: asis
+wat_meta_html("meta-hulls",
+              "Municipalities as points in 3-D on Saber 11, infant mortality and school dropout, each "
+              "cluster wrapped in a glowing convex hull; the buttons choose k and the points and hulls "
+              "move to the new clusters.")
+wat_meta_steps("🫧 Points ease 40 % of the way to their cluster mean; each hull wraps the nearest 85 %.")
+print("[Hull = convex hull of a cluster's 85 % of municipalities nearest its mean · points drawn pulled "
+      "40 % towards the mean · 🖱️ drag to turn]{.source}")
+print("""
+::: {.notes}
+Optional. Same municipalities and outcomes as the terrain, as points. Positions are the real
+outcome values, pulled 40 % of the way to the cluster mean so that the groups are easy to see; this
+is only a drawing aid. Each hull wraps the cluster's 85 % of municipalities nearest its mean
+(so a few outliers do not stretch it). Picking another k re-colours the points and moves them
+to their new clusters.
+:::
+""")
+```
+
+## 🌊 Rivers Between Clusterings · ⭐ optional {#water-meta-rivers}
+
+```{python}
+#| label: wat-meta-rivers
+#| echo: false
+#| output: asis
+wat_meta_html("meta-rivers",
+              "Winding tubes from the two cluster means at k = 2 to the cluster means of the chosen k, "
+              "as wide as the number of municipalities that make the trip, over faint points.")
+wat_meta_steps("🌊 Tube width = municipalities that move from a k = 2 cluster to a cluster of the picked k.")
+print("[Tubes join cluster means on Saber 11, infant mortality (floor) and dropout (height) · "
+      "width ∝ √ municipalities · means spread ×3 about their average, height ×2.4 · 🖱️ drag to turn]{.source}")
+print("""
+::: {.notes}
+Optional. The two rivers' sources are the two cluster means at k = 2. For each picked k, one tube
+runs from each source to each cluster of the new clustering, as wide as the square root of the
+number of municipalities that are in both. At k = 2 nothing moves, so no tubes show. The
+control points ease to their new places when k changes. Cluster numbers are ordered by mean IRCA
+within each k, and are not the same groups from one k to the next.
+:::
+""")
+```
+
+## 🥞 Stacked Clusterings · ⭐ optional {#water-meta-stack}
+
+```{python}
+#| label: wat-meta-stack
+#| echo: false
+#| output: asis
+wat_meta_html("meta-stack",
+              "Up to four stacked planes of municipalities on Saber 11 and infant mortality, one per "
+              "k from 2 to 5, joined by lines that are bright where a municipality changed cluster.",
+              ytext="k = 2 → 5")
+wat_meta_steps("🥞 One plane per k. Bright lines: a municipality that changed cluster.")
+print("[140 sampled municipalities joined across planes · points pulled 40 % towards their cluster mean "
+      "· 🖱️ drag to turn]{.source}")
+print("""
+::: {.notes}
+Optional. Each plane is one clustering (k = 2, 3, 4, 5 from the bottom). Picking a bigger k
+lifts the next plane into place. The lines join 140 sampled municipalities across adjacent
+planes; bright ones changed cluster. Dropout is not drawn here: the planes show only Saber 11 and
+infant mortality, coloured by the cluster each k assigns.
+:::
+""")
+```
+
+## 🪐 Cluster Orbits · ⭐ optional {#water-meta-orbits}
+
+```{python}
+#| label: wat-meta-orbits
+#| echo: false
+#| output: asis
+wat_meta_html("meta-orbits",
+              "Clusters as coloured bodies on rings around the all-municipality mean, with their "
+              "municipalities circling them; picking k swings the bodies on springs to new rings.")
+wat_meta_steps("🪐 Ring radius = distance of the cluster mean from the overall mean (×3).")
+print("[Sun = mean of all municipalities on Saber 11 and infant mortality · body height = mean dropout ×2.4 · ring radius ×3 "
+      "· size ∝ √ municipalities · 🖱️ drag to turn]{.source}")
+print("""
+::: {.notes}
+Optional. The sun is the mean of all municipalities on Saber 11 and infant mortality. Each
+cluster is a body whose ring radius is the distance of its mean from the sun, whose direction is
+the bearing of its mean, and whose height is its mean dropout. Up to 36 of its municipalities circle it,
+at their real offsets from the cluster mean. A new k pulls the bodies to their new rings with a
+spring, so they swing past and settle; new clusters grow out of the sun.
+:::
+""")
+```
+
+## 🧱 Voronoi Dropout Columns · ⭐ optional {#water-meta-voronoi}
+
+```{python}
+#| label: wat-meta-voronoi
+#| echo: false
+#| output: asis
+wat_meta_html("meta-voronoi",
+              "The Saber 11 and infant mortality plane split into the cells nearest each cluster mean, "
+              "each raised to the cluster's mean school dropout; the buttons choose k.")
+wat_meta_steps("🧱 Each cell = the places nearest one cluster mean; its height = mean dropout.")
+print("[Voronoi cells of the cluster means on Saber 11 and infant mortality (36 × 36 squares) · "
+      "height = cluster mean dropout ×2.4 · 🖱️ drag to turn]{.source}")
+print("""
+::: {.notes}
+Optional. The plane is split into the places nearest each cluster mean (Voronoi cells, drawn
+as a 36 × 36 grid of squares). Each cell is raised to its cluster's mean school dropout. When k
+changes the cell borders slide and the columns grow or shrink. The white dots are the cluster means.
+It is descriptive: the cells show where the clusters sit, not what drives dropout.
+:::
+""")
+```
 
 # ⚠️ Correlation ≠ Causation {#water-causation}
 

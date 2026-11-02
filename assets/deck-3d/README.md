@@ -12,6 +12,14 @@ The workshop deck's three three.js slides:
   shows blue between them (`data.footprint` sets its wider columns; `data.areas` and
   `data.water` the fills).
 
+- `meta.js` and `meta-*.js` draw Part 2's six optional slides (`#water-meta-terrain`, `-hulls`,
+  `-rivers`, `-stack`, `-orbits`, `-voronoi`): the outcomes the clustering never used (Saber 11,
+  infant mortality, school dropout) per municipality under k-means with k = 2 to 5. All six read
+  one shared JSON (`data-source`); buttons `.k-picker [data-state]` and fragments
+  `data-step` pick k. A scene's `setState(i)` sets targets and `animate(dt)` eases or springs
+  towards them (`dt` = Infinity finishes at once, for reduced motion and PDF export).
+  Hulls use three.js's `ConvexGeometry` (examples/jsm, bundled).
+
 `stage.js` runs a 3-D slide. Fragments with `data-view` set the view, the reader can drag
 to turn and scroll to zoom, rendering stops while the slide is not shown, and
 `prefers-reduced-motion` turns animation off. Without WebGL the slide shows a short
