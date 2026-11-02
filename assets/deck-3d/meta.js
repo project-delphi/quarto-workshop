@@ -1,7 +1,7 @@
 // Shared by the optional meta-feature slides (slides/_water.qmd, #water-meta-*): the three
 // outcomes the clustering never saw, for each municipality, under clusterings with k = 2 to 5.
 // The deck cell computes every position, label, centroid, count and border (data.*); these
-// helpers and the six scenes only draw them and ease between states.
+// helpers and the five scenes only draw them and ease between states.
 //
 // World frame: x = Saber 11, z = infant mortality (depth), y = school dropout (height), each
 // scaled from its 2nd-98th percentile to [0, 1] and drawn on x, z in [-1, 1], y in [0, 1].

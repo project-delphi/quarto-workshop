@@ -12,8 +12,8 @@ The workshop deck's three three.js slides:
   shows blue between them (`data.footprint` sets its wider columns; `data.areas` and
   `data.water` the fills).
 
-- `meta.js` and `meta-*.js` draw Part 2's six optional slides (`#water-meta-terrain`, `-hulls`,
-  `-rivers`, `-stack`, `-orbits`, `-voronoi`): the outcomes the clustering never used (Saber 11,
+- `meta.js` and `meta-*.js` draw Part 2's five optional slides (`#water-meta-terrain`, `-hulls`,
+  `-stack`, `-orbits`, `-voronoi`): the outcomes the clustering never used (Saber 11,
   infant mortality, school dropout) per municipality under k-means with k = 2 to 5. All six read
   one shared JSON (`data-source`); buttons `.k-picker [data-state]` and fragments
   `data-step` pick k. A scene's `setState(i)` sets targets and `animate(dt)` eases or springs

@@ -145,7 +145,7 @@ block on, a 📤 prompt copies each block's finished `scripts/analysis.py` and e
 the pages. The dashboard (3 slides, once 8 minutes in this block) became ⭐ optional and
 moved after the final change-an-input task; London's own change-an-input task took 5 of the
 freed minutes (Part 2 was 125 minutes). The ⭐ challenge prompts that write the analysis, the
-ePub, the dashboard, the white paper and the six optional 3-D slides on the outcomes by cluster and year (after the
+ePub, the dashboard, the white paper and the five optional 3-D slides on the outcomes by cluster and year (after the
 Interpret block) are self-paced and not counted. The rest of each block is for the
 concept slides, showing results and recovering from a failed command. The 15-minute Cluster block is the
 tightest: keep each 3-D view to about a minute and demonstrate the modelling choices while
@@ -1915,10 +1915,6 @@ for wat_st in wat_meta_states:
               + (wat_gv2[None] - wat_cu2[:, 1][:, None, None]) ** 2)
     wat_d2[[c["n"] == 0 for c in wat_st["centroids"]]] = wat_np.inf  # an empty cluster owns no cell
     wat_vor.append((wat_d2.argmin(axis=0) + 1).ravel().tolist())
-# Municipalities per (cluster in the first year, cluster in each year): the rivers' flows.
-wat_flows = [[[int(((wat_meta_labels[0] == a) & (wat_meta_labels[si] == b)).sum())
-               for b in range(1, wat_k + 1)] for a in range(1, wat_k + 1)]
-             for si in range(len(wat_YEARS))]
 
 wat_meta = {
     "scale": wat_SC, "k": wat_k,
@@ -1932,7 +1928,7 @@ wat_meta = {
     "terrain": {"g": wat_G, "h": [s[0] for s in wat_surf], "dom": [s[1] for s in wat_surf],
                 "edges": [s[2] for s in wat_surf]},
     "voronoi": {"g": wat_VG, "cell": wat_vor},
-    "flows": wat_flows, "sample": wat_sample,
+    "sample": wat_sample,
 }
 # Words for the slides: dropout means across the clusters, and who changed cluster since the first year.
 wat_ms = []
@@ -2014,24 +2010,6 @@ print("[Hull = convex hull of a cluster's 85 % of municipalities nearest its mea
 print("\n::: {.notes}\nOptional. " + wat_meta_notes + " Points sit at their real values. Each hull wraps the "
       "cluster's 85 % of municipalities nearest its mean, so a few outliers do not stretch it; it "
       "reshapes as the points move between years.\n:::\n")
-```
-
-## 🌊 Rivers Between Years · ⭐ optional {#water-meta-rivers}
-
-```{python}
-#| label: wat-meta-rivers
-#| echo: false
-#| output: asis
-wat_meta_html("meta-rivers",
-              "Winding tubes from each cluster's mean in the first year to each cluster's mean in the "
-              "chosen year, as wide as the number of municipalities that made the move.")
-wat_meta_steps(f"🌊 Tube width = municipalities that went from a {wat_YEARS[0]} cluster to a cluster in the shown year.")
-print("[Tubes join cluster means · width ∝ √ municipalities · means spread ×3, height ×2.4 · 🖱️ drag to turn]{.source}")
-print("\n::: {.notes}\nOptional. " + wat_meta_notes + f" One tube runs from each cluster's mean in {wat_YEARS[0]} "
-      "to each cluster's mean in the shown year, as wide as the square root of the number of municipalities "
-      "that were in both. In the first year the tubes are only the clusters staying put, so none show. "
-      "Cluster means lie close together, so their places are spread ×3 about their average. With a "
-      "cluster picked, only tubes into or out of it show.\n:::\n")
 ```
 
 ## 🥞 Stacked Years · ⭐ optional {#water-meta-stack}
