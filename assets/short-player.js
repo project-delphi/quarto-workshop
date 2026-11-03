@@ -8,19 +8,24 @@
 (() => {
   const SPEED = 0.9, LANG = "es";
   let api = null;
-  const loadApi = () => api ??= new Promise((resolve) => {
+  const loadApi = () => api ??= new Promise((resolve, reject) => {
     if (window.YT?.Player) return resolve(window.YT);
+    const fail = () => { api = null; reject(new Error("YouTube API did not load")); };
+    const timer = setTimeout(fail, 10000);
     const previous = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => { previous?.(); resolve(window.YT); };
+    window.onYouTubeIframeAPIReady = () => { clearTimeout(timer); previous?.(); resolve(window.YT); };
     const tag = document.createElement("script");
     tag.src = "https://www.youtube.com/iframe_api";
+    tag.onerror = () => { clearTimeout(timer); fail(); };
     document.head.append(tag);
   });
+  let count = 0;
 
   function open(id) {
     const dialog = document.createElement("dialog");
     dialog.className = "short-dialog";
-    dialog.innerHTML = '<div class="short-frame"><div id="short-player"></div></div>' +
+    const slot = `short-player-${++count}`;
+    dialog.innerHTML = `<div class="short-frame"><div id="${slot}"></div></div>` +
       '<p class="short-info"></p><p class="short-links">' +
       `<a href="https://youtube.com/shorts/${id}" target="_blank" rel="noopener">↗ YouTube</a> · ` +
       '<button type="button" class="short-close">✕ close</button></p>';
@@ -31,10 +36,13 @@
     dialog.querySelector(".short-close").addEventListener("click", close);
     dialog.addEventListener("cancel", (e) => { e.preventDefault(); close(); });
     dialog.addEventListener("click", (e) => { if (e.target === dialog) close(); });
+    // Reveal listens on the document: keep arrows, space and Escape inside the dialog.
+    dialog.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); e.stopPropagation(); });
     dialog.showModal();
     info.textContent = "⏳ loading the player …";
     loadApi().then((YT) => {
-      player = new YT.Player("short-player", {
+      if (!dialog.isConnected) return; // closed while the API loaded
+      player = new YT.Player(slot, {
         videoId: id, width: "100%", height: "100%",
         playerVars: { hl: LANG, cc_lang_pref: LANG, playsinline: 1, rel: 0, autoplay: 1 },
         events: {
@@ -46,8 +54,9 @@
             said.push(`speed ${p.getPlaybackRate()}×`);
             try {
               const tracks = p.getAvailableAudioTracks?.() ?? [];
-              const spanish = tracks.find((t) => JSON.stringify(t).toLowerCase().includes("spanish") ||
-                JSON.stringify(t).toLowerCase().includes('"es'));
+              const isSpanish = (t) => Object.values(t ?? {}).some((v) =>
+                typeof v === "string" && /^es([-_]|$)|spanish|español/i.test(v));
+              const spanish = tracks.find(isSpanish);
               if (spanish) { p.setAudioTrack(spanish); said.push("audio: Spanish"); }
               else said.push(tracks.length ? "no Spanish audio track" : "audio language: use ⚙ → Audio track");
             } catch { said.push("audio language: use ⚙ → Audio track"); }

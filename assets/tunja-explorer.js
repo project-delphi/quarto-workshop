@@ -97,10 +97,10 @@
       s.append(el("text", { x: (M.l + W - M.r) / 2, y: H - 4, "text-anchor": "middle", class: "lab" }, xlabel),
         el("text", { x: 14, y: (M.t + H - M.b) / 2, "text-anchor": "middle", class: "lab", transform: `rotate(-90 14 ${(M.t + H - M.b) / 2})` }, ylabel));
     }
-    function legend(s, list) {
+    function legend(s, list, x = W - M.r - 90, y = M.t + 8) {
       list.forEach((it, i) => {
-        s.append(el("circle", { cx: W - M.r - 90, cy: M.t + 8 + i * 20, r: 6, fill: colour(it) }),
-          el("text", { x: W - M.r - 78, y: M.t + 13 + i * 20 }, it.name));
+        s.append(el("circle", { cx: x, cy: y + i * 20, r: 6, fill: colour(it) }),
+          el("text", { x: x + 12, y: y + 5 + i * 20 }, it.name));
       });
     }
     const span = (vals) => {
@@ -124,7 +124,7 @@
       const ymax = Math.max(...bins.flat(), 1);
       const [a, b] = span([lo, hi]);
       const xs = (v) => M.l + ((v - a) / (b - a)) * (W - M.l - M.r);
-      const top = M.t, bot = 168, ys = (v) => bot - (v / ymax) * (bot - top);
+      const top = 76, bot = H - M.b, ys = (v) => bot - (v / ymax) * (bot - top);
       axes(s, xs, ys, info[k].label, "years", ticks(lo, hi), ticks(0, ymax, 3).filter(Number.isInteger));
       bins.forEach((c, j) => c.forEach((n, i) => {
         if (!n) return;
@@ -135,13 +135,13 @@
       list.forEach((ser, j) => {
         const st = data.summary[k][ser.name === "municipality" ? "both" : ser.name];
         if (st.n === 0) return;
-        const y = 200 + j * 26;
+        const y = 20 + j * 26;
         s.append(el("line", { x1: xs(st.min), x2: xs(st.max), y1: y, y2: y, stroke: colour(ser), "stroke-width": 2 }),
           el("rect", { x: xs(st.q1), y: y - 8, width: Math.max(2, xs(st.q3) - xs(st.q1)), height: 16, fill: "none", stroke: colour(ser), "stroke-width": 2 }),
           el("line", { x1: xs(st.median), x2: xs(st.median), y1: y - 8, y2: y + 8, stroke: "#f0f0f0", "stroke-width": 3 }));
       });
-      legend(s, list);
-      note.textContent = `📊 ${vals.length} values · bars count years · box = quartiles, white line = median, whiskers = min and max`;
+      legend(s, list, W - M.r - 90, 100);
+      note.textContent = `📊 ${vals.length} values · bars count years (urban | rural side by side in each value range) · box = quartiles, white line = median, whiskers = min and max`;
     }
 
     function timeSeries() {

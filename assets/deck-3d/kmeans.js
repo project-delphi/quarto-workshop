@@ -12,6 +12,7 @@ import {
 import { chase, ease } from "./meta.js";
 
 const GREY = new Color(0x8a8f96);
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
 function disc() {
   const canvas = document.createElement("canvas");
@@ -76,7 +77,7 @@ export const kmeans = {
 
     const cen = new Float32Array(k * 3), cenT = new Float32Array(k * 3);
     const lineA = [0];
-    let run = 0, step = 0, lineOpacity = 0, clock = 0, first = true, stable = false, labels = null;
+    let dirty = true, run = 0, step = 0, lineOpacity = 0, clock = 0, first = true, stable = false, labels = null;
     const readout = el.closest("section")?.querySelector(".k-readout");
 
     function retarget() {
@@ -84,6 +85,7 @@ export const kmeans = {
       const s = states[Math.min(step, states.length - 1)];
       cenT.set(s.c.map((v) => v / scale));
       labels = s.l;
+      dirty = true;
       for (let i = 0; i < n; i++) {
         const c = labels ? colors[labels[i]] : GREY;
         colT.set([c.r, c.g, c.b], i * 3);
@@ -120,14 +122,16 @@ export const kmeans = {
         else lineOpacity = lineA[0];
         lineMaterial.opacity = lineOpacity;
         // Once nothing changes any more, the centres breathe (not with a still frame).
+        const changed = Boolean(moving);
         let pulse = 1;
-        if (stable && Number.isFinite(dt)) {
+        if (stable && Number.isFinite(dt) && !reduceMotion.matches) {
           clock += dt;
           pulse = 1 + 0.18 * Math.sin(clock * 4);
           moving = true;
         }
         centres.forEach((c) => c.scale.setScalar(pulse));
-        draw();
+        if (changed || dirty) draw(); // lines and colours only change while something moves
+        dirty = false;
         return Boolean(moving);
       },
     };

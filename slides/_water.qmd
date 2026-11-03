@@ -1014,6 +1014,8 @@ def wat_inertia(wat_c, wat_l):
 wat_runs = [wat_lloyd(wat_toy[wat_np.random.default_rng(sd).choice(len(wat_toy), wat_KM, replace=False)])
             for sd in (0, 3, 5)]
 wat_best = min(wat_inertia(r[-1][0], r[-1][1]) for r in wat_runs)
+# The slide's story needs exactly one stuck start; fail the render if the data or RNG change that.
+assert sum(wat_inertia(r[-1][0], r[-1][1]) > wat_best + 1e-6 for r in wat_runs) == 1
 wat_N = max(len(r) for r in wat_runs)
 wat_mid, wat_span = wat_toy.mean(0), wat_np.abs(wat_toy - wat_toy.mean(0)).max()
 wat_SK = 1000
@@ -1062,7 +1064,7 @@ print(f'<div class="deck-3d" data-scene="kmeans" role="img" aria-label="{wat_htm
       '<div class="legend"><span>● point</span><span>◉ centre</span></div>'
       f'<div class="t-picker" role="group" aria-label="Step"><button class="t-play" aria-pressed="true">⏸ fix</button>{wat_km_btn}</div>'
       f'<div class="c-picker" role="group" aria-label="Random start">{wat_km_start}</div>'
-      '<p class="fallback" hidden>🧩 This 3-D view needs WebGL; the four steps are in the notes.</p></div>')
+      '<p class="fallback" hidden>🧩 This 3-D view needs WebGL; the four steps are written in the notes.</p></div>')
 print("```")
 print(f'\n::: {{.steps-3d}}\n<span class="k-readout">{wat_html.escape(wat_km_data["runs"][0]["states"][0]["note"])}</span>'
       f'{wat_km_frag}\n\n:::\n')
@@ -1084,7 +1086,9 @@ k = `{python} int(wat_ktab.index.min())`–`{python} int(wat_ktab.index.max())` 
 
 ::: {.notes}
 Synthetic toy points, labelled as such: 120 random points in 3-D around three centres, drawn by
-this deck with a fixed seed. → steps through the algorithm; the numbered buttons jump to a
+this deck with a fixed seed. The four steps: ① drop k centres at random points; ② assign every
+point to its nearest centre; ③ move each centre to the mean of its points; ④ repeat ② and ③
+until nothing changes. → steps through the algorithm; the numbered buttons jump to a
 step, ▶ play runs it, 🎲 1–3 pick one of three random starts (two reach the lowest inertia,
 the third gets stuck: a bad start can give a worse answer, hence `n_init=20`), and dragging
 turns the cloud. The lines are the distances that inertia adds up.
