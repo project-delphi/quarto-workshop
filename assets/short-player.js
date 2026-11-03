@@ -1,0 +1,74 @@
+// Opens a YouTube Short in a dialog over the deck (slides/_water.qmd, #water-kmeans) and asks
+// the player for Spanish and 0.9x speed. The IFrame Player API (loaded only when the button
+// is pressed, so rendering and the deck need no network) documents setPlaybackRate, which
+// picks the nearest speed the video offers; it documents no audio-language setting, so the
+// audio and caption language are requested with hl / cc_lang_pref and the dubbed audio track
+// is switched with getAvailableAudioTracks / setAudioTrack where the player offers them.
+// https://developers.google.com/youtube/iframe_api_reference (checked 2026-11-03)
+(() => {
+  const SPEED = 0.9, LANG = "es";
+  let api = null;
+  const loadApi = () => api ??= new Promise((resolve, reject) => {
+    if (window.YT?.Player) return resolve(window.YT);
+    const fail = () => { api = null; reject(new Error("YouTube API did not load")); };
+    const timer = setTimeout(fail, 10000);
+    const previous = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { clearTimeout(timer); previous?.(); resolve(window.YT); };
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    tag.onerror = () => { clearTimeout(timer); fail(); };
+    document.head.append(tag);
+  });
+  let count = 0;
+
+  function open(id) {
+    const dialog = document.createElement("dialog");
+    dialog.className = "short-dialog";
+    const slot = `short-player-${++count}`;
+    dialog.innerHTML = `<div class="short-frame"><div id="${slot}"></div></div>` +
+      '<p class="short-info"></p><p class="short-links">' +
+      `<a href="https://youtube.com/shorts/${id}" target="_blank" rel="noopener">↗ YouTube</a> · ` +
+      '<button type="button" class="short-close">✕ close</button></p>';
+    document.body.append(dialog);
+    const info = dialog.querySelector(".short-info");
+    let player;
+    const close = () => { player?.destroy?.(); dialog.close(); dialog.remove(); };
+    dialog.querySelector(".short-close").addEventListener("click", close);
+    dialog.addEventListener("cancel", (e) => { e.preventDefault(); close(); });
+    dialog.addEventListener("click", (e) => { if (e.target === dialog) close(); });
+    // Reveal listens on the document: keep arrows, space and Escape inside the dialog.
+    dialog.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); e.stopPropagation(); });
+    dialog.showModal();
+    info.textContent = "⏳ loading the player …";
+    loadApi().then((YT) => {
+      if (!dialog.isConnected) return; // closed while the API loaded
+      player = new YT.Player(slot, {
+        videoId: id, width: "100%", height: "100%",
+        playerVars: { hl: LANG, cc_lang_pref: LANG, playsinline: 1, rel: 0, autoplay: 1 },
+        events: {
+          onReady: (e) => { e.target.setPlaybackRate(SPEED); e.target.playVideo(); },
+          onStateChange: (e) => {
+            if (e.data !== YT.PlayerState.PLAYING) return;
+            const p = e.target, said = [];
+            p.setPlaybackRate(SPEED);
+            said.push(`speed ${p.getPlaybackRate()}×`);
+            try {
+              const tracks = p.getAvailableAudioTracks?.() ?? [];
+              const isSpanish = (t) => Object.values(t ?? {}).some((v) =>
+                typeof v === "string" && /^es([-_]|$)|spanish|español/i.test(v));
+              const spanish = tracks.find(isSpanish);
+              if (spanish) { p.setAudioTrack(spanish); said.push("audio: Spanish"); }
+              else said.push(tracks.length ? "no Spanish audio track" : "audio language: use ⚙ → Audio track");
+            } catch { said.push("audio language: use ⚙ → Audio track"); }
+            info.textContent = said.join(" · ");
+          },
+        },
+      });
+    }).catch(() => { info.textContent = "⚠️ the player did not load: use the YouTube link"; });
+  }
+
+  document.addEventListener("click", (e) => {
+    const button = e.target.closest?.("[data-video]");
+    if (button) open(button.dataset.video);
+  });
+})();

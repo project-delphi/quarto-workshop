@@ -2,6 +2,7 @@
 // loads this bundle once (deck-3d.min.js, from the first 3-D slide's cell).
 import { cloud } from "./cloud.js";
 import { relief } from "./relief.js";
+import { kmeans } from "./kmeans.js";
 import { metaHulls } from "./meta-hulls.js";
 import { metaOrbits } from "./meta-orbits.js";
 import { metaStack } from "./meta-stack.js";
@@ -10,7 +11,7 @@ import { metaVoronoi } from "./meta-voronoi.js";
 import { stage } from "./stage.js";
 
 const scenes = {
-  cloud, relief, "meta-terrain": metaTerrain, "meta-hulls": metaHulls,
+  cloud, relief, kmeans, "meta-terrain": metaTerrain, "meta-hulls": metaHulls,
   "meta-stack": metaStack, "meta-orbits": metaOrbits,
   "meta-voronoi": metaVoronoi,
 };
