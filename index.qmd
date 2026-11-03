@@ -162,6 +162,8 @@ trademark, used here to refer to Quarto (https://quarto.org/trademark.html).
 
 ## 🪟 Start Ubuntu · 📁 Move Around {#wsl-start}
 
+[🏠 before the workshop]{.pace}
+
 ::: {.cards .tips}
 ::: {}
 [🛡️]{.big}
@@ -175,7 +177,7 @@ Start → PowerShell → right-click → Run as administrator
 
 **`wsl --install`**
 
-restart, then open "Ubuntu"
+restart, open "Ubuntu", choose a username + password (typing shows nothing)
 :::
 ::: {.fragment}
 [📂]{.big}
@@ -193,11 +195,21 @@ new folder, then `cd name`
 :::
 :::
 
+Help text instead? `wsl --install -d Ubuntu` · check: `wsl -l -v` shows VERSION 2 · 🚫 blocked? Tell the organiser **before** the day
+
 ::: {.notes}
-Windows only; macOS and Linux users open their own terminal. Installing WSL needs an
+Windows only; macOS and Linux users open their own terminal. Do this at home: it needs a
+download, a restart and the first Ubuntu start, which do not fit the 0:10 block. It needs
+Windows 10 build 19041 or later, or Windows 11. Installing WSL needs an
 administrator PowerShell once (Start menu, type PowerShell, right-click, Run as
 administrator); `wsl --install` installs Ubuntu by default and needs a restart
-(https://learn.microsoft.com/windows/wsl/install). Afterwards Ubuntu opens from the Start
+(https://learn.microsoft.com/windows/wsl/install). If it prints help text instead (WSL
+already present), run `wsl --install -d Ubuntu`; if it hangs at 0.0%, try
+`wsl --install --web-download -d Ubuntu`. `wsl -l -v` must show VERSION 2. If it fails with
+error 0x80370102, virtualization is off in the BIOS (Task Manager → Performance → CPU shows
+"Virtualization: Enabled" when it is on), and without administrator rights it cannot be
+installed at all: such participants cannot use this route, so collect them before the day
+and pair them with a neighbour (no native Windows route is supported). Afterwards Ubuntu opens from the Start
 menu, or type `wsl` in any PowerShell window; `exit` returns. The first Ubuntu start asks
 for a Linux username and password (typing the password shows nothing: that is normal).
 Every later step happens in Ubuntu, as a normal user, not as admin. The terminal opens in
@@ -216,14 +228,14 @@ Windows machine: try it before teaching.
 
 **Install inside Ubuntu**
 
-Quarto, gh, uv and the assistant, in the WSL terminal
+Quarto, gh, uv and the assistant: next slides
 :::
 ::: {}
 [🏠]{.big}
 
 **Keep folders in `~`**
 
-not under `/mnt/c`, which is slower
+prompt shows `/mnt/c`? Run `cd ~`
 :::
 ::: {}
 [📂]{.big}
@@ -340,6 +352,8 @@ model + harness in your terminal
 
 🪶 Small models: fast, cheap, may stumble on multi-step work
 
+✅ **Enough today:** Haiku or Sonnet on **medium** · Sol on **low**
+
 ::: {.check}
 💬 Which would you pick to fix a typo, and which to join two datasets?
 :::
@@ -358,7 +372,53 @@ and recency matter too, and no model is always right, so check its work (the "yo
 direct and check" rule). Good answer to the check: a small model for the typo, the
 strongest available for the join. If a prompt keeps failing, try a stronger model inside
 your assistant (see its documentation for how). Model names and availability change
-often; do not name versions on stage.
+often; do not name versions on stage. For this workshop the prompts are short and
+well specified, so Haiku or Sonnet with the effort (reasoning) setting on medium, or
+ChatGPT's Sol on low, is sufficient; try a stronger model or higher effort only if a prompt keeps failing.
+:::
+
+## 🐧 Install Tools in Ubuntu {#install-tools}
+
+[🏠 before the workshop]{.pace} 🪟 Windows: paste in Ubuntu, one block at a time
+
+::: {.you}
+```bash
+sudo apt update && sudo apt install -y curl git
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+```bash
+R=https://github.com/quarto-dev/quarto-cli/releases
+V=$(curl -fsSLI -o /dev/null -w '%{url_effective}' $R/latest); V=${V##*/v}
+curl -fLO $R/download/v$V/quarto-$V-linux-$(dpkg --print-architecture).deb
+sudo apt install -y ./quarto-$V-linux-*.deb
+```
+
+```bash
+R=https://github.com/cli/cli/releases
+V=$(curl -fsSLI -o /dev/null -w '%{url_effective}' $R/latest); V=${V##*/v}
+curl -fLO $R/download/v$V/gh_${V}_linux_$(dpkg --print-architecture).deb
+sudo apt install -y ./gh_${V}_linux_*.deb
+```
+:::
+
+🔑 `sudo` asks for your Ubuntu password (typing shows nothing) · then open a new tab
+
+::: {.notes}
+Fresh Ubuntu images may lack `curl`, so the first block installs it. `sudo` asks for the
+Linux password chosen at the first start; typing shows nothing. uv's installer
+(https://docs.astral.sh/uv/getting-started/installation/) puts `uv` in `~/.local/bin`, which
+only a new shell sees. Quarto has no Ubuntu apt package: the `.deb` on the GitHub release
+page is the Linux route (https://quarto.org/docs/download/). Its file name contains the
+version, so the block reads the latest tag from the `releases/latest` redirect (no API rate
+limit on shared Wi-Fi) and `dpkg --print-architecture` picks `amd64` or `arm64` (Snapdragon
+laptops). The GitHub CLI maintainers advise against Ubuntu's own `gh` package
+(https://github.com/cli/cli/blob/trunk/docs/install_linux.md, which also gives an apt
+repository route that updates itself); the release `.deb` used here is a one-off install.
+Both lookups were run on 2026-11-03 (Quarto 1.11.9, gh 2.103.3) from a Mac, which proves the
+URLs resolve; the `apt` lines themselves have not been tried on a Windows machine: run them
+once in a fresh Ubuntu before teaching. Needs Quarto 1.10 or later. Behind a corporate proxy
+these downloads can fail: tell the organiser before the day.
 :::
 
 ## 🧩 No Coding Assistant Yet? {#install-assistant}
@@ -397,12 +457,18 @@ curl -fsSL https://antigravity.google/cli/install.sh | bash
 ```
 :::
 
-Pick one · install, open a new terminal tab, then start it with its command (`claude`, `codex` or `agy`)
+Pick one · install, open a new tab, start it (`claude`, `codex` or `agy`) · 🔑 needs a paid plan or API key · sign-in prints a URL: open it in Windows
 
 [Install commands checked 2026-10-30. Windows: run them in Ubuntu (WSL).]{.source}
 
 ::: {.notes}
-Do this before the workshop. Sign in with an account that has access to the tool.
+Do this before the workshop. Sign in with an account that has access to the tool: Claude
+Code needs a Pro, Max, Team, Enterprise or Console account (https://code.claude.com/docs/en/setup),
+Codex a ChatGPT sign-in or an API key (https://learn.chatgpt.com/docs/auth), Antigravity a
+Google account. WSL cannot open a browser: Claude Code and Antigravity print a URL, which you
+copy into the Windows browser, then paste the code back; if Codex's browser sign-in fails,
+`codex login --device-auth` (first enable device codes in ChatGPT security settings).
+Sign-up and email verification can take hours, so do not leave them for the day.
 Claude Code installer: https://code.claude.com/docs/en/setup. Codex standalone installer
 for macOS and Linux: https://learn.chatgpt.com/docs/codex/cli, which also lists Windows,
 `npm install -g @openai/codex` and Homebrew. Google's Antigravity CLI (`agy`):
@@ -420,26 +486,28 @@ assistants writing to one folder.
 
 ::: {.you}
 ```bash
+quarto --version  # 1.10 or newer
 quarto check      # Jupyter "not available"? fine
 uv --version
 gh auth status
 claude --version
-git config --global user.name "Your Name"   # skip if set
-git config --global user.email "you@example.com"   # skip if set
+git config --global user.name "Your Name"   # YOUR name; skip if set
+git config --global user.email "you@example.com"   # YOUR GitHub email
 cd ~ && git clone https://github.com/project-delphi/quarto-workshop.git
 ```
 :::
 
-No `uv`? [Install uv](https://docs.astral.sh/uv/getting-started/installation/) · No `gh`? [Install the GitHub CLI](https://cli.github.com/), then `gh auth login` · 🤖 Codex: `codex --version` · Antigravity: `agy --version`
+Missing a tool? Redo 🐧 Install Tools in Ubuntu · No "Logged in"? `gh auth login`: GitHub.com → HTTPS → Yes → web browser, copy the code, open github.com/login/device in Windows · 🤖 Codex: `codex --version` · Antigravity: `agy --version`
 
 ### Exercise · ⏱️ 4 min
 
 ::: {.done}
-`quarto check` and `uv --version` run, `gh auth status` says "Logged in", and `~/quarto-workshop/checkpoints/` exists.
+`quarto --version` says 1.10 or newer, `uv --version` runs, `gh auth status` says "Logged in", and `~/quarto-workshop/checkpoints/` exists.
 :::
 
 ::: {.notes}
-`quarto check` reports Pandoc and Typst. Its Python and Jupyter lines may show "(None)", or
+Quarto 1.10 or newer is needed (current 1.11.x); older ones fail on the London white paper
+and the Typst PDF settings. `quarto check` reports Pandoc and Typst. Its Python and Jupyter lines may show "(None)", or
 "Jupyter is not available" with an install hint to ignore:
 each project gets its own Python environment from uv, by a prompt in each part, so there is
 nothing to install for Python now. uv also downloads a Python if the computer has none.
@@ -492,7 +560,7 @@ before the day (a reply to the invitation is enough) and follow up with anyone w
 or whose run failed: these are the problems that otherwise surface in the tightest block.
 Every render prints `[IPKernelApp] WARNING | Kernel is running over TCP without encryption`;
 in the dry run of 2026-11-01 (ipykernel 7.4) it came with every successful render and changed
-nothing in the output. Tested 2026-10-31 with Quarto 1.6.40 and uv in an empty folder
+nothing in the output. Tested 2026-10-31 with Quarto 1.6.40 (participants now get 1.11.x; the Quarto 1.10 or newer rule stands, so re-run it once) and uv in an empty folder
 (commands run by hand, not
 through an assistant). The folder is disposable: delete `~/quarto-test` afterwards. It uses
 YAML, a code cell and inline code before their slides on purpose: it is a black-box check
