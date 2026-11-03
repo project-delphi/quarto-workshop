@@ -30,7 +30,7 @@ The workshop is designed as a **3 h 20 min hands-on session** (200 minutes total
    - Confirm that attendees ran the setup check (`quarto check`, `uv --version`, `gh auth status`) and the 🧪 test run.
    - For anyone who did not confirm ahead of time, pair them with a neighbor or TA during the 0:10 block.
 2. **Windows Attendees**:
-   - Ensure Windows users are operating within **WSL2 (Ubuntu)**. Native PowerShell works with `uv` and `quarto`, but shell catch-up scripts and backup commands rely on POSIX utilities (`tar`, `date`).
+   - Ensure Windows users are operating within **WSL2 (Ubuntu)**; the deck has no supported native PowerShell route (the catch-up and backup commands rely on POSIX utilities such as `tar` and `date`, and Windows installers put tools where WSL cannot use them). The WSL install (admin rights, restart, first Ubuntu start) is 🏠 pre-work. Ask for `wsl -l -v` output (VERSION 2) before the day, and pair anyone who cannot install WSL (no admin rights, virtualization off in the BIOS, Store or downloads blocked by a proxy) with a neighbour for the day. Run the Ubuntu install slide once on a clean Windows machine before teaching: it has only been checked from documentation and a Mac.
 3. **Network Readiness**:
    - Confirm venue Wi-Fi permits SSH/HTTPS to GitHub, package downloads via `uv`, and access to GitHub Pages.
 

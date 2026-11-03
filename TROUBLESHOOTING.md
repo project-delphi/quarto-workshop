@@ -4,6 +4,41 @@ This guide collects tested solutions for common issues encountered during the Qu
 
 ---
 
+## 0. Windows setup (WSL / Ubuntu)
+
+*Written from Microsoft's, GitHub's and Quarto's documentation; not yet tried on a Windows machine.*
+
+### `wsl --install` prints help text, hangs, or fails
+- **Fix**: Run PowerShell **as administrator**. Help text means WSL is already present: run `wsl --install -d Ubuntu`. A hang at 0.0%: `wsl --install --web-download -d Ubuntu`. Restart when asked. Check with `wsl -l -v` (VERSION 2).
+- **Error `0x80370102`**: virtualization is off in the BIOS/UEFI (Task Manager → Performance → CPU shows "Virtualization"). Without administrator rights or BIOS access you cannot fix this: tell the organiser before the day.
+- **Needs** Windows 10 build 19041 or later, or Windows 11.
+
+### The Ubuntu password prompt shows nothing while typing
+- Normal: Linux hides the password. Type it and press Enter. `sudo` asks for the same password later.
+
+### `command not found` for `uv`, `claude`, `codex` or `agy` right after installing
+- **Fix**: open a **new** Ubuntu tab (the installer changed your shell's search path), then try again.
+
+### `quarto: command not found`, or it works in PowerShell but not Ubuntu
+- Windows installers put tools where Ubuntu cannot use them. Install Quarto **inside Ubuntu** with the 🐧 Install Tools in Ubuntu slide, then open a new tab. Check `quarto --version` (1.10 or newer).
+
+### The prompt shows `/mnt/c/...`
+- You are in a Windows folder (for example OneDrive). Run `cd ~` and keep workshop folders there.
+
+### `gh auth login` or the assistant cannot open a browser
+- Expected in WSL. Copy the URL or one-time code it prints into your Windows browser (for `gh`: github.com/login/device), authorise, and return to the terminal. Codex: `codex login --device-auth` if the browser sign-in fails.
+
+### Downloads or `git clone` fail on a company network
+- A proxy or TLS inspection can block `curl`, `git` and `uv`. Try another network (phone hotspot) and tell the organiser.
+
+### `git commit` says "Please tell me who you are"
+- Run the two `git config --global` lines from the Setup Check with **your** name and email.
+
+### `not a valid Python environment` (a stale `.venv`)
+- Delete it and run again; `uv run` rebuilds it: `rm -rf .venv`.
+
+---
+
 ## 1. Publishing to GitHub Pages
 
 ### First publish fails with "the remote origin does not have a branch named gh-pages"
