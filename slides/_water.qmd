@@ -656,25 +656,45 @@ import json as wat_json
 
 wat_tj = wat_raw[wat_raw["divipola"] == "15001"].sort_values(["year", "zone"])
 assert wat_tj["municipio"].eq("TUNJA").all() and len(wat_tj) == 28
-# key, label, level: "municipal" variables repeat the same value in both zone rows.
+# key, dropdown label, short axis label. A variable's level is "municipal" (the same value in both
+# zone rows), "fixed" (one value per zone, repeated every year) or "zone" (varies by zone and year).
 wat_tj_vars = [
-    ("irca", "💧 IRCA, utility-supplied (0–100 %)"),
-    ("water_coverage_total", "🚰 aqueduct coverage, municipality (%)"),
-    ("sewer_coverage_total", "🚽 sewer coverage, municipality (%)"),
-    ("population", "👥 population (people)"),
-    ("ipm", "💸 multidimensional poverty IPM, 2018 census (%)"),
-    ("mdm", "🏛️ municipal performance MDM (points)"),
-    ("idf", "🧾 fiscal performance, old method (points)"),
-    ("idf_new", "🧾 fiscal performance, new method (points)"),
-    ("sgp_water_pc", "💰 SGP water, nominal pesos per person"),
-    ("rainfall_mm", "🌧️ rainfall (mm per year)"),
-    ("infant_mortality", "👶 infant mortality (per 1,000 births)"),
-    ("saber11_mean", "🎓 Saber 11 mean (points)"),
-    ("dropout_rate", "🏫 school dropout (%)"),
+    ("irca", "💧 IRCA, utility-supplied (0–100 %)", "IRCA (0–100 %)"),
+    ("water_coverage_total", "🚰 aqueduct coverage, municipality (%)", "aqueduct coverage (%)"),
+    ("sewer_coverage_total", "🚽 sewer coverage, municipality (%)", "sewer coverage (%)"),
+    ("population", "👥 population (people)", "people"),
+    ("ipm", "💸 multidimensional poverty IPM, 2018 census (%)", "IPM, 2018 census (%)"),
+    ("mdm", "🏛️ municipal performance MDM (points)", "MDM (points)"),
+    ("idf", "🧾 fiscal performance, old method (points)", "IDF, old method (points)"),
+    ("idf_new", "🧾 fiscal performance, new method (points)", "IDF, new method (points)"),
+    ("sgp_water_pc", "💰 SGP water, nominal pesos per person", "SGP water (pesos per person)"),
+    ("rainfall_mm", "🌧️ rainfall (mm per year)", "rainfall (mm per year)"),
+    ("infant_mortality", "👶 infant mortality (per 1000 births)", "infant deaths per 1000 births"),
+    ("saber11_mean", "🎓 Saber 11 mean (points)", "Saber 11 mean (points)"),
+    ("dropout_rate", "🏫 school dropout (%)", "school dropout (%)"),
 ]
-wat_tj_piv = {k: wat_tj.pivot(index="year", columns="zone", values=k) for k, _ in wat_tj_vars}
-wat_tj_level = {k: "municipal" if ((p.urban == p.rural) | (p.urban.isna() & p.rural.isna())).all() else "zone"
-                for k, p in wat_tj_piv.items()}
+# Caveats from data/README.md (caveats 2, 8 and 9): a note under the chart and, for a method or
+# source change, the first year of each new regime (the line breaks there).
+wat_tj_cav = {
+    "water_coverage_total": {"note": "hollow = reported as 0, probably “not reported” (data README, caveat 2)"},
+    "sewer_coverage_total": {"note": "hollow = reported as 0, probably “not reported” (data README, caveat 2)"},
+    "population": {"note": "DANE back-projection to 2017, a newer series from 2018 (data README, caveat 9)",
+                   "breaks": [[2018, "new series"]]},
+    "infant_mortality": {"note": "modelled to 2016, observed rates from 2017, 2020 from another source: "
+                                 "the 2017 drop is not an improvement (data README, caveat 8)",
+                         "breaks": [[2017, "new method"], [2020, "2020: other source"], [2021, ""]]},
+}
+wat_tj_piv = {k: wat_tj.pivot(index="year", columns="zone", values=k) for k, _, _ in wat_tj_vars}
+
+
+def wat_tj_lvl(wat_p):
+    if ((wat_p.urban == wat_p.rural) | (wat_p.urban.isna() & wat_p.rural.isna())).all():
+        return "municipal"
+    return "fixed" if all(wat_p[z].dropna().nunique() <= 1 for z in ("urban", "rural")) else "zone"
+
+
+def wat_tj_dp(wat_v):  # decimals needed to show every value exactly (at most 2)
+    return next((d for d in range(3) if ((wat_v.dropna() * 10 ** d).round(6) % 1 == 0).all()), 2)
 
 
 def wat_tj_stats(wat_v):
@@ -688,22 +708,29 @@ def wat_tj_stats(wat_v):
             "q3": None if wat_q is None else float(wat_q[0.75])}
 
 
+wat_tj_level = {k: wat_tj_lvl(p) for k, p in wat_tj_piv.items()}
+# Summaries never pool the two zones: that would average urban and rural values of different
+# populations. A municipal variable is one series of 14 years; a fixed one is a single value.
 wat_tj_sum = {}
 for wat_key, wat_p in wat_tj_piv.items():
     if wat_tj_level[wat_key] == "municipal":
-        wat_tj_sum[wat_key] = {z: wat_tj_stats(wat_p["urban"]) for z in ("urban", "rural", "both")}
+        wat_tj_sum[wat_key] = {"municipal": wat_tj_stats(wat_p["urban"])}
+    elif wat_tj_level[wat_key] == "fixed":
+        wat_tj_sum[wat_key] = {z: wat_tj_stats(wat_p[z].drop_duplicates()) for z in ("urban", "rural")}
     else:
-        wat_tj_sum[wat_key] = {"urban": wat_tj_stats(wat_p["urban"]), "rural": wat_tj_stats(wat_p["rural"]),
-                               "both": wat_tj_stats(wat_tj[wat_key])}
+        wat_tj_sum[wat_key] = {z: wat_tj_stats(wat_p[z]) for z in ("urban", "rural")}
 wat_tj_data = {
-    "years": sorted(wat_tj["year"].unique().tolist()),
-    "vars": [{"key": k, "label": lab, "level": wat_tj_level[k]} for k, lab in wat_tj_vars],
+    "years": sorted(int(y) for y in wat_tj["year"].unique()),
+    "vars": [{"key": k, "label": lab, "short": sh, "level": wat_tj_level[k], "dp": wat_tj_dp(wat_tj[k]),
+              "suspect": sorted(int(y) for y in wat_tj.loc[wat_tj[k].eq(0), "year"].unique())
+              if k in ("water_coverage_total", "sewer_coverage_total") else [],
+              **wat_tj_cav.get(k, {})} for k, lab, sh in wat_tj_vars],
     "rows": [{"year": int(r["year"]), "zone": r["zone"],
-              **{k: (None if wat_pd.isna(r[k]) else float(r[k])) for k, _ in wat_tj_vars}}
+              **{k: (None if wat_pd.isna(r[k]) else float(r[k])) for k, _, _ in wat_tj_vars}}
              for _, r in wat_tj.iterrows()],
     "summary": wat_tj_sum,
 }
-wat_tj_opts = "".join(f'<option value="{k}">{wat_html.escape(lab)}</option>' for k, lab in wat_tj_vars)
+wat_tj_opts = "".join(f'<option value="{k}">{wat_html.escape(lab)}</option>' for k, lab, _ in wat_tj_vars)
 print("```{=html}")
 print('<div class="tunja">'
       f'<script type="application/json">{wat_json.dumps(wat_tj_data, separators=(",", ":"))}</script>'
@@ -731,7 +758,12 @@ statistic and quartile on this slide is computed by the deck from the raw CSV; t
 draws them. Variables that repeat the same value in the urban and rural rows (coverage, MDM,
 fiscal indices, SGP, rainfall, infant mortality, dropout) are municipality-level, so the
 zone menu does not change them and they are counted once, 14 years rather than 28. `ipm`
-is one value per zone from the 2018 census, repeated in every year. Things to try: 💧 IRCA by
+is one value per zone from the 2018 census, repeated in every year, so its charts show the two
+values instead of a trend. The summary never pools urban and rural (averaging a 8 000-person
+rural population with a 170 000-person urban one means nothing). Hollow points are coverage
+years reported as 0, probably "not reported" (data README, caveat 2); dashed lines mark the
+population series change (2018) and the infant-mortality method and source changes (2017, 2020).
+Numbers carry no thousands separators: 2011, not 2,011. Things to try: 💧 IRCA by
 year for urban and rural (rural has missing years: unsampled systems); 🧾 `idf` ends in 2020
 and `idf_new` starts there (different methods, not comparable); 👶 infant mortality changes
 method in 2017; 🎓 Saber 11 exists only for 2014–2017, 2019, 2020 and 2022. Scatter plots of
