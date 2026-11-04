@@ -7935,8 +7935,8 @@ display:block!important;
       }));
     }
     const colour = (s) => COLORS[s.name];
-    const caveats = (keys) => [...new Set(keys.map((k) => info[k].note).filter(Boolean))].map((t) => `⚠️ ${t}`).join(" · ");
-    const suspect = (k, r) => info[k].suspect.includes(r.year);
+    const caveats = (keys) => [...new Set(keys.map((k) => info[k].note).filter(Boolean))].map((t) => ` · ⚠️ ${t}`).join("");
+    const suspect = (k, r) => r[k] === 0 && info[k].suspect.includes(r.year);
     const fixedBar = (k) => info[k].level === "fixed";
 
     function scrollTable(html) {
@@ -8021,7 +8021,8 @@ display:block!important;
     // A variable with one value per zone has no trend or spread: draw the values themselves.
     function fixedBars(k) {
       const zs = zone.value === "both" ? ["urban", "rural"] : [zone.value];
-      const vals = zs.map((z) => ({ z, v: data.summary[k][z].min }));
+      const vals = zs.map((z) => ({ z, v: data.summary[k][z].min })).filter((p) => p.v !== null);
+      if (!vals.length) return message(svg(`${info[k].label}, Tunja`), ["no value"]);
       const s = svg(`${info[k].label}: ${vals.map((p) => `${p.z} ${num(p.v, info[k].dp)}`).join(", ")}, Tunja`);
       const dom = Math.max(...vals.map((p) => p.v)) * 1.12, xt = ticks(0, dom, 5);
       const xs = (v) => M.l + (v / dom) * (W - M.l - M.r);
@@ -8032,7 +8033,7 @@ display:block!important;
           el("text", { x: M.l + 8, y: y(i) + 27, class: "bar" }, p.z),
           el("text", { x: xs(p.v) + 8, y: y(i) + 27 }, num(p.v, info[k].dp)));
       });
-      note.textContent = `💸 ${info[k].short} is one census value per zone, repeated in every year: no trend or spread to plot, so the chart shows the values · ${caveats([k])}`.replace(/ · $/, "");
+      note.textContent = `💸 ${info[k].short} is one census value per zone, repeated in every year: no trend or spread to plot, so the chart shows the values${caveats([k])}`;
     }
 
     function distribution() {
@@ -8082,7 +8083,7 @@ display:block!important;
           s.append(c);
         });
       });
-      note.textContent = `📊 ${vals.length} values · bars count years per value range${list.length > 1 ? " (urban | rural side by side)" : ""} · dots = years${vals.length >= 5 ? ", box = quartiles, white line = median, whiskers = min and max" : ""} ${caveats([k])}`;
+      note.textContent = `📊 ${vals.length} values · bars count years per value range${list.length > 1 ? " (urban | rural side by side)" : ""} · dots = years${vals.length >= 5 ? ", box = quartiles, white line = median, whiskers = min and max" : ""}${caveats([k])}`;
     }
 
     function timeSeries() {
@@ -8098,9 +8099,10 @@ display:block!important;
       axes(s, xs, ys, "year", v.short, { vals: years, f: String }, ticks(a, b));
       const breaks = v.breaks || [];
       breaks.forEach(([yr, label]) => {
+        if (!label) return; // an unlabelled break only ends the line (2021 follows 2020's own regime)
         const x = xs(yr - 0.5);
-        s.append(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b, class: "brk" }));
-        if (label) s.append(el("text", { x: x + 5, y: M.t - 6, class: "brk-t" }, label));
+        s.append(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b, class: "brk" }),
+          el("text", { x: x + 5, y: M.t - 6, class: "brk-t" }, label));
       });
       list.forEach((ser) => {
         // Lines join consecutive years only: a missing year, a suspect 0 or a method change breaks the line.
@@ -8122,7 +8124,7 @@ display:block!important;
         });
       });
       legend(s, list);
-      note.textContent = `📈 one point per year · a gap is a missing year, not a zero${v.level === "municipal" ? " · municipality-wide: one value per year" : ""} ${caveats([k])}`;
+      note.textContent = `📈 one point per year · a gap is a missing year, not a zero${v.level === "municipal" ? " · municipality-wide: one value per year" : ""}${caveats([k])}`;
     }
 
     function scatter() {
@@ -8145,7 +8147,7 @@ display:block!important;
         s.append(c, el("text", { x: xs(r[kx]) + 9, y: ys(r[ky]) - 7, class: "yr" }, `'${String(r.year).slice(2)}`));
       });
       legend(s, list);
-      note.textContent = `🔵 ${pts.length} ${pts.length === 1 ? "year" : "years"} with both values · each point is one year ('15 = 2015) · a pattern across years is not a cause ${caveats([kx, ky])}`;
+      note.textContent = `🔵 ${pts.length} ${pts.length === 1 ? "year" : "years"} with both values · each point is one year ('15 = 2015) · a pattern across years is not a cause${caveats([kx, ky])}`;
     }
 
     function draw() {
@@ -8167,7 +8169,7 @@ display:block!important;
 <p>Tunja (DIVIPOLA 15001), <code>water_municipal.csv</code>, 2010–2023 · 💡 pick a view, then a variable</p>
 </div>
 <aside class="notes">
-<p>Tunja is the capital of Boyacá, so it has no urban/rural split for coverage: the slide uses <code>water_coverage_total</code> and <code>sewer_coverage_total</code> (municipality-wide). Every row, summary statistic and quartile on this slide is computed by the deck from the raw CSV; the page only draws them. Variables that repeat the same value in the urban and rural rows (coverage, MDM, fiscal indices, SGP, rainfall, infant mortality, dropout) are municipality-level, so the zone menu does not change them and they are counted once, 14 years rather than 28. <code>ipm</code> is one value per zone from the 2018 census, repeated in every year, so its charts show the two values instead of a trend. The summary never pools urban and rural (averaging a 8 000-person rural population with a 170 000-person urban one means nothing). Hollow points are coverage years reported as 0, probably “not reported” (data README, caveat 2); dashed lines mark the population series change (2018) and the infant-mortality method and source changes (2017, 2020). Numbers carry no thousands separators: 2011, not 2,011. Things to try: 💧 IRCA by year for urban and rural (rural has missing years: unsampled systems); 🧾 <code>idf</code> ends in 2020 and <code>idf_new</code> starts there (different methods, not comparable); 👶 infant mortality changes method in 2017; 🎓 Saber 11 exists only for 2014–2017, 2019, 2020 and 2022. Scatter plots of 14 years show co-movement over time, not cause. Dropdowns: ↑↓ pick inside a menu; the arrow keys move the deck only when no menu has focus. About two minutes.</p>
+<p>Tunja is the capital of Boyacá, so it has no urban/rural split for coverage: the slide uses <code>water_coverage_total</code> and <code>sewer_coverage_total</code> (municipality-wide). Every row, summary statistic and quartile on this slide is computed by the deck from the raw CSV; the page only draws them. Variables that repeat the same value in the urban and rural rows (coverage, MDM, fiscal indices, SGP, rainfall, infant mortality, dropout) are municipality-level, so the zone menu does not change them and they are counted once, 14 years rather than 28. <code>ipm</code> is one value per zone from the 2018 census, repeated in every year, so its charts show the two values instead of a trend. The summary never pools urban and rural (averaging the small rural population with the much larger urban one means nothing). Hollow points are coverage years reported as 0, probably “not reported” (data README, caveat 2); dashed lines mark the population series change (2018) and the infant-mortality method and source changes (2017, 2020). Numbers carry no thousands separators: 2011, not 2,011. Things to try: 💧 IRCA by year for urban and rural (rural has missing years: unsampled systems); 🧾 <code>idf</code> ends in 2020 and <code>idf_new</code> starts there (different methods, not comparable); 👶 infant mortality changes method in 2017; 🎓 Saber 11 exists only for 2014–2017, 2019, 2020 and 2022. Scatter plots of 14 years show co-movement over time, not cause. Dropdowns: ↑↓ pick inside a menu; the arrow keys move the deck only when no menu has focus. About two minutes.</p>
 <style type="text/css">
 span.MJX_Assistive_MathML {
 position:absolute!important;

@@ -54,8 +54,8 @@
       }));
     }
     const colour = (s) => COLORS[s.name];
-    const caveats = (keys) => [...new Set(keys.map((k) => info[k].note).filter(Boolean))].map((t) => `⚠️ ${t}`).join(" · ");
-    const suspect = (k, r) => info[k].suspect.includes(r.year);
+    const caveats = (keys) => [...new Set(keys.map((k) => info[k].note).filter(Boolean))].map((t) => ` · ⚠️ ${t}`).join("");
+    const suspect = (k, r) => r[k] === 0 && info[k].suspect.includes(r.year);
     const fixedBar = (k) => info[k].level === "fixed";
 
     function scrollTable(html) {
@@ -140,7 +140,8 @@
     // A variable with one value per zone has no trend or spread: draw the values themselves.
     function fixedBars(k) {
       const zs = zone.value === "both" ? ["urban", "rural"] : [zone.value];
-      const vals = zs.map((z) => ({ z, v: data.summary[k][z].min }));
+      const vals = zs.map((z) => ({ z, v: data.summary[k][z].min })).filter((p) => p.v !== null);
+      if (!vals.length) return message(svg(`${info[k].label}, Tunja`), ["no value"]);
       const s = svg(`${info[k].label}: ${vals.map((p) => `${p.z} ${num(p.v, info[k].dp)}`).join(", ")}, Tunja`);
       const dom = Math.max(...vals.map((p) => p.v)) * 1.12, xt = ticks(0, dom, 5);
       const xs = (v) => M.l + (v / dom) * (W - M.l - M.r);
@@ -151,7 +152,7 @@
           el("text", { x: M.l + 8, y: y(i) + 27, class: "bar" }, p.z),
           el("text", { x: xs(p.v) + 8, y: y(i) + 27 }, num(p.v, info[k].dp)));
       });
-      note.textContent = `💸 ${info[k].short} is one census value per zone, repeated in every year: no trend or spread to plot, so the chart shows the values · ${caveats([k])}`.replace(/ · $/, "");
+      note.textContent = `💸 ${info[k].short} is one census value per zone, repeated in every year: no trend or spread to plot, so the chart shows the values${caveats([k])}`;
     }
 
     function distribution() {
@@ -201,7 +202,7 @@
           s.append(c);
         });
       });
-      note.textContent = `📊 ${vals.length} values · bars count years per value range${list.length > 1 ? " (urban | rural side by side)" : ""} · dots = years${vals.length >= 5 ? ", box = quartiles, white line = median, whiskers = min and max" : ""} ${caveats([k])}`;
+      note.textContent = `📊 ${vals.length} values · bars count years per value range${list.length > 1 ? " (urban | rural side by side)" : ""} · dots = years${vals.length >= 5 ? ", box = quartiles, white line = median, whiskers = min and max" : ""}${caveats([k])}`;
     }
 
     function timeSeries() {
@@ -217,9 +218,10 @@
       axes(s, xs, ys, "year", v.short, { vals: years, f: String }, ticks(a, b));
       const breaks = v.breaks || [];
       breaks.forEach(([yr, label]) => {
+        if (!label) return; // an unlabelled break only ends the line (2021 follows 2020's own regime)
         const x = xs(yr - 0.5);
-        s.append(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b, class: "brk" }));
-        if (label) s.append(el("text", { x: x + 5, y: M.t - 6, class: "brk-t" }, label));
+        s.append(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b, class: "brk" }),
+          el("text", { x: x + 5, y: M.t - 6, class: "brk-t" }, label));
       });
       list.forEach((ser) => {
         // Lines join consecutive years only: a missing year, a suspect 0 or a method change breaks the line.
@@ -241,7 +243,7 @@
         });
       });
       legend(s, list);
-      note.textContent = `📈 one point per year · a gap is a missing year, not a zero${v.level === "municipal" ? " · municipality-wide: one value per year" : ""} ${caveats([k])}`;
+      note.textContent = `📈 one point per year · a gap is a missing year, not a zero${v.level === "municipal" ? " · municipality-wide: one value per year" : ""}${caveats([k])}`;
     }
 
     function scatter() {
@@ -264,7 +266,7 @@
         s.append(c, el("text", { x: xs(r[kx]) + 9, y: ys(r[ky]) - 7, class: "yr" }, `'${String(r.year).slice(2)}`));
       });
       legend(s, list);
-      note.textContent = `🔵 ${pts.length} ${pts.length === 1 ? "year" : "years"} with both values · each point is one year ('15 = 2015) · a pattern across years is not a cause ${caveats([kx, ky])}`;
+      note.textContent = `🔵 ${pts.length} ${pts.length === 1 ? "year" : "years"} with both values · each point is one year ('15 = 2015) · a pattern across years is not a cause${caveats([kx, ky])}`;
     }
 
     function draw() {
