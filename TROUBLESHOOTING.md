@@ -8,6 +8,9 @@ This guide collects tested solutions for common issues encountered during the Qu
 
 *Written from Microsoft's, GitHub's and Quarto's documentation. At the workshop of 2026-11-05 Windows participants found the WSL install and finding their way through the setup slides hardest; the deck now numbers the setup steps (🧭 1–6) and step 1 is a [separate page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) with its own stuck-table. Not yet re-run on a clean Windows machine.*
 
+### Mac: a pop-up asks to install "command line developer tools"
+- Expected on a clean Mac the first time `git` runs. Click Install and wait, or run `xcode-select --install` first (step 1). If the assistant is waiting, tell it `done`.
+
 ### Any error, any step
 - **Fix**: copy the command and the full error, paste them into a web chat (Gemini, Claude or ChatGPT) with your system (Windows + Ubuntu, or Mac), and try the suggested fix one step at a time. No passwords or keys in the paste. Still stuck: Discord `#help`.
 
