@@ -9,7 +9,7 @@ This guide collects tested solutions for common issues encountered during the Qu
 *Written from Microsoft's, GitHub's and Quarto's documentation; not yet tried on a Windows machine.*
 
 ### `wsl --install -d Ubuntu` hangs, fails, or Ubuntu will not start
-- **Fix**: Run PowerShell **as administrator**. Restart your computer after it finishes. A hang at 0.0%: `wsl --install --web-download -d Ubuntu`. Restart when asked. Check with `wsl -l -v` (VERSION 2).
+- **Fix**: Run PowerShell **as administrator**. A hang at 0.0%: `wsl --install --web-download -d Ubuntu`. **Restart your computer** when it finishes. Already installed ("already exists")? Skip the install and open "Ubuntu" from the Start menu. Check with `wsl -l -v` (VERSION 2).
 - **Error `0x80370102`**: virtualization is off in the BIOS/UEFI (Task Manager → Performance → CPU shows "Virtualization"). Without administrator rights or BIOS access you cannot fix this: tell the organiser before the day.
 - **Needs** Windows 10 build 19041 or later, or Windows 11.
 
