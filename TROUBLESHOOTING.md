@@ -6,7 +6,13 @@ This guide collects tested solutions for common issues encountered during the Qu
 
 ## 0. Windows setup (WSL / Ubuntu)
 
-*Written from Microsoft's, GitHub's and Quarto's documentation; not yet tried on a Windows machine.*
+*Written from Microsoft's, GitHub's and Quarto's documentation. At the workshop of 2026-11-05 Windows participants found the WSL install and finding their way through the setup slides hardest; the deck now numbers the setup steps (🧭 1–6) and has a stuck-table slide. Not yet re-run on a clean Windows machine.*
+
+### Any error, any step
+- **Fix**: copy the command and the full error, paste them into a web chat (Gemini, Claude or ChatGPT) with your system (Windows + Ubuntu, or Mac), and try the suggested fix one step at a time. No passwords or keys in the paste. Still stuck: Discord `#help`.
+
+### Downloads stall or time out
+- A weak connection is the usual cause. Use a wired or strong Wi-Fi connection (or a phone hotspot) and rerun the step.
 
 ### `wsl --install -d Ubuntu` hangs, fails, or Ubuntu will not start
 - **Fix**: Run PowerShell **as administrator**. A hang at 0.0%: `wsl --install --web-download -d Ubuntu`. **Restart your computer** when it finishes. Already installed ("already exists")? Skip the install and open "Ubuntu" from the Start menu. Check with `wsl -l -v` (VERSION 2).
