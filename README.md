@@ -25,7 +25,7 @@ Quick links: [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLES
    coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
    [Codex](https://github.com/openai/codex) or Google's
    [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli), `agy`).
-   *Windows users:* run `wsl --install -d Ubuntu` in an administrator PowerShell, restart the computer, and work inside Ubuntu. Mac and Linux users skip the Windows slides.
+   *Windows users:* follow the [Windows setup page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) first: it installs Ubuntu (WSL) step by step, and everything afterwards happens inside Ubuntu. Mac and Linux users skip it.
    Install one coding assistant first, then ask it (the deck has the prompt) to install the other tools.
 
 2. **Clone the repository**: Clone this repository beside your project workspace folders to get the data and checkpoints:
