@@ -2,12 +2,13 @@
 // drop, grab their nearest points, move to the mean and repeat until nothing changes. The
 // deck cell runs the algorithm (data.runs[r].states[i]: centres c, labels l or null, and the
 // readout text) and this scene only draws it: points ease to their cluster's colour, lines
-// join each point to its centre, centres glide and, once stable, pulse. The stage's state is
-// the step i; its "cluster" buttons pick the random start r (0 = the first).
+// join each point to its centre, centres glide, leaving a trail of where they have been, and,
+// once stable, pulse. The stage's state is the step i; its "cluster" buttons pick the random
+// start r (0 = the first).
 import {
-  BufferAttribute, BufferGeometry, CanvasTexture, Color, LineBasicMaterial, LineSegments,
-  LinearFilter, Mesh, MeshBasicMaterial, MeshLambertMaterial, AmbientLight, DirectionalLight,
-  Points, PointsMaterial, SphereGeometry,
+  BufferAttribute, BufferGeometry, CanvasTexture, Color, CylinderGeometry, LineBasicMaterial,
+  LineSegments, LinearFilter, Mesh, MeshBasicMaterial, MeshLambertMaterial, AmbientLight,
+  DirectionalLight, Points, PointsMaterial, SphereGeometry, Vector3,
 } from "three";
 import { chase, ease } from "./meta.js";
 
@@ -30,7 +31,7 @@ function disc() {
 
 export const kmeans = {
   views: () => ({
-    flat: { rx: 0.35, ry: -0.6, zoom: 1.05, spin: 0.15, focus: false },
+    flat: { rx: 0.35, ry: -0.6, zoom: 1.12, spin: 0.08, focus: false },
   }),
 
   build(group, data, el) {
@@ -45,16 +46,16 @@ export const kmeans = {
     pointGeometry.setAttribute("position", new BufferAttribute(xyz, 3));
     pointGeometry.setAttribute("color", new BufferAttribute(col, 3));
     const points = new Points(pointGeometry, new PointsMaterial({
-      size: 0.1, sizeAttenuation: true, vertexColors: true, map: disc(), alphaTest: 0.05,
+      size: 0.055, sizeAttenuation: true, vertexColors: true, map: disc(), alphaTest: 0.05,
     }));
     points.frustumCulled = false;
     group.add(points);
 
     // The centres: glowing balls with a white halo, so they stay visible inside a cluster.
     const centres = colors.map((color) => {
-      const ball = new Mesh(new SphereGeometry(0.085, 24, 16),
+      const ball = new Mesh(new SphereGeometry(0.05, 24, 16),
         new MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.6 }));
-      const halo = new Mesh(new SphereGeometry(0.12, 24, 16),
+      const halo = new Mesh(new SphereGeometry(0.07, 24, 16),
         new MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, depthWrite: false }));
       ball.add(halo);
       group.add(ball);
@@ -75,6 +76,23 @@ export const kmeans = {
     lines.frustumCulled = false;
     group.add(lines);
 
+    // Each centre's trail: a tube per step moved and a dot at each place it stopped, from a
+    // pool as long as the longest run. Tubes thicken towards the latest position.
+    const longest = Math.max(...data.runs.map((r) => r.states.length));
+    const tube = new CylinderGeometry(1, 1, 1, 10), dot = new SphereGeometry(0.018, 12, 8);
+    const trails = colors.map((color) => {
+      const material = new MeshBasicMaterial({ color });
+      const make = (geometry) => {
+        const mesh = new Mesh(geometry, material);
+        mesh.visible = false;
+        group.add(mesh);
+        return mesh;
+      };
+      return { tubes: Array.from({ length: longest }, () => make(tube)),
+        dots: Array.from({ length: longest }, () => make(dot)), way: [] };
+    });
+    const up = new Vector3(0, 1, 0), from = new Vector3(), to = new Vector3(), along = new Vector3();
+
     const cen = new Float32Array(k * 3), cenT = new Float32Array(k * 3);
     const lineA = [0];
     let dirty = true, run = 0, step = 0, lineOpacity = 0, clock = 0, first = true, stable = false, labels = null;
@@ -90,7 +108,16 @@ export const kmeans = {
         const c = labels ? colors[labels[i]] : GREY;
         colT.set([c.r, c.g, c.b], i * 3);
       }
-      lineA[0] = labels ? 0.4 : 0;
+      lineA[0] = labels ? 0.16 : 0;
+      // The places each centre has stopped at, up to this step.
+      trails.forEach((trail, j) => {
+        trail.way = [];
+        for (const state of states.slice(0, step + 1)) {
+          const p = state.c.slice(j * 3, j * 3 + 3).map((v) => v / scale);
+          const last = trail.way[trail.way.length - 1];
+          if (!last || p.some((v, a) => v !== last[a])) trail.way.push(p);
+        }
+      });
       stable = step >= states.length - 1 && states.length > 1;
       if (readout) readout.textContent = s.note;
       if (first) { cen.set(cenT); first = false; }
@@ -105,6 +132,29 @@ export const kmeans = {
         const c = colors[j];
         lineCol.set([c.r, c.g, c.b, c.r, c.g, c.b], i * 6);
       }
+      trails.forEach(({ tubes, dots, way }, j) => {
+        const moves = way.length - 1;
+        tubes.forEach((mesh, t) => {
+          mesh.visible = t < moves;
+          if (!mesh.visible) return;
+          from.fromArray(way[t]);
+          // The newest tube ends at the gliding centre, so the trail grows as it moves.
+          if (t === moves - 1) to.set(cen[j * 3], cen[j * 3 + 1], cen[j * 3 + 2]);
+          else to.fromArray(way[t + 1]);
+          along.subVectors(to, from);
+          const length = along.length();
+          mesh.visible = length > 1e-4;
+          if (!mesh.visible) return;
+          const radius = 0.005 + (0.009 * (t + 1)) / moves;
+          mesh.position.addVectors(from, to).multiplyScalar(0.5);
+          mesh.scale.set(radius, length, radius);
+          mesh.quaternion.setFromUnitVectors(up, along.divideScalar(length));
+        });
+        dots.forEach((mesh, t) => {
+          mesh.visible = t < moves;
+          if (mesh.visible) mesh.position.fromArray(way[t]);
+        });
+      });
       lineGeometry.attributes.position.needsUpdate = true;
       lineGeometry.attributes.color.needsUpdate = true;
       pointGeometry.attributes.color.needsUpdate = true;
@@ -116,7 +166,8 @@ export const kmeans = {
       setCluster(c) { run = Math.min(c, data.runs.length - 1); retarget(); },
       animate(dt) {
         const e = ease(dt, 3);
-        let moving = chase(cen, cenT, e) | chase(col, colT, e);
+        // The centres glide slowly: their movement is the algorithm.
+        let moving = chase(cen, cenT, ease(dt, 1.3)) | chase(col, colT, e);
         lineOpacity += (lineA[0] - lineOpacity) * e;
         if (Math.abs(lineA[0] - lineOpacity) > 0.005) moving = true;
         else lineOpacity = lineA[0];
