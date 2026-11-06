@@ -8,8 +8,8 @@ This guide collects tested solutions for common issues encountered during the Qu
 
 *Written from Microsoft's, GitHub's and Quarto's documentation; not yet tried on a Windows machine.*
 
-### `wsl --install` prints help text, hangs, or fails
-- **Fix**: Run PowerShell **as administrator**. Help text means WSL is already present: run `wsl --install -d Ubuntu`. A hang at 0.0%: `wsl --install --web-download -d Ubuntu`. Restart when asked. Check with `wsl -l -v` (VERSION 2).
+### `wsl --install -d Ubuntu` hangs, fails, or Ubuntu will not start
+- **Fix**: Run PowerShell **as administrator**. A hang at 0.0%: `wsl --install --web-download -d Ubuntu`. **Restart your computer** when it finishes. Already installed ("already exists")? Skip the install and open "Ubuntu" from the Start menu. Check with `wsl -l -v` (VERSION 2).
 - **Error `0x80370102`**: virtualization is off in the BIOS/UEFI (Task Manager → Performance → CPU shows "Virtualization"). Without administrator rights or BIOS access you cannot fix this: tell the organiser before the day.
 - **Needs** Windows 10 build 19041 or later, or Windows 11.
 
@@ -20,7 +20,7 @@ This guide collects tested solutions for common issues encountered during the Qu
 - **Fix**: open a **new** Ubuntu tab (the installer changed your shell's search path), then try again.
 
 ### `quarto: command not found`, or it works in PowerShell but not Ubuntu
-- Windows installers put tools where Ubuntu cannot use them. Install Quarto **inside Ubuntu** with the 🐧 Install Tools in Ubuntu slide, then open a new tab. Check `quarto --version` (1.10 or newer).
+- Windows installers put tools where Ubuntu cannot use them. Install Quarto **inside Ubuntu** by running the 🐧 install prompt from the deck in your assistant, then open a new tab. Check `quarto --version` (1.10 or newer).
 
 ### The prompt shows `/mnt/c/...`
 - You are in a Windows folder (for example OneDrive). Run `cd ~` and keep workshop folders there.
