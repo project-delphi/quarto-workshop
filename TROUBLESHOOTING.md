@@ -6,7 +6,7 @@ This guide collects tested solutions for common issues encountered during the Qu
 
 ## 0. Windows setup (WSL / Ubuntu)
 
-*Written from Microsoft's, GitHub's and Quarto's documentation. At the workshop of 2026-11-05 Windows participants found the WSL install and finding their way through the setup slides hardest; the deck now numbers the setup steps (🧭 1–6) and has a stuck-table slide. Not yet re-run on a clean Windows machine.*
+*Written from Microsoft's, GitHub's and Quarto's documentation. At the workshop of 2026-11-05 Windows participants found the WSL install and finding their way through the setup slides hardest; the deck now numbers the setup steps (🧭 1–6) and step 1 is a [separate page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) with its own stuck-table. Not yet re-run on a clean Windows machine.*
 
 ### Any error, any step
 - **Fix**: copy the command and the full error, paste them into a web chat (Gemini, Claude or ChatGPT) with your system (Windows + Ubuntu, or Mac), and try the suggested fix one step at a time. No passwords or keys in the paste. Still stuck: Discord `#help`.
@@ -15,7 +15,7 @@ This guide collects tested solutions for common issues encountered during the Qu
 - A weak connection is the usual cause. Use a wired or strong Wi-Fi connection (or a phone hotspot) and rerun the step.
 
 ### `wsl --install -d Ubuntu` hangs, fails, or Ubuntu will not start
-- **Fix**: Run PowerShell **as administrator**. A hang at 0.0%: `wsl --install --web-download -d Ubuntu`. **Restart your computer** when it finishes. Already installed ("already exists")? Skip the install and open "Ubuntu" from the Start menu. Check with `wsl -l -v` (VERSION 2).
+- **Fix**: Run PowerShell **as administrator**. A hang at 0.0%: `wsl --install --web-download --no-launch -d Ubuntu`. **Restart your computer** when it asks, then run the same install command again in a normal PowerShell window, under your own account: when a restart is needed, the first run only enables Windows features, so Ubuntu is not in the Start menu yet. Already installed ("already exists")? Skip the install and open "Ubuntu" from the Start menu. Check with `wsl -l -v` (VERSION 2).
 - **Error `0x80370102`**: virtualization is off in the BIOS/UEFI (Task Manager → Performance → CPU shows "Virtualization"). Without administrator rights or BIOS access you cannot fix this: tell the organiser before the day.
 - **Needs** Windows 10 build 19041 or later, or Windows 11.
 
@@ -23,7 +23,7 @@ This guide collects tested solutions for common issues encountered during the Qu
 - Normal: Linux hides the password. Type it and press Enter. `sudo` asks for the same password later.
 
 ### `command not found` for `uv`, `claude`, `codex` or `agy` right after installing
-- **Fix**: open a **new** Ubuntu tab (the installer changed your shell's search path), then try again.
+- **Fix**: open a **new** terminal tab (the installer changed your shell's search path), then try again. On a Mac, Claude Code's installer does not change the search path: paste the fix it printed under "Setup notes", then open a new tab.
 
 ### `quarto: command not found`, or it works in PowerShell but not Ubuntu
 - Windows installers put tools where Ubuntu cannot use them. Install Quarto **inside Ubuntu** by running the 🐧 install prompt from the deck in your assistant, then open a new tab. Check `quarto --version` (1.10 or newer).

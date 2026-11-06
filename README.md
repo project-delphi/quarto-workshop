@@ -25,7 +25,7 @@ Quick links: [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLES
    coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
    [Codex](https://github.com/openai/codex) or Google's
    [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli), `agy`).
-   *Windows users:* run `wsl --install -d Ubuntu` in an administrator PowerShell, restart the computer, and work inside Ubuntu. Mac and Linux users skip the Windows slides.
+   *Windows users:* follow the [Windows setup page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) first: it installs Ubuntu (WSL) step by step, and everything afterwards happens inside Ubuntu. Mac and Linux users skip it.
    Install one coding assistant first, then ask it (the deck has the prompt) to install the other tools.
 
 2. **Clone the repository**: Clone this repository beside your project workspace folders to get the data and checkpoints:
@@ -35,20 +35,22 @@ Quick links: [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLES
 
 3. **Run the setup check** ([slide](https://project-delphi.github.io/quarto-workshop/#/setup-check)):
    ```bash
-   quarto check      # Jupyter "not available"? Fine — uv handles Python per project
+   quarto check
    uv --version
    gh auth status
-   claude --version  # or: codex --version, agy --version
-   git config --global user.name "Your Name"         # skip if already set
-   git config --global user.email "you@example.com"  # skip if already set
+   claude --version
+   git config --global user.name "Your Name"
+   git config --global user.email "you@example.com"
    ```
+   Jupyter "not available" from `quarto check` is fine: uv handles Python per project. With another assistant, run `codex --version` or `agy --version` instead. Skip the `git config` lines if they are already set.
 
 4. **Do the 🧪 test run** ([slide](https://project-delphi.github.io/quarto-workshop/#/test-run)):
    In a terminal, create a test directory and launch your coding assistant:
    ```bash
    mkdir -p ~/quarto-test && cd ~/quarto-test
-   claude    # or: codex, agy
+   claude
    ```
+   Or `codex` / `agy` instead of `claude`.
    Paste this prompt into your assistant:
    ```default
    Run `uv init --bare` and `uv add ipykernel nbclient nbformat pyyaml`. Create hello.qmd (html and typst formats): a Python cell computing `6 * 7` and an inline-code sentence showing it. Render it with `uv run quarto render hello.qmd`; check hello.html and hello.pdf both say 42.
@@ -124,13 +126,14 @@ Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [T
 | `index.qmd` | Workshop deck: Part 0 intro and setup; includes the two parts below |
 | `slides/_london.qmd`, `slides/_water.qmd` | Part 1 and Part 2 slides, included from `index.qmd` |
 | `ai-workflows.qmd` | Optional marketing-experiment lab on agent-assisted Quarto authoring |
+| `windows-setup.qmd` | Step 1 of setup for Windows, as a long-form page linked from the deck (styled by `assets/page.scss`) |
 | `INSTRUCTOR.md` | Facilitator guide: pacing, the 2-minute rule, room logistics, troubleshooting |
 | `CHEATSHEET.md` | Quick reference: Quarto YAML formats, cell options, dashboards, uv commands |
 | `TROUBLESHOOTING.md` | Common gotchas: first publish, buffer size, preview locks, Typst sizing |
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, ⭐ white paper, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
-| `assets/` | Hub and publishing diagrams (SVG); `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides) |
+| `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides) |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |

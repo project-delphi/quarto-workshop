@@ -6,7 +6,10 @@ This repository is a Quarto website containing Reveal.js teaching decks. Read `_
 `README.md`, and the affected `.qmd` files before editing. `index.qmd` is the 3 h 20 min
 hands-on workshop: Part 0 (intro, setup), Part 1 (London guide, included from
 `slides/_london.qmd`) and Part 2 (Colombian water quality, included from `slides/_water.qmd`).
-`ai-workflows.qmd` teaches graduate-level agent-assisted authoring. Preserve the dark theme
+`ai-workflows.qmd` teaches graduate-level agent-assisted authoring. `windows-setup.qmd` is a
+long-form HTML page, not a deck (its header sets the format): step 1 of setup for Windows, linked from
+`index.qmd`, with one action per step, "you should see" after each, and a stuck-table.
+Preserve the dark theme
 (`theme: [dark, theme.scss]`) and exercise-driven structure. The main learning path delegates dependency setup to agents;
 do not reintroduce lengthy Conda or kernel troubleshooting lessons.
 
@@ -71,7 +74,10 @@ keep teaching computations fresh. Changes to external data are not automatically
 ## Workshop slide conventions
 
 The slides are the course resource: participants follow them alone and do most work by
-prompting a coding assistant.
+prompting a coding assistant. Many have only a rudimentary grasp of Linux, the terminal or
+installing tools, so say where each thing is typed (terminal or assistant), and what they
+should see. Windows-only procedure goes on `windows-setup.qmd`, not on slides that Mac and
+Linux participants must page through.
 
 - One concept per slide, introduced in order (Markdown → render → YAML → code cells →
   formats → projects → publishing). Never use a concept before its slide
@@ -85,7 +91,8 @@ prompting a coding assistant.
   but still one turn's work ending in a check; the workshop's 🗂️ audiences prompt is one
   longer prompt whose numbered items go to parallel sub-agents, each writing only its own
   files, with a fallback to doing them in turn, and the lead renders them one at a time
-  and checks each (set in `::: {.prompt .long}` so it shows in full); with `code-line-numbers: false` a `text` fence
+  and checks each (set in `::: {.prompt .long}` so it shows in full, as are the 🏠 install and
+setup-check prompts, which keep one copy button and one step per slide); with `code-line-numbers: false` a `text` fence
   gets no copy button); `::: {.agent}` lists what the assistant will likely run; `::: {.you}`
   lists only what needs the participant: starting the assistant, accounts and sign-in,
   approving the assistant's commands, `quarto preview`, the first interactive

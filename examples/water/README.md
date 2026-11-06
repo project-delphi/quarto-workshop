@@ -35,10 +35,12 @@ builds it in `.venv/` on first use; `AGENTS.md` holds the project's rules for co
 assistants:
 
 ```bash
-uv run python scripts/analysis.py  # writes outputs/ and prints the row counts and the k table
-uv run quarto render                # runs the script again (pre-render), then renders every page
-uv run quarto preview               # live preview at a local URL
+uv run python scripts/analysis.py
+uv run quarto render
+uv run quarto preview
 ```
+
+The script writes `outputs/` and prints the row counts and the k table. The render runs the script again (pre-render), then renders every page. The preview is live at a local URL.
 
 `scripts/analysis.py` writes:
 
@@ -67,9 +69,11 @@ track the files a page reads, so after `data/` or `scripts/analysis.py` changes,
 pages keep their old results until you clear them:
 
 ```bash
-rm -rf _freeze && uv run quarto render  # re-execute every page
-uv run quarto render clusters.qmd       # or one page: rendering a single file ignores freeze
+rm -rf _freeze && uv run quarto render
+uv run quarto render clusters.qmd
 ```
+
+The first line re-executes every page. The second renders one page: rendering a single file ignores freeze.
 
 Use it only once the slower renders matter, and write the invalidation step down.
 
