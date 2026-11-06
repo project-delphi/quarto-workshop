@@ -5,8 +5,9 @@ prompt "Generate an SVG of a pelican riding a bicycle", from Simon Willison's ru
 `thinking_effort`, extracted from the transcripts below on 2026-11-06. One run per cell, so a
 difference between two neighbouring cells can be chance.
 
-No licence is stated on the gists or on simonwillison.net. The images are credited and linked on
-the slide; ask the author before reusing them elsewhere.
+No licence is stated on the gists or on simonwillison.net, and Simon Willison was not asked. The deck's
+author decided on 2026-11-06 to use the images in this deck, credited and linked on the slide. That
+decision covers this deck only: ask Simon Willison before reusing them elsewhere.
 
 | File | Model | Effort | Input tokens | Output tokens | Input $/M | Output $/M | Cost (¢) |
 |---|---|---|--:|--:|--:|--:|--:|
@@ -24,7 +25,7 @@ the slide; ask the author before reusing them elsewhere.
 | `fable-high.svg` | claude-fable-5-1 | high | 27 | 2,612 | 10 | 50 | 13.09 |
 
 Cost = (input tokens × input price + output tokens × output price) / 1,000,000, in cents. The formula
-reproduces the costs the author published for the Opus and Fable cells and for Haiku on low.
+reproduces the costs Simon Willison published for the Opus and Fable cells and for Haiku on low.
 List prices from <https://platform.claude.com/docs/en/about-claude/pricing>, checked 2026-11-06.
 
 Sources:

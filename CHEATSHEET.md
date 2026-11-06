@@ -147,14 +147,16 @@ uv init --bare
 uv add pandas numpy matplotlib plotly scikit-learn itables tabulate
 
 # 2. Preview & Render
-uv run quarto preview <file.qmd>        # Live reload in browser
-uv run quarto render <file.qmd>         # Render single document
-uv run quarto render                    # Render entire website/project
+uv run quarto preview <file.qmd>
+uv run quarto render <file.qmd>
+uv run quarto render
 
 # 3. Publish to GitHub Pages
-uv run quarto publish gh-pages          # First run: interactive (Enter to confirm)
-uv run quarto publish gh-pages --no-prompt  # Subsequent updates
+uv run quarto publish gh-pages
+uv run quarto publish gh-pages --no-prompt
 ```
+
+`preview` reloads live in the browser. `render` with a file renders that document; without one, the whole website or project. The first `publish` is interactive (Enter to confirm); use `--no-prompt` for later updates.
 
 ---
 

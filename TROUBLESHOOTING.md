@@ -15,7 +15,7 @@ This guide collects tested solutions for common issues encountered during the Qu
 - A weak connection is the usual cause. Use a wired or strong Wi-Fi connection (or a phone hotspot) and rerun the step.
 
 ### `wsl --install -d Ubuntu` hangs, fails, or Ubuntu will not start
-- **Fix**: Run PowerShell **as administrator**. A hang at 0.0%: `wsl --install --web-download --no-launch -d Ubuntu`. **Restart your computer** when it asks, then run the same install command again: when a restart is needed, the first run only enables Windows features, so Ubuntu is not in the Start menu yet. Already installed ("already exists")? Skip the install and open "Ubuntu" from the Start menu. Check with `wsl -l -v` (VERSION 2).
+- **Fix**: Run PowerShell **as administrator**. A hang at 0.0%: `wsl --install --web-download --no-launch -d Ubuntu`. **Restart your computer** when it asks, then run the same install command again in a normal PowerShell window, under your own account: when a restart is needed, the first run only enables Windows features, so Ubuntu is not in the Start menu yet. Already installed ("already exists")? Skip the install and open "Ubuntu" from the Start menu. Check with `wsl -l -v` (VERSION 2).
 - **Error `0x80370102`**: virtualization is off in the BIOS/UEFI (Task Manager → Performance → CPU shows "Virtualization"). Without administrator rights or BIOS access you cannot fix this: tell the organiser before the day.
 - **Needs** Windows 10 build 19041 or later, or Windows 11.
 

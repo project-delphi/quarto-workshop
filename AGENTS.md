@@ -91,7 +91,8 @@ Linux participants must page through.
   but still one turn's work ending in a check; the workshop's 🗂️ audiences prompt is one
   longer prompt whose numbered items go to parallel sub-agents, each writing only its own
   files, with a fallback to doing them in turn, and the lead renders them one at a time
-  and checks each (set in `::: {.prompt .long}` so it shows in full); with `code-line-numbers: false` a `text` fence
+  and checks each (set in `::: {.prompt .long}` so it shows in full, as are the 🏠 install and
+setup-check prompts, which keep one copy button and one step per slide); with `code-line-numbers: false` a `text` fence
   gets no copy button); `::: {.agent}` lists what the assistant will likely run; `::: {.you}`
   lists only what needs the participant: starting the assistant, accounts and sign-in,
   approving the assistant's commands, `quarto preview`, the first interactive
