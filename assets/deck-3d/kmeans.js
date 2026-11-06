@@ -76,9 +76,10 @@ export const kmeans = {
     lines.frustumCulled = false;
     group.add(lines);
 
-    // Each centre's trail: a tube per step moved and a dot at each place it stopped, from a
-    // pool as long as the longest run. Tubes thicken towards the latest position.
-    const longest = Math.max(...data.runs.map((r) => r.states.length));
+    // Each centre's trail: a tube per move and a dot at each place it stopped, from a pool as
+    // long as the most moves in a run (every other state is a move). Tubes thicken towards the
+    // latest position.
+    const mostMoves = Math.ceil(Math.max(...data.runs.map((r) => r.states.length)) / 2);
     const tube = new CylinderGeometry(1, 1, 1, 10), dot = new SphereGeometry(0.018, 12, 8);
     const trails = colors.map((color) => {
       const material = new MeshBasicMaterial({ color });
@@ -88,8 +89,8 @@ export const kmeans = {
         group.add(mesh);
         return mesh;
       };
-      return { tubes: Array.from({ length: longest }, () => make(tube)),
-        dots: Array.from({ length: longest }, () => make(dot)), way: [] };
+      return { tubes: Array.from({ length: mostMoves }, () => make(tube)),
+        dots: Array.from({ length: mostMoves }, () => make(dot)), way: [] };
     });
     const up = new Vector3(0, 1, 0), from = new Vector3(), to = new Vector3(), along = new Vector3();
 
@@ -107,7 +108,9 @@ export const kmeans = {
       for (let i = 0; i < n; i++) {
         const c = labels ? colors[labels[i]] : GREY;
         colT.set([c.r, c.g, c.b], i * 3);
+        if (labels) lineCol.set([c.r, c.g, c.b, c.r, c.g, c.b], i * 6);
       }
+      lineGeometry.attributes.color.needsUpdate = true;
       lineA[0] = labels ? 0.16 : 0;
       // The places each centre has stopped at, up to this step.
       trails.forEach((trail, j) => {
@@ -126,11 +129,10 @@ export const kmeans = {
     function draw() {
       for (let j = 0; j < k; j++) centres[j].position.set(cen[j * 3], cen[j * 3 + 1], cen[j * 3 + 2]);
       for (let i = 0; i < n; i++) {
-        const j = labels ? labels[i] : 0;
-        linePos.set([xyz[i * 3], xyz[i * 3 + 1], xyz[i * 3 + 2],
-          cen[j * 3], cen[j * 3 + 1], cen[j * 3 + 2]], i * 6);
-        const c = colors[j];
-        lineCol.set([c.r, c.g, c.b, c.r, c.g, c.b], i * 6);
+        // Runs every frame of a glide, so it writes in place rather than making arrays.
+        const a = i * 6, p = i * 3, c = (labels ? labels[i] : 0) * 3;
+        linePos[a] = xyz[p]; linePos[a + 1] = xyz[p + 1]; linePos[a + 2] = xyz[p + 2];
+        linePos[a + 3] = cen[c]; linePos[a + 4] = cen[c + 1]; linePos[a + 5] = cen[c + 2];
       }
       trails.forEach(({ tubes, dots, way }, j) => {
         const moves = way.length - 1;
@@ -156,14 +158,20 @@ export const kmeans = {
         });
       });
       lineGeometry.attributes.position.needsUpdate = true;
-      lineGeometry.attributes.color.needsUpdate = true;
       pointGeometry.attributes.color.needsUpdate = true;
     }
 
     return {
       centre: [0, 0, 0], half: 0.85, aspect: 1.7, labels: [], focus() {},
-      setState(i) { step = i; retarget(); },
-      setCluster(c) { run = Math.min(c, data.runs.length - 1); retarget(); },
+      // One step glides along the trail. A jump, or another start, lands at once: a straight glide
+      // there would draw a path the algorithm did not take.
+      setState(i) {
+        const jump = Math.abs(i - step) > 1;
+        step = i;
+        retarget();
+        if (jump) cen.set(cenT);
+      },
+      setCluster(c) { run = Math.min(c, data.runs.length - 1); retarget(); cen.set(cenT); },
       animate(dt) {
         const e = ease(dt, 3);
         // The centres glide slowly: their movement is the algorithm.
