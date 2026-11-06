@@ -76,8 +76,8 @@ keep teaching computations fresh. Changes to external data are not automatically
 The slides are the course resource: participants follow them alone and do most work by
 prompting a coding assistant. Many have only a rudimentary grasp of Linux, the terminal or
 installing tools, so say where each thing is typed (terminal or assistant), and what they
-should see. Windows-only procedure goes on `windows-setup.qmd`, not on slides that Mac and
-Linux participants must page through.
+should see. Setup step 1 is one slide for every system; Windows-only procedure goes on
+`windows-setup.qmd`, not on slides that Mac and Linux participants must page through.
 
 - One concept per slide, introduced in order (Markdown → render → YAML → code cells →
   formats → projects → publishing). Never use a concept before its slide

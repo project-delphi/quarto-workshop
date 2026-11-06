@@ -25,7 +25,7 @@ Quick links: [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLES
    coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
    [Codex](https://github.com/openai/codex) or Google's
    [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli), `agy`).
-   *Windows users:* follow the [Windows setup page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) first: it installs Ubuntu (WSL) step by step, and everything afterwards happens inside Ubuntu. Mac and Linux users skip it.
+   *Windows users:* follow the [Windows setup page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) first: it installs Ubuntu (WSL) step by step, and everything afterwards happens inside Ubuntu. Mac users run `xcode-select --install` first, so the Command Line Tools pop-up does not interrupt the assistant later; Ubuntu and Debian users run `sudo apt update && sudo apt install -y curl git`.
    Install one coding assistant first, then ask it (the deck has the prompt) to install the other tools.
 
 2. **Clone the repository**: Clone this repository beside your project workspace folders to get the data and checkpoints:
@@ -133,7 +133,7 @@ Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [T
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, ⭐ white paper, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
-| `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides) |
+| `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `threejs-visits.png` is the ✨ slide's dry run; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides) |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
