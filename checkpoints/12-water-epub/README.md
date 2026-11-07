@@ -19,4 +19,4 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 3. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/12-water-epub/. .`
 4. Run: `uv run python scripts/analysis.py && uv run quarto render report.qmd`.
 5. Check: `report.epub` opens in an e-book reader with the three figures and the sources.
-6. Rejoin: your folder now holds the ⭐ ePub step. Start pasting prompts again at ✍️🌐 *3:00 · Blog + website* ([slide](https://project-delphi.github.io/quarto-workshop/#/water-website)).
+6. Rejoin: your folder now holds the ⭐ ePub step. Start pasting prompts again at ✍️🌐 *5:26 · Blog + website* ([slide](https://project-delphi.github.io/quarto-workshop/#/water-website)).

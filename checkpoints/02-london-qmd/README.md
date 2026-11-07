@@ -19,4 +19,4 @@ The steps, run inside `london-guide/` (by the assistant, or by you in a terminal
 3. Remove `london.md` if it is still there: `london.qmd` replaces it, and both would write `london.html`.
 4. Render every format: `uv run quarto render london.qmd`.
 5. Check: `london.html` shows the title block, the sentence with computed visit numbers and the numbered bar chart; `london.docx`, `london.pdf`, `london.pptx`, `london.epub` and `london-slides.html` exist.
-6. Rejoin: your folder now holds the end of this block, so skip the block's remaining prompts and follow the slides. Start pasting prompts again at 🗂️ *One guide, five audiences* (⏱️ 0:45) ([slide](https://project-delphi.github.io/quarto-workshop/#/five-audiences)).
+6. Rejoin: your folder now holds the end of this block, so skip the block's remaining prompts and follow the slides. Start pasting prompts again at 🗂️ *One guide, five audiences* (⏱️ 1:40) ([slide](https://project-delphi.github.io/quarto-workshop/#/five-audiences)).

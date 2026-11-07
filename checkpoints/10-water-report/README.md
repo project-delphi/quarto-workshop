@@ -19,4 +19,4 @@ The steps, run inside `water-quality/` (by the assistant, or by you in a termina
 3. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/10-water-report/. .`
 4. Run: `uv run python scripts/analysis.py && uv run quarto render report.qmd`.
 5. Check: `report.docx` and `report.pdf` open with the heatmap, the outcomes and the within-cluster figures.
-6. Rejoin: your folder now holds the end of this step. Start pasting prompts again at 📊 *2:55 · Slides → revealjs + pptx* ([slide](https://project-delphi.github.io/quarto-workshop/#/water-slides)).
+6. Rejoin: your folder now holds the end of this step. Start pasting prompts again at 📊 *5:20 · Slides → revealjs + pptx* ([slide](https://project-delphi.github.io/quarto-workshop/#/water-slides)).

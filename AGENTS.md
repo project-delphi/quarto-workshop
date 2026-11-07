@@ -3,9 +3,10 @@
 ## Scope and architecture
 
 This repository is a Quarto website containing Reveal.js teaching decks. Read `_quarto.yml`,
-`README.md`, and the affected `.qmd` files before editing. `index.qmd` is the 3 h 20 min
-hands-on workshop: Part 0 (intro, setup), Part 1 (London guide, included from
-`slides/_london.qmd`) and Part 2 (Colombian water quality, included from `slides/_water.qmd`).
+`README.md`, and the affected `.qmd` files before editing. `index.qmd` is the 6-hour
+hands-on workshop (including two 15-minute breaks and a 30-minute meal): Part 0 (intro, setup),
+Part 1 (London guide, included from `slides/_london.qmd`) and Part 2 (Colombian water quality,
+included from `slides/_water.qmd`).
 `ai-workflows.qmd` teaches graduate-level agent-assisted authoring. `windows-setup.qmd` is a
 long-form HTML page, not a deck (its header sets the format): step 1 of setup for Windows, linked from
 `index.qmd`, with one action per step, "you should see" after each, and a stuck-table.
