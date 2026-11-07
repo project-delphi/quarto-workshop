@@ -516,7 +516,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 // Looping PowerShell demos on windows-setup.qmd: each <div class="ps-demo"> holds a JSON
 // script in data-steps (a list of {cmd, out}) and replays it forever: type the command,
 // press Enter, print the output, pause, start again. A picture, so nothing here runs a
-// command. With reduced motion requested, or without JavaScript, the finished screen shows.
+// command. With reduced motion requested the finished screen shows; without JavaScript the
+// window stays empty, and the command and "You should see" box beside it carry the step.
 (() => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -549,10 +550,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           await sleep(450);
           pre.innerHTML = pre.innerHTML.replace(/<span class="cursor">.*?<\/span>/, "");
           for (let n = 1; n <= s.out.length; n++) {
-            done.push({ cmd: s.cmd, out: s.out.slice(0, n) });
-            frame(done.slice(0, -1), null);
-            pre.innerHTML += line(s.cmd) + "\n" + s.out.slice(0, n).map((o) => esc(o) + "\n").join("");
-            done.pop();
+            frame([...done, { cmd: s.cmd, out: s.out.slice(0, n) }], null);
             await sleep(s.pace ?? 350);
           }
           done.push(s);
