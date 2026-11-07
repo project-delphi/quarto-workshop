@@ -1,0 +1,53 @@
+<script>
+// Looping PowerShell demos on windows-setup.qmd: each <div class="ps-demo"> holds a JSON
+// script in data-steps (a list of {cmd, out}) and replays it forever: type the command,
+// press Enter, print the output, pause, start again. A picture, so nothing here runs a
+// command. With reduced motion requested, or without JavaScript, the finished screen shows.
+(() => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll(".ps-demo").forEach((demo) => {
+    const steps = JSON.parse(demo.dataset.steps);
+    const prompt = demo.dataset.prompt;
+    const pre = demo.querySelector("pre");
+    const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+    const line = (typed, cursor) =>
+      `<span class="pp">${esc(prompt)}</span> <b>${esc(typed)}</b>${cursor ? '<span class="cursor">█</span>' : ""}`;
+    const frame = (done, typed, showOut) => {
+      let html = "";
+      done.forEach((s) => { html += line(s.cmd) + "\n" + s.out.map((o) => esc(o) + "\n").join(""); });
+      if (typed !== null) html += line(typed, true) + "\n";
+      pre.innerHTML = html + (showOut ?? "");
+    };
+    const finished = () => { frame(steps, null); pre.innerHTML += line("", true); };
+    if (reduce) return finished();
+    let visible = true;
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(demo);
+    const idle = async () => { while (!visible) await sleep(300); };
+    (async () => {
+      for (;;) {
+        const done = [];
+        for (const s of steps) {
+          await idle();
+          frame(done, "");
+          await sleep(700);
+          for (let i = 1; i <= s.cmd.length; i++) { frame(done, s.cmd.slice(0, i)); await sleep(45 + Math.random() * 45); }
+          await sleep(450);
+          pre.innerHTML = pre.innerHTML.replace(/<span class="cursor">.*?<\/span>/, "");
+          for (let n = 1; n <= s.out.length; n++) {
+            done.push({ cmd: s.cmd, out: s.out.slice(0, n) });
+            frame(done.slice(0, -1), null);
+            pre.innerHTML += line(s.cmd) + "\n" + s.out.slice(0, n).map((o) => esc(o) + "\n").join("");
+            done.pop();
+            await sleep(s.pace ?? 350);
+          }
+          done.push(s);
+        }
+        frame(done, "");
+        await sleep(3500);
+      }
+    })();
+    demo.dataset.ready = "1";
+  });
+})();
+</script>

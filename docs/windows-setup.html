@@ -79,7 +79,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-97ad089e3960e0d9db3fdbf1474d0d7c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-ae0f8623ed351cae6e00367fc82fb174.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -213,6 +213,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Press <strong>Enter</strong>, then wait.</li>
 </ol>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>wsl <span class="op">--</span>install <span class="op">-</span>d Ubuntu <span class="op">--</span>no-launch</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Watch it once:</strong> this is what the window does. It repeats, and it is only a picture.</p>
+<div class="ps-demo" role="img" aria-label="An animated PowerShell window, repeating: the command wsl --install -d Ubuntu --no-launch is typed and run, and it prints that Virtual Machine Platform, Windows Subsystem for Linux and Ubuntu were installed, and that changes will not be effective until the system is rebooted." data-prompt="PS C:\WINDOWS\system32>" data-steps="[{&quot;cmd&quot;: &quot;wsl --install -d Ubuntu --no-launch&quot;, &quot;pace&quot;: 900, &quot;out&quot;: [&quot;Installing: Virtual Machine Platform&quot;, &quot;Virtual Machine Platform has been installed.&quot;, &quot;Installing: Windows Subsystem for Linux&quot;, &quot;Windows Subsystem for Linux has been installed.&quot;, &quot;Installing: Ubuntu&quot;, &quot;Ubuntu has been installed.&quot;, &quot;The requested operation is successful. Changes will not be effective until the system is rebooted.&quot;]}]">
+<div class="ps-bar" aria-hidden="true"><b>Windows PowerShell</b><em>─ ▢ ✕</em></div>
+<pre translate="no"></pre>
+</div>
 <div class="see">
 <p>✅ <strong>You should see</strong> a message that you must restart, such as “Changes will not be effective until the system is rebooted”. Go to step 3.</p>
 <p>No restart message, and it says Ubuntu is installed or “already exists”? Skip to <a href="#step-5">step 5</a>.</p>
@@ -310,6 +315,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-anchor-id="step-6">6️⃣ Check that Ubuntu is on WSL version 2</h2>
 <p>Click the <strong>PowerShell</strong> window (its line ends in <code>&gt;</code>), paste this, and press Enter:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>wsl <span class="op">-</span>l <span class="op">-</span>v</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="ps-demo" role="img" aria-label="An animated PowerShell window, repeating: the command wsl -l -v is typed and run, and it prints a table with Ubuntu in the NAME column and a 2 in the VERSION column." data-prompt="PS C:\Users\ana>" data-steps="[{&quot;cmd&quot;: &quot;wsl -l -v&quot;, &quot;out&quot;: [&quot;  NAME      STATE           VERSION&quot;, &quot;* Ubuntu    Running         2&quot;]}]">
+<div class="ps-bar" aria-hidden="true"><b>Windows PowerShell</b><em>─ ▢ ✕</em></div>
+<pre translate="no"></pre>
+</div>
 <div class="see">
 <p>✅ <strong>You should see</strong> Ubuntu with a <strong>2</strong> in the VERSION column, something like this:</p>
 <pre class="text"><code>  NAME      STATE           VERSION
@@ -503,6 +512,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 
 </main> <!-- /main -->
+<script>
+// Looping PowerShell demos on windows-setup.qmd: each <div class="ps-demo"> holds a JSON
+// script in data-steps (a list of {cmd, out}) and replays it forever: type the command,
+// press Enter, print the output, pause, start again. A picture, so nothing here runs a
+// command. With reduced motion requested, or without JavaScript, the finished screen shows.
+(() => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll(".ps-demo").forEach((demo) => {
+    const steps = JSON.parse(demo.dataset.steps);
+    const prompt = demo.dataset.prompt;
+    const pre = demo.querySelector("pre");
+    const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+    const line = (typed, cursor) =>
+      `<span class="pp">${esc(prompt)}</span> <b>${esc(typed)}</b>${cursor ? '<span class="cursor">█</span>' : ""}`;
+    const frame = (done, typed, showOut) => {
+      let html = "";
+      done.forEach((s) => { html += line(s.cmd) + "\n" + s.out.map((o) => esc(o) + "\n").join(""); });
+      if (typed !== null) html += line(typed, true) + "\n";
+      pre.innerHTML = html + (showOut ?? "");
+    };
+    const finished = () => { frame(steps, null); pre.innerHTML += line("", true); };
+    if (reduce) return finished();
+    let visible = true;
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(demo);
+    const idle = async () => { while (!visible) await sleep(300); };
+    (async () => {
+      for (;;) {
+        const done = [];
+        for (const s of steps) {
+          await idle();
+          frame(done, "");
+          await sleep(700);
+          for (let i = 1; i <= s.cmd.length; i++) { frame(done, s.cmd.slice(0, i)); await sleep(45 + Math.random() * 45); }
+          await sleep(450);
+          pre.innerHTML = pre.innerHTML.replace(/<span class="cursor">.*?<\/span>/, "");
+          for (let n = 1; n <= s.out.length; n++) {
+            done.push({ cmd: s.cmd, out: s.out.slice(0, n) });
+            frame(done.slice(0, -1), null);
+            pre.innerHTML += line(s.cmd) + "\n" + s.out.slice(0, n).map((o) => esc(o) + "\n").join("");
+            done.pop();
+            await sleep(s.pace ?? 350);
+          }
+          done.push(s);
+        }
+        frame(done, "");
+        await sleep(3500);
+      }
+    })();
+    demo.dataset.ready = "1";
+  });
+})();
+</script>
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const isCodeAnnotation = (el) => {
