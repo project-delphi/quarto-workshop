@@ -12,7 +12,7 @@ The workshop is designed as a **6-hour hands-on day** (360 minutes: 300 of teach
 |---|---|---|---|
 | **0:00** (10m) | Welcome & Objective | What we are building today | — |
 | **0:10** (5m) | What Is Quarto? | Pandoc + Jupyter/knitr engine model | — |
-| **0:15** (15m) | Setup Check & Boxes | Triage broken pre-work; explain the three boxes | — |
+| **0:15** (15m) | Ready to Prompt | Triage broken pre-work (setup check, test run); explain the three boxes and prompting | — |
 | **0:30** (35m) | Part 1: London in Markdown | First render, project rules (`AGENTS.md`), uv environment | `checkpoints/01-london-markdown` |
 | **1:05** (15m) | **☕ Break & Catch-up** | Rest, pair anyone whose first render or environment is broken | — |
 | **1:20** (20m) | Part 1: `.md` → `.qmd` | YAML headers, Python cells, multi-format export (docx/pdf) | `checkpoints/02-london-qmd` |
