@@ -7930,22 +7930,22 @@ display:block!important;
 }</style></aside>
 </section>
 <section id="free-hosts" class="slide level2">
-<h2>🆓 Free Static Hosts</h2>
+<h2>🆓 Free Static Hosts · ⭐ optional</h2>
 <div class="bigline">
 <p>📁 <code>_site/</code> is plain files: ✅ any static host can serve it</p>
 </div>
 <div class="cards hosts">
 <div>
 <p><strong><a href="https://quarto.org/docs/publishing/github-pages.html"><span translate="no">GitHub Pages</span></a></strong></p>
-<p>📍 today · <code>quarto publish gh-pages</code></p>
+<p>📍 today · 📤 <code>uv run quarto publish gh-pages</code></p>
 </div>
 <div>
-<p><strong><a href="https://www.netlify.com/pricing/"><span translate="no">Netlify</span></a></strong></p>
-<p><code>quarto publish netlify</code></p>
+<p><strong><a href="https://quarto.org/docs/publishing/netlify.html"><span translate="no">Netlify</span></a></strong></p>
+<p>📤 <code>uv run quarto publish netlify</code></p>
 </div>
 <div>
-<p><strong><a href="https://developers.cloudflare.com/pages/"><span translate="no">Cloudflare</span></a></strong></p>
-<p>🔗 Git or <code>wrangler deploy</code></p>
+<p><strong><a href="https://developers.cloudflare.com/workers/static-assets/"><span translate="no">Cloudflare</span></a></strong></p>
+<p>📤 upload <code>_site/</code> with <code>wrangler</code></p>
 </div>
 <div>
 <p><strong><a href="https://vercel.com/docs/plans/hobby"><span translate="no">Vercel</span></a></strong></p>
@@ -7953,24 +7953,25 @@ display:block!important;
 </div>
 <div>
 <p><strong><a href="https://docs.gitlab.com/user/project/pages/"><span translate="no">GitLab Pages</span></a></strong></p>
-<p><code>.gitlab-ci.yml</code> → <code>gitlab.io</code></p>
+<p>⚙️ built by CI → <code>gitlab.io</code></p>
 </div>
 <div>
 <p><strong><a href="https://render.com/docs/static-sites"><span translate="no">Render</span></a></strong></p>
-<p>🔗 Git push → <code>onrender.com</code></p>
+<p>⚙️ builds from Git → <code>onrender.com</code></p>
 </div>
 </div>
-<p><span class="source">Free plans change: read the limits before you choose · <a href="https://quarto.org/docs/publishing/">publishing guide</a> · checked 2026-11-07</span></p>
+<p><span class="source">📤 you upload · ⚙️ the host builds: needs Quarto + Python · checked 2026-11-07</span></p>
 <aside class="notes">
-<p>Thirty seconds: nobody signs up for anything today. The point is that a rendered Quarto site is static files (HTML, CSS, JavaScript, images), so Quarto’s docs say “any web server or web host can be used”: publishing is copying the output folder (<code>_site/</code> for a website) to the host (<a href="https://quarto.org/docs/publishing/other.html">Other Services</a>). Each host below has a free plan for static sites; all checked 2026-11-07 on the linked official pages.</p>
+<p>Optional, about thirty seconds, and nobody signs up for anything today: skip it if the publish block is running late. A rendered Quarto site is static files (HTML, CSS, JavaScript, images), so Quarto’s docs say any web server or web host can be used: publishing is copying the output folder (<code>_site/</code> for a website) to the host (<a href="https://quarto.org/docs/publishing/other.html">Other Services</a>). Each host here has a free plan for static sites; all were checked 2026-11-07 on the linked official pages.</p>
+<p>There are two routes. 📤 You render on your computer and upload <code>_site/</code>: <code>quarto publish</code> does this for GitHub Pages and Netlify, and Wrangler for Cloudflare. ⚙️ The host builds the site from your Git repository: Render, a GitLab CI job, and the Git integrations of Cloudflare and Vercel. The London repository leaves <code>_site/</code> out, so connecting it to a host that builds gives no site unless that build installs Quarto, Python and the project’s packages (or you commit the rendered output).</p>
 <ul>
-<li>Netlify: a built-in Quarto target, <code>quarto publish netlify</code> (<a href="https://quarto.org/docs/publishing/netlify.html">Quarto docs</a>). Its Free plan has 300 credits a month, and each production deploy costs 15 credits (<a href="https://www.netlify.com/pricing/">pricing</a>). Netlify’s own build servers cannot run Python, so render locally and publish the result.</li>
-<li>Cloudflare: the Pages docs now say “Start new projects with Workers”; static asset requests on Workers are free, and <code>wrangler deploy</code> uploads a folder (<a href="https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/">migration guide</a>, <a href="https://developers.cloudflare.com/pages/platform/limits/">Pages limits</a>: 500 builds a month and 20,000 files on the Free plan).</li>
-<li>Vercel: the Hobby plan is free but “restricts users to non-commercial, personal use only”, with 100 GB of data transfer a month (<a href="https://vercel.com/docs/plans/hobby">Hobby plan</a>).</li>
-<li>GitLab Pages: on GitLab.com’s Free tier; a <code>.gitlab-ci.yml</code> pipeline publishes the <code>public</code> folder to <code>namespace.gitlab.io/project</code>, using the Free tier’s CI minutes.</li>
-<li>Render: “Static sites are fast and free to deploy”; they count against the workspace’s monthly bandwidth and pipeline minutes, and each site gets an <code>onrender.com</code> URL.</li>
+<li>Netlify: a built-in Quarto target, <code>uv run quarto publish netlify</code> (<a href="https://quarto.org/docs/publishing/netlify.html">Quarto docs</a>). Quarto’s page says its Netlify build plugin renders Markdown only and runs no Python, so render locally and publish the result. The Free plan has 300 credits a month, and each production deploy costs 15 (<a href="https://www.netlify.com/pricing/">pricing</a>).</li>
+<li>Cloudflare: its Pages docs now tell new projects to start with Workers, where requests for static assets are free (<a href="https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/">migration guide</a>). <code>wrangler deploy</code> uploads the assets directory named in the Wrangler configuration file, so set that to <code>_site</code> (<a href="https://developers.cloudflare.com/workers/static-assets/">static assets</a>). Pages’ Free plan allows 500 builds a month and 20,000 files (<a href="https://developers.cloudflare.com/pages/platform/limits/">limits</a>).</li>
+<li>Vercel: the Hobby plan is free for non-commercial, personal use only, with 100 GB of data transfer a month (<a href="https://vercel.com/docs/plans/hobby">Hobby plan</a>).</li>
+<li>GitLab Pages: on GitLab.com’s Free tier. A <code>.gitlab-ci.yml</code> job publishes the <code>public</code> folder by default, to <code>namespace.gitlab.io/project</code>, so set Quarto’s <code>output-dir: public</code> (or change the job’s publish path) and install Quarto and Python in the job, which uses the Free tier’s CI minutes (<a href="https://docs.gitlab.com/user/project/pages/">GitLab Pages</a>).</li>
+<li>Render: static sites are free to deploy, count against the workspace’s monthly bandwidth and pipeline minutes, get an <code>onrender.com</code> URL, and rebuild on every push to the connected branch (<a href="https://render.com/docs/static-sites">static sites</a>).</li>
 </ul>
-<p>Quarto Pub, Quarto’s own free host, is being replaced by Posit Connect Cloud (<a href="https://quarto.org/docs/publishing/quarto-pub.html">Quarto Pub docs</a>). We use GitHub Pages today because the repository is already on GitHub and <code>quarto publish gh-pages</code> is built in.</p>
+<p>Quarto Pub, Quarto’s own free host, is being replaced by Posit Connect Cloud (<a href="https://quarto.org/docs/publishing/quarto-pub.html">Quarto Pub docs</a>). We use GitHub Pages today because the repository is already on GitHub and <code>quarto publish gh-pages</code> is built in. Free plans change: read the current limits before choosing one (<a href="https://quarto.org/docs/publishing/">publishing guide</a>).</p>
 <style type="text/css">
 span.MJX_Assistive_MathML {
 position:absolute!important;
