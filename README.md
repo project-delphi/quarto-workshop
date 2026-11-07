@@ -117,7 +117,7 @@ the diff.
 | 1:55 | 🌍 Part 1 · Publish to GitHub Pages | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-publish) |
 | 2:15 | 🔁 Part 1 · Change an Input, Rebuild, Explain | [Slide](https://project-delphi.github.io/quarto-workshop/#/london-change) |
 | 2:25 | 🍽️ Meal Break · 🛟 catch up (30 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/meal) |
-| 2:55 | 💧 Part 2 · Colombia Water Safety: why, explore, prepare, cluster (85 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
+| 2:55 | 💧 Part 2 · Colombian water quality: why, data, explore, prepare, cluster (85 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-2) |
 | 4:20 | ☕ Break · 🛟 catch up (15 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/break-afternoon) |
 | 4:35 | 💧 Part 2 · Interpret, correlation ≠ causation, publish many (75 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/water-interpret) |
 | 5:50 | 🏁 Done · 🔗 show your sites | [Slide](https://project-delphi.github.io/quarto-workshop/#/done) |
