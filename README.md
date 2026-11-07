@@ -57,7 +57,9 @@ Quick links: [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLES
    ```
    Once `hello.html` and `hello.pdf` both output 42, tell the organizer it succeeded!
 
-5. **Read [Markdown in Y minutes](https://learnxinyminutes.com/markdown/)** (5 min).
+5. **Read the 📖 Read Before the Day slides** ([slide](https://project-delphi.github.io/quarto-workshop/#/read-before)):
+   how the assistant works, what models cost, using AI in research, and
+   [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) (5 min).
 
 PDFs use Quarto's bundled Typst engine, so no LaTeX install is needed. Each project creates its own
 Python environment with uv during the workshop (one prompt, a few seconds), and all Quarto
@@ -107,7 +109,7 @@ the diff.
 |---|---|---|
 | 0:00 | 👋 Welcome · 🎯 objective · 🏁 outcome | [Slide](https://project-delphi.github.io/quarto-workshop/#/objective) |
 | 0:10 | 🧭 What Is Quarto? | [Slide](https://project-delphi.github.io/quarto-workshop/#/what-is-quarto) |
-| 0:15 | 🛠️ Setup Check · 🧰 boxes · 🗣️ prompting (install, test run and Markdown are pre-work) | [Slide](https://project-delphi.github.io/quarto-workshop/#/setup-check) |
+| 0:15 | 🧰 Ready to Prompt · ✋ fix failed checks · boxes · 🗣️ prompting (🛠️ Setup and 📖 Read Before the Day are pre-work) | [Slide](https://project-delphi.github.io/quarto-workshop/#/ready) |
 | 0:30 | 🇬🇧 Part 1 · London: Markdown → HTML, rules, environment | [Slide](https://project-delphi.github.io/quarto-workshop/#/part-1) |
 | 1:05 | ☕ Break · 🛟 catch up (15 min) | [Slide](https://project-delphi.github.io/quarto-workshop/#/break-morning) |
 | 1:20 | 🧪 Part 1 · `.md` → `.qmd`: YAML, code, docx + PDF | [Slide](https://project-delphi.github.io/quarto-workshop/#/md-to-qmd) |

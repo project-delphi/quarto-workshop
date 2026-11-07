@@ -79,13 +79,18 @@ prompting a coding assistant. Many have only a rudimentary grasp of Linux, the t
 installing tools, so say where each thing is typed (terminal or assistant), and what they
 should see. Setup step 1 is one slide for every system; Windows-only procedure goes on
 `windows-setup.qmd`, not on slides that Mac and Linux participants must page through.
+Pre-work is two 🏠 sections: 🛠️ Setup holds the six steps back to back, with only the slides
+a step needs before or between them; 📖 Read Before the Day, after the test run, holds the
+reading (the assistant, models and costs, AI policy, Markdown). Do not put reading slides
+between setup steps. The in-room 0:15 block, 🧰 Ready to Prompt, follows both.
 
 - One concept per slide, introduced in order (Markdown → render → YAML → code cells →
   formats → projects → publishing). Never use a concept before its slide
   (the 🏠 test run is the exception: a black-box check that the tools work together).
 - Emoji over words: at most about 30 words of prose per slide; detail goes in `::: {.notes}`.
   Build examples progressively with fragments (`. . .`, `.fragment`) instead of walls of text.
-- Section dividers are `# <emoji> Title {#id}` followed by `[⏱️ h:mm]{.clock}` matching the agenda.
+- Section dividers are `# <emoji> Title {#id}` followed by `[⏱️ h:mm]{.clock}` matching the agenda;
+  the two 🏠 pre-work dividers show `[🏠 before the workshop]{.clock}` instead.
 - Hands-on slides use the three boxes defined in `theme.scss`: `::: {.prompt}` holds the exact
   prompt in a ```` ```default ```` fence (copyable, 1–4 lines, one task, concrete file/column
   names, a verification ask; the AI lab's numbered turns are fuller graduate specifications
