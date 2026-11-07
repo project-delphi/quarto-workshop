@@ -1947,6 +1947,92 @@ Python and the packages (or `freeze: auto` with `_freeze/` committed). The finis
 is `quarto-workshop/examples/london/`; Part 1 has no checkpoint after 04.
 :::
 
+## 🆓 Free Static Hosts · ⭐ optional {#free-hosts}
+
+::: {.bigline}
+📁 `_site/` is plain files: ✅ any static host can serve it
+:::
+
+::: {.cards .hosts}
+::: {}
+**[[GitHub Pages]{translate="no"}](https://quarto.org/docs/publishing/github-pages.html)**
+
+📍 today · 📤 `uv run quarto publish gh-pages`
+:::
+::: {}
+**[[Netlify]{translate="no"}](https://quarto.org/docs/publishing/netlify.html)**
+
+📤 `uv run quarto publish netlify`
+:::
+::: {}
+**[[Cloudflare]{translate="no"}](https://developers.cloudflare.com/workers/static-assets/)**
+
+📤 upload `_site/` with `wrangler`
+:::
+::: {}
+**[[Vercel]{translate="no"}](https://vercel.com/docs/plans/hobby)**
+
+⚠️ personal, non-commercial
+:::
+::: {}
+**[[GitLab Pages]{translate="no"}](https://docs.gitlab.com/user/project/pages/)**
+
+⚙️ built by CI → `gitlab.io`
+:::
+::: {}
+**[[Render]{translate="no"}](https://render.com/docs/static-sites)**
+
+⚙️ builds from Git → `onrender.com`
+:::
+:::
+
+[📤 you upload · ⚙️ the host builds: needs Quarto + Python · checked 2026-11-07]{.source}
+
+::: {.notes}
+Optional, about thirty seconds, and nobody signs up for anything today: skip it if the
+publish block is running late. A rendered Quarto site is static files (HTML, CSS,
+JavaScript, images), so Quarto's docs say any web server or web host can be used:
+publishing is copying the output folder (`_site/` for a website) to the host
+([Other Services](https://quarto.org/docs/publishing/other.html)). Each host here has a free
+plan for static sites; all were checked 2026-11-07 on the linked official pages.
+
+There are two routes. 📤 You render on your computer and upload `_site/`: `quarto publish`
+does this for GitHub Pages and Netlify, and Wrangler for Cloudflare. ⚙️ The host builds the
+site from your Git repository: Render, a GitLab CI job, and the Git integrations of
+Cloudflare and Vercel. The London repository leaves `_site/` out, so connecting it to a host
+that builds gives no site unless that build installs Quarto, Python and the project's
+packages (or you commit the rendered output).
+
+- Netlify: a built-in Quarto target, `uv run quarto publish netlify`
+  ([Quarto docs](https://quarto.org/docs/publishing/netlify.html)). Quarto's page says its
+  Netlify build plugin renders Markdown only and runs no Python, so render locally and
+  publish the result. The Free plan has 300 credits a month, and each production deploy
+  costs 15 ([pricing](https://www.netlify.com/pricing/)).
+- Cloudflare: its Pages docs now tell new projects to start with Workers, where requests for
+  static assets are free
+  ([migration guide](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/)).
+  `wrangler deploy` uploads the assets directory named in the Wrangler configuration file,
+  so set that to `_site`
+  ([static assets](https://developers.cloudflare.com/workers/static-assets/)). Pages' Free
+  plan allows 500 builds a month and 20,000 files
+  ([limits](https://developers.cloudflare.com/pages/platform/limits/)).
+- Vercel: the Hobby plan is free for non-commercial, personal use only, with 100 GB of data
+  transfer a month ([Hobby plan](https://vercel.com/docs/plans/hobby)).
+- GitLab Pages: on GitLab.com's Free tier. A `.gitlab-ci.yml` job publishes the `public`
+  folder by default, to `namespace.gitlab.io/project`, so set Quarto's `output-dir: public`
+  (or change the job's publish path) and install Quarto and Python in the job, which uses
+  the Free tier's CI minutes ([GitLab Pages](https://docs.gitlab.com/user/project/pages/)).
+- Render: static sites are free to deploy, count against the workspace's monthly bandwidth
+  and pipeline minutes, get an `onrender.com` URL, and rebuild on every push to the
+  connected branch ([static sites](https://render.com/docs/static-sites)).
+
+Quarto Pub, Quarto's own free host, is being replaced by Posit Connect Cloud
+([Quarto Pub docs](https://quarto.org/docs/publishing/quarto-pub.html)). We use GitHub Pages
+today because the repository is already on GitHub and `quarto publish gh-pages` is built in.
+Free plans change: read the current limits before choosing one
+([publishing guide](https://quarto.org/docs/publishing/)).
+:::
+
 # 🔁 Change an Input {#change-london}
 
 [⏱️ 2:15]{.clock}
