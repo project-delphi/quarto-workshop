@@ -30,14 +30,18 @@ TERM_BG, TERM_BAR, TERM_TEXT, TERM_MUTED = (22, 24, 30), (42, 47, 55), (235, 235
 GREEN, AMBER = (138, 226, 52), (255, 190, 90)
 NOTEBG, NOTEFG = (255, 255, 255), (20, 30, 50)
 
-ASK = ("I am new to coding assistants. I want a one-page London visitor guide. "
-       "Write me a prompt for my coding assistant: 1 to 4 lines, one task, "
-       "concrete file names, and ask it to check its work.")
+ASK = ("I am new to coding assistants. I use Quarto and Markdown. I want a one-page "
+       "London visitor guide. Write me a prompt for my coding assistant: 1 to 4 lines, "
+       "one task, concrete file names, and ask it to check its work.")
 INTRO = "Here is a prompt to paste into your coding assistant:"
-PROMPT = ('Create london.md with a level-1 heading "Visit London" and one welcome '
-          'paragraph. Add a heading "Top sights" with three bullets. Run '
-          "`quarto render london.md` and tell me if there were any errors.")
-REPLY_OUT = ["wrote london.md", "ran quarto render london.md", "no errors; open london.html"]
+PROMPT = ('Use Quarto and Markdown. Create london.md with the title "Visit London", a '
+          'level-1 heading and a two-sentence welcome. Add a heading "Top sights" with '
+          "three bullets, each naming a place and why to visit. Run `quarto render "
+          "london.md`, then list the headings in london.html and any errors.")
+REPLY_OUT = ["wrote london.md: title, welcome, 3 sights",
+             "ran quarto render london.md",
+             "london.html headings: Visit London, Top sights",
+             "no errors"]
 
 frames, durations = [], []
 
@@ -80,8 +84,9 @@ def web(note, typed="", reply=0, copied=False):
         d.rounded_rectangle([bx, y, bx + 118, y + 38], 10, fill=BUTTON)
         d.text((bx + 59 - FONT.getlength(label) / 2, y + 9), label, font=FONT, fill=(255, 255, 255))
     # input box
-    iy = H - NOTE - 126
-    d.rounded_rectangle([PAD, iy, W - PAD, iy + 112], 16, fill=BOT_BG, outline=BOT_LINE, width=2)
+    ih = 46 if sent else 112
+    iy = H - NOTE - ih - 14
+    d.rounded_rectangle([PAD, iy, W - PAD, iy + ih], 16, fill=BOT_BG, outline=BOT_LINE, width=2)
     if not sent:
         for i, ln in enumerate(wrap(typed or " ")[:4] if typed else []):
             d.text((PAD + 14, iy + 12 + i * LINE), ln, font=FONT, fill=WEB_TEXT)
@@ -120,7 +125,7 @@ n1 = "1. Open a free web chat. Describe what you want, in plain words."
 for i in range(0, len(ASK) + 1, 4):
     add(web(n1, ASK[:i] if i else ""), 1200 if i == 0 else 60)
 add(web(n1, ASK), 900)
-n2 = "2. It answers with a ready prompt: file names, one task, a check."
+n2 = "2. It answers with a ready prompt: tools, file names, one task, a check."
 add(web(n2, "SENT"), 900)
 add(web(n2, "SENT", 1), 1100)
 add(web(n2, "SENT", 2), 2600)
