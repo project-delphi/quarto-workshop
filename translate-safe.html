@@ -30,16 +30,16 @@
     if (!text) return;
     event.stopImmediatePropagation();
     const done = () => {
-      const title = button.getAttribute("title");
+      button.dataset.title ??= button.getAttribute("title");
       button.blur();
       button.classList.add("code-copy-button-checked");
       button.setAttribute("title", "Copied!");
       setTimeout(() => {
-        button.setAttribute("title", title);
+        button.setAttribute("title", button.dataset.title);
         button.classList.remove("code-copy-button-checked");
       }, 1000);
     };
-    navigator.clipboard.writeText(text.innerText).then(done, () => {
+    navigator.clipboard.writeText(text.textContent).then(done, () => {
       const range = document.createRange();
       range.selectNodeContents(text);
       const selection = getSelection();
