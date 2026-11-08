@@ -3356,6 +3356,35 @@ window.QuartoSupport = function () {
         text.append(...code.childNodes);
         code.replaceWith(text);
       });
+      // Quarto's copy handler reads the button's sibling `<code>`, which these prompts no longer
+      // have (it throws, so nothing is copied and the button never turns green). Copy the span here,
+      // before Quarto's handler, and flash the button as Quarto does.
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest(".code-copy-button");
+        const text = button?.parentElement.querySelector(".prompt-text");
+        if (!text) return;
+        event.stopImmediatePropagation();
+        const done = () => {
+          const title = button.getAttribute("title");
+          button.blur();
+          button.classList.add("code-copy-button-checked");
+          button.setAttribute("title", "Copied!");
+          setTimeout(() => {
+            button.setAttribute("title", title);
+            button.classList.remove("code-copy-button-checked");
+          }, 1000);
+        };
+        navigator.clipboard.writeText(text.innerText).then(done, () => {
+          const range = document.createRange();
+          range.selectNodeContents(text);
+          const selection = getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          if (document.execCommand("copy")) done();
+          selection.removeAllRanges();
+        });
+      }, true);
+
       slides.querySelectorAll("pre, code").forEach((el) =>
         el.setAttribute("translate", el.matches(prompts) ? "yes" : "no"));
 
