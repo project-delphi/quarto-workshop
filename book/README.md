@@ -32,7 +32,7 @@ Building the book needs only the first four. Playwright and segno come in throug
 From the repository root:
 
 ```bash
-make book          # both editions; the EPUB is post-processed and checked with EPUBCheck
+make book          # both editions; EPUBCheck and a check of the EPUB's links to the website
 make book-html     # the HTML edition only
 make book-epub     # the EPUB only, with post-processing and EPUBCheck
 make book-fresh    # the same as `make book`, re-executing every chapter
@@ -143,8 +143,10 @@ Sizes in decimal units, as built on 2026-11-12.
 
 ## Checking a build
 
-1. `make book` ends with EPUBCheck's summary; anything but
-   `0 fatals / 0 errors / 0 warnings / 0 infos` is a failure to fix.
+1. `make book` ends with EPUBCheck's summary, where anything but
+   `0 fatals / 0 errors / 0 warnings / 0 infos` is a failure to fix, and with
+   `scripts/check_live_links.py`, which fails if a link or QR code from the EPUB names a page
+   or anchor that the website edition (or the deck) does not have.
 2. `make book-shots` saves each EPUB chapter, screen by screen, at phone (390 × 844) and tablet
    (820 × 1180) sizes, in a light and a simulated night theme, to `_book/shots/`, and reports
    anything that sticks out sideways. Look at the changed chapters.

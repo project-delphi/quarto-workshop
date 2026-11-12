@@ -12,8 +12,10 @@ QUARTO_BOOK := cd $(BOOK) && JUPYTER_PATH="$$PWD/.venv/share/jupyter" uv run qua
 
 .PHONY: book book-sync book-html book-epub book-fresh epubcheck media book-shots book-publish deck site
 
-## book: render the HTML and EPUB editions, post-process the EPUB, run epubcheck
+## book: render the HTML and EPUB editions, post-process the EPUB, run epubcheck, and check
+## the EPUB's links into the website edition
 book: book-html book-epub
+	cd $(BOOK) && uv run python scripts/check_live_links.py $(EPUB:$(BOOK)/%=%)
 
 book-sync:
 	cd $(BOOK) && uv run python scripts/sync_chapters.py

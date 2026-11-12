@@ -41,7 +41,7 @@ LIVE = "https://project-delphi.github.io/quarto-workshop/book/"
 QR_TARGETS = {
     "london-map": LIVE + "chapters/06-audiences.html#sec-london-3d",
     "kmeans": LIVE + "chapters/11-cluster.html#sec-kmeans-steps",
-    "cluster-cloud": LIVE + "chapters/11-cluster.html#sec-cloud-3d",
+    "cluster-cloud": LIVE + "chapters/11-cluster.html#fig-cloud-3d",
     "colombia-relief": LIVE + "chapters/11-cluster.html#sec-relief",
     "tunja": LIVE + "chapters/09-explore.html#sec-tunja",
     "explorations": "https://project-delphi.github.io/quarto-workshop/#/water-meta-terrain",
