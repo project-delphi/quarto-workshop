@@ -1,0 +1,148 @@
+"""Build the book's media (book/PLAN.md §4). Run from book/ through `make media`:
+
+    uv run --with playwright --with segno python media/build.py [step ...]
+
+Steps (all by default, in this order):
+  cover     media/cover.svg -> media/cover.png (1600 x 2560)
+  diagrams  media/diagrams/*.svg and media/roadmaps/*.svg -> PNG at 2x, beside each SVG
+  qr        media/qr/*.png from QR_TARGETS below
+  tapes     media/tapes/*.tape -> media/gifs/*.gif with VHS (real, local commands only)
+  capture   media/capture/*.py -> media/gifs/*.gif (Playwright scripts)
+  stills    the first frame of every media/gifs/*.gif -> media/stills/*.png
+  check     every GIF <= 2 MB and <= 800 px wide, with a still
+
+Playwright drives the installed Google Chrome (channel "chrome"), so no browser download
+is needed. Nothing here runs a network, publishing or paid-assistant command: the tapes
+replay local commands, and the agent session is a scripted illustration.
+"""
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+MEDIA = Path(__file__).resolve().parent
+BOOK = MEDIA.parent
+LIVE = "https://project-delphi.github.io/quarto-workshop/book/"
+# QR codes for the EPUB's "live version" links: name -> URL.
+QR_TARGETS = {
+    "london-map": LIVE + "chapters/06-audiences.html#sec-london-3d",
+    "kmeans": LIVE + "chapters/11-cluster.html#sec-kmeans-steps",
+    "cluster-cloud": LIVE + "chapters/11-cluster.html#sec-cloud-3d",
+    "colombia-relief": LIVE + "chapters/11-cluster.html#sec-relief",
+    "tunja": LIVE + "chapters/09-explore.html#sec-tunja",
+    "explorations": LIVE + "chapters/12-interpret.html#sec-explorations",
+}
+MAX_GIF_BYTES = 2 * 1024 * 1024
+MAX_GIF_WIDTH = 800
+
+
+def browser(p):
+    return p.chromium.launch(channel="chrome",
+                             args=["--enable-unsafe-swiftshader", "--use-angle=swiftshader"])
+
+
+def svg_size(svg: Path) -> tuple[int, int]:
+    import re
+    head = svg.read_text()[:600]
+    m = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', head)
+    return int(float(m.group(1))), int(float(m.group(2)))
+
+
+def rasterise(svgs: list[Path], scale: float, transparent: bool = True) -> None:
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        b = browser(p)
+        for svg in svgs:
+            w, h = svg_size(svg)
+            page = b.new_page(viewport={"width": w, "height": h}, device_scale_factor=scale)
+            # An SVG document without width/height fills the viewport, which is its viewBox.
+            page.goto(svg.as_uri())
+            page.screenshot(path=str(svg.with_suffix(".png")), omit_background=transparent,
+                            clip={"x": 0, "y": 0, "width": w, "height": h})
+            page.close()
+            print("png", svg.with_suffix(".png").relative_to(BOOK))
+        b.close()
+
+
+def step_cover() -> None:
+    rasterise([MEDIA / "cover.svg"], scale=1, transparent=False)
+
+
+def step_diagrams() -> None:
+    svgs = sorted([*MEDIA.glob("diagrams/*.svg"), *MEDIA.glob("roadmaps/*.svg")])
+    if svgs:
+        rasterise(svgs, scale=2)
+
+
+def step_qr() -> None:
+    import segno
+    out = MEDIA / "qr"
+    out.mkdir(exist_ok=True)
+    for name, url in QR_TARGETS.items():
+        segno.make(url, error="m").save(out / f"{name}.png", scale=8, border=2,
+                                        dark="#13202e", light="#ffffff")
+        print("qr", name, url)
+
+
+def step_tapes() -> None:
+    for tape in sorted(MEDIA.glob("tapes/*.tape")):
+        print("vhs", tape.name)
+        subprocess.run(["vhs", tape.name], cwd=tape.parent, check=True)
+
+
+def step_capture() -> None:
+    for script in sorted(MEDIA.glob("capture/*.py")):
+        if script.name.startswith("_"):
+            continue
+        print("capture", script.name)
+        subprocess.run([sys.executable, str(script)], cwd=BOOK, check=True)
+
+
+def optimise(gif: Path) -> None:
+    """Shrink a GIF in place with gifsicle, more lossy until it fits MAX_GIF_BYTES."""
+    for lossy in (0, 30, 60, 90, 120):
+        args = ["gifsicle", "-O3", "--colors", "128", "-o", str(gif), str(gif)]
+        if lossy:
+            args.insert(1, f"--lossy={lossy}")
+        subprocess.run(args, check=True)
+        if gif.stat().st_size <= MAX_GIF_BYTES:
+            return
+
+
+def step_stills() -> None:
+    out = MEDIA / "stills"
+    out.mkdir(exist_ok=True)
+    for gif in sorted(MEDIA.glob("gifs/*.gif")):
+        png = out / (gif.stem + ".png")
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(gif), "-frames:v", "1",
+                        str(png)], check=True)
+        print("still", png.relative_to(BOOK))
+
+
+def step_check() -> None:
+    problems = []
+    for gif in sorted(MEDIA.glob("gifs/*.gif")):
+        probe = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                                "stream=width,height", "-of", "json", str(gif)],
+                               capture_output=True, text=True, check=True)
+        stream = json.loads(probe.stdout)["streams"][0]
+        size = gif.stat().st_size
+        print(f"{gif.name:32} {stream['width']:>4} x {stream['height']:<4} {size / 1e6:5.2f} MB")
+        if size > MAX_GIF_BYTES:
+            problems.append(f"{gif.name}: {size / 1e6:.2f} MB > 2 MB")
+        if stream["width"] > MAX_GIF_WIDTH:
+            problems.append(f"{gif.name}: {stream['width']} px wide > {MAX_GIF_WIDTH}")
+        if not (MEDIA / "stills" / (gif.stem + ".png")).exists():
+            problems.append(f"{gif.name}: no still")
+    if problems:
+        sys.exit("media check failed:\n  " + "\n  ".join(problems))
+
+
+STEPS = {"cover": step_cover, "diagrams": step_diagrams, "qr": step_qr, "tapes": step_tapes,
+         "capture": step_capture, "stills": step_stills, "check": step_check}
+
+if __name__ == "__main__":
+    for name in sys.argv[1:] or list(STEPS):
+        STEPS[name]()
