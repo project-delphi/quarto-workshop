@@ -37,7 +37,7 @@ QR_TARGETS = {
     "cluster-cloud": LIVE + "chapters/11-cluster.html#sec-cloud-3d",
     "colombia-relief": LIVE + "chapters/11-cluster.html#sec-relief",
     "tunja": LIVE + "chapters/09-explore.html#sec-tunja",
-    "explorations": LIVE + "chapters/12-interpret.html#sec-explorations",
+    "explorations": "https://project-delphi.github.io/quarto-workshop/#/water-meta-terrain",
 }
 # Deck assets the book reuses, copied so both editions resolve them inside book/.
 DECK_ASSETS = ["chat-prompt.gif", "windows-session.gif", "threejs-visits.png",
