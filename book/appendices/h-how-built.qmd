@@ -1,0 +1,75 @@
+# How This Book Is Built {#sec-how-built}
+
+This book is a Quarto book project in the `book/` folder of the workshop repository, built into two
+editions from one set of chapter files: an EPUB e-book and a website. It is a worked example of the book's
+own subject, and its problems are worth recording, because most of them were invisible until the EPUB was
+checked on a phone screen or by a validator.
+
+## One source, two editions {.unnumbered}
+
+The chapters are `.qmd` files. Their Python cells compute every number from the repository's data, by
+reading the London files and by importing the water project's `analysis.py`, so the book quotes exactly what
+the projects compute. Results are cached with `freeze: auto`, so the EPUB rebuilds quickly and the same way
+each time; the rule for clearing the cache, written in the configuration and the README, is to run
+`make book-fresh` after any change to the examples' data or analysis.
+
+Content meant for one edition is marked for it. Live 3-D scenes and data explorers are wrapped in
+`::: {.content-visible when-format="html:js"}`, and their EPUB stand-ins, animations with a link and a QR code,
+in `when-format="epub"`. The HTML edition runs the workshop's own three.js bundle, unchanged, through a small
+script that imitates the slide framework the bundle expects.
+
+## What the EPUB needed {.unnumbered}
+
+| Problem | Fix |
+|---|---|
+| Quarto 1.10.20 drops a book's parts, and the part pages' content, from the EPUB | Part pages are ordinary chapters in the EPUB; a post-render script nests each part's chapters under it in the table of contents |
+| A profile's chapter list is added to the base list, not substituted for it | One master list (`_chapters.yml`) generates a chapter list for each edition |
+| `when-format="html"` also matches EPUB | HTML-only content uses `when-format="html:js"` |
+| Rendering one edition empties the other's output folder | Each edition has its own output folder |
+| Quarto's figure wrapper carries an `alt` attribute that EPUB's XHTML forbids | The post-render script removes it (the image keeps its alt text) |
+| No landmarks for the copyright page or the start of the text | Added by the post-render script, which also puts the copyright page before the preface |
+| Callout titles and code have fixed light backgrounds and dark text, invisible in a reader's night theme | The stylesheet lets the reader's colours through |
+| Code lines do not wrap on a phone, and cell outputs scroll sideways | The stylesheet makes long lines wrap and outputs fit |
+| Wide diagrams are unreadable on a phone | Diagrams are drawn portrait, 700 pixels wide with text of at least 19 pixels, and supplied as PNG at double resolution |
+
+: Problems met building the EPUB edition, and their fixes. {#tbl-epub-fixes}
+
+The finished EPUB passes EPUBCheck 5.4.0, the W3C's validator, with no errors and no warnings.
+
+## Media {.unnumbered}
+
+All media are rebuilt by one script, `media/build.py`, run by `make media`:
+
+- **Diagrams** are SVG files with a shared style, rasterised to PNG by Chrome. The website uses the SVG, the
+  EPUB the PNG, chosen by Quarto's `default-image-extension` for each edition.
+- **3-D animations** are recorded from the website edition's live scenes: a script opens the page in Chrome,
+  runs the scene's views and drags, captures frames and assembles a GIF with ffmpeg's palette filters.
+- **Terminal animations** are recorded with VHS from scripted tapes that run real commands under a demo account,
+  so no personal path appears; the agent session is a scripted illustration, because the repository's rules
+  rule out paid assistant sessions for teaching material.
+- **Every GIF opens on its final frame**, held for two seconds, because e-readers that do not animate show a
+  GIF's first frame. Each also has a still PNG, which the website shows to readers who ask their system for
+  reduced motion. GIFs are kept under 2 MB.
+
+## Reading the EPUB {.unnumbered}
+
+| Feature | Where it works |
+|---|---|
+| Animated GIFs | readers that animate images play them; others show the first frame, designed as a still |
+| Night and sepia themes | the stylesheet sets no page colours; figures drawn with dark ink sit on a light panel |
+| Mathematics | written as MathML; readers without MathML support may show it as plain text |
+| Live 3-D scenes and explorers | the website edition only, linked and QR-coded from the EPUB |
+
+: How the EPUB's features behave in different readers. The repository's `book/README.md` records which readers were tested, and when. {#tbl-reading}
+
+## Building it {.unnumbered}
+
+From the repository's root folder:
+
+```bash
+make book          # both editions, the EPUB post-processing and EPUBCheck
+make book-fresh    # the same, re-executing every chapter
+make media         # re-record and rebuild every image and animation (slow)
+```
+
+`book/README.md` lists the tools each step needs and how to re-record a single animation.

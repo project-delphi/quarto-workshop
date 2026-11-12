@@ -1,0 +1,89 @@
+# One Source, Every Format: the book edition of the Quarto workshop.
+# Shared settings for both editions. The chapter lists live in the two profiles,
+# _quarto-html.yml (default) and _quarto-epub.yml, which scripts/sync_chapters.py writes
+# from _chapters.yml. Build with `make book` from the repository root (see README.md).
+project:
+  type: book
+  # Cells run from book/, so data paths read ../examples/... in every chapter.
+  execute-dir: project
+  # Referenced from raw HTML (filters/anim.lua), so Quarto would not copy them by itself.
+  resources:
+    - media/gifs/*.gif
+    - media/stills/*.png
+    - assets/*.js
+
+profile:
+  default: html
+
+book:
+  title: "One Source, Every Format"
+  subtitle: "Reproducible Publishing with Quarto and Coding Assistants"
+  author: "Ravi Kalia"
+  date: "2026-11-12"
+  output-file: "one-source-every-format"
+  site-url: https://project-delphi.github.io/quarto-workshop/book/
+  repo-url: https://github.com/project-delphi/quarto-workshop
+  repo-subdir: book
+  search: true
+  page-navigation: true
+
+description: >-
+  A practitioner's guide to reproducible publishing: write once in Markdown, let a
+  coding assistant write the code, check its work, and rebuild one source into a web
+  page, Word, PDF, slides, an e-book, a website, a blog and a dashboard. Two real
+  projects run through the book: a London visitor guide and a study of drinking-water
+  risk in Colombian municipalities.
+lang: en-GB
+rights: "© 2026 Ravi Kalia. All rights reserved."
+keywords:
+  - Quarto
+  - reproducible publishing
+  - coding assistants
+  - Markdown
+  - Python
+  - EPUB
+  - data analysis
+  - k-means clustering
+
+number-sections: true
+crossref:
+  chapters: true
+
+# Fresh teaching computations would be `freeze: false`; the book caches results so the
+# EPUB rebuilds reproducibly. Quarto does not track the data files a chapter reads: after
+# any change to examples/*/data/ or examples/water/scripts/analysis.py, run
+# `make book-fresh`, which deletes _freeze/ and re-executes every chapter.
+execute:
+  echo: false
+  warning: true
+  error: false
+  cache: false
+  freeze: auto
+
+# Runs before Quarto parses callouts, so ::: why and friends become real callouts.
+filters:
+  - path: filters/book.lua
+    at: pre-ast
+  - path: filters/anim.lua
+    at: post-quarto
+
+format:
+  html:
+    theme:
+      light: [cosmo, styles/book.scss]
+      dark: [darkly, styles/book-dark.scss]
+    code-copy: true
+    code-overflow: wrap
+    default-image-extension: svg
+    fig-format: svg
+    reference-location: margin
+  epub:
+    css: styles/epub.css
+    identifier: "urn:uuid:896321a1-a4ab-4adb-b046-b22d60ae4b05"
+    publisher: "Ravi Kalia"
+    epub-cover-image: media/cover.png
+    epub-title-page: true
+    default-image-extension: png
+    fig-format: png
+    fig-dpi: 200
+    toc-depth: 2

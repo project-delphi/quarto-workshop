@@ -7,7 +7,9 @@ difference between two neighbouring cells can be chance.
 
 No licence is stated on the gists or on simonwillison.net, and Simon Willison was not asked. The deck's
 author decided on 2026-11-06 to use the images in this deck, credited and linked on the slide. That
-decision covers this deck only: ask Simon Willison before reusing them elsewhere.
+decision covers this deck only: ask Simon Willison before reusing them elsewhere. On 2026-11-12
+the author also decided to reproduce them in the book edition (`book/`, Chapter 2), credited and
+linked in the same way.
 
 | File | Model | Effort | Input tokens | Output tokens | Input $/M | Output $/M | Cost (¢) |
 |---|---|---|--:|--:|--:|--:|--:|

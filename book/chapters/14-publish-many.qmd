@@ -1,0 +1,324 @@
+# Publish Many {#sec-publish-many}
+
+```{python}
+#| label: ch14-setup
+from scripts import water as w
+
+s = w.res()["summary"]
+k = s["k"]
+```
+
+The analysis is done: one script has written its results to `outputs/`. This chapter turns those
+results into everything a project like this is asked for: a report in Word and PDF for officials,
+slides for a municipal council, an optional e-book, a blog post and a website that holds them all,
+and optionally a dashboard and an academic paper. None of them computes anything. Each reads
+`outputs/`, and that is what makes the chapter's last exercise a fair test: change one setting in
+the analysis, and every publication must follow.
+
+It also returns to a trade-off met earlier, between always recomputing and caching results, now
+that the project is big enough for the difference to matter.
+
+## The report, in Word and PDF {#sec-water-report}
+
+::: {.prompt}
+```default
+Create report.qmd (formats html, docx, typst) from outputs/: summary, question, data (IRCA = utility-supplied prestadores IRCA), method, heatmap, outcomes, correlation ≠ causation (a chart of median infant_mortality by IRCA band per cluster), limits, sources. Matplotlib figures with captions and alt text; hide code. Render all formats; report errors.
+```
+:::
+
+::: {.agent}
+writes `report.qmd` · `uv run quarto render report.qmd`
+:::
+
+::: {.you}
+open `report.docx` (Word or LibreOffice) and `report.pdf`
+:::
+
+The prompt lists the report's sections, and three of its choices carry the lessons of the last chapters.
+"Utility-supplied" is in the data section because @sec-water-why showed what the label hides.
+"Correlation ≠ causation" is a section, not a footnote. And the figures are matplotlib, because Word,
+PowerPoint and PDF cannot run the JavaScript that interactive Plotly charts need (@fig-water-report).
+
+![The first page of the finished water report as a Typst PDF. Rendered from `examples/water/report.qmd`.](../media/figures/water-report-p1.png){#fig-water-report width=70% .on-light fig-alt="The first page of the report PDF, titled Kinds of municipal zone in Colombia, with the subtitle Water quality, services, poverty and outcomes, 2016 to 2023: a descriptive cluster analysis. A summary in four bullet points says how many zone-years were grouped into four kinds, describes the highest-risk kind and the kind with the lowest infant mortality, and says the comparisons are descriptive and do not establish a causal effect of water quality. Then come the Question, the Data section, which names the utility-supplied IRCA, and the start of the Method."}
+
+Every number in the text is inline code reading `outputs/`, never typed: a report that quotes the
+number of kept rows quotes whatever the analysis last computed.
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/10-water-report/README.md
+```
+:::
+
+## Slides for the council {#sec-water-slides}
+
+::: {.prompt}
+```default
+Create slides.qmd (revealjs and pptx) for the municipal council, 6 slides with the title: the question, a table of the named clusters, the heatmap, outcomes by cluster, what this does and does not show. Read outputs/, use matplotlib, hide code. Render both; count the slides.
+```
+:::
+
+::: {.agent}
+writes `slides.qmd` · `uv run quarto render slides.qmd`
+:::
+
+In both formats each `##` heading starts a slide. A PowerPoint slide holds text, or one figure, or one
+table, so keep each slide to one thing. The council deck repeats the "descriptive only" message on its
+last slide, where a council will look for the conclusion (@fig-water-slides).
+
+![One of the six council slides, in the Reveal.js version. Rendered from `examples/water/slides.qmd`.](../media/figures/water-slides.png){#fig-water-slides width=85% fig-alt="A council slide titled How the kinds differ: a heatmap of the four named kinds against nine features in standard-deviation units, red above and blue below the year's average, with a note that IRCA is the utility-supplied figure."}
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/11-water-slides/README.md
+```
+:::
+
+## The report as an e-book (optional) {#sec-water-epub}
+
+::: {.prompt}
+```default
+In report.qmd, add an epub format (toc: true), set lang: en, and add ePub to the html `format-links`. Render report.qmd and check that report.epub contains the three figures and the sources.
+```
+:::
+
+An EPUB is a zipped set of web pages whose text reflows to fit the reader's screen. Most e-book readers
+do not run JavaScript, so figures must be static images, which the report's already are. `lang: en`
+records the book's language (without it the file declares an unknown one), and `toc: true` adds a
+table of contents. Open the result in Apple Books on a Mac or in Calibre.
+
+The book in your hands is the same thing at a larger scale, and building it showed where a report-sized
+EPUB stops being enough. Parts and part pages disappear from a Quarto book's EPUB; content marked for
+HTML also appears in EPUB unless it is marked for HTML with JavaScript; Quarto's built-in callout and code
+colours vanish on a reader's night theme; and an EPUB checker rejects markup that every browser accepts.
+@sec-how-built describes each problem and its fix.
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/12-water-epub/README.md
+```
+:::
+
+## A website with a blog {#sec-water-website}
+
+The publications become one website, with a blog post that tells the story in prose:
+
+```yaml
+# _quarto.yml
+project:
+  type: website
+  execute-dir: project               # <1>
+  pre-render: scripts/analysis.py    # <2>
+execute:
+  freeze: false                      # <3>
+```
+1. Every page, including a post in `posts/…/`, reads `outputs/` and `data/` from the project folder.
+2. Quarto runs the analysis before every render, including a single page's render: `outputs/` is always
+   fresh.
+3. Every render re-executes every page, so every page shows the outputs just written.
+
+```yaml
+# index.qmd
+listing:
+  contents: posts                    # <1>
+```
+1. A *listing* turns every `posts/*/index.qmd` into an entry on the home page: a blog.
+
+::: {.prompt}
+```default
+Make this folder a Quarto website: _quarto.yml (execute-dir: project, `pre-render` scripts/analysis.py, freeze: false, render list, navbar), index.qmd listing posts/, and one post titled with the real k, e.g. "Four kinds of municipal zone". Render it; check the links.
+```
+:::
+
+::: {.you}
+`uv run quarto preview`
+:::
+
+The post's title states the number of clusters, so a change in the analysis could leave it wrong. The
+finished post protects itself with one line in its setup cell, `assert k == 4`, which fails the render if
+the analysis ever finds a different k. A loud failure is better than a quiet falsehood
+(@fig-water-post).
+
+![The finished blog post, whose title states the number of clusters the analysis found. Rendered from `examples/water/posts/four-kinds-of-municipal-zone/index.qmd`.](../media/figures/water-post.png){#fig-water-post width=85% fig-alt="A blog post titled Four kinds of municipal zone, tagged water, clustering and Colombia, with an opening paragraph about the zone-years and the nine features used, and a list of the four kinds, each with its zone-years, municipalities, median IRCA, piped-water coverage and poverty."}
+
+### Fresh or frozen?
+
+`freeze: false` is the simple, safe setting: every render recomputes everything, so nothing can be stale.
+The cost is time, every render, for every page. `freeze: auto` is the alternative: Quarto stores each
+page's results in `_freeze/` and re-executes a page only when *its own source* changes.
+
+The catch is in that last phrase. Quarto does not know which files a page reads, so a change to `data/` or
+to `outputs/` is not detected, and a frozen page keeps its old numbers. With `freeze: auto` you need a rule
+for throwing results away: delete `_freeze/` (or render that one page directly, which ignores the cache)
+whenever the data or the analysis change.
+
+::: practice
+Start with `freeze: false` and switch only when renders become slow enough to matter, and when you do,
+write the invalidation rule down where the next person will find it. This book uses `freeze: auto`, so the
+EPUB rebuilds quickly and reproducibly, and its rule is written in its configuration and README: after any
+change to the examples' data or analysis, run `make book-fresh`, which deletes `_freeze/` and re-executes
+every chapter.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
+```
+:::
+
+## Publish it {#sec-water-ship}
+
+::: {.prompt}
+```default
+Initialise a git repository here with a .gitignore for _site/, .quarto/, .venv/, outputs/ and *_files/. Replace README.md in this folder with a short one linking to https://<your-github-username>.github.io/water-quality/ and listing the files in the site's Downloads menu. Commit everything not ignored, then create a public GitHub repository named `water-quality` with gh and push to it. Set the repository's website to the same URL with `gh repo edit --homepage`. Show me the README and the website URL you set.
+```
+:::
+
+::: {.you}
+approve `gh` · when it shows the website URL, in the second tab: `uv run quarto publish gh-pages`, then Enter at "Publish site … (Y/n)" · open the live address
+:::
+
+The steps are Part II's (@sec-london-publish), with one addition to the `.gitignore`: `outputs/`, which
+the pre-render step rebuilds. The data are public, published under CC BY-SA 4.0 and CC BY 4.0 licences
+listed in `data/README.md`, so publishing them with the site is fine, provided the attributions travel
+with them. In the workshop's dry run (2026-11-01) the first publish took about two minutes, then GitHub
+Pages built the site in 20 to 35 seconds.
+
+::: practice
+**Pause and think**, while it publishes: what is the difference between your folder and the live site?
+
+The live site is the last `_site/` you published. Changes in your folder, including re-rendered outputs,
+do not appear online until you publish again.
+:::
+
+::: tryit
+Build the report, the slides and the website, then publish.
+
+::: done
+`https://<your-github-username>.github.io/water-quality/` opens in a browser, with the report, the slides
+and the blog post.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
+```
+:::
+:::
+
+## Change an input, explain the rebuild {#sec-water-change}
+
+The second task with no prompt supplied, and the test of this part's design.
+
+::: tryit
+1. **Predict.** In `scripts/analysis.py`, change `MAX_MISSING = 2` to `1`. Which outputs will change?
+2. **Rebuild** the site.
+3. **Explain** which outputs changed, which did not, and why.
+4. **Undo** the change (`git restore scripts/analysis.py`) and rebuild, so the outputs match the real
+   settings.
+
+::: done
+you can name the outputs that changed, the ones that did not, and why.
+:::
+:::
+
+`MAX_MISSING` drops rows missing more than that many of the nine features (@sec-prepare). A strong answer
+names the mechanism: `pre-render` re-runs the analysis, which rewrites every file in `outputs/`, and
+`freeze: false` re-executes every page that reads them. It checks at least two outputs against the new row
+counts. And it notices what did not change, including the live site. The model answer, computed with the
+setting changed, is in @sec-checkpoints; it includes what happens to the post's `assert`.
+
+## A dashboard and a white paper (optional) {#sec-water-dashboard}
+
+A dashboard can show the clusters on a map. The first prompt builds a Plotly map of each urban zone's IRCA
+band with a year slider; the second adds pages for the kinds, the outcomes and the method:
+
+::: {.prompt .long}
+```default
+Create dashboard.qmd (format: dashboard): a Plotly choropleth of the IRCA band of the "urban" rows of outputs/clusters.parquet on data/municipios.geojson (featureidkey="properties.divipola"), a year slider over their years (frames update only z), an itables table of outputs/clusters.parquet (maxBytes=0); end each chart cell with `fig`. Make it polished: IRCA bands in order from no risk to unfit, light to dark, with a legend, titled cards and readable labels. Add it to the navbar; render, check it looks good at laptop size and report errors.
+```
+:::
+
+::: {.prompt .long}
+```default
+Add Kinds, Outcomes and Method pages to dashboard.qmd from outputs/ only: a heatmap of cluster_profiles.csv's `z_` columns; outcomes_by_year.csv medians by `year` and `cluster`, and irca_infant.csv's ρ; k_selection.csv's inertia and silhouette by k. Use each cluster's `color` and axis units; say it is descriptive, not causal. Render; check each page at laptop size.
+```
+:::
+
+![The finished dashboard's map page. Rendered from `examples/water/dashboard.qmd`.](../media/figures/water-dashboard.png){#fig-water-dashboard fig-alt="The dashboard's Map page: four value boxes (zone-years clustered, the number of kinds, the median urban IRCA in 2023 and the share of sampled rural zones in the high or unfit band), a map of Colombia's municipalities coloured by the IRCA band of their urban zone, light for no risk to dark for unfit, with a year slider, a table of the four kinds with their zone-years and median IRCA, and a note about the map's data. Tabs lead to the Kinds, Outcomes, Method and Municipalities pages."}
+
+::: pitfall
+Three traps, all met building the example. The boundary file follows the GeoJSON standard (exterior rings
+counter-clockwise) and Plotly expects the opposite, so without reversing the rings every municipality is
+drawn as "the world minus the municipality", a grey rectangle; the finished script's `load_geojson()`
+reverses them. Animation frames must update only the colours (`z`): if every year repeats the 2.7 MB of
+boundaries, the page balloons. And a dashboard cell shows every top-level expression, not only the last, so
+a bare `fig.add_vline(…)` draws the chart twice; assign it, `fig = fig.add_vline(…)`, and end the cell
+with `fig`. The searchable table needs `maxBytes=0`, or `itables` silently drops rows to keep the page
+small.
+:::
+
+The same outputs can also become an academic paper, as London's did (@sec-london-whitepaper), now with
+numbered equations (`$$ … $$ {#eq-kmeans}`, referred to as `@eq-kmeans`) and citations of the papers behind
+each method:
+
+::: {.prompt .long}
+```default
+Create whitepaper.qmd from outputs/: A4 Typst, "New Computer Modern"; an abstract (no inline code), numbered Introduction, Methods with equations, Results and Conclusions, then References via `#set bibliography(title: [References])`. Cite data/README.md's sources and the k-means, silhouette and ARI papers in references.bib; open each DOI. Add it to `render` and the "Downloads" menu; render; check equations and citations. Figures must be vector: set `fig-format: svg` and check that the files in `figure-typst/` end in .svg.
+```
+:::
+
+::: pitfall
+"Open each DOI" is there for a reason: an assistant can produce a plausible reference that does not exist.
+Ask it to drop any reference it cannot open rather than guess, and check the reference list yourself. The
+finished paper cites Lloyd (1982) for k-means, Rousseeuw (1987) for the silhouette, Hubert and Arabie
+(1985) for the adjusted Rand index and Pedregosa et al. (2011) for scikit-learn, each checked against its
+publisher's page on 2026-11-01.
+:::
+
+![The first page of the finished water white paper. Rendered from `examples/water/whitepaper.qmd`.](../media/figures/water-whitepaper-p1.png){#fig-water-whitepaper width=70% .on-light fig-alt="The first page of an A4 paper set in a LaTeX-style typeface, titled Drinking-water quality and infant mortality in Colombian municipal zones, with the subtitle A descriptive cluster analysis, 2016 to 2023, an abstract, and the start of a numbered Introduction with citations in square brackets."}
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/examples/water/README.md
+```
+:::
+
+## Further challenges {#sec-water-stretch}
+
+These have no checkpoints. Each extends the analysis with data already in the project, or names one that
+is not yet available:
+
+- **Moves between kinds.** Count how municipalities' zones move between clusters from 2016 to 2023, and
+  draw it as a Sankey diagram (Plotly's `go.Sankey`).
+- **Positive deviants.** Find zone-years in the rural high-risk cluster with low infant mortality and high
+  Saber 11 scores, and read about those places: they may show what works.
+- **Other clusterings.** A Gaussian mixture model gives each row a probability per cluster instead of a hard
+  label; HDBSCAN finds dense groups and leaves outliers unclustered. Do the kinds survive?
+- **A better outcome.** Diarrhoeal disease in children under five is the outcome most directly linked to
+  water. Its incidence is not in the open SIVIGILA data, which publish only deaths; the data's README records
+  it as a source to add when it becomes available.
+
+## Summary {.unnumbered}
+
+One analysis feeds every publication: a report in Word and PDF, council slides in Reveal.js and PowerPoint,
+an optional e-book, a blog post and a website, an optional dashboard and an optional white paper, each
+reading `outputs/` and none recomputing. `pre-render` keeps `outputs/` fresh and `freeze: false` keeps every
+page fresh; `freeze: auto` is faster but needs a written rule for clearing its cache, because Quarto does not
+see the data a page reads. Guards such as `assert k == 4` turn a silent inconsistency into a failed render.
+Changing one analysis setting changes every output that reads the results, and nothing published until you
+publish again.
+
+## Further reading {.unnumbered}
+
+- Quarto, [project scripts](https://quarto.org/docs/projects/scripts.html),
+  [freeze](https://quarto.org/docs/projects/code-execution.html#freeze) and
+  [website listings](https://quarto.org/docs/websites/website-listings.html) (checked 2026-10-30).
+- Quarto, [Reveal.js options](https://quarto.org/docs/reference/formats/presentations/revealjs.html),
+  [PowerPoint](https://quarto.org/docs/presentations/powerpoint.html) and
+  [EPUB options](https://quarto.org/docs/reference/formats/epub.html) (checked 2026-10-30).
+- Quarto, [Dashboards](https://quarto.org/docs/dashboards/) (checked 2026-10-31).
+- Quarto, [cross-references](https://quarto.org/docs/authoring/cross-references.html) and
+  [citations](https://quarto.org/docs/authoring/citations.html) (checked 2026-11-01).
+- `examples/water/README.md` in the workshop repository: the finished project's layout, rebuild steps and
+  design decisions.

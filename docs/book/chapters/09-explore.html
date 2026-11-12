@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="keywords" content="Quarto, reproducible publishing, coding assistants, Markdown, Python, EPUB, data analysis, k-means clustering">
+<meta name="description" content="A practitioner’s guide to reproducible publishing: write once in Markdown, let a coding assistant write the code, check its work, and rebuild one source into a web page, Word, PDF, slides, an e-book, a website, a blog and a dashboard. Two real projects run through the book: a London visitor guide and a study of drinking-water risk in Colombian municipalities.">
+
+<title>9&nbsp; Look Before You Model – One Source, Every Format</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/10-prepare.html" rel="next">
+<link href="../chapters/08-water-question.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-7d94c0dda550a81dbfca4dade836747f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-101740c35b3b30c037b86c55ec0e8876.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-7d94c0dda550a81dbfca4dade836747f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-3.html">Part III: One Analysis, Many Publications</a></li><li class="breadcrumb-item"><a href="../chapters/09-explore.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Look Before You Model</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">One Source, Every Format</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface: How to Use This Book</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../copyright.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Copyright</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part I: Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publishing That Rebuilds Itself</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-assistant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working With a Coding Assistant</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Setting Up Your Machine</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part II: One Guide, Many Audiences</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-markdown.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Markdown, Rendering and Project Rules</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-compute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Documents That Compute</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-audiences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">One Guide, Five Audiences</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-publish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Publishing and Proving the Rebuild</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-london.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exercises for Part II</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part III: One Analysis, Many Publications</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-water-question.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">The Question, the Data and the Rules</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-explore.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Look Before You Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-prepare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">From Table to Features</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Finding Kinds of Places: k-Means</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Interpreting Clusters</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-causation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Correlation Is Not Causation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-publish-many.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Publish Many</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-water.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exercises for Part III</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../afterword.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Afterword: What You Built, and Where Next</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-windows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Windows: Get Ubuntu Ready</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-terminal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Terminal Keys and Habits</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Cheatsheet</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/d-troubleshooting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Troubleshooting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/e-checkpoints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Checkpoints at a Glance, and Answers</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/f-translation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Reading in Another Language</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/g-sources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Data Sources, Licences and Credits</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/h-how-built.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">H</span>&nbsp; <span class="chapter-title">How This Book Is Built</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/i-workshop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Running This as a Workshop</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-explore-what" id="toc-sec-explore-what" class="nav-link active" data-scroll-target="#sec-explore-what"><span class="header-section-number">9.1</span> What exploring is for</a></li>
+  <li><a href="#sec-water-bands" id="toc-sec-water-bands" class="nav-link" data-scroll-target="#sec-water-bands"><span class="header-section-number">9.2</span> Rural: less data, more risk</a></li>
+  <li><a href="#sec-tunja" id="toc-sec-tunja" class="nav-link" data-scroll-target="#sec-tunja"><span class="header-section-number">9.3</span> One municipality, up close: Tunja</a></li>
+  <li><a href="#sec-explore-do" id="toc-sec-explore-do" class="nav-link" data-scroll-target="#sec-explore-do"><span class="header-section-number">9.4</span> The first page: <code>explore.qmd</code></a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#further-reading" id="toc-further-reading" class="nav-link" data-scroll-target="#further-reading">Further reading</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-3.html">Part III: One Analysis, Many Publications</a></li><li class="breadcrumb-item"><a href="../chapters/09-explore.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Look Before You Model</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="sec-explore" class="quarto-section-identifier"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Look Before You Model</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Keywords</div>
+    <p>Quarto, reproducible publishing, coding assistants, Markdown, Python, EPUB, data analysis, k-means clustering</p>
+  </div>
+</div>
+
+</header>
+
+
+<p>Before any model, look at the data. Exploring tells you what a model will and will not be able to see: which columns are sparse, which zones are never measured, and whether a series changes level for reasons that have nothing to do with the thing it measures. None of that shows up as an error. A clustering algorithm will happily group rows that have been made comparable only by filling their gaps, and a chart of a series whose method changed will draw a trend that is not there.</p>
+<p>This chapter does three things with the water data: it looks at how much is missing and where, it looks at how the IRCA moves over time, and it looks closely at one municipality, Tunja, to see what the caveats in the data’s README mean in practice. Then the assistant builds the project’s first page, <code>explore.qmd</code>.</p>
+<section id="sec-explore-what" class="level2" data-number="9.1">
+<h2 data-number="9.1" class="anchored" data-anchor-id="sec-explore-what"><span class="header-section-number">9.1</span> What exploring is for</h2>
+<p>Four questions are worth answering before modelling any table, and this chapter asks each of them of the water data:</p>
+<ol type="1">
+<li><strong>How big is it?</strong> Rows and columns, and what one row is.</li>
+<li><strong>What is missing, and where?</strong> Missingness by column and by group (here, by zone).</li>
+<li><strong>How are the key values distributed?</strong> For IRCA, the count of rows in each risk band.</li>
+<li><strong>How do they move over time?</strong> For IRCA, its median by year and zone.</li>
+</ol>
+<p>The answers decide what the analysis can claim. If one group is mostly missing, conclusions about it rest on the minority that was measured, and that minority may not be typical.</p>
+</section>
+<section id="sec-water-bands" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="sec-water-bands"><span class="header-section-number">9.2</span> Rural: less data, more risk</h2>
+<div id="cell-fig-wat-bands" class="cell on-light" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div id="fig-wat-bands" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two horizontal stacked bars, urban and rural. The urban bar is mostly no-risk and low-risk IRCA with a small hatched no-data share. The rural bar is more than half hatched no-data, and the largest share of the rest is in the high-risk band.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-wat-bands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="09-explore_files/figure-html/fig-wat-bands-output-1.svg" class="img-fluid figure-img" alt="Two horizontal stacked bars, urban and rural. The urban bar is mostly no-risk and low-risk IRCA with a small hatched no-data share. The rural bar is more than half hatched no-data, and the largest share of the rest is in the high-risk band.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wat-bands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.1: All rows, 2010–2023, by zone: no IRCA reported (hatched) and the Resolución 2115 risk band of the rest. Utility-supplied IRCA, INS open data (datos.gov.co nxt2-39c3).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><a href="#fig-wat-bands" class="quarto-xref">Figure&nbsp;<span>9.1</span></a> puts all 31,416 rows side by side. 53% of rural rows have no IRCA at all, against 14% of urban rows, because many rural systems are never sampled. Among the rural rows that do have a value, 51% fall in the high or unfit bands, against 12% of urban rows.</p>
+<p>The two facts compound. Rural water is riskier where it is measured, and much of it is not measured. Missingness is not random: it is concentrated in small, remote, rural places. Any analysis that drops the rows without IRCA, as Part III’s must, describes <em>sampled</em> rural systems only, and should say so.</p>
+<div id="cell-fig-wat-years" class="cell on-light" data-execution_count="3">
+<div class="cell-output cell-output-display">
+<div id="fig-wat-years" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two lines over the years 2010 to 2023. The urban median is low and falls gently, from the low-risk band in the early years to under 5 from the middle of the decade. The rural median is far higher and nearly flat until 2015, then falls sharply in 2016 and again in 2020, ending in the low-risk band.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-wat-years-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="09-explore_files/figure-html/fig-wat-years-output-1.svg" class="img-fluid figure-img" alt="Two lines over the years 2010 to 2023. The urban median is low and falls gently, from the low-risk band in the early years to under 5 from the middle of the decade. The rural median is far higher and nearly flat until 2015, then falls sharply in 2016 and again in 2020, ending in the low-risk band.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wat-years-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.2: Median utility-supplied IRCA by year and zone, 2010–2023, over the rows that report one.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><a href="#fig-wat-years" class="quarto-xref">Figure&nbsp;<span>9.2</span></a> shows why the fourth question matters. The rural median drops sharply in 2016 and again in 2020. That could be an improvement in rural water, or a change in which systems were sampled; the data’s README warns that the 2020 drop may reflect sampling, and the open data cannot tell the two apart. An analysis that compares years should not read the drop as progress without evidence from outside the table.</p>
+</section>
+<section id="sec-tunja" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="sec-tunja"><span class="header-section-number">9.3</span> One municipality, up close: Tunja</h2>
+<p>Aggregates hide the details that make a variable trustworthy or not. Tunja, the capital of Boyacá department, has 28 rows: two zones over fourteen years. Looking at them one variable at a time shows several of the README’s caveats in a single place (<a href="#fig-tunja" class="quarto-xref">Figure&nbsp;<span>9.3</span></a>).</p>
+<div id="fig-tunja" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-tunja-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="tunja"><script type="application/json">{"years":[2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],"vars":[{"key":"irca","label":"IRCA, utility-supplied (0\u2013100 %)","short":"IRCA (0\u2013100 %)","level":"zone","dp":1,"suspect":[]},{"key":"water_coverage_total","label":"aqueduct coverage, municipality (%)","short":"aqueduct coverage (%)","level":"municipal","dp":2,"suspect":[2021],"note":"hollow = reported as 0, probably \u201cnot reported\u201d (data README, caveat 2)"},{"key":"sewer_coverage_total","label":"sewer coverage, municipality (%)","short":"sewer coverage (%)","level":"municipal","dp":2,"suspect":[2021],"note":"hollow = reported as 0, probably \u201cnot reported\u201d (data README, caveat 2)"},{"key":"population","label":"population (people)","short":"people","level":"zone","dp":0,"suspect":[],"note":"DANE back-projection to 2017, a newer series from 2018 (data README, caveat 9)","breaks":[[2018,"new series"]]},{"key":"ipm","label":"multidimensional poverty IPM, 2018 census (%)","short":"IPM, 2018 census (%)","level":"fixed","dp":1,"suspect":[]},{"key":"mdm","label":"municipal performance MDM (points)","short":"MDM (points)","level":"municipal","dp":2,"suspect":[]},{"key":"idf","label":"fiscal performance, old method (points)","short":"IDF, old method (points)","level":"municipal","dp":2,"suspect":[]},{"key":"idf_new","label":"fiscal performance, new method (points)","short":"IDF, new method (points)","level":"municipal","dp":2,"suspect":[]},{"key":"sgp_water_pc","label":"SGP water, nominal pesos per person","short":"SGP water (pesos per person)","level":"municipal","dp":0,"suspect":[]},{"key":"rainfall_mm","label":"rainfall (mm per year)","short":"rainfall (mm per year)","level":"municipal","dp":0,"suspect":[]},{"key":"infant_mortality","label":"infant mortality (per 1000 births)","short":"infant deaths per 1000 births","level":"municipal","dp":2,"suspect":[],"note":"modelled to 2016, observed rates from 2017, 2020 from another source: the 2017 drop is not an improvement (data README, caveat 8)","breaks":[[2017,"new method"],[2020,"2020: other source"],[2021,""]]},{"key":"saber11_mean","label":"Saber 11 mean (points)","short":"Saber 11 mean (points)","level":"zone","dp":1,"suspect":[]},{"key":"dropout_rate","label":"school dropout (%)","short":"school dropout (%)","level":"municipal","dp":2,"suspect":[]}],"rows":[{"year":2010,"zone":"rural","irca":40.0,"water_coverage_total":77.4,"sewer_coverage_total":76.16,"population":7746.0,"ipm":37.2,"mdm":null,"idf":83.53,"idf_new":null,"sgp_water_pc":11290.0,"rainfall_mm":1016.0,"infant_mortality":13.04,"saber11_mean":null,"dropout_rate":null},{"year":2010,"zone":"urban","irca":10.5,"water_coverage_total":77.4,"sewer_coverage_total":76.16,"population":144225.0,"ipm":10.2,"mdm":null,"idf":83.53,"idf_new":null,"sgp_water_pc":11290.0,"rainfall_mm":1016.0,"infant_mortality":13.04,"saber11_mean":null,"dropout_rate":null},{"year":2011,"zone":"rural","irca":47.6,"water_coverage_total":77.67,"sewer_coverage_total":76.44,"population":7845.0,"ipm":37.2,"mdm":null,"idf":75.87,"idf_new":null,"sgp_water_pc":10806.0,"rainfall_mm":1221.0,"infant_mortality":13.04,"saber11_mean":null,"dropout_rate":2.74},{"year":2011,"zone":"urban","irca":11.9,"water_coverage_total":77.67,"sewer_coverage_total":76.44,"population":146785.0,"ipm":10.2,"mdm":null,"idf":75.87,"idf_new":null,"sgp_water_pc":10806.0,"rainfall_mm":1221.0,"infant_mortality":13.04,"saber11_mean":null,"dropout_rate":2.74},{"year":2012,"zone":"rural","irca":36.1,"water_coverage_total":100.0,"sewer_coverage_total":98.12,"population":7935.0,"ipm":37.2,"mdm":null,"idf":77.34,"idf_new":null,"sgp_water_pc":11347.0,"rainfall_mm":730.0,"infant_mortality":12.4,"saber11_mean":null,"dropout_rate":2.33},{"year":2012,"zone":"urban","irca":1.4,"water_coverage_total":100.0,"sewer_coverage_total":98.12,"population":149256.0,"ipm":10.2,"mdm":null,"idf":77.34,"idf_new":null,"sgp_water_pc":11347.0,"rainfall_mm":730.0,"infant_mortality":12.4,"saber11_mean":null,"dropout_rate":2.33},{"year":2013,"zone":"rural","irca":44.3,"water_coverage_total":96.78,"sewer_coverage_total":93.92,"population":8014.0,"ipm":37.2,"mdm":null,"idf":78.49,"idf_new":null,"sgp_water_pc":15240.0,"rainfall_mm":665.0,"infant_mortality":11.16,"saber11_mean":null,"dropout_rate":1.96},{"year":2013,"zone":"urban","irca":0.6,"water_coverage_total":96.78,"sewer_coverage_total":93.92,"population":151668.0,"ipm":10.2,"mdm":null,"idf":78.49,"idf_new":null,"sgp_water_pc":15240.0,"rainfall_mm":665.0,"infant_mortality":11.16,"saber11_mean":null,"dropout_rate":1.96},{"year":2014,"zone":"rural","irca":38.3,"water_coverage_total":100.0,"sewer_coverage_total":98.25,"population":8113.0,"ipm":37.2,"mdm":null,"idf":77.33,"idf_new":null,"sgp_water_pc":14098.0,"rainfall_mm":560.0,"infant_mortality":10.06,"saber11_mean":255.2,"dropout_rate":2.48},{"year":2014,"zone":"urban","irca":0.4,"water_coverage_total":100.0,"sewer_coverage_total":98.25,"population":154063.0,"ipm":10.2,"mdm":null,"idf":77.33,"idf_new":null,"sgp_water_pc":14098.0,"rainfall_mm":560.0,"infant_mortality":10.06,"saber11_mean":274.6,"dropout_rate":2.48},{"year":2015,"zone":"rural","irca":29.4,"water_coverage_total":86.44,"sewer_coverage_total":82.76,"population":8213.0,"ipm":37.2,"mdm":null,"idf":77.58,"idf_new":null,"sgp_water_pc":14424.0,"rainfall_mm":549.0,"infant_mortality":9.83,"saber11_mean":255.5,"dropout_rate":1.21},{"year":2015,"zone":"urban","irca":0.6,"water_coverage_total":86.44,"sewer_coverage_total":82.76,"population":156480.0,"ipm":10.2,"mdm":null,"idf":77.58,"idf_new":null,"sgp_water_pc":14424.0,"rainfall_mm":549.0,"infant_mortality":9.83,"saber11_mean":277.6,"dropout_rate":1.21},{"year":2016,"zone":"rural","irca":14.5,"water_coverage_total":74.19,"sewer_coverage_total":57.95,"population":8349.0,"ipm":37.2,"mdm":61.25,"idf":76.77,"idf_new":null,"sgp_water_pc":13982.0,"rainfall_mm":795.0,"infant_mortality":9.8,"saber11_mean":269.5,"dropout_rate":1.43},{"year":2016,"zone":"urban","irca":0.6,"water_coverage_total":74.19,"sewer_coverage_total":57.95,"population":158858.0,"ipm":10.2,"mdm":61.25,"idf":76.77,"idf_new":null,"sgp_water_pc":13982.0,"rainfall_mm":795.0,"infant_mortality":9.8,"saber11_mean":285.6,"dropout_rate":1.43},{"year":2017,"zone":"rural","irca":9.1,"water_coverage_total":76.01,"sewer_coverage_total":74.02,"population":8544.0,"ipm":37.2,"mdm":62.8,"idf":77.71,"idf_new":null,"sgp_water_pc":15682.0,"rainfall_mm":702.0,"infant_mortality":5.59,"saber11_mean":270.0,"dropout_rate":2.59},{"year":2017,"zone":"urban","irca":0.6,"water_coverage_total":76.01,"sewer_coverage_total":74.02,"population":161339.0,"ipm":10.2,"mdm":62.8,"idf":77.71,"idf_new":null,"sgp_water_pc":15682.0,"rainfall_mm":702.0,"infant_mortality":5.59,"saber11_mean":283.9,"dropout_rate":2.59},{"year":2018,"zone":"rural","irca":17.8,"water_coverage_total":74.79,"sewer_coverage_total":73.17,"population":8555.0,"ipm":37.2,"mdm":66.49,"idf":77.84,"idf_new":null,"sgp_water_pc":16674.0,"rainfall_mm":744.0,"infant_mortality":9.26,"saber11_mean":null,"dropout_rate":1.76},{"year":2018,"zone":"urban","irca":0.5,"water_coverage_total":74.79,"sewer_coverage_total":73.17,"population":165546.0,"ipm":10.2,"mdm":66.49,"idf":77.84,"idf_new":null,"sgp_water_pc":16674.0,"rainfall_mm":744.0,"infant_mortality":9.26,"saber11_mean":null,"dropout_rate":1.76},{"year":2019,"zone":"rural","irca":14.7,"water_coverage_total":92.84,"sewer_coverage_total":90.95,"population":8256.0,"ipm":37.2,"mdm":73.08,"idf":77.43,"idf_new":null,"sgp_water_pc":17491.0,"rainfall_mm":617.0,"infant_mortality":5.51,"saber11_mean":254.6,"dropout_rate":1.81},{"year":2019,"zone":"urban","irca":0.0,"water_coverage_total":92.84,"sewer_coverage_total":90.95,"population":168648.0,"ipm":10.2,"mdm":73.08,"idf":77.43,"idf_new":null,"sgp_water_pc":17491.0,"rainfall_mm":617.0,"infant_mortality":5.51,"saber11_mean":276.6,"dropout_rate":1.81},{"year":2020,"zone":"rural","irca":12.9,"water_coverage_total":74.19,"sewer_coverage_total":57.95,"population":8015.0,"ipm":37.2,"mdm":73.0,"idf":77.3,"idf_new":53.78,"sgp_water_pc":17026.0,"rainfall_mm":694.0,"infant_mortality":10.61,"saber11_mean":264.9,"dropout_rate":2.07},{"year":2020,"zone":"urban","irca":0.6,"water_coverage_total":74.19,"sewer_coverage_total":57.95,"population":170960.0,"ipm":10.2,"mdm":73.0,"idf":77.3,"idf_new":53.78,"sgp_water_pc":17026.0,"rainfall_mm":694.0,"infant_mortality":10.61,"saber11_mean":277.6,"dropout_rate":2.07},{"year":2021,"zone":"rural","irca":10.6,"water_coverage_total":0.0,"sewer_coverage_total":0.0,"population":8055.0,"ipm":37.2,"mdm":66.23,"idf":null,"idf_new":54.27,"sgp_water_pc":16346.0,"rainfall_mm":677.0,"infant_mortality":7.83,"saber11_mean":null,"dropout_rate":2.03},{"year":2021,"zone":"urban","irca":0.8,"water_coverage_total":0.0,"sewer_coverage_total":0.0,"population":173621.0,"ipm":10.2,"mdm":66.23,"idf":null,"idf_new":54.27,"sgp_water_pc":16346.0,"rainfall_mm":677.0,"infant_mortality":7.83,"saber11_mean":null,"dropout_rate":2.03},{"year":2022,"zone":"rural","irca":12.7,"water_coverage_total":59.7,"sewer_coverage_total":14.09,"population":8066.0,"ipm":37.2,"mdm":75.28,"idf":null,"idf_new":58.35,"sgp_water_pc":15845.0,"rainfall_mm":974.0,"infant_mortality":8.03,"saber11_mean":264.1,"dropout_rate":3.48},{"year":2022,"zone":"urban","irca":0.5,"water_coverage_total":59.7,"sewer_coverage_total":14.09,"population":175752.0,"ipm":10.2,"mdm":75.28,"idf":null,"idf_new":58.35,"sgp_water_pc":15845.0,"rainfall_mm":974.0,"infant_mortality":8.03,"saber11_mean":286.5,"dropout_rate":3.48},{"year":2023,"zone":"rural","irca":9.2,"water_coverage_total":92.92,"sewer_coverage_total":88.95,"population":8076.0,"ipm":37.2,"mdm":73.54,"idf":null,"idf_new":61.67,"sgp_water_pc":21054.0,"rainfall_mm":806.0,"infant_mortality":5.54,"saber11_mean":null,"dropout_rate":2.76},{"year":2023,"zone":"urban","irca":0.4,"water_coverage_total":92.92,"sewer_coverage_total":88.95,"population":177672.0,"ipm":10.2,"mdm":73.54,"idf":null,"idf_new":61.67,"sgp_water_pc":21054.0,"rainfall_mm":806.0,"infant_mortality":5.54,"saber11_mean":null,"dropout_rate":2.76}],"summary":{"irca":{"urban":{"n":14,"missing":0,"mean":2.1,"sd":3.8764,"min":0.0,"max":11.9,"q1":0.5,"median":0.6,"q3":0.75},"rural":{"n":14,"missing":0,"mean":24.0857,"sd":14.3894,"min":9.1,"max":47.6,"q1":12.75,"median":16.25,"q3":37.75}},"water_coverage_total":{"municipal":{"n":14,"missing":0,"mean":77.3521,"sd":25.2549,"min":0.0,"max":100.0,"q1":74.34,"median":77.535,"q3":92.9}},"sewer_coverage_total":{"municipal":{"n":14,"missing":0,"mean":70.195,"sd":29.7983,"min":0.0,"max":98.25,"q1":61.755,"median":76.3,"q3":90.45}},"population":{"urban":{"n":14,"missing":0,"mean":161062.3571,"sd":11145.5475,"min":144225.0,"max":177672.0,"q1":152266.75,"median":160098.5,"q3":170382.0},"rural":{"n":14,"missing":0,"mean":8127.2857,"sd":236.7987,"min":7746.0,"max":8555.0,"q1":8014.25,"median":8071.0,"q3":8245.25}},"ipm":{"urban":{"n":1,"missing":0,"mean":10.2,"sd":null,"min":10.2,"max":10.2,"q1":10.2,"median":10.2,"q3":10.2},"rural":{"n":1,"missing":0,"mean":37.2,"sd":null,"min":37.2,"max":37.2,"q1":37.2,"median":37.2,"q3":37.2}},"mdm":{"municipal":{"n":8,"missing":6,"mean":68.9588,"sd":5.4137,"min":61.25,"max":75.28,"q1":65.3725,"median":69.745,"q3":73.195}},"idf":{"municipal":{"n":11,"missing":3,"mean":77.9264,"sd":1.9697,"min":75.87,"max":83.53,"q1":77.315,"median":77.43,"q3":77.775}},"idf_new":{"municipal":{"n":4,"missing":10,"mean":57.0175,"sd":3.7171,"min":53.78,"max":61.67,"q1":54.1475,"median":56.31,"q3":59.18}},"sgp_water_pc":{"municipal":{"n":14,"missing":0,"mean":15093.2143,"sd":2767.5262,"min":10806.0,"max":21054.0,"q1":14011.0,"median":15461.0,"q3":16592.0}},"rainfall_mm":{"municipal":{"n":14,"missing":0,"mean":767.8571,"sd":187.3068,"min":549.0,"max":1221.0,"q1":668.0,"median":716.0,"q3":803.25}},"infant_mortality":{"municipal":{"n":14,"missing":0,"mean":9.4071,"sd":2.6275,"min":5.51,"max":13.04,"q1":7.88,"median":9.815000000000001,"q3":11.0225}},"saber11_mean":{"urban":{"n":7,"missing":7,"mean":280.3429,"sd":4.8345,"min":274.6,"max":286.5,"q1":277.1,"median":277.6,"q3":284.75},"rural":{"n":7,"missing":7,"mean":261.9714,"sd":6.7862,"min":254.6,"max":270.0,"q1":255.35,"median":264.1,"q3":267.2}},"dropout_rate":{"municipal":{"n":13,"missing":1,"mean":2.2038,"sd":0.6133,"min":1.21,"max":3.48,"q1":1.81,"median":2.07,"q3":2.59}}}}</script><div class="tj-bar"><label>view <select name="view"><option value="table">data</option><option value="summary">summary</option><option value="distribution">distribution</option><option value="series">time series</option><option value="scatter">scatter</option></select></label><label class="tj-x"><span class="tj-xl">variable</span> <select name="x"><option value="irca">IRCA, utility-supplied (0–100 %)</option><option value="water_coverage_total">aqueduct coverage, municipality (%)</option><option value="sewer_coverage_total">sewer coverage, municipality (%)</option><option value="population">population (people)</option><option value="ipm">multidimensional poverty IPM, 2018 census (%)</option><option value="mdm">municipal performance MDM (points)</option><option value="idf">fiscal performance, old method (points)</option><option value="idf_new">fiscal performance, new method (points)</option><option value="sgp_water_pc">SGP water, nominal pesos per person</option><option value="rainfall_mm">rainfall (mm per year)</option><option value="infant_mortality">infant mortality (per 1000 births)</option><option value="saber11_mean">Saber 11 mean (points)</option><option value="dropout_rate">school dropout (%)</option></select></label><label class="tj-y" hidden="">y <select name="y"><option value="irca">IRCA, utility-supplied (0–100 %)</option><option value="water_coverage_total">aqueduct coverage, municipality (%)</option><option value="sewer_coverage_total">sewer coverage, municipality (%)</option><option value="population">population (people)</option><option value="ipm">multidimensional poverty IPM, 2018 census (%)</option><option value="mdm">municipal performance MDM (points)</option><option value="idf">fiscal performance, old method (points)</option><option value="idf_new">fiscal performance, new method (points)</option><option value="sgp_water_pc">SGP water, nominal pesos per person</option><option value="rainfall_mm">rainfall (mm per year)</option><option value="infant_mortality">infant mortality (per 1000 births)</option><option value="saber11_mean">Saber 11 mean (points)</option><option value="dropout_rate">school dropout (%)</option></select></label><label>zone <select name="zone"><option value="both">both zones</option><option value="urban">urban</option><option value="rural">rural</option></select></label></div><div class="tj-out"></div><p class="tj-note"></p></div>
+<script src="../assets/tunja-explorer.js"></script>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-tunja-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.3: Tunja’s 28 rows, from <code>water_municipal.csv</code>. Pick a view (the data, a summary, a distribution, a time series or a scatter plot), then a variable and a zone. Variables that repeat the same value in both zone rows are municipal and are counted once.
+</figcaption>
+</figure>
+</div>
+<p>Four things are worth finding. Because Tunja is a department capital, its coverage has no urban and rural split, so the explorer uses the municipality’s total. Some years’ coverage is reported as exactly 0, which in context probably means “not reported” rather than “no service”; those points are drawn hollow. The fiscal index <code>idf</code> ends in 2020 and <code>idf_new</code> starts there, on a different scale, so the two must never be joined into one line. And infant mortality changes method in 2017, so its apparent drop that year is not an improvement. Saber 11 exists only for 2014–2017, 2019, 2020 and 2022.</p>
+<div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>In practice
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Summaries in the explorer never pool the two zones. Averaging the small rural population’s values with the much larger urban population’s would describe neither. The same caution applies to every comparison in this part: compare like with like, and say which rows a number comes from.</p>
+</div>
+</div>
+</section>
+<section id="sec-explore-do" class="level2" data-number="9.4">
+<h2 data-number="9.4" class="anchored" data-anchor-id="sec-explore-do"><span class="header-section-number">9.4</span> The first page: <code>explore.qmd</code></h2>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Ask your coding assistant</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Read data/README.md. Create explore.qmd from data/water_municipal.csv (divipola as text): rows and columns, % missing per column by `zone`, IRCA counts by Resolución 2115 band and `zone`, and median IRCA by `year` and `zone`, labelled utility-supplied (prestadores). Render it; report errors.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Expect it to run</strong>
+</div>
+<p>writes <code>explore.qmd</code> · <code>uv run quarto render explore.qmd</code></p>
+</div>
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>You do</strong>
+</div>
+<p>open <code>explore.html</code> in your browser</p>
+</div>
+</div>
+<p>“divipola as text” matters: the codes have leading zeros (<code>05001</code> is Medellín), and a code read as a number loses them, and with them the join to any other table.</p>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Common pitfall
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Check the missingness table before trusting the page. If <code>irca</code> is not much sparser in rural rows than in urban ones, the assistant probably counted the wrong column, or counted rows rather than values. You now know the answer the table should give (<a href="#fig-wat-bands" class="quarto-xref">Figure&nbsp;<span>9.1</span></a>), which is exactly what makes the check possible.</p>
+</div>
+</div>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Try it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Run the prompt and read the page.</p>
+<div class="done">
+<p><strong>You're done when</strong> <code>explore.html</code> shows rows and columns, missing values by zone, and IRCA by band, zone and year for 2010–2023.</p>
+</div>
+<div class="catchup">
+<p><strong>Stuck for two minutes?</strong> Paste this into your assistant, then rejoin at the next exercise:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+<p>The catch-up also copies <code>data/</code> if it is missing: the water checkpoints hold sources only.</p>
+</section>
+<section id="summary" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
+<p>Explore before you model: size, missingness by group, distributions and trends over time. In the water data, rural rows are mostly unmeasured and, where measured, far riskier, so any analysis of measured rows describes sampled systems only. The rural median IRCA falls sharply in 2016 and 2020, which the data alone cannot distinguish from a change in sampling. One municipality up close shows the README’s caveats in practice: no zone split for capitals, zeros that probably mean “not reported”, two fiscal indices on different scales, and a method change in infant mortality. Read codes as text, and check each summary against what you already know it should say.</p>
+</section>
+<section id="further-reading" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>
+<ul>
+<li><code>examples/water/data/README.md</code>, “Known gaps and caveats”, in the workshop repository: the full list of the data’s traps, with how each was found.</li>
+<li>pandas, <a href="https://pandas.pydata.org/docs/user_guide/missing_data.html">Working with missing data</a> (checked 2026-11-12).</li>
+<li>Quarto, <a href="https://quarto.org/docs/authoring/tables.html">Tables</a>: computed and Markdown tables with captions (checked 2026-11-12).</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/quarto-workshop\/book\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/08-water-question.html" class="pagination-link" aria-label="The Question, the Data and the Rules">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">The Question, the Data and the Rules</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/10-prepare.html" class="pagination-link" aria-label="From Table to Features">
+        <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">From Table to Features</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -1,0 +1,116 @@
+# Checkpoints at a Glance, and Answers {#sec-checkpoints}
+
+```{python}
+#| label: appE-setup
+# The water rebuild's model answer, computed: run the finished analysis again with
+# MAX_MISSING = 1 instead of 2, in memory, and compare.
+from scripts import water as w
+
+A = w.A
+before = w.res()["summary"]
+original = A.MAX_MISSING
+A.MAX_MISSING = 1
+try:
+    after = A.run()["summary"]
+finally:
+    A.MAX_MISSING = original
+
+# Which rows the stricter setting drops: those missing exactly two features after the capitals'
+# fill (prepare()'s steps up to the missing-value rule, repeated here to inspect them).
+import numpy as np
+
+d = A.load()
+d = d[d["year"].between(A.FIRST_YEAR, A.LAST_YEAR) & (d["entity_type"] == "municipality")
+      & d["irca"].notna()].copy()
+cap_urban = (d["department_capital"] == 1) & (d["zone"] == "urban")
+for col in ["water_coverage", "sewer_coverage"]:
+    fill = cap_urban & d[col].isna() & d[f"{col}_total"].notna()
+    d.loc[fill, col] = d.loc[fill, f"{col}_total"]
+d["log_sgp_water_pc"] = np.log(d["sgp_water_pc"])
+two = d[d[A.FEATURES].isna().sum(axis=1) == 2]
+two_cov = int(two[["water_coverage", "sewer_coverage"]].isna().all(axis=1).sum())
+two_cap = int((two["department_capital"] == 1).sum())
+```
+
+## Every checkpoint {.unnumbered}
+
+Each checkpoint is a folder in `quarto-workshop/checkpoints/` holding a project as it stands at the end of
+one hands-on block, with a README listing the steps to catch up: back up your folder (all but `.venv/`) to a
+new time-stamped folder beside it, copy the checkpoint in (and, for the water project, `data/` if it is
+missing), render, check a named output, and rejoin at the next block. Paste
+`Catch me up: follow ../quarto-workshop/<path>/README.md` into your assistant, or follow the README by hand.
+
+| Path | End of | Holds |
+|---|---|---|
+| `checkpoints/01-london-markdown` | @sec-markdown | `london.md` with every Markdown construct, the rules, the environment, `data/` and `images/` |
+| `checkpoints/02-london-qmd` | @sec-compute | `london.qmd` with front matter, a computed sentence and chart, and six formats |
+| `checkpoints/04-london-audiences` | @sec-audiences | the dashboard, the Word brief and its email, and the A5 flyer |
+| `examples/london` | @sec-publish | the finished London project: website, square advert and white paper |
+| `checkpoints/05-water-explore` | @sec-explore | the rules, the environment and `explore.qmd` |
+| `checkpoints/06-water-prepare` | @sec-prepare | `scripts/analysis.py` with `prepare()` |
+| `checkpoints/07-water-cluster` | @sec-cluster | k-means in the script and `clusters.qmd` |
+| `checkpoints/08-water-interpret` | @sec-interpret | outcome rules, named profiles, and the heatmap and outcomes on the page |
+| `checkpoints/09-water-causation` | @sec-causation | the within-cluster check on the page |
+| `checkpoints/10-water-report` | @sec-water-report | `report.qmd` in HTML, Word and Typst PDF |
+| `checkpoints/11-water-slides` | @sec-water-slides | `slides.qmd` in Reveal.js and PowerPoint |
+| `checkpoints/12-water-epub` | @sec-water-epub | the report's optional EPUB |
+| `checkpoints/13-water-website` | @sec-water-website | the website, its blog post and listing |
+| `examples/water` | @sec-water-dashboard | the finished water project, with the dashboard and white paper |
+
+: Every checkpoint, the chapter it ends, and what it holds. There is no checkpoint 03. Water checkpoints hold sources only: their catch-up copies the data. {#tbl-checkpoints}
+
+## Answer: changing a London input {.unnumbered #sec-answer-london}
+
+The task (@sec-london-change): set the Tower of London's `visits_2025` to 8,000,000.
+
+**What changes.** The Tower of London becomes the most visited attraction, because every page that loads
+`attractions.csv` (@tbl-london-deps) finds the top attraction with `idxmax()` and the total with `.sum()`.
+So the guide changes in every format it writes (web page, Word and PDF, and PowerPoint, slides and EPUB if
+made), and so do the dashboard's value boxes and bar chart, the partner brief (`london-email.docx`), the
+square advert if made, and the white paper's figures for 2025.
+
+**What does not.** The flyer, which copies its facts and quotes no visit counts; the covering email
+(`london-email-message.md`), which quotes no numbers and is not rendered; the dashboard's line chart and the
+3-D map, which read `visits.csv`, not `attractions.csv`; any output not rebuilt; and the live site, until it is
+published again.
+
+**Why.** Every render re-runs every page's code (`freeze: false`), and each changed output is linked to the
+input by a line of code that loads it. A strong answer names that line.
+
+**Follow-up questions worth asking.** Where would the change appear if the number had been typed into the
+prose instead of computed? (Nowhere: the typed number would silently disagree with the chart.) What would
+change if `visits.csv` were edited instead? (The dashboard's line chart, the 3-D map and the white paper's
+trend.) Why does the render re-run every cell? (Because nothing is cached; see @sec-water-website.)
+
+## Answer: changing a water setting {.unnumbered #sec-answer-water}
+
+The task (@sec-water-change): set `MAX_MISSING = 1` instead of 2 in `scripts/analysis.py`. Computed here by
+running the finished analysis both ways:
+
+| | `MAX_MISSING = 2` | `MAX_MISSING = 1` |
+|---|--:|--:|
+| rows dropped for missing features | `{python} w.fmt(before["dropped_too_many_missing"])` | `{python} w.fmt(after["dropped_too_many_missing"])` |
+| rows kept | `{python} w.fmt(before["kept"])` | `{python} w.fmt(after["kept"])` |
+| municipalities | `{python} w.fmt(before["municipalities"])` | `{python} w.fmt(after["municipalities"])` |
+| k | `{python} before["k"]` | `{python} after["k"]` |
+
+: The water analysis with each setting. {#tbl-answer-water}
+
+The stricter setting drops `{python} w.fmt(len(two))` more rows, those missing exactly two features.
+`{python} w.fmt(two_cov)` of them are missing both coverage values: zones whose urban and rural coverage split
+is missing that year. `{python} w.fmt(two_cap)` belong to department capitals, mostly their rural zones (the
+urban ones take the municipal total). k stays `{python} after["k"]`, so the blog post's
+`assert k == 4` still passes; a setting that changed k would make the post fail its render, by design.
+
+**What changes.** `pre-render` re-runs `scripts/analysis.py`, which rewrites every file in `outputs/`
+(`clusters.parquet`, `cluster_profiles.csv`, `k_selection.csv`, `stability.csv`, `outcomes_by_year.csv`,
+`irca_infant.csv`, `irca_infant_bins.csv` and `summary.json`), and `freeze: false` re-executes every page, so
+the explore and clusters pages, the report in every format, the slides, the blog post and the dashboard all
+change together.
+
+**What does not.** `data/`, the page sources, the post's title (k is still `{python} after["k"]`) and, until it
+is published again, the live site.
+
+**Why.** Compute once, publish many: one setting in one script, read by every publication. Strong answers name
+the mechanism (`pre-render`, `outputs/`, `freeze: false`) and check at least two outputs against the new row
+counts. Undo with `git restore scripts/analysis.py`.

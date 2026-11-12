@@ -1,0 +1,396 @@
+# Interpreting Clusters {#sec-interpret}
+
+```{python}
+#| label: ch12-setup
+import base64
+import html
+import io
+import textwrap
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.colors import LinearSegmentedColormap
+
+from scripts import water as w
+from scripts.figures import INK, style
+
+A = w.A
+res = w.res()
+prof = res["profiles"]
+clusters = res["clusters"]
+k = res["k"]
+names, colors = w.names(), w.colors()
+zcols = [f"z_{c}" for c in A.FEATURES]
+cmap = LinearSegmentedColormap.from_list("div", A.DIVERGING["light"])
+ZLIM = 1.5
+kind = {c: n.rsplit(", ", 1)[0] for c, n in names.items()}
+tick = {c: f"{c} · " + "\n".join(textwrap.wrap(kind[c], 18)) for c in names}
+rural_cov = prof.loc[prof["name"].str.startswith("Rural"), "mean_water_coverage"].item()
+
+# An example answer for the "describe one cluster" question: the highest-IRCA cluster's two
+# features farthest from the year's average.
+ex_c = int(prof.index.max())
+ex = prof.loc[ex_c, zcols].astype(float)
+ex = ex[ex.abs().nlargest(2).index]
+WORDS = {"irca": "IRCA", "water_coverage": "piped-water coverage", "sewer_coverage": "sewer coverage",
+         "ipm": "poverty", "rural_share": "rural share", "altitude_m": "altitude",
+         "rainfall_mm": "rainfall", "mdm": "municipal performance", "log_sgp_water_pc": "water transfers"}
+ex_text = " and ".join(f"{WORDS[c[2:]]} ({f'{v:+.1f}'.replace('-', '−')} SD)" for c, v in ex.items())
+
+# Outcomes in z units, as the deck computes them: standardise within year, then average over
+# each cluster's rows; municipal outcomes count each municipality once per year.
+ocols = list(A.OUTCOMES)
+oz = {}
+for col in ocols:
+    r = clusters[clusters["year"].isin(A.OUTCOME_YEARS[col])].dropna(subset=[col])
+    base = r.drop_duplicates(["divipola", "year"]) if A.OUTCOME_LEVEL[col] == "municipality" else r
+    mu, sd = base.groupby("year")[col].mean(), base.groupby("year")[col].std(ddof=0)
+    r = A.once_per_municipality(r, col)
+    oz[col] = ((r[col] - r["year"].map(mu)) / r["year"].map(sd)).groupby(r["cluster"]).mean()
+oz = pd.DataFrame(oz).loc[prof.index]
+omean = prof[[f"{c}_mean" for c in ocols]]
+oz_max = oz.abs().to_numpy().max()
+
+
+def cname(c):
+    return f"cluster {c} ({names[c].split(',')[0].lower()})"
+```
+
+Clusters are only useful if they can be described in words: these are the cities, those the rural
+zones with poor water. This chapter turns the four clusters into four named kinds, by a rule rather
+than by eye, and then does what the analysis was built for: it compares health and education outcomes
+between the kinds, which the clustering never saw.
+
+The comparison is where readers draw conclusions, so it is where honesty matters most. The chapter
+shows the outcomes three ways, as medians over time, as standard-deviation units and as full
+distributions, because each view hides something the others show.
+
+## What sets each cluster apart {#sec-heatmap}
+
+A cluster's *profile* is the mean of each feature over its rows, in z units: +1 means one standard
+deviation above that year's average across all kept rows (@fig-wat-heatmap). Read across a row to
+describe a cluster, and down a column to see which feature separates them.
+
+```{python}
+#| label: fig-wat-heatmap
+#| fig-cap: "Cluster profiles in z units: standard deviations above (red) or below (blue) the year's average. IRCA: utility-supplied. Altitude: derived SRTM point."
+#| fig-alt: "Heatmap with four rows, clusters 1 to 4, and nine feature columns, each cell printed with its value. Cluster 4 is red for IRCA and poverty and dark blue for water and sewer coverage. Cluster 1 is blue for rural share and red for municipal performance. Cluster 3 is blue for altitude. Cluster 2 is red for altitude."
+#| classes: on-light
+with style():
+    fig, ax = plt.subplots(figsize=(7.0, 0.55 * k + 1.6))
+    im = ax.imshow(prof[zcols].to_numpy(), cmap=cmap, vmin=-ZLIM, vmax=ZLIM, aspect="auto")
+    ax.set_xticks(range(len(zcols)), [A.SHORT_LABELS[c] for c in A.FEATURES], rotation=30, ha="right")
+    ax.set_yticks(range(k), [f"Cluster {c}" for c in prof.index])
+    for t, c in zip(ax.get_yticklabels(), prof.index):
+        t.set_color(colors[c]); t.set_fontweight("bold")
+    for i, row in enumerate(prof[zcols].to_numpy()):
+        for j, v in enumerate(row):
+            ax.text(j, i, f"{v:+.1f}", ha="center", va="center", fontsize=8,
+                    color="white" if abs(v) > 0.8 else INK)
+    ax.spines[:].set_visible(False)
+    ax.tick_params(length=0)
+    cb = fig.colorbar(im, ax=ax, shrink=0.85, pad=0.02)
+    cb.set_label("z"); cb.outline.set_visible(False)
+    fig.tight_layout()
+    plt.show()
+```
+
+The highest-IRCA cluster, cluster `{python} ex_c`, stands out most on `{python} ex_text`: a combination
+of unsafe water, poverty and missing infrastructure, not any one of them. Each cluster is a combination,
+which is exactly what a single variable could not have found.
+
+## Name them by a rule {#sec-names}
+
+Names make clusters usable, and they also make them persuasive, so they need a rule that anyone can
+check. The analysis script's `name_rule()` builds each name from three parts:
+
+- **Setting:** "Rural" if fewer than 40% of the cluster's rows are urban zones; otherwise "Cities and
+  large towns" (rural share 0.5 SD or more below average), "Lowland towns" (altitude 0.5 SD or more
+  below) or "Highland towns" (altitude 0.5 SD or more above).
+- **Coverage:** "low-coverage" if the cluster's mean piped-water coverage is 0.5 SD or more below
+  average.
+- **Risk:** the Resolución 2115 band of the cluster's *median* utility-supplied IRCA.
+
+```{python}
+#| label: tbl-names
+#| tbl-cap: "The four named clusters: zone-years and municipalities in each, and the median utility-supplied IRCA. A municipality counts in every cluster that holds one of its zone-years."
+#| output: asis
+print("| | Kind | Zone-years | Municipalities | Median IRCA |")
+print("|---|---|--:|--:|--:|")
+for c, p in prof.iterrows():
+    print(f"| {c} | {p['name']} | {p['rows']:,} | {p['municipalities']:,} | {p['irca_median']:.1f} |")
+```
+
+Because the rule reads the profile, the names never depend on which number k-means happened to give a
+cluster. Two words in them need care. "Low-coverage" is a relative position, not an absolute one: the
+rural cluster's mean coverage is `{python} f"{rural_cov:.0f}"`%, low but not zero, so "unserved" would
+overstate it. And the risk word describes the cluster's median, not every zone-year in it: individual
+zone-years can sit in any band, and a median close to a band's edge can flip the word.
+
+::: practice
+Check every name against the heatmap and the profile table before you use it, and keep the rule beside
+the name in anything you publish. A name is a summary someone else will quote without the table.
+:::
+
+## Outcomes by cluster {#sec-outcomes}
+
+Now the outcomes, which the clustering never used (@fig-wat-outcomes). Each line is a cluster's median
+within each year, so the comparison never mixes years.
+
+```{python}
+#| label: fig-wat-outcomes
+#| fig-cap: "Median outcome by cluster and year. Infant mortality: 2017–2019 and 2021–2023 only (its method changes in 2017, and 2020 looks like another source). Saber 11: published years. Descriptive only: not causal effects of water safety."
+#| fig-alt: "Three small line charts by year, one line per cluster. Cluster 1, cities and large towns, has the lowest infant mortality and the highest Saber 11 scores. Cluster 2, highland towns, has the highest infant mortality. Cluster 3, lowland towns, has the lowest Saber 11 scores. Dropout medians stay within a few percent and dip in 2020 for every cluster."
+#| classes: on-light
+out = res["outcomes_by_year"]
+short = {"infant_mortality": "Infant mortality\nper 1,000 births", "saber11_mean": "Saber 11\nmean score",
+         "dropout_rate": "School dropout\n(%)"}
+with style():
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 3.0))
+    for ax, col in zip(axes, ocols):
+        o = out[out["outcome"] == col]
+        for c, g in o.groupby("cluster"):
+            yrs = A.OUTCOME_YEARS[col]
+            g = g.set_index("year").reindex(range(min(yrs), max(yrs) + 1))
+            ax.plot(g.index, g["median"], marker=A.CLUSTER_MARKERS[c - 1], ms=4, lw=1.6,
+                    color=colors[c], label=f"{c} · {kind[c]}")
+        ax.set_title(short[col], fontsize=9, loc="left")
+        ax.set_xticks([2017, 2020, 2023])
+        ax.tick_params(labelsize=8)
+    fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2, fontsize=8,
+               bbox_to_anchor=(0.5, -0.12))
+    fig.tight_layout(w_pad=1.2)
+    plt.show()
+```
+
+Gaps in the lines are years with no comparable value, drawn as gaps rather than joined across. Infant
+mortality and dropout are measured for a whole municipality but repeated on both zone rows, so they are
+counted once per municipality in each cluster and year; Saber 11 is per zone.
+
+@fig-wat-outcome-heatmap puts the outcomes on the features' scale: each outcome standardised within its
+year, a cell being the cluster's mean z, with the mean itself in brackets.
+
+```{python}
+#| label: fig-wat-outcome-heatmap
+#| fig-cap: "Cluster mean outcome in z units, on the same colour scale as the features' heatmap, with the mean itself in brackets. Descriptive only."
+#| fig-alt: "Heatmap with one row per named cluster and three outcome columns: infant mortality, Saber 11 and school dropout. Each cell prints the cluster's mean outcome in z units and, in brackets, the mean itself. All the cells are pale compared with the features' heatmap."
+#| classes: on-light
+ohead = {"infant_mortality": "Infant mortality\nper 1,000 (lower is better)",
+         "saber11_mean": "Saber 11 score\n(higher is better)", "dropout_rate": "Dropout %\n(lower is better)"}
+ofmt = {"infant_mortality": "{:.1f}", "saber11_mean": "{:.0f}", "dropout_rate": "{:.1f}%"}
+with style():
+    fig, ax = plt.subplots(figsize=(7.0, 0.6 * k + 1.4))
+    im = ax.imshow(oz.to_numpy(), cmap=cmap, vmin=-ZLIM, vmax=ZLIM, aspect="auto")
+    ax.set_xticks(range(len(ocols)), [ohead[c] for c in ocols], fontsize=8)
+    ax.xaxis.tick_top()
+    ax.set_yticks(range(k), [tick[c] for c in prof.index], fontsize=8)
+    for t, c in zip(ax.get_yticklabels(), prof.index):
+        t.set_color(colors[c]); t.set_fontweight("bold")
+    for i, c in enumerate(prof.index):
+        for j, col in enumerate(ocols):
+            m = ofmt[col].format(prof.loc[c, f"{col}_mean"])
+            ax.text(j, i, f"{oz.loc[c, col]:+.2f}  ({m})", ha="center", va="center", fontsize=8, color=INK)
+    ax.spines[:].set_visible(False)
+    ax.tick_params(length=0)
+    cb = fig.colorbar(im, ax=ax, shrink=0.85, pad=0.02)
+    cb.set_label("z"); cb.outline.set_visible(False)
+    fig.tight_layout()
+    plt.show()
+```
+
+The paleness is the finding. No cluster's mean outcome is more than `{python} f"{oz_max:.2f}"` standard
+deviations from the average, so the kinds differ far less in outcomes than in the features that formed
+them. Within that: the lowest infant mortality is in `{python} cname(omean["infant_mortality_mean"].idxmin())`
+and the highest in `{python} cname(omean["infant_mortality_mean"].idxmax())`; the best Saber 11 scores are in
+`{python} cname(omean["saber11_mean_mean"].idxmax())`; and the lowest dropout is in
+`{python} cname(omean["dropout_rate_mean"].idxmin())`.
+
+::: pitfall
+The highest infant mortality is not in the cluster with the worst water. That is a good moment to
+slow down rather than to explain it away. The highland towns are small municipalities, where a handful
+of deaths moves a rate a long way, and from 2017 a blank rate may mean no recorded deaths rather than
+an unknown. Small numbers, reporting and a dozen other differences between the kinds all sit between a
+cluster's water and its outcomes. @sec-causation takes that up directly.
+:::
+
+## Every variable, cluster by cluster {#sec-compare}
+
+Means and medians hide overlap. Box plots show it: how each variable spreads within each cluster
+(@fig-compare).
+
+```{python}
+#| label: compare-images
+# One box plot per feature and outcome (as the deck draws them, in the book's light style).
+vars_ = {**{c: A.FEATURE_LABELS[c] for c in A.FEATURES}, **A.OUTCOMES}
+ids = list(prof.index)
+
+
+def box_values(col):
+    r = clusters
+    if col in A.OUTCOMES:
+        r = r[r["year"].isin(A.OUTCOME_YEARS[col])]
+        r = A.once_per_municipality(r.dropna(subset=[col]), col)
+    return [r.loc[r["cluster"] == c, col].dropna().to_numpy() for c in ids]
+
+
+def box(ax, col, label, fontsize=8):
+    vals = box_values(col)
+    bp = ax.boxplot(vals, whis=(5, 95), showfliers=False, showmeans=True, meanline=True,
+                    patch_artist=True, widths=0.5, medianprops=dict(color=INK, linewidth=2),
+                    meanprops=dict(color=INK, linestyle="--", linewidth=1.4))
+    for j, c in enumerate(ids):
+        bp["boxes"][j].set(facecolor=colors[c] + "55", edgecolor=colors[c], linewidth=1.6)
+        for part in ("whiskers", "caps"):
+            for line in bp[part][2 * j:2 * j + 2]:
+                line.set(color=colors[c], linewidth=1.6)
+    ax.set_xticks(range(1, len(ids) + 1), [str(c) for c in ids], fontsize=fontsize)
+    ax.set_title("\n".join(textwrap.wrap(label, 28)), fontsize=fontsize, loc="left")
+    ax.yaxis.grid(True, color="#e3e7eb")
+    ax.set_axisbelow(True)
+    return vals
+
+
+panels = []
+for i, (col, lab) in enumerate(vars_.items()):
+    with style():
+        fig, ax = plt.subplots(figsize=(6.0, 3.0))
+        vals = box(ax, col, lab, fontsize=10)
+        ax.set_xlabel("cluster")
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        plt.close(fig)
+    alt = (f"Box plots of {lab}, one per cluster. Medians: "
+           + "; ".join(f"cluster {c} ({names[c]}) {np.median(v):.1f}" if len(v) else f"cluster {c} no data"
+                       for c, v in zip(ids, vals)) + ".")
+    panels.append((i, lab, alt, base64.b64encode(buf.getvalue()).decode()))
+```
+
+::: {.content-visible when-format="html:js"}
+::: {#fig-compare}
+```{python}
+#| output: asis
+opts = "".join(f'<option value="{i}">{html.escape(lab)}</option>' for i, lab, _, _ in panels)
+imgs = "".join(f'<img data-i="{i}" alt="{html.escape(alt)}" src="data:image/png;base64,{src}"'
+               + (' style="display:none"' if i else "") + ">" for i, _, alt, src in panels)
+print("```{=html}")
+print('<div class="wat-compare on-light"><select aria-label="Variable" onchange="for (const im of '
+      "this.parentNode.querySelectorAll('img')) im.style.display = im.dataset.i === this.value ? '' : 'none'\">"
+      + opts + "</select>" + imgs + "</div>")
+print("```")
+```
+
+Every feature and outcome, cluster by cluster: pick a variable. Boxes show the middle half, the solid line the median, the dashed line the mean, and the whiskers the 5th to 95th percentiles. All zone-years 2016–2023; outcomes in their years, municipal ones once per municipality.
+:::
+:::
+
+::: {.content-visible when-format="epub"}
+```{python}
+#| label: fig-compare
+#| fig-cap: "Three variables, cluster by cluster: utility-supplied IRCA, piped-water coverage and infant mortality. Boxes show the middle half, the solid line the median, the dashed line the mean, and the whiskers the 5th to 95th percentiles. The website edition has a menu of all twelve variables."
+#| fig-alt: "Three box-plot panels, one box per cluster in each. IRCA: cluster 4's box sits far higher than the others, which are low, rising from cluster 1 to cluster 3. Water coverage: cluster 4's box sits far lower, the others high. Infant mortality: the four boxes overlap heavily, with cluster 1's lowest and cluster 2's highest."
+#| classes: on-light
+with style():
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.9))
+    for ax, col in zip(axes, ["irca", "water_coverage", "infant_mortality"]):
+        box(ax, col, vars_[col])
+    fig.tight_layout()
+    plt.show()
+```
+:::
+
+The boxes make the overlap visible. Clusters differ sharply on the features that built them, IRCA and
+coverage above all, and overlap heavily on the outcomes. A gap between two clusters' boxes is a
+description of the data, not an effect of water safety.
+
+## Building the interpretation {#sec-interpret-do}
+
+The normal route copies the finished outcome rules and names, as in @sec-routes:
+
+::: {.prompt}
+```default
+Copy ../quarto-workshop/checkpoints/08-water-interpret/scripts/analysis.py over scripts/analysis.py (keep mine as scripts/analysis-before-08.py), run it with `uv run python scripts/analysis.py`, and show me the cluster names.
+```
+:::
+
+::: {.agent}
+copies · runs · writes `outputs/outcomes_by_year.csv` and `outputs/cluster_profiles.csv`
+:::
+
+To build them instead (optional), two prompts: the outcome rules, then the profiles and names.
+
+::: {.prompt}
+```default
+In scripts/analysis.py, add outcome rules: infant_mortality only in 2017–2019 and 2021–2023; infant_mortality and dropout_rate are municipal, so count each municipality once per `cluster` and `year`; saber11_mean stays per zone-year. Save outputs/outcomes_by_year.csv (median, n). Run it.
+```
+:::
+
+::: {.prompt}
+```default
+Write outputs/cluster_profiles.csv: rows, municipalities, mean raw and z features, outcome medians and n under the same rules. Name each cluster by a rule: setting, relative coverage ("low-coverage" if mean z_water_coverage ≤ −0.5), median IRCA band. Show me the names.
+```
+:::
+
+Both routes then add the interpretation to the clusters page:
+
+::: {.prompt}
+```default
+Add to clusters.qmd a heatmap of the cluster mean z-scores (features × clusters, blue to red) and one line chart per outcome from outputs/outcomes_by_year.csv, with gaps, not joined lines, in missing years. Use the cluster names and colours. Render it.
+```
+:::
+
+::: {.you}
+reload `clusters.html` in your browser
+:::
+
+::: practice
+**Pause and think**, while it renders: describe one cluster using two features.
+
+One good answer, from @fig-wat-heatmap: cluster `{python} ex_c`, `{python} names[ex_c]`, stands out on
+`{python} ex_text`.
+:::
+
+::: tryit
+Take one route through the outcome rules and names, then extend the clusters page.
+
+::: done
+the assistant shows a name for every cluster, and `clusters.html` shows the heatmap and the outcomes by
+cluster and year.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
+```
+:::
+:::
+
+## Explorations in 3-D (optional) {#sec-explorations}
+
+The workshop's slides have five more 3-D views of the outcomes the clustering never used, by cluster
+and year: dropout as terrain, clusters as hulls, the years stacked, clusters as orbits, and dropout in
+Voronoi columns. They are exploratory pictures rather than evidence, and they run live in the
+published slides, starting at
+<https://project-delphi.github.io/quarto-workshop/#/water-meta-terrain>.
+
+::: {.content-visible when-format="epub"}
+Scan to open them: ![QR code for the 3-D explorations in the workshop slides.](../media/qr/explorations.png){.qr}
+:::
+
+## Summary {.unnumbered}
+
+A cluster's profile, its mean z-score on each feature, describes it as a combination of traits. Names
+come from a written rule (setting, relative coverage, median IRCA band), so they can be checked and do
+not depend on arbitrary numbering; "low-coverage" is relative and the risk word describes a median.
+Outcomes, never used to form the clusters, are compared by year, in z units and as distributions: the
+kinds differ much less in outcomes than in the features that formed them, the worst water is not where
+infant mortality is highest, and the distributions overlap heavily. All of it is description.
+
+## Further reading {.unnumbered}
+
+- `examples/water/scripts/analysis.py`, `name_rule()`, `profiles()` and `outcomes_by_year()`, in the
+  workshop repository.
+- `examples/water/data/README.md`, caveat 8, on why infant mortality is compared only in 2017–2019 and
+  2021–2023.
+- matplotlib, [boxplot](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.boxplot.html):
+  what the boxes, whiskers and means show (checked 2026-11-12).
