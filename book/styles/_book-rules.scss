@@ -28,3 +28,36 @@ img[src*="/diagrams/"] { max-width: min(100%, 600px); display: block; margin-lef
 // "Try it" is a Quarto important callout, which Quarto colours red; the book makes it violet.
 div.callout.callout-important { border-left-color: $ws-violet !important; }
 div.callout.callout-important > .callout-header { background-color: rgba($ws-violet, 0.12) !important; }
+
+// Live 3-D scenes (assets/deck-3d.min.js through assets/deck-host.js), ported from the deck's
+// theme.scss: a WebGL canvas under HTML labels and a legend, on the deck's dark panel so the
+// scenes' colours and fog read as designed. Sizes are em of the panel's font size.
+.deck-3d { position: relative; margin: 0.8rem 0 0.3rem; background: #191919; border-radius: 0.4rem;
+  font-size: 34px; overflow: hidden; color: #f0f0f0; }
+.deck-3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.deck-3d canvas:active { cursor: grabbing; }
+.deck-3d :is(.axis-label, .legend) { position: absolute; color: #b8c2cc; font-size: 0.5em;
+  pointer-events: none; white-space: nowrap; }
+.deck-3d:not(.is-drawn) :is(.axis-label, .legend) { display: none; }
+.deck-3d .axis-label { transform: translate(-50%, -50%); }
+.deck-3d .legend { top: 0.4em; right: 0.5em; display: flex; flex-direction: column; gap: 0.1em; }
+.deck-3d .legend.k-goal { right: auto; left: 0.5em; }
+.deck-3d .place-label { position: absolute; transform: translate(-50%, calc(-100% - 0.25em));
+  color: #f0f0f0; font-size: 0.42em; font-weight: 600; line-height: 1; pointer-events: none;
+  white-space: nowrap; text-shadow: 0 0 0.25em #191919, 0 0 0.12em #191919; }
+.deck-3d .place-label[data-side="below"] { transform: translate(-50%, 0.25em); }
+.deck-3d .place-label[data-side="right"] { transform: translate(0.25em, -50%); }
+.deck-3d .place-label[data-side="left"] { transform: translate(calc(-100% - 0.25em), -50%); }
+.deck-3d:not(.is-drawn) .place-label { display: none; }
+.deck-3d .fallback { padding: 4em 1em 0; color: #b8c2cc; text-align: center; font-size: 0.5em; }
+.deck-3d :is(.t-picker, .c-picker) { position: absolute; bottom: 0.4em; display: flex; gap: 0.35em; }
+.deck-3d .t-picker { left: 0.5em; }
+.deck-3d .c-picker { right: 0.5em; }
+.deck-3d:not(.is-drawn) :is(.t-picker, .c-picker) { display: none; }
+.deck-3d :is(.t-picker, .c-picker) button { font: inherit; font-size: 0.5em; color: #b8c2cc;
+  background: #2b2b2b; border: 1px solid #8a8f96; border-radius: 0.3em; padding: 0.15em 0.6em; cursor: pointer; }
+.deck-3d :is(.t-picker, .c-picker) button[aria-pressed="true"] { color: #191919; background: #f0f0f0; border-color: #f0f0f0; }
+.view-buttons { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.4rem 0 1rem; }
+.view-buttons button { font: inherit; font-size: 0.85rem; padding: 0.2rem 0.7rem; border-radius: 0.3rem;
+  border: 1px solid rgba($ws-accent, 0.7); background: transparent; color: inherit; cursor: pointer; }
+.view-buttons button[aria-pressed="true"] { background: rgba($ws-accent, 0.2); }

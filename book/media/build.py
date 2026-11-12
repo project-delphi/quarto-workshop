@@ -78,6 +78,9 @@ def step_deck() -> None:
     import shutil
     copies = [(BOOK.parent / "assets", pattern, MEDIA / "deck") for pattern in DECK_ASSETS]
     copies += [(BOOK.parent / "examples" / "london" / "images", "*.jpg", MEDIA / "london")]
+    # The deck's three.js bundle and Tunja explorer, run unchanged in the HTML edition.
+    copies += [(BOOK.parent / "assets", name, BOOK / "assets")
+               for name in ("deck-3d.min.js", "tunja-explorer.js")]
     for src, pattern, dest_dir in copies:
         for f in sorted(src.glob(pattern)):
             dest = dest_dir / f.relative_to(src)
