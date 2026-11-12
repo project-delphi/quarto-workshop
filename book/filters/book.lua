@@ -77,6 +77,7 @@ local function aside(div)
     if div.classes:includes(name) then
       div.classes:insert(1, spec[1])
       if not div.attributes.title then div.attributes.title = spec[2] end
+      if name == "tryit" then div.attributes.icon = "false" end
       return div
     end
   end

@@ -1,3 +1,412 @@
 # Setting Up Your Machine {#sec-setup}
 
-Draft: this chapter is not written yet.
+Everything in Parts II and III happens on your own computer: the assistant writes files in
+your folders, Quarto renders them there, and you open the results in your own browser and
+word processor. This chapter gets that computer ready in six steps. Each step ends with a
+check you can see, so you always know whether it worked before you move on, and the last one,
+a test run, proves that the tools work together by printing the number 42 in a web page and a
+PDF.
+
+Do the setup somewhere calm, with a good connection and an hour to spare: the six steps are
+timed at 48 minutes in the workshop, done at home. Mac and Linux readers can follow this
+chapter straight through. Windows readers first install Ubuntu, a version of Linux, inside
+Windows with WSL; @sec-windows walks through that one step at a time, and from then on they
+follow this chapter inside Ubuntu.
+
+## Before you start {#sec-before-setup}
+
+**A stable, fast connection.** Almost every step downloads something: on Windows the Ubuntu
+image (several hundred megabytes), then Quarto, uv and Python packages, the assistant itself
+and the workshop's data. The assistant also sends every request to its model over the
+internet, so a weak connection shows up as long pauses, timeouts and half-finished installs,
+which are easy to mistake for your own errors. Use a wired connection or strong Wi-Fi, avoid
+VPNs where you can, and expect company networks with a proxy to block some downloads.
+
+**Two accounts.** A free [GitHub account](https://github.com/signup), used to publish in
+Parts II and III, and an account with access to one coding assistant. Claude Code needs a
+Pro, Max, Team, Enterprise or Console account; Codex a ChatGPT sign-in or an API key;
+Antigravity a Google account (checked 2026-11-03). Sign-up and email verification can take
+hours, so do them first.
+
+**A way to get unstuck.** Installs fail before the assistant is working, and sometimes the
+assistant is what fails, so you need a route that does not depend on it: a free web chat in
+your browser. Copy the command you ran and the *whole* error message, paste both with a
+sentence saying your system ("Mac", or "Windows with Ubuntu on WSL") and which step you are
+on, and try one suggested fix at a time. Read each suggested command before you run it, and
+never paste passwords, keys or private data. If two suggestions fail, ask a person: your
+group's help channel, or a colleague.
+
+The six steps, and how you know each one worked:
+
+| Step | Do this | It worked when |
+|:-:|---|---|
+| 1 | Get the computer ready (@sec-step-ready) | `git --version` prints a version |
+| 2 | Move around the terminal (@sec-step-terminal) | after `cd ~` the prompt shows `~` |
+| 3 | Install a coding assistant (@sec-step-assistant) | it starts, signed in, and answers |
+| 4 | Let the assistant install the tools (@sec-step-tools) | it prints every version |
+| 5 | Run the setup check (@sec-step-check) | every check reports OK |
+| 6 | Do the test run (@sec-step-test) | `hello.pdf` says 42 |
+
+: The setup steps and their checks. {#tbl-setup-map}
+
+## Step 1: Get the computer ready {#sec-step-ready}
+
+The later steps assume two small programs: `git`, for version control, and `curl`, for
+downloading. Open a terminal (on a Mac: Command-Space, type `Terminal`, Enter; on Ubuntu:
+Ctrl+Alt+T) and run the line for your system.
+
+On a **Mac**, install Apple's Command Line Tools, which include `git`:
+
+```bash
+xcode-select --install
+```
+
+A dialog asks to install them: click Install and wait. Doing this deliberately now matters,
+because otherwise the dialog appears the first time anything uses `git`, which would be in
+the middle of Step 4 while the assistant is waiting. "Already installed" is fine.
+
+On **Ubuntu or Debian** (including Ubuntu on Windows):
+
+```bash
+sudo apt update && sudo apt install -y curl git
+```
+
+`sudo` runs a command as the administrator and asks for your Linux password, which stays
+invisible as you type. On other Linux distributions, install `curl` and `git` with your usual
+package manager. On **Windows**, follow @sec-windows first: it ends with this same command,
+run inside Ubuntu.
+
+::: tryit
+Run `git --version` in the terminal.
+
+::: done
+it prints a version number. On Windows, you are in Ubuntu and `wsl -l -v`, run in
+PowerShell, shows Ubuntu with VERSION 2.
+:::
+:::
+
+## Step 2: Move around the terminal {#sec-step-terminal}
+
+The rest of the book happens in a *terminal*, a window where you type commands instead of
+clicking. When it is ready for a command it shows a *prompt*, a line ending in `$` (or `%` on
+a Mac), which tells you who and where you are:
+
+```text
+ana@laptop:~/demo$
+```
+
+`ana` is the user, `laptop` the computer, and `~/demo` the current folder: `~` is your
+*home folder*, so this is a folder called `demo` inside it. Eight commands are enough to move
+around:
+
+| Command | Does |
+|---|---|
+| `pwd` | prints the folder you are in (*print working directory*) |
+| `date` | prints the date and time |
+| `ls` | lists what is in this folder |
+| `mkdir name` | makes a folder |
+| `cd name` | goes into a folder |
+| `cd ..` | goes up one folder |
+| `cd ~` | goes straight home, from anywhere |
+| `rmdir name` | removes an empty folder (it refuses if anything is inside) |
+
+: Moving around the terminal. {#tbl-terminal}
+
+@fig-terminal-basics runs them in order. Type them yourself rather than pasting: the hands
+remember.
+
+![Moving around the terminal: each command, and what the terminal answers. A real recording, made with a demo account whose home folder is `/tmp/home/ana`; yours is `/home/<you>` on Linux and Windows, or `/Users/<you>` on a Mac.](../media/gifs/terminal-basics.gif){#fig-terminal-basics .anim fig-alt="A terminal session with the prompt ana@laptop. pwd prints the home folder. date prints the date and time. mkdir demo makes a folder, and ls lists it. cd demo goes in, and the prompt now ends in tilde slash demo. mkdir notes and cd notes go one folder deeper, and pwd prints the full path ending in demo slash notes. cd dot dot goes up one level, cd tilde goes straight home, and rmdir demo slash notes demo removes both empty folders."}
+
+Two keys save most typing mistakes: **Tab** completes a file or folder name, and the **up
+arrow** brings back the previous command. Later chapters use one compound command often:
+
+```bash
+mkdir -p london-guide && cd london-guide
+```
+
+`-p` makes `mkdir` quietly accept a folder that already exists, and `&&` means "and then, if
+that worked". Appendix B (@sec-terminal) has more keys and habits.
+
+::: tryit
+From your home folder, type the commands in @tbl-terminal in the order shown in
+@fig-terminal-basics.
+
+::: done
+`rmdir` raised no error, and the prompt shows `~`.
+:::
+:::
+
+### Two places to type
+
+Once an assistant is running, there are two places to type, and mixing them up costs
+beginners more time than anything else.
+
+```text
+ana@laptop:~/setup$ pwd                  <- the terminal: commands
+❯ Which tools are missing?                <- the assistant: requests in plain language
+```
+
+The assistant takes over the terminal tab it runs in: what you type there goes to the
+assistant, not to the shell, until you leave with `/exit`. Commands in this book's **You do**
+boxes, such as `quarto preview`, go in the terminal; prompts in **Ask your coding assistant**
+boxes go to the assistant. When the assistant is busy and you need the terminal, open a second
+tab (Ctrl+Shift+T on Ubuntu, Command-T on a Mac, Ctrl+Shift+D in Windows Terminal).
+
+Typing in the wrong place is usually harmless: a prompt typed at `$` gives `command not
+found`, and a command typed into the assistant is read as a request. Look at the line you are
+on and try again.
+
+::: practice
+**Pause and think.** The assistant is running and the book says to type `gh auth login`.
+Where do you type it?
+
+In a second terminal tab: `gh auth login` is an interactive sign-in that needs you, and the
+assistant is using the first tab. Leaving the assistant with `/exit` also works, but ends the
+conversation.
+:::
+
+## Step 3: Install a coding assistant {#sec-step-assistant}
+
+Pick one assistant and run its installer, the vendor's own documented command (checked
+2026-10-30):
+
+```bash
+# Claude Code
+curl -fsSL https://claude.ai/install.sh | bash
+# Codex
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
+# Antigravity
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+```
+
+`curl … | bash` downloads a small install script and runs it immediately. That is normal
+for these tools, and it is also exactly why you should only do it with links you trust, such
+as each vendor's documented command.
+
+Then **open a new terminal tab**. A terminal learns where programs are when it starts, so it
+cannot find one installed a moment ago, which is the usual cause of `command not found`
+straight after an install. On a Mac, Claude Code's installer prints a line to add to your
+settings under "Setup notes": paste it, then open the new tab.
+
+Start the assistant in a fresh folder:
+
+```bash
+mkdir -p ~/setup && cd ~/setup
+claude          # or: codex, or: agy
+```
+
+The first start walks through three screens. Claude Code's are shown below as captured on
+2026-11-07 (version 2.1.319, in an empty folder, with folder names changed); the screens
+change between versions, so yours may differ in wording.
+
+**Sign in.** Choose the first option, a subscription account. The assistant opens your
+browser; where there is none, as in WSL, it prints a link to copy into your browser, and then
+a code to paste back into the terminal.
+
+::: transcript
+```text
+ Select login method:
+
+ ❯ 1. Claude account with subscription · Individual, Team, or Enterprise
+   2. Anthropic Console account · API usage billing
+   3. 3rd-party platform · Amazon Bedrock, Microsoft Foundry, Google Vertex AI
+```
+:::
+
+**Trust the folder.** The pointer starts on "No, exit", so pressing Enter straight away quits.
+Press the down arrow first. Quitting by mistake is harmless: type `claude` again. Codex asks
+nothing in a plain folder like `~/setup`; it asks the same question later, in a project that
+is a Git repository.
+
+::: transcript
+```text
+ Accessing workspace:
+
+ /home/ana/setup
+
+ Quick safety check: Is this a project you created or one you trust?
+ (Like your own code, a well-known open source project, or work from
+ your team). If not, take a moment to review what's in this folder first.
+
+ Claude Code'll be able to read, edit, and execute files here.
+
+ ❯ No, exit
+   Yes, I trust this folder
+
+ Enter to confirm · Esc to cancel
+```
+:::
+
+**Ready.** The assistant shows its version, the model and plan of the account you signed in
+with, and the folder, then waits for a prompt.
+
+::: tryit
+Install one assistant, start it in `~/setup`, sign in and trust the folder.
+
+::: done
+the assistant answers when you type `hello`. Then type `/exit`.
+:::
+:::
+
+## Step 4: Let the assistant install the tools {#sec-step-tools}
+
+The remaining tools are Quarto itself, uv (which manages Python for each project), Git and
+the GitHub command-line tool `gh`. Each has its own official install method for each system,
+which is exactly the kind of detail an assistant handles well. Start it again in the setup
+folder:
+
+::: {.you}
+```bash
+mkdir -p ~/setup && cd ~/setup && claude
+```
+:::
+
+::: {.prompt .long}
+```default
+Check which of `git`, `curl`, `uv`, `quarto` (1.10 or newer) and the GitHub CLI `gh` are missing on this computer. Install only those, using each tool's official method for my system. Never run `sudo`, or an installer that asks for a password, yourself: print each such command alone in a code block, using full paths, then wait until I say done. Then print every version.
+```
+:::
+
+::: {.agent}
+installs uv with its official installer · Quarto from its release page (or Homebrew on a Mac) · `gh` from GitHub's own package source · prints versions
+:::
+
+The prompt is written around one limitation: an assistant cannot type your password. So it
+asks the assistant to hand back any command that needs one, with full paths, because the
+second tab you paste it into starts in your home folder. Paste the command there, type your
+password when `sudo` asks (it stays invisible), and then type `done` in the assistant's tab.
+On a Mac, the password is your login password.
+
+::: why
+Quarto has no Ubuntu package in the standard repositories, and Ubuntu's own `gh` package is
+discouraged by GitHub, so a generic `apt install` would get one tool wrong and the other
+missing. The prompt's "each tool's official method" sends the assistant to the right source
+for each (Quarto's download page and GitHub's install instructions for Linux, checked
+2026-10-30).
+:::
+
+::: tryit
+Paste the prompt, approve the commands you have read, and run any `sudo` command it hands
+you in a second tab.
+
+::: done
+it prints a version for all five tools. Then type `/exit`: uv and Quarto are only found by
+a terminal started after they were installed.
+:::
+:::
+
+## Step 5: Run the setup check {#sec-step-check}
+
+Open a new tab and start the assistant again, so that it sees the newly installed tools:
+
+::: {.you}
+```bash
+cd ~/setup && claude
+```
+:::
+
+::: {.prompt .long}
+```default
+Print the versions of `quarto` (1.10 or newer), `uv`, `gh` and this assistant, and run `quarto check` (no Jupyter or LaTeX yet is fine: count it as OK). If `git config --global user.name` or `user.email` is unset, ask me for my name and my GitHub email, then set them. Clone https://github.com/project-delphi/quarto-workshop.git to `~/quarto-workshop` (if it exists, `git pull` only when its working tree is clean) and list its `checkpoints/`. Run `gh auth status`. Run every check even if one fails, then report each as OK or not.
+```
+:::
+
+Three parts of this check deserve a word.
+
+`quarto check` reports Quarto's own components, including Pandoc and Typst. Its Python and
+Jupyter lines may say they are missing, and that is fine: each project in this book gets its
+own Python environment from uv, so there is nothing to install for Python now. No LaTeX is
+needed either, because PDFs are made with the Typst engine bundled in Quarto.
+
+A fresh Git has no identity, and `git commit` refuses to run without one. The prompt makes
+the assistant ask you for your name and email, so you type your own; check that what it set
+is yours, not a placeholder.
+
+The clone brings the workshop repository to `~/quarto-workshop`. It holds the finished
+examples, the water dataset and the *checkpoints*: snapshots of each project at the end of
+each hands-on block, which you will use to catch up if you fall behind.
+
+::: {.you}
+if `gh` is not "Logged in": in a **second tab**, `gh auth login` → GitHub.com → HTTPS → Yes → log in with a web browser; copy the one-time code to github.com/login/device; then ask the assistant to check `gh` again
+:::
+
+::: tryit
+Run the setup check.
+
+::: done
+the assistant reports every check as OK, including `gh` "Logged in".
+:::
+:::
+
+## Step 6: The test run {#sec-step-test}
+
+The setup check proves the tools are installed. The test run proves they work together:
+the assistant can write a file and run commands you approve, uv can build a project
+environment, Quarto can run Python through it, and Typst can write a PDF.
+
+::: {.you}
+```bash
+mkdir -p ~/quarto-test && cd ~/quarto-test
+claude
+```
+:::
+
+::: {.prompt}
+```default
+Run `uv init --bare` and `uv add ipykernel nbclient nbformat pyyaml`. Create hello.qmd (html and typst formats): a Python cell computing `6 * 7` and an inline-code sentence showing it. Render it with `uv run quarto render hello.qmd`; check hello.html and hello.pdf both say 42.
+```
+:::
+
+::: {.agent}
+`uv init --bare` · `uv add …` · writes `hello.qmd` · `uv run quarto render hello.qmd` → `hello.html`, `hello.pdf`
+:::
+
+::: {.you}
+`/exit`, then open the folder: `open .` (Mac), `xdg-open .` (Linux) or `explorer.exe .` (WSL), and open both files
+:::
+
+The test run uses things the next chapters explain, YAML settings, a code cell and inline
+code, on purpose: it is a black-box check that the tools work together, not a lesson. If you
+are curious, `hello.qmd` is the file shown in @sec-what-quarto.
+
+::: pitfall
+Every render prints a line such as `[IPKernelApp] WARNING | Kernel is running over TCP
+without encryption`. It is harmless: Quarto talks to the Python kernel over a local
+connection on your own computer, and in every dry run the warning came with a successful
+render and changed nothing in the output.
+:::
+
+::: tryit
+Run the test run and open both outputs.
+
+::: done
+`hello.html` and `hello.pdf` both say 42. The folder is disposable: delete `~/quarto-test`
+afterwards.
+:::
+:::
+
+## Summary {.unnumbered}
+
+Setup is six steps, each with a visible check: ready the computer (`git` and `curl`, or Ubuntu
+on Windows), learn to move around the terminal, install one assistant, let it install Quarto,
+uv and `gh` by their official methods, run the setup check, and finish with a test run that
+renders 42 into HTML and PDF. Keep the two places to type apart: commands at the terminal's
+prompt, requests at the assistant's. When something fails, copy the command and the whole
+error into a web chat, try one fix at a time, and never paste secrets.
+
+## Further reading {.unnumbered}
+
+- Quarto, [Get Started](https://quarto.org/docs/get-started/) and
+  [download page](https://quarto.org/docs/download/) (checked 2026-10-30).
+- Astral, [Installing uv](https://docs.astral.sh/uv/getting-started/installation/) (checked
+  2026-10-30).
+- GitHub, [GitHub CLI](https://cli.github.com/) and
+  [installing on Linux](https://github.com/cli/cli/blob/trunk/docs/install_linux.md) (checked
+  2026-10-30).
+- [Claude Code setup](https://code.claude.com/docs/en/setup),
+  [Codex CLI](https://learn.chatgpt.com/docs/codex/cli) and
+  [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli) (checked
+  2026-10-30).
+- Scott Chacon and Ben Straub, *Pro Git*,
+  [Installing Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (checked
+  2026-11-06).

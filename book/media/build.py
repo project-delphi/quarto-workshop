@@ -104,9 +104,17 @@ def step_qr() -> None:
 
 
 def step_tapes() -> None:
+    """Record each tape; a tape with a "# poster:" line gets its last frame held first."""
+    import re
     for tape in sorted(MEDIA.glob("tapes/*.tape")):
         print("vhs", tape.name)
         subprocess.run(["vhs", tape.name], cwd=tape.parent, check=True)
+        text = tape.read_text()
+        out = (tape.parent / re.search(r"^Output (\S+)", text, re.M).group(1)).resolve()
+        if re.search(r"^# poster:", text, re.M):
+            poster_first(out, out)
+        else:
+            optimise(out)
 
 
 def step_capture() -> None:
@@ -142,9 +150,11 @@ def poster_first(src: Path, dest: Path, hold: float = 2.5, fps: int = 10) -> Non
         graph = (f"[0:v]{scale}[a];[1:v]{scale}[b];[a][b]concat=n=2:v=1[v];"
                  "[v]split[x][y];[x]palettegen=stats_mode=diff[p];"
                  "[y][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle")
+        tmp_gif = Path(tmp, "out.gif")  # src may be dest: never write over the input
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-loop", "1", "-t", str(hold),
                         "-framerate", str(fps), "-i", str(last), "-i", str(src),
-                        "-filter_complex", graph, "-loop", "0", str(dest)], check=True)
+                        "-filter_complex", graph, "-loop", "0", str(tmp_gif)], check=True)
+        tmp_gif.replace(dest)
     optimise(dest)
 
 
