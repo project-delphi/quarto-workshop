@@ -1,3 +1,163 @@
 # Exercises for Part III {.unnumbered #sec-exercises-water}
 
-Draft: this chapter is not written yet.
+These exercises collect Part III's hands-on work in order, one per checkpoint, as Part II's did. Start
+the assistant in `~/water-quality/`, next to `~/quarto-workshop/`. The water checkpoints hold sources
+only, so each catch-up also copies `examples/water/data/` into your folder if `data/` is missing. From
+Exercise III.4 on, the normal route copies each block's finished `scripts/analysis.py`; the prompts that
+write the analysis yourself are optional. @sec-checkpoints has the whole table.
+
+## Exercise III.1: rules, environment and a first look {.unnumbered}
+
+From @sec-water-question and @sec-explore. Copy the data, write `AGENTS.md` from the data's README,
+create the uv environment, and build `explore.qmd`.
+
+::: done
+`explore.html` shows missing values by zone and IRCA by band, zone and year for 2010–2023.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md
+```
+:::
+
+## Exercise III.2: features {.unnumbered}
+
+From @sec-prepare. Write `prepare()` in `scripts/analysis.py`: select, transform, impute with flags and
+standardise within year, and save `outputs/prepared.parquet`.
+
+::: done
+the printed number of kept rows matches @tbl-prepare-counts and `outputs/prepared.parquet` exists.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md
+```
+:::
+
+## Exercise III.3: clusters {.unnumbered}
+
+From @sec-cluster. Copy (or build) the k-means step, and create `clusters.qmd`.
+
+::: done
+`outputs/clusters.parquet` exists, you can say what k is and why, and `clusters.html` shows the elbow, the
+silhouette and the PCA picture.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
+```
+:::
+
+## Exercise III.4: interpretation {.unnumbered}
+
+From @sec-interpret. Copy (or build) the outcome rules, profiles and names, and add the heatmap and the
+outcome lines to `clusters.qmd`.
+
+::: done
+the script prints one name per cluster, and `clusters.html` shows the heatmap and the outcomes by cluster
+and year.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
+```
+:::
+
+## Exercise III.5: the within-cluster check {.unnumbered}
+
+From @sec-causation. Copy (or build) the check, and add it to the clusters page with its descriptive-only
+sentence.
+
+::: done
+`clusters.html` shows $\rho$ and n for every cluster and says the check is descriptive, and you can say how
+one confounder could bias it.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/09-water-causation/README.md
+```
+:::
+
+## Exercise III.6: report, slides and e-book {.unnumbered}
+
+From @sec-publish-many. Build `report.qmd` (HTML, Word, Typst PDF), `slides.qmd` (Reveal.js and
+PowerPoint) and, optionally, the report's EPUB.
+
+::: done
+`report.docx` and `report.pdf` open with the heatmap, the outcomes and the within-cluster figure;
+`slides.html` and `slides.pptx` both have six slides; and, if you made it, `report.epub` opens with the
+three figures and the sources.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/10-water-report/README.md
+```
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/11-water-slides/README.md
+```
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/12-water-epub/README.md
+```
+:::
+
+Use the catch-up for the last step you completed: 10 after the report, 11 after the slides, 12 after the
+optional e-book.
+
+## Exercise III.7: the website, published {.unnumbered}
+
+From @sec-water-website and @sec-water-ship. Make the folder a website with a blog post titled with the real
+k, put it on GitHub, and publish it with an interactive `uv run quarto publish gh-pages`.
+
+::: done
+`https://<your-github-username>.github.io/water-quality/` opens, and its home page lists one post whose title
+states the real k.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
+```
+:::
+
+## Exercise III.8: change an input, explain the rebuild {.unnumbered}
+
+From @sec-water-change, with no prompt supplied. Change `MAX_MISSING = 2` to `1` in
+`scripts/analysis.py`, predict which outputs change, rebuild, explain, and undo with
+`git restore scripts/analysis.py`.
+
+::: done
+you can name the outputs that changed, the ones that did not, and the mechanism that links them
+(`pre-render`, `outputs/`, `freeze: false`). The model answer is in @sec-checkpoints.
+:::
+
+## Going further {.unnumbered}
+
+1. **Optional pieces.** Build the dashboard and the white paper (@sec-water-dashboard); the finished project,
+   `examples/water/`, is their checkpoint:
+
+   ::: catchup
+   ```default
+   Catch me up: follow ../quarto-workshop/examples/water/README.md
+   ```
+   :::
+
+2. **Change the seed.** Repeat Exercise III.8 with `SEED` instead of `MAX_MISSING`. Clusters are numbered by
+   their centre's IRCA, so the names and colours should stay; check whether anything else moves, and why
+   very little does (@sec-choose-k, on stability).
+3. **Freeze it.** Switch the site to `freeze: auto`, change `MAX_MISSING`, render, and find a page that kept
+   its old numbers. Then write the invalidation rule into the project's `AGENTS.md`, apply it, and undo both
+   changes.
+4. **The challenges** in @sec-water-stretch: moves between kinds as a Sankey diagram, positive deviants, and
+   other clustering methods.

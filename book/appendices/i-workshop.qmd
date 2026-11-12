@@ -1,3 +1,83 @@
 # Running This as a Workshop {#sec-workshop}
 
-Draft: this chapter is not written yet.
+The book follows a six-hour, hands-on workshop, and can be taught that way: 300 minutes of teaching in four
+sessions, of 65, 65, 85 and 85 minutes, with two 15-minute breaks and a 30-minute meal. The workshop's slides,
+at <https://project-delphi.github.io/quarto-workshop/>, are the course resource on the day; this book is the
+reading behind them.
+
+## The day {.unnumbered}
+
+| Time | Block | Checkpoint | Book |
+|---|---|---|---|
+| before | Setup, and reading about assistants, costs and AI policy | | 2, 3 |
+| 0:00 (10) | Welcome, objective, outcome | | Preface |
+| 0:10 (5) | What Quarto is | | 1 |
+| 0:15 (15) | Ready to prompt: failed checks, the boxes, prompting | | 2 |
+| 0:30 (35) | London: Markdown to HTML, rules, environment | 01 | 4 |
+| 1:05 (15) | *Break and catch-up* | | |
+| 1:20 (20) | London: `.md` to `.qmd`, formats | 02 | 5 |
+| 1:40 (15) | London: three audiences with sub-agents | 04 | 6 |
+| 1:55 (20) | London: publish to GitHub Pages | `examples/london` | 7 |
+| 2:15 (10) | London: change an input | | 7 |
+| 2:25 (30) | *Meal and catch-up* | | |
+| 2:55 (20) | Water: why, rules, data | 05 | 8 |
+| 3:15 (20) | Water: explore | 05 | 9 |
+| 3:35 (20) | Water: prepare | 06 | 10 |
+| 3:55 (25) | Water: cluster | 07 | 11 |
+| 4:20 (15) | *Break and catch-up* | | |
+| 4:35 (20) | Water: interpret | 08 | 12 |
+| 4:55 (15) | Water: correlation and causation | 09 | 13 |
+| 5:10 (40) | Water: publish many, change an input | 10–13, `examples/water` | 14 |
+| 5:50 (10) | Show the sites, next steps | | Afterword |
+
+: The workshop day, with times from the start and lengths in minutes. From a 9:30 start, the meal is at 11:55 and the day ends at 15:30. {#tbl-workshop-day}
+
+Exercise times are planning estimates that never fill a block: the rest is for concept slides, showing results
+and recovering from a failed command. If the venue fixes the meal time, move the start, not the meal: the meal
+belongs between the two parts, so that everyone starts Part III together.
+
+## Before the day {.unnumbered}
+
+- **Collect test-run confirmations.** Ask every participant to confirm the setup check and the test run
+  (@sec-step-test), and contact anyone who has not.
+- **Windows.** Ask for `wsl -l -v` output showing VERSION 2 before the day. Participants without an
+  administrator account, or with virtualisation off in the BIOS, cannot install WSL: pair them with a neighbour.
+  The Windows procedure has been checked against Microsoft's documentation and on a Mac; run it once on a clean
+  Windows machine before teaching.
+- **The network.** Check that the venue's Wi-Fi allows GitHub, uv's package downloads and GitHub Pages, and copes
+  with everyone downloading at once.
+
+## The two-minute rule {.unnumbered}
+
+The rule that keeps the room together: anyone stuck for two minutes on a command, an assistant error or a typo
+does not debug in front of the room. They paste the exercise's catch-up line (@fig-catch-up), and everyone is
+hands-on together again at the next block. Demonstrate the catch-up once, live, early in the first block, so
+that nobody treats it as failing. In the 0:15 block, a helper sits with anyone whose setup check or test run
+failed while the presenter carries on.
+
+From the Cluster block on, keep the room on the normal route, which copies each block's finished
+`analysis.py`. The challenge route, writing the analysis, is for people well ahead of the room; agenda times
+assume the normal route.
+
+## Publishing {.unnumbered}
+
+The first publish of each site takes about two minutes from creating the `gh-pages` branch to pushing the site,
+and GitHub Pages then builds it in 20 to 35 seconds (dry run, 2026-11-01). Use the wait: show one of the
+finished example sites, or explain how the `gh-pages` branch works. The three commonest problems are the first
+publish (it must be interactive), a push failing with `HTTP 400` (raise `http.postBuffer`), and a render
+colliding with a running preview (stop the preview first); @sec-troubleshooting has the fixes.
+
+## Checking the examples before teaching {.unnumbered}
+
+After any change to dependencies, check that both finished projects still render:
+
+```bash
+cd examples/london
+uv run quarto render
+test -f _site/index.html && test -f _site/london-whitepaper.pdf && echo "Part II OK"
+
+cd ../water
+uv run python scripts/analysis.py
+uv run quarto render
+test -f _site/index.html && test -f _site/dashboard.html && test -f _site/whitepaper.pdf && echo "Part III OK"
+```

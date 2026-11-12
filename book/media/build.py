@@ -98,7 +98,8 @@ def step_roadmaps() -> None:
 
 
 def step_diagrams() -> None:
-    svgs = sorted([*MEDIA.glob("diagrams/*.svg"), *MEDIA.glob("roadmaps/*.svg")])
+    svgs = sorted([*MEDIA.glob("diagrams/*.svg"), *MEDIA.glob("roadmaps/*.svg"),
+                   *MEDIA.glob("deck/windows-steps/*.svg")])
     if svgs:
         rasterise(svgs, scale=2)
 
