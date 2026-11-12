@@ -3,11 +3,14 @@
     uv run --with playwright --with segno python media/build.py [step ...]
 
 Steps (all by default, in this order):
+  deck      copy the deck assets the book reuses (DECK_ASSETS) into media/deck/
   cover     media/cover.svg -> media/cover.png (1600 x 2560)
   diagrams  media/diagrams/*.svg and media/roadmaps/*.svg -> PNG at 2x, beside each SVG
   qr        media/qr/*.png from QR_TARGETS below
   tapes     media/tapes/*.tape -> media/gifs/*.gif with VHS (real, local commands only)
   capture   media/capture/*.py -> media/gifs/*.gif (Playwright scripts)
+  posters   book versions of the deck's GIFs in media/gifs/: the last frame held first (so
+            the first frame is a usable still), then the animation, at most 800 px wide
   stills    the first frame of every media/gifs/*.gif -> media/stills/*.png
   check     every GIF <= 2 MB and <= 800 px wide, with a still
 
@@ -34,6 +37,9 @@ QR_TARGETS = {
     "tunja": LIVE + "chapters/09-explore.html#sec-tunja",
     "explorations": LIVE + "chapters/12-interpret.html#sec-explorations",
 }
+# Deck assets the book reuses, copied so both editions resolve them inside book/.
+DECK_ASSETS = ["chat-prompt.gif", "windows-session.gif", "threejs-visits.png",
+               "pelicans/*.svg", "windows-steps/*.svg"]
 MAX_GIF_BYTES = 2 * 1024 * 1024
 MAX_GIF_WIDTH = 800
 
@@ -64,6 +70,17 @@ def rasterise(svgs: list[Path], scale: float, transparent: bool = True) -> None:
             page.close()
             print("png", svg.with_suffix(".png").relative_to(BOOK))
         b.close()
+
+
+def step_deck() -> None:
+    import shutil
+    src = BOOK.parent / "assets"
+    for pattern in DECK_ASSETS:
+        for f in sorted(src.glob(pattern)):
+            dest = MEDIA / "deck" / f.relative_to(src)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(f, dest)
+            print("deck", dest.relative_to(BOOK))
 
 
 def step_cover() -> None:
@@ -111,6 +128,33 @@ def optimise(gif: Path) -> None:
             return
 
 
+def poster_first(src: Path, dest: Path, hold: float = 2.5, fps: int = 10) -> None:
+    """Write dest: src's last frame for `hold` seconds, then src, scaled to <= 800 px."""
+    import tempfile
+    n = int(subprocess.run(["ffprobe", "-v", "error", "-count_frames", "-select_streams", "v:0",
+                            "-show_entries", "stream=nb_read_frames", "-of", "csv=p=0", str(src)],
+                           capture_output=True, text=True, check=True).stdout.strip())
+    with tempfile.TemporaryDirectory() as tmp:
+        last = Path(tmp, "last.png")
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(src), "-vf",
+                        f"select=eq(n\\,{n - 1})", "-frames:v", "1", str(last)], check=True)
+        scale = f"scale='min({MAX_GIF_WIDTH},iw)':-2:flags=lanczos,setsar=1,fps={fps}"
+        graph = (f"[0:v]{scale}[a];[1:v]{scale}[b];[a][b]concat=n=2:v=1[v];"
+                 "[v]split[x][y];[x]palettegen=stats_mode=diff[p];"
+                 "[y][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle")
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-loop", "1", "-t", str(hold),
+                        "-framerate", str(fps), "-i", str(last), "-i", str(src),
+                        "-filter_complex", graph, "-loop", "0", str(dest)], check=True)
+    optimise(dest)
+
+
+def step_posters() -> None:
+    for src in sorted(MEDIA.glob("deck/*.gif")):
+        dest = MEDIA / "gifs" / src.name
+        poster_first(src, dest)
+        print("poster", dest.relative_to(BOOK))
+
+
 def step_stills() -> None:
     out = MEDIA / "stills"
     out.mkdir(exist_ok=True)
@@ -140,8 +184,8 @@ def step_check() -> None:
         sys.exit("media check failed:\n  " + "\n  ".join(problems))
 
 
-STEPS = {"cover": step_cover, "diagrams": step_diagrams, "qr": step_qr, "tapes": step_tapes,
-         "capture": step_capture, "stills": step_stills, "check": step_check}
+STEPS = {"deck": step_deck, "cover": step_cover, "diagrams": step_diagrams, "qr": step_qr, "tapes": step_tapes,
+         "capture": step_capture, "posters": step_posters, "stills": step_stills, "check": step_check}
 
 if __name__ == "__main__":
     for name in sys.argv[1:] or list(STEPS):
