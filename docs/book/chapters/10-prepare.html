@@ -9,7 +9,7 @@
 <meta name="keywords" content="Quarto, reproducible publishing, coding assistants, Markdown, Python, EPUB, data analysis, k-means clustering">
 <meta name="description" content="A practitioner’s guide to reproducible publishing: write once in Markdown, let a coding assistant write the code, check its work, and rebuild one source into a web page, Word, PDF, slides, an e-book, a website, a blog and a dashboard. Two real projects run through the book: a London visitor guide and a study of drinking-water risk in Colombian municipalities.">
 
-<title>10&nbsp; From Table to Features – One Source, Every Format</title>
+<title>10&nbsp; From Table to Features – Prompt, Check, Publish</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-7d94c0dda550a81dbfca4dade836747f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-101740c35b3b30c037b86c55ec0e8876.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-7d94c0dda550a81dbfca4dade836747f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-e85dad9e1173e1d97bd702522a9286d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -335,7 +335,7 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="../">One Source, Every Format</a> 
+      <a href="../">Prompt, Check, Publish</a> 
         <div class="sidebar-tools-main">
     <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
@@ -359,6 +359,18 @@ window.Quarto = {
   <div class="sidebar-item-container"> 
   <a href="../copyright.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Copyright</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedication</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About the Author</span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
@@ -609,8 +621,7 @@ window.Quarto = {
 </header>
 
 
-<p>A clustering algorithm does not read a table the way a person does. It sees numbers, measures distances between rows, and groups rows that are close. Everything about the result depends on which rows it sees, which numbers, on what scale, and what it is given where a number is missing. <em>Preparation</em> is the name for those decisions, and they shape the clusters as much as the algorithm does.</p>
-<p>This chapter makes four decisions about the water data, explains each, and counts what each one costs in rows. Then the assistant writes them into <code>scripts/analysis.py</code>, the one script that every later page reads.</p>
+<p>A clustering algorithm does not read a table the way a person does. It sees numbers, measures distances between rows, and groups rows that are close. Everything about the result depends on which rows it sees, which numbers, on what scale, and what it is given where a number is missing. <em>Preparation</em> is the name for those decisions, and they shape the clusters as much as the algorithm does. Four of them stand between the water table and the clustering. Each has a price, counted here in rows and in guesses, before the assistant writes all four into <code>scripts/analysis.py</code>, the one script that every later page reads.</p>
 <section id="sec-prepare-steps" class="level2" data-number="10.1">
 <h2 data-number="10.1" class="anchored" data-anchor-id="sec-prepare-steps"><span class="header-section-number">10.1</span> Four steps from table to features</h2>
 <p><strong>1. Select.</strong> Keep the years 2016 to 2023, because the municipal performance index (MDM), one of the features, starts in 2016. Keep municipalities only: San Andrés has none of DNP’s values and the non-municipalised areas are nearly empty. Keep only rows with an IRCA value, since water safety is the point of the analysis.</p>
@@ -629,7 +640,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Why within each year rather than over all years? Two reasons. SGP is in nominal pesos, not adjusted for inflation, so its values drift upwards over time for reasons unrelated to any municipality. And other features shift as a whole from year to year. Standardising within each year removes both shifts, so a single clustering over all years gives labels that mean the same thing in 2016 and in 2023.</p>
+<p>Why within each year rather than over all years? Two reasons. SGP is in nominal pesos, not adjusted for inflation, so its values drift upwards over time for reasons unrelated to any municipality. And other features shift as a whole from year to year. Standardising within each year removes both shifts, so a single clustering over all years gives labels that mean the same relative position in every year: a zone is compared with that year’s other zones, so a nationwide shift, real or an artefact of sampling, does not move it between clusters.</p>
 </div>
 </div>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
@@ -685,11 +696,12 @@ Table&nbsp;10.1: What each preparation step keeps, computed by the finished proj
 </figure>
 </div>
 <p>The kept rows cover 1,090 municipalities. 653 rows have at least one imputed value, and 214 urban rows of department capitals took the municipal total for coverage.</p>
-<p>Almost all the loss is the first drop: rows without an IRCA value, most of them rural zones that are never sampled (<a href="09-explore.html#sec-water-bands" class="quarto-xref"><span>Section 9.2</span></a>). So the rural cluster that appears in the next chapter describes <em>sampled</em> rural systems only. The imputed values are coverage values: the rural rows of capitals, and municipalities whose split is missing in some years.</p>
+<p>Almost all the loss is the first drop: rows without an IRCA value, most of them rural zones that are never sampled or have no utility (<a href="09-explore.html#sec-water-bands" class="quarto-xref"><span>Section 9.2</span></a>). So the rural cluster that appears in the next chapter describes <em>sampled</em> rural systems only. The imputed values are coverage values: the rural rows of capitals, and municipalities whose split is missing in some years.</p>
+<p>Tunja shows both treatments of a capital, and loses none of its 16 zone-years from 2016 to 2023. Its 8 urban rows took the municipal total for coverage, flagged in <code>water_coverage_from_total</code>, and its 8 rural rows took the rural median of their year, flagged in <code>water_coverage_imputed</code>. The check also turns up something the flags do not mark: the total that the urban row for 2021 took is the 0 that the Tunja section (<a href="09-explore.html#sec-tunja" class="quarto-xref"><span>Section 9.3</span></a>) flagged as probably “not reported”. The analysis keeps it as published, as the data’s README does. Treating such zeros as missing would be a defensible change, but one to make in <code>prepare()</code> and report, never silently.</p>
 </section>
 <section id="sec-scaling" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="sec-scaling"><span class="header-section-number">10.3</span> Why scale?</h2>
-<p>k-means groups rows by straight-line, or <em>Euclidean</em>, distance: the square root of the sum of squared differences across the features. A feature’s share of that squared distance, between two rows picked at random, is proportional to its variance. In raw units, the features measured in thousands, such as millimetres of rain and metres of altitude, dwarf those measured from 0 to 100 (<a href="#fig-wat-scale" class="quarto-xref">Figure&nbsp;<span>10.1</span></a>).</p>
+<p>k-means groups rows by straight-line, or <em>Euclidean</em>, distance: the square root of the sum of squared differences across the features. A feature’s share of the expected squared distance, between two rows picked at random, is proportional to its variance. In raw units, the features measured in thousands, such as millimetres of rain and metres of altitude, dwarf those measured from 0 to 100 (<a href="#fig-wat-scale" class="quarto-xref">Figure&nbsp;<span>10.1</span></a>).</p>
 <div id="cell-fig-wat-scale" class="cell on-light" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div id="fig-wat-scale" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Horizontal bar chart with nine features. In raw units, rainfall and altitude together make up almost all of the distance and the other seven bars are too small to see. After z-scores every feature contributes the same share, about 11 percent.">
@@ -704,7 +716,7 @@ Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, i
 </div>
 </div>
 </div>
-<p>Unscaled, rainfall and altitude together would make up 99.8% of the distance, so the clusters would be climate zones and the water variables would hardly count. After z-scores, every feature has variance 1 and contributes the same share, about 11%. The log of SGP matters too: with raw pesos, SGP alone would dominate.</p>
+<p>Unscaled, rainfall and altitude together would make up 99.8% of the distance, so the clusters would be climate zones and the water variables would hardly count. After z-scores, every feature has variance 1 and contributes the same share, about 11%. The log of SGP matters too. In raw pesos, its variance would be about 3,100 times rainfall’s, so it would dominate even rainfall; after z-scores, the log keeps a few very large transfers from sitting far from every other row, cutting the largest z-score from 7.3 to 4.3.</p>
 <div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -715,7 +727,7 @@ Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, i
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Equal weight is itself a choice, not a neutral default. Nine z-scored features count equally, so the three coverage-and-safety variables count for a third of the distance and context for the rest. If water safety should weigh more, that is a decision to make explicitly and report, not to leave to the units the data happened to come in.</p>
+<p>Equal weight is itself a choice, not a neutral default. Nine z-scored features count equally, so the three safety-and-coverage variables count for 33% of the distance and context for the rest. Equal weight per feature is not equal weight per idea, either: water and sewer coverage are strongly correlated (r = 0.77 over the kept rows), so what they share counts twice. If water safety should weigh more, that is a decision to make explicitly and report, not to leave to the units the data happened to come in.</p>
 </div>
 </div>
 </section>
@@ -798,13 +810,13 @@ Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, i
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>Preparation decides what a clustering sees: which rows (2016–2023, municipalities, with IRCA), which transformations (log SGP, capitals’ totals for coverage, flagged), how gaps are filled (year-by-zone medians, flagged, after dropping rows missing more than two features), and on what scale (z-scores within each year). Each decision costs rows, and the biggest cost, unsampled rural zones, limits what the rural results can claim. Scaling is not cosmetic: unscaled, rainfall and altitude would decide the clusters on their own. Equal weights are a choice, and flags keep every fill visible.</p>
+<p>Preparation decides what a clustering sees: which rows (2016–2023, municipalities, with IRCA), which transformations (log SGP, capitals’ totals for coverage, flagged), how gaps are filled (year-by-zone medians, flagged, after dropping rows missing more than two features), and on what scale (z-scores within each year). Each decision costs rows, and the biggest cost, unsampled rural zones, limits what the rural results can claim. Scaling is not cosmetic: unscaled, rainfall and altitude would decide the clusters on their own. Equal weights are a choice, flags keep every fill visible, and Tunja shows that a check can still find a value no flag marks. What is left is 11,235 rows of nine z-scores each, too many for anyone to read: the next chapter asks an algorithm to summarise them in a few kinds.</p>
 </section>
 <section id="further-reading" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>
 <ul>
-<li>scikit-learn, <a href="https://scikit-learn.org/stable/modules/preprocessing.html#standardization-or-mean-removal-and-variance-scaling">Preprocessing data: standardisation</a> (checked 2026-11-12).</li>
-<li>scikit-learn, <a href="https://scikit-learn.org/stable/modules/impute.html">Imputation of missing values</a>, including indicator columns that mark imputed values (checked 2026-11-12).</li>
+<li>scikit-learn, <a href="https://scikit-learn.org/stable/modules/preprocessing.html#standardization-or-mean-removal-and-variance-scaling">Preprocessing data: standardisation</a> (checked <span class="nowrap">2026-11-12</span>).</li>
+<li>scikit-learn, <a href="https://scikit-learn.org/stable/modules/impute.html">Imputation of missing values</a>, including indicator columns that mark imputed values (checked <span class="nowrap">2026-11-12</span>).</li>
 <li><code>examples/water/scripts/analysis.py</code>, <code>prepare()</code>, in the workshop repository: the full function, with its counts.</li>
 </ul>
 

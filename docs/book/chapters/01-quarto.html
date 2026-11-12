@@ -9,7 +9,7 @@
 <meta name="keywords" content="Quarto, reproducible publishing, coding assistants, Markdown, Python, EPUB, data analysis, k-means clustering">
 <meta name="description" content="A practitioner’s guide to reproducible publishing: write once in Markdown, let a coding assistant write the code, check its work, and rebuild one source into a web page, Word, PDF, slides, an e-book, a website, a blog and a dashboard. Two real projects run through the book: a London visitor guide and a study of drinking-water risk in Colombian municipalities.">
 
-<title>1&nbsp; Publishing That Rebuilds Itself – One Source, Every Format</title>
+<title>1&nbsp; Publishing That Rebuilds Itself – Prompt, Check, Publish</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-7d94c0dda550a81dbfca4dade836747f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-101740c35b3b30c037b86c55ec0e8876.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-7d94c0dda550a81dbfca4dade836747f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-e85dad9e1173e1d97bd702522a9286d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -306,7 +306,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="../">One Source, Every Format</a> 
+      <a href="../">Prompt, Check, Publish</a> 
         <div class="sidebar-tools-main">
     <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
@@ -330,6 +330,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../copyright.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Copyright</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedication</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About the Author</span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
@@ -586,21 +598,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p>Most reports are built by hand. An analyst runs a script, copies a number into a Word document, pastes a chart into a slide, retypes the same number in an email, and exports a PDF for the website. Every copy is a small act of faith that the number was right and is still right. When the data change, someone has to find every copy, and nobody can say for sure where each one came from.</p>
-<p>This chapter is about the alternative this book teaches: <strong>one source that rebuilds every output</strong>. It explains what Quarto is and what happens when it renders a document, why it is deliberately not an AI tool even though this book uses one alongside it, and what “reproducible” does and does not promise. It ends with the cases where Quarto is the wrong choice, because a tool you cannot argue against is a tool you do not understand yet.</p>
+<p>The alternative is <strong>one source that rebuilds every output</strong>, the <em>Publish</em> step of this book’s loop. By the end of this chapter you will be able to say, for any document Quarto builds, where each number came from and what happens to every copy when it changes. You will also know when the whole approach is not worth it.</p>
 <section id="sec-drift" class="level2" data-number="1.1">
 <h2 data-number="1.1" class="anchored" data-anchor-id="sec-drift"><span class="header-section-number">1.1</span> Why reports drift</h2>
-<p>The London visitor guide that runs through Part II is a small example of a common problem. The tourism office publishes the same facts to several audiences: a web guide for visitors, a dashboard for managers, a Word brief for partners, a printed flyer, and later a white paper. In the finished project, 5 pages read the same table of attraction visits, and between them they write 10 files: the guide alone becomes a web page, a Word document, a PDF, a PowerPoint deck, an e-book and a set of slides.</p>
-<p>Suppose the Association of Leading Visitor Attractions (ALVA), the source of those counts, corrects one figure. In a copy-and-paste workflow, that correction has to reach 10 files by hand. Three things tend to go wrong:</p>
+<p>The London visitor guide that runs through Part II is a small example of a common problem. The tourism office publishes the same facts to several audiences: a web guide for visitors, a dashboard for managers, a Word brief for partners, a square social-media card and, later, a white paper. In the finished project, five pages read the same table of attraction visits, and between them they write ten files: the guide alone becomes a web page, a Word document, a PDF, a PowerPoint deck, an e-book and a set of slides.</p>
+<p>Suppose the Association of Leading Visitor Attractions (ALVA), the source of those counts, corrects one figure. In a copy-and-paste workflow, that correction has to reach ten files by hand. Three things tend to go wrong:</p>
 <ul>
-<li><strong>Stale numbers.</strong> One copy is missed, and the flyer disagrees with the dashboard.</li>
-<li><strong>Lost provenance.</strong> Six months later, nobody can say which version of the data produced the number in the partner brief.</li>
+<li><strong>Stale numbers.</strong> One copy is missed, and the partner brief disagrees with the dashboard.</li>
+<li><strong>Lost provenance.</strong> Six months later, nobody can say which version of the data produced the number in the white paper.</li>
 <li><strong>Slow change.</strong> Because every update is expensive, updates stop happening, and the documents quietly age.</li>
 </ul>
 <p>None of these is a failure of care. They are what happens when the <em>output</em> is treated as the thing you edit. The fix is structural: edit the source, and let a program rebuild the outputs.</p>
 </section>
 <section id="sec-what-quarto" class="level2" data-number="1.2">
 <h2 data-number="1.2" class="anchored" data-anchor-id="sec-what-quarto"><span class="header-section-number">1.2</span> What Quarto is</h2>
-<p>Quarto is an open-source publishing system: a command-line program that turns plain-text source files into finished documents. It is free for anyone to use; the Quarto command-line tool has been under the MIT License since version 1.4 (GNU GPL v2 before that), and the tools it bundles have their own open-source licences (Quarto licence page, checked 2026-11-06).</p>
+<p>Quarto is an open-source publishing system: a command-line program, free for anyone to use, that turns plain-text source files into finished documents.</p>
 <p>The input is either a plain Markdown file (<code>.md</code>) or a Quarto document (<code>.qmd</code>). A <code>.qmd</code> file is Markdown with two additions: a block of settings at the top, written in YAML, and <em>code cells</em>, fenced blocks of code that run when the document is built. Here is a complete one, the file the test run in <a href="03-setup.html" class="quarto-xref"><span>Chapter 3</span></a> asks your assistant to write:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Hello"</span></span>
@@ -629,8 +641,8 @@ Figure&nbsp;1.1: What <code>quarto render</code> does. One source becomes Markdo
 </figure>
 </div>
 <ol type="1">
-<li><strong>Execute.</strong> A computation engine runs the code cells. For Python, that engine is Jupyter; for R, it is knitr. Quarto’s other principal languages are Julia and Observable JavaScript, which runs in the reader’s browser, and Jupyter kernels add many more. The results (numbers, tables, figures) replace the code in an intermediate Markdown file. This book uses Python only.</li>
-<li><strong>Convert.</strong> Pandoc, a long-established document converter, reads that Markdown once and writes each requested format: HTML, Word (<code>docx</code>), EPUB, PowerPoint (<code>pptx</code>) or a Reveal.js slide deck.</li>
+<li><strong>Execute.</strong> A computation engine runs the code cells: Jupyter for Python, knitr for R. The results (numbers, tables, figures) replace the code in an intermediate Markdown file. The cells run once for each format, so each output gets results made for it (<a href="05-compute.html#sec-formats" class="quarto-xref"><span>Section 5.4</span></a>). This book uses Python only.</li>
+<li><strong>Convert.</strong> For each format, Pandoc, a long-established document converter, reads that Markdown and writes the output: HTML, Word (<code>docx</code>), EPUB, PowerPoint (<code>pptx</code>) or a Reveal.js slide deck.</li>
 <li><strong>Typeset.</strong> For PDF, Pandoc writes source for Typst, a modern typesetting system that ships inside Quarto, and Typst produces the PDF. No LaTeX installation is needed. (Quarto can also make PDFs through LaTeX, <code>format: pdf</code>, if you install a TeX distribution.)</li>
 </ol>
 <p>The split matters in practice. A failure in step 1 is a failure of <em>your code</em>: a missing package, a wrong column name, a cell that raises an error. A failure in step 2 or 3 is a failure of <em>the document</em>: a malformed table, an image too large for the page, a format-specific option that does not exist. When a render fails, the error message tells you which step stopped, and that tells you where to look.</p>
@@ -644,13 +656,13 @@ Figure&nbsp;1.1: What <code>quarto render</code> does. One source becomes Markdo
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Pandoc converts between many formats by reading every input into one internal document model and writing every output from that model. That is why one Markdown file can become both a Word document and a slide deck: neither output is derived from the other. Both come from the same structured intermediate, so a heading is a heading everywhere.</p>
+<p>Pandoc converts between many formats by reading every input into one internal document model and writing every output from that model. That is why one Markdown file can become both a Word document and a slide deck: neither output is derived from the other. Both come from the same kind of structured intermediate, built from the same source, so a heading is a heading everywhere.</p>
 </div>
 </div>
 </section>
 <section id="what-comes-out" class="level3" data-number="1.2.2">
 <h3 data-number="1.2.2" class="anchored" data-anchor-id="what-comes-out"><span class="header-section-number">1.2.2</span> What comes out</h3>
-<p>The official list of formats is long and grouped by kind (Quarto, <em>All Formats</em>, checked 2026-10-30):</p>
+<p>The official list of formats is long and grouped by kind (Quarto, <em>All Formats</em>, checked <span class="nowrap">2026-11-12</span>):</p>
 <div id="tbl-formats" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-formats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -682,21 +694,26 @@ Table&nbsp;1.1: Quarto’s output formats, as grouped in the official list.
 <td>Beamer</td>
 </tr>
 <tr class="odd">
-<td>The web</td>
-<td>websites, blogs, dashboards</td>
+<td>Markdown</td>
 <td></td>
+<td>GitHub, CommonMark, Hugo and others</td>
 </tr>
 <tr class="even">
-<td>More</td>
+<td>Wikis</td>
 <td></td>
-<td>Markdown variants, Jupyter notebooks, JATS, wikis</td>
+<td>MediaWiki, DokuWiki and others</td>
+</tr>
+<tr class="odd">
+<td>More formats</td>
+<td></td>
+<td>Jupyter, JATS, AsciiDoc and many more</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Websites, blogs and dashboards are built from the same <code>.qmd</code> files; what changes is a project setting, not the content. Part II builds all of them from one London guide, and Part III builds a report, slides, a blog post and a website from one water analysis.</p>
+<p>Websites and blogs are project types built from the same <code>.qmd</code> files; a dashboard is a format of its own, whose headings lay out pages and rows (<a href="06-audiences.html" class="quarto-xref"><span>Chapter 6</span></a>).</p>
 </section>
 </section>
 <section id="sec-not-ai" class="level2" data-number="1.3">
@@ -743,7 +760,7 @@ Table&nbsp;1.2: Two tools with different failure modes.
 </div>
 </figure>
 </div>
-<p>Because generation and rendering are separate, every mistake the assistant makes lands in a file you can read before anything is published. And because the render is repeatable, anyone can rebuild your outputs to confirm them, without trusting the assistant at all.</p>
+<p>Because generation and rendering are separate, every mistake the assistant makes lands in a file you can read or a command you approve before anything is published: that gap is where the <em>Check</em> step of the loop happens. And because the render is repeatable, anyone can rebuild your outputs to confirm them, without trusting the assistant at all.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -764,7 +781,7 @@ Table&nbsp;1.2: Two tools with different failure modes.
 <p><strong>One source.</strong> Text, code and data live in plain files in one folder. Nothing important exists only inside an application.</p>
 <p><strong>Numbers are computed.</strong> Every figure, table and number in a sentence comes from a code cell or inline code that reads the data. Nothing is typed in or pasted from elsewhere.</p>
 <p><strong>One command.</strong> <code>quarto render</code> rebuilds everything. There is no sequence of manual export steps to remember.</p>
-<p><strong>Versioned.</strong> Git, the version-control tool installed in <a href="03-setup.html" class="quarto-xref"><span>Chapter 3</span></a>, records each saved state of the source, data and settings as a <em>commit</em> with a message saying why it changed. Any earlier state can be restored, two states can be compared, and a result can be tied to the exact files that made it. The project’s Python packages are pinned too, in a lockfile (<code>uv.lock</code>, introduced in <a href="04-markdown.html" class="quarto-xref"><span>Chapter 4</span></a>), so a colleague’s machine builds the same environment as yours.</p>
+<p><strong>Versioned.</strong> Git, the version-control tool installed in <a href="03-setup.html" class="quarto-xref"><span>Chapter 3</span></a>, is something like Word’s Track Changes for a whole folder, with a lasting history. Each state of the source, data and settings that you choose to record becomes a <em>commit</em>, with a message saying why it changed. Any earlier state can be restored, two states can be compared, and a result can be tied to the exact files that made it. The project’s Python packages are pinned too, in a lockfile (<code>uv.lock</code>, introduced in <a href="04-markdown.html" class="quarto-xref"><span>Chapter 4</span></a>), so a colleague’s machine builds the same environment as yours.</p>
 <p>Together these turn the drift problem around. Correct one value in the data, render, and the table, the chart and the sentence that quote it all update together, in every format.</p>
 <div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
 <div class="callout-header d-flex align-content-center">
@@ -820,17 +837,18 @@ Table&nbsp;1.2: Two tools with different failure modes.
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>Reports drift because their outputs are edited by hand. Quarto removes the copies: a <code>.qmd</code> source holds text, settings and code; <code>quarto render</code> executes the code, converts the result with Pandoc and, for PDF, typesets it with Typst. Quarto is deterministic software, separate from the coding assistant that writes its sources, and that separation is what makes an assistant’s mistakes inspectable. Reproducibility rests on one source, computed numbers, one command and version control; it makes results checkable, not automatically right. Use Quarto when a document will be rebuilt, and something simpler when it will not.</p>
+<p>Reports drift because their outputs are edited by hand. Quarto removes the copies: <code>quarto render</code> executes a <code>.qmd</code> source’s code, converts the result with Pandoc and, for PDF, typesets it with Typst, the same way every time. Add computed numbers and version control, and the <em>Publish</em> step is reproducible: checkable, though not automatically right. The setup pays only for documents that will be built again.</p>
+<p>Quarto, though, renders only what it is given. In this book a coding assistant writes those sources, and its output varies from run to run and can be confidently wrong. How do you ask such a program for work, and how do you check what comes back before anything is published? <a href="02-assistant.html" class="quarto-xref"><span>Chapter 2</span></a> answers.</p>
 </section>
 <section id="further-reading" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>
 <ul>
-<li>Quarto, <a href="https://quarto.org/docs/get-started/">Get Started</a> and <a href="https://quarto.org/docs/output-formats/all-formats.html">All Formats</a> (checked 2026-10-30).</li>
-<li>Quarto, <a href="https://quarto.org/docs/computations/python.html">Using Python</a>: how code cells run through Jupyter (checked 2026-11-12).</li>
-<li>Quarto, <a href="https://quarto.org/docs/output-formats/typst.html">Typst Basics</a>: PDFs without LaTeX (checked 2026-10-30).</li>
-<li>Quarto, <a href="https://quarto.org/license.html">Licence</a> (checked 2026-11-06).</li>
-<li>Pandoc, <a href="https://pandoc.org/MANUAL.html">User’s Guide</a>: the converter behind every format (checked 2026-11-12).</li>
-<li>Typst, <a href="https://typst.app/docs/">Documentation</a> (checked 2026-11-12).</li>
+<li>Quarto, <a href="https://quarto.org/docs/get-started/">Get Started</a> (checked <span class="nowrap">2026-10-30</span>) and <a href="https://quarto.org/docs/output-formats/all-formats.html">All Formats</a> (checked <span class="nowrap">2026-11-12</span>).</li>
+<li>Quarto, <a href="https://quarto.org/docs/computations/python.html">Using Python</a>: how code cells run through Jupyter (checked <span class="nowrap">2026-11-12</span>).</li>
+<li>Quarto, <a href="https://quarto.org/docs/output-formats/typst.html">Typst Basics</a>: PDFs without LaTeX (checked <span class="nowrap">2026-10-30</span>).</li>
+<li>Quarto, <a href="https://quarto.org/license.html">Licence</a>: the command-line tool has been under the MIT License since version 1.4 (GNU GPL v2 before that), and the tools it bundles keep their own open-source licences (checked <span class="nowrap">2026-11-06</span>).</li>
+<li>Pandoc, <a href="https://pandoc.org/MANUAL.html">User’s Guide</a>: the converter behind every format (checked <span class="nowrap">2026-11-12</span>).</li>
+<li>Typst, <a href="https://typst.app/docs/">Documentation</a> (checked <span class="nowrap">2026-11-12</span>).</li>
 </ul>
 
 
