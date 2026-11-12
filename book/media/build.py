@@ -16,6 +16,12 @@ Steps (all by default, in this order):
   stills    the first frame of every media/gifs/*.gif -> media/stills/*.png
   check     every GIF <= 2 MB and <= 800 px wide, with a still
 
+To re-record some animations only, name the steps and set ONLY to a glob of tape or capture
+script names (without extension), e.g. from the repository root:
+
+    make media STEPS="tapes stills check" ONLY=terminal-basics
+    make media STEPS="capture stills check" ONLY="kmeans"     # after `make book-html`
+
 Playwright drives the installed Google Chrome (channel "chrome"), so no browser download
 is needed. Nothing here runs a network, publishing or paid-assistant command: the tapes
 replay local commands, and the agent session is a scripted illustration.
@@ -23,6 +29,7 @@ replay local commands, and the agent session is a scripted illustration.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -42,6 +49,7 @@ QR_TARGETS = {
 # Deck assets the book reuses, copied so both editions resolve them inside book/.
 DECK_ASSETS = ["chat-prompt.gif", "windows-session.gif", "threejs-visits.png",
                "pelicans/*.svg", "windows-steps/*.svg"]
+ONLY = os.environ.get("ONLY") or "*"  # glob of tape / capture script names for those steps
 MAX_GIF_BYTES = 2_000_000  # 2 MB, decimal
 MAX_GIF_WIDTH = 800
 
@@ -117,7 +125,7 @@ def step_qr() -> None:
 def step_tapes() -> None:
     """Record each tape; a tape with a "# poster:" line gets its last frame held first."""
     import re
-    for tape in sorted(MEDIA.glob("tapes/*.tape")):
+    for tape in sorted(MEDIA.glob(f"tapes/{ONLY}.tape")):
         print("vhs", tape.name)
         subprocess.run(["vhs", tape.name], cwd=tape.parent, check=True)
         text = tape.read_text()
@@ -129,7 +137,7 @@ def step_tapes() -> None:
 
 
 def step_capture() -> None:
-    for script in sorted(MEDIA.glob("capture/*.py")):
+    for script in sorted(MEDIA.glob(f"capture/{ONLY}.py")):
         if script.name.startswith("_"):
             continue
         print("capture", script.name)

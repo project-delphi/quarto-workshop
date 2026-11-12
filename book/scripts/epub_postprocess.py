@@ -1,4 +1,4 @@
-"""Fix up the EPUB that Quarto 1.10.20 writes (book/PLAN.md §6.3). Standard library only.
+"""Fix up the EPUB that Quarto 1.10.20 writes (book/PLAN.md §6.3). Needs Pillow (step 5).
 
 1. Front matter order: title page, copyright, preface. Quarto needs index.qmd (the
    preface) first in the chapter list, so the copyright page moves in the spine and TOC.
@@ -8,12 +8,19 @@
 3. Landmarks: add the copyright page and the start of the body (the preface) to the cover and title page landmarks that Pandoc writes.
 4. Validity: remove `alt` from the figure wrapper divs (not allowed on div in XHTML; the
    img inside keeps its alt text).
-5. Re-zip with `mimetype` first and stored, as the OCF container spec requires.
+5. Light panels: figures drawn in dark ink on a transparent background sit on a light
+   panel (class "on-light" on the img or an ancestor) that the stylesheet paints. A reader
+   that drops CSS backgrounds, or Kindle, whose guidelines say it does not support
+   "images with transparent areas" (https://kdp.amazon.com/en_US/help/topic/G75V4YX5X8GRGXWV,
+   read 2026-11-12), would show dark ink on a night page, so those PNGs are flattened onto
+   the panel's colour. Other images keep their transparency.
+6. Re-zip with `mimetype` first and stored, as the OCF container spec requires.
 
 Usage: python scripts/epub_postprocess.py path/to/book.epub   (rewrites it in place)
 """
 from __future__ import annotations
 
+import io
 import re
 import sys
 import zipfile
@@ -27,6 +34,7 @@ ET.register_namespace("", XHTML)
 ET.register_namespace("epub", OPS)
 
 H1 = re.compile(r"<h1([^>]*)>(.*?)</h1>", re.S)
+PANEL = (0xFB, 0xFB, 0xF8)  # styles/epub.css: img.on-light, .on-light img
 DIV_ALT = re.compile(r'(<div\b[^>]*?)\s+alt="[^"]*"')
 
 
@@ -153,6 +161,34 @@ def fix_spine(text: str, kinds: dict[str, str]) -> str:
     return text
 
 
+def panel_images(text: str) -> set[str]:
+    """Media paths (EPUB/media/...) of the imgs in a chapter shown on a light panel."""
+    found: set[str] = set()
+
+    def walk(e: ET.Element, lit: bool) -> None:
+        lit = lit or "on-light" in (e.get("class") or "").split()
+        if e.tag == f"{{{XHTML}}}img" and lit and e.get("src", "").startswith("../media/"):
+            found.add("EPUB/" + e.get("src")[3:])
+        for child in e:
+            walk(child, lit)
+
+    walk(ET.fromstring(text), False)
+    return found
+
+
+def flatten(data: bytes) -> bytes:
+    """A PNG with transparent pixels, composited onto the panel colour; others unchanged."""
+    from PIL import Image
+    im = Image.open(io.BytesIO(data))
+    if "A" not in im.getbands() or im.getchannel("A").getextrema()[0] == 255:
+        return data
+    flat = Image.new("RGB", im.size, PANEL)
+    flat.paste(im, mask=im.getchannel("A"))
+    out = io.BytesIO()
+    flat.save(out, "PNG", optimize=True)
+    return out.getvalue()
+
+
 def main(path: str) -> None:
     epub = Path(path)
     with zipfile.ZipFile(epub) as z:
@@ -160,6 +196,8 @@ def main(path: str) -> None:
     chapters = {i.filename: d.decode("utf-8") for i, d in entries
                 if i.filename.startswith("EPUB/text/ch") and i.filename.endswith(".xhtml")}
     kinds = classify(chapters)
+    panels = set().union(*(panel_images(t) for t in chapters.values()))
+    flattened = 0
     fixed = []
     for info, data in entries:
         name = info.filename
@@ -171,6 +209,10 @@ def main(path: str) -> None:
             data = fix_ncx(data.decode("utf-8"), kinds).encode("utf-8")
         elif name == "EPUB/content.opf":
             data = fix_spine(data.decode("utf-8"), kinds).encode("utf-8")
+        elif name in panels and name.endswith(".png"):
+            new = flatten(data)
+            flattened += new is not data
+            data = new
         fixed.append((name, data))
     tmp = epub.with_suffix(".tmp")
     with zipfile.ZipFile(tmp, "w") as z:
@@ -181,7 +223,8 @@ def main(path: str) -> None:
                 z.writestr(name, data, compress_type=zipfile.ZIP_DEFLATED)
     tmp.replace(epub)
     parts = sum(1 for k in kinds.values() if k == "part")
-    print(f"post-processed {epub.name}: {parts} parts nested, copyright moved, landmarks added")
+    print(f"post-processed {epub.name}: {parts} parts nested, copyright moved, landmarks added, "
+          f"{flattened} panel figures flattened")
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ EPUBCHECK_JAR := $(EPUBCHECK_DIR)/epubcheck-$(EPUBCHECK_VERSION)/epubcheck.jar
 # A user-level python3 kernelspec can shadow the book's environment; point Jupyter at it.
 QUARTO_BOOK := cd $(BOOK) && JUPYTER_PATH="$$PWD/.venv/share/jupyter" uv run quarto
 
-.PHONY: book book-sync book-html book-epub book-fresh epubcheck media book-shots book-publish
+.PHONY: book book-sync book-html book-epub book-fresh epubcheck media book-shots book-publish deck site
 
 ## book: render the HTML and EPUB editions, post-process the EPUB, run epubcheck
 book: book-html book-epub
@@ -41,9 +41,11 @@ $(EPUBCHECK_JAR):
 	  https://github.com/w3c/epubcheck/releases/download/v$(EPUBCHECK_VERSION)/epubcheck-$(EPUBCHECK_VERSION).zip
 	cd $(EPUBCHECK_DIR) && unzip -q -o epubcheck-$(EPUBCHECK_VERSION).zip
 
-## media: re-record GIFs and stills, rasterise diagrams, cover and QR codes (only when asked)
+## media: re-record GIFs and stills, rasterise diagrams, cover and QR codes (only when asked).
+## STEPS picks steps of book/media/build.py; ONLY="name" limits the tapes and capture steps.
+STEPS ?=
 media:
-	cd $(BOOK) && uv run --with playwright --with segno python media/build.py
+	cd $(BOOK) && ONLY="$(ONLY)" uv run --with playwright --with segno python media/build.py $(STEPS)
 
 ## book-shots: screenshot EPUB chapters at phone and tablet widths, light and night
 book-shots:
@@ -53,3 +55,13 @@ book-shots:
 book-publish:
 	rsync -a --delete $(BOOK)/_book/html/ docs/book/
 	cp $(EPUB) docs/book/
+
+## deck: render the workshop decks into docs/ (the post-render script keeps docs/book/)
+deck:
+	QUARTO_PYTHON="$$PWD/.conda/bin/python" JUPYTER_PATH="$$PWD/.conda/share/jupyter" quarto render
+
+## site: everything GitHub Pages serves from docs/: the decks, then the book (in this order)
+site:
+	$(MAKE) deck
+	$(MAKE) book
+	$(MAKE) book-publish
