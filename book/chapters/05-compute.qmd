@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from scripts.figures import ACCENT, style
+from scripts.prose import alt_text_holds
 
 attractions = pd.read_csv("../examples/london/data/attractions.csv")
 top = attractions.loc[attractions["visits_2025"].idxmax()]
@@ -13,18 +14,33 @@ top_name = top["attraction"]
 top_visits = f"{top['visits_2025']:,}"
 total_visits = f"{attractions['visits_2025'].sum():,}"
 n_free = int(attractions["admission"].str.startswith("Free").sum())
+
+# The most visited of the guide's five sights in ALVA's last two yearly tables.
+visits = pd.read_csv("../examples/london/data/visits.csv")
+lead = visits.loc[visits.groupby("year")["visits"].idxmax()].set_index("year")
+y_now = int(visits["year"].max())
+y_then = y_now - 1
+lead_then, lead_now = lead.loc[y_then, "attraction"], lead.loc[y_now, "attraction"]
+lead_then_visits = f"{lead.loc[y_then, 'visits']:,}"
+lead_now_visits = f"{lead.loc[y_now, 'visits']:,}"
+# The opener says the lead changed hands between the two tables: stop if it no longer did.
+assert lead_then != lead_now, "the opener's story no longer holds: rewrite it"
+
+
 ```
 
-So far the guide is text someone typed. This chapter turns it into a document that
-*computes*: settings at the top, code that reads the data, numbers in sentences that come from
-that code, and a chart that is drawn from the same table. Then one source becomes three
-formats, and optionally six, without a single number copied by hand.
+In `{python} y_then`, by ALVA's count, the most visited of the guide's five sights was the
+`{python} lead_then`, with `{python} lead_then_visits` visits; in `{python} y_now`, the
+`{python} lead_now`, with `{python} lead_now_visits`. A guide that said, in typed words, that
+the `{python} lead_then` is the most visited of the five went on saying it after ALVA published
+its `{python} y_now` table, in every copy, until someone noticed.
 
-This is the chapter where the workflow's central promise becomes concrete. Once a number is
-computed rather than typed, correcting the data corrects every place the number appears, in
-every format, at the next render. The rest of the book builds on that.
+This chapter makes the guide compute instead. Code reads the data at every render, so a new
+table corrects every sentence, the chart drawn from it, and the Word and PDF versions at once,
+without a single number copied by hand. That is the workflow's central promise, and the rest
+of the book builds on it.
 
-## From `.md` to `.qmd`: YAML front matter {#sec-yaml}
+## Settings at the top: the title block {#sec-yaml}
 
 ::: {.prompt}
 ```default
@@ -65,7 +81,7 @@ rendered last wins, so the page you see may not come from the file you edited. R
 preview on the new file, too: the old one is still watching `london.md`.
 :::
 
-## Code that runs {#sec-code-cells}
+## Numbers the guide computes {#sec-code-cells}
 
 ::: {.prompt}
 ```default
@@ -97,8 +113,9 @@ file, the sentence reads:
 > Most visited in 2025: the `{python} top_name`, with `{python} top_visits` visits. London's
 > ten most visited ALVA member attractions drew `{python} total_visits` visits.
 
-Inline code arrived in Quarto 1.4. Before it, a number in a sentence had to be typed, and a
-typed number is the one that goes stale (Quarto 1.4 release notes, checked 2026-10-30).
+Quarto 1.4 introduced this inline syntax, one for every engine, Python included; R users
+already wrote inline code with knitr's `` `r x` ``, a syntax Quarto still supports (Quarto 1.4
+release notes, checked 2026-11-12).
 
 ::: practice
 **Pause and think.** If `attractions.csv` changes, which numbers in the sentence update?
@@ -112,7 +129,7 @@ The figures come from ALVA's table of visits made in 2025 to its member attracti
 on 2026-10-30. Only ALVA's members are counted, which is why the sentence says "ALVA member
 attractions": the project's rules made the assistant write it that way.
 
-## Cell options: labels, captions and alt text {#sec-cell-options}
+## A chart with a caption and alt text {#sec-cell-options}
 
 ::: {.prompt}
 ```default
@@ -145,6 +162,10 @@ what it shows.
 #| fig-cap: "Visits in 2025 to London's ten most visited ALVA member attractions."
 #| fig-alt: "Horizontal bar chart of 2025 visits to ten London attractions, longest bar at the top: the Natural History Museum is highest and Royal Museums Greenwich lowest."
 #| classes: on-light
+alt_text_holds(len(attractions) == 10
+               and top_name.startswith("Natural History Museum")
+               and attractions.loc[attractions["visits_2025"].idxmin(), "attraction"]
+               == "Royal Museums Greenwich", "fig-ldn-top10")
 short = attractions.assign(attraction=attractions["attraction"].str.replace(" (South Kensington)", ""))
 with style():
     fig, ax = plt.subplots(figsize=(6.4, 3.6))
@@ -166,12 +187,6 @@ Run the three prompts above, watching the preview after each.
 ::: done
 `london.html` shows the title block, the sentence with computed numbers, and a numbered chart
 with a caption and no code.
-:::
-
-::: catchup
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
-```
 :::
 :::
 
@@ -271,11 +286,7 @@ Every render runs every cell again. That is deliberate in this book's projects: 
 render; @sec-publish-many returns to the trade-off and to `freeze: auto`, which caches results
 and needs a rule for when to throw them away.
 
-::: pitfall
-Every render prints `[IPKernelApp] WARNING | Kernel is running over TCP without encryption`.
-It is harmless: the "TCP" connection is between Quarto and a Python process on your own
-computer.
-:::
+Each render also prints the harmless `IPKernelApp` warning described in @sec-step-test.
 
 ::: tryit
 Stop the preview, then add the formats with the prompt in @sec-formats (and, if you like, the
@@ -297,11 +308,15 @@ Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
 
 A `.qmd` file is Markdown plus YAML front matter plus code cells. Front matter sets the title
 block and the formats, with indentation as meaning. Code cells run at render time in one shared
-Python session, and inline code writes their results into sentences, so numbers update when the
-data change and nothing typed goes stale. Cell options, written as `#|` comments, label,
-caption and describe figures; a `fig-` label makes a figure numbered and referable. One source
-renders to HTML, Word and a Typst PDF, and optionally to PowerPoint, an e-book and Reveal.js
-slides, each format running the code again. Never run two renders of one file at once.
+Python session, and inline code writes their results into sentences, so the guide's numbers
+follow the data instead of going stale. `#|` cell options label, caption and describe figures;
+a `fig-` label makes a figure numbered and referable. One source renders to HTML, Word and a
+Typst PDF, and optionally to PowerPoint, an e-book and Reveal.js slides, each format running
+the code again.
+
+Every one of those formats is still the visitor's guide, though. The tourism office has other
+readers (managers, partners and people who walk in off the street), and the next chapter
+writes a document for each of them at once.
 
 ## Further reading {.unnumbered}
 
@@ -309,8 +324,8 @@ slides, each format running the code again. Never run two renders of one file at
   [Execution Options](https://quarto.org/docs/computations/execution-options.html) (checked
   2026-11-12).
 - Quarto, [Inline Code](https://quarto.org/docs/computations/inline-code.html) and the
-  [1.4 release notes](https://quarto.org/docs/blog/posts/2024-01-24-1.4-release/) (checked
-  2026-10-30).
+  [1.4 release notes](https://opensource.posit.co/blog/2024-01-24_1.4-release/) (checked
+  2026-10-30 and 2026-11-12).
 - Quarto, [Cross References](https://quarto.org/docs/authoring/cross-references.html) (checked
   2026-11-12).
 - Quarto, [HTML with multiple formats](https://quarto.org/docs/output-formats/html-multi-format.html),

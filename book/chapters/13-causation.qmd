@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from scripts import water as w
 from scripts.figures import INK, style
+from scripts.prose import number_words, spans, text_holds
 
 A = w.A
 res = w.res()
@@ -26,19 +27,86 @@ def sgn(x):
     return f"{x:+.2f}".replace("-", "−")
 ```
 
+```{python}
+#| label: ch13-checks
+# Values for the prose, and guards for its sentences whose words depend on the data.
+NUM = number_words(zero="no")
+
+
+IM_YEARS = spans(A.OUTCOME_YEARS["infant_mortality"])
+text_holds(IM_YEARS == "2017–2019 and 2021–2023", "the years in fig-wat-within's caption")
+c_lo, c_hi = int(rho["spearman_rho"].idxmin()), int(rho["spearman_rho"].idxmax())
+text_holds(pooled_rho > 0 and rho["spearman_rho"].abs().max() < 0.2
+           and abs(rho_hi - pooled_rho) < 0.01, "weak associations, one as large as the pooled one")
+silhouette = res["summary"]["silhouette_at_k"]
+cl = res["clusters"]
+zsd = cl.groupby("cluster")[["z_ipm", "z_rural_share", "z_water_coverage", "z_altitude_m"]].std()
+text_holds((zsd < 1).all().all() and silhouette < 0.3, "places more alike within clusters, far from equal")
+
+# The check's units, as irca_vs_infant() builds them: one municipality-year, the unweighted mean
+# IRCA of its scored zones (in the cluster, or over all of them for the pooled figure).
+rows = cl[cl["year"].isin(A.INFANT_YEARS)].dropna(subset=["infant_mortality"])
+units = rows.groupby(["cluster", "divipola", "year"])["irca"].mean()
+pooled_units = rows.groupby(["divipola", "year"]).agg(irca=("irca", "mean"), zones=("zone", "nunique"))
+text_holds(len(pooled_units) == pooled_n, "the pooled units")
+one_zone = (pooled_units["zones"] == 1).mean()
+# Range restriction: the clusters were formed partly on IRCA, so it varies less inside some of them.
+sd_all = pooled_units["irca"].std()
+sd_c = units.groupby(level="cluster").std()
+narrow, wide = [int(c) for c in sd_c.index if sd_c[c] < sd_all], [int(c) for c in sd_c.index if sd_c[c] >= sd_all]
+text_holds(narrow and wide and (rho.loc[wide, "spearman_rho"].abs() < abs(pooled_rho)).all(),
+           "IRCA's spread within the clusters")
+
+# Blank rates: the series has no zeros, so a blank may be a recorded zero.
+my = cl[cl["year"].isin(A.INFANT_YEARS)].drop_duplicates(["divipola", "year"])
+blank = my["infant_mortality"].isna().mean()
+pop = w.raw().groupby(["divipola", "year"])["population"].sum()
+my_pop = my.join(pop.rename("muni_pop"), on=["divipola", "year"])
+text_holds(w.raw()["infant_mortality"].eq(0).sum() == 0
+           and my_pop.loc[my_pop["infant_mortality"].isna(), "muni_pop"].median()
+           < my_pop.loc[my_pop["infant_mortality"].notna(), "muni_pop"].median(),
+           "a series without zeros, blank in smaller places")
+
+
+def clusters_text(cs):
+    return f"cluster {cs[0]}" if len(cs) == 1 else "clusters " + ", ".join(map(str, cs[:-1])) + f" and {cs[-1]}"
+
+
+def sds_text(cs):
+    return " and ".join(f"{sd_c[c]:.1f}" for c in cs)
+
+
+# fig-wat-within's alt text: how far the band medians move within a cluster.
+band_move = bins.groupby("cluster")["median"].agg(lambda m: m.max() - m.min()).max()
+text_holds(f"{band_move:.1f}" == "3.1" and sgn(rho_lo) == "−0.04" and sgn(rho_hi) == "+0.10",
+           "fig-wat-within's alt text")
+
+# Tunja (@sec-tunja-kind) in this check: one municipality-year, the mean IRCA of its zones.
+tj = cl[(cl["divipola"] == "15001") & cl["year"].isin(A.INFANT_YEARS)].dropna(subset=["infant_mortality"])
+tj_c = int(tj["cluster"].iloc[0])
+tj_mean = tj.groupby("year")["irca"].mean()
+tj_u = tj[tj["zone"] == "urban"].set_index("year")["irca"]
+tj_r = tj[tj["zone"] == "rural"].set_index("year")["irca"]
+tj_share = tj["rural_share"].max()
+tj_yr = int((tj_r - tj_u).idxmax())             # the year its zones' water differed most
+text_holds(tj["municipio"].eq("TUNJA").all() and tj["cluster"].eq(tj_c).all()
+           and list(tj_u.index) == list(tj_r.index) == list(tj_mean.index) and (tj_u < tj_r).all(),
+           "Tunja's averaged zones")
+```
+
 The analysis was built to ask whether places with worse water have worse outcomes, and the
 temptation, once there is a chart, is to read the answer as an effect: worse water causes more
 infant deaths. The data cannot support that sentence, and this chapter shows why, with the
 analysis's own numbers.
 
-It runs one more comparison, the association between water safety and infant mortality *within*
-each kind of place, and finds it close to zero. Then it explains why neither a strong association
-nor a weak one would settle the causal question here, and ends with how to write about such results
-honestly. That last part is not a formality: the sentence a reader quotes is the one you publish.
+One more comparison, the association between water safety and infant mortality *within* each kind
+of place, comes out weak in every kind, and in one as large as across all of them. But neither a
+strong association nor a weak one could settle the causal question here, and the reasons decide how the results must be written.
+That last part is not a formality: the sentence a reader quotes is the one you publish.
 
 ## Worse water, more infant deaths? {#sec-water-within}
 
-Across all municipality-years with both values in 2017–2019 and 2021–2023, the rank correlation
+Across all municipality-years with both values in `{python} IM_YEARS`, the rank correlation
 between utility-supplied IRCA and infant mortality is `{python} sgn(pooled_rho)` (n =
 `{python} w.fmt(pooled_n)`). *Spearman's* $\rho$ (rho) measures whether two variables rise and fall
 together in rank order, from −1 (perfectly opposite) through 0 (no monotonic relation) to +1
@@ -47,13 +115,14 @@ noisy rates.
 
 A small positive association across all places could come from water, or from everything that
 differs between places with safe and unsafe water. The clusters offer a partial control: within a
-cluster, places are already alike in poverty, rurality, coverage and altitude. So the check repeats the
-comparison inside each cluster (@fig-wat-within).
+cluster, places are more alike in poverty, rurality, coverage and altitude than across the country,
+though far from equal (the silhouette in @sec-choose-k was `{python} f"{silhouette:.2f}"`). So the check
+repeats the comparison inside each cluster (@fig-wat-within).
 
 ```{python}
 #| label: fig-wat-within
 #| fig-cap: "Median infant mortality by utility-supplied IRCA band, within each cluster; 2017–2019 and 2021–2023 pooled. Bands with fewer than 20 municipality-years are not drawn. Descriptive only: not a causal effect of water safety."
-#| fig-alt: "Four small panels, one per cluster, each titled with the cluster's number and kind. Each shows median infant mortality across the IRCA risk bands, labelled N, L, M, H and U for no risk, low, medium, high and unfit. The lines are nearly flat in every cluster, and the Spearman correlations printed on the panels are all close to zero."
+#| fig-alt: "Four small panels, one per cluster, each titled with the cluster's number and kind. Each shows median infant mortality across the IRCA risk bands, labelled N, L, M, H and U for no risk, low, medium, high and unfit. Within any cluster the medians differ across the bands by at most 3.1 per 1,000, and the Spearman correlations printed on the panels lie between −0.04 and +0.10."
 #| classes: on-light
 with style():
     fig, axes = plt.subplots(1, k, figsize=(7.2, 2.9), sharey=True)
@@ -73,9 +142,19 @@ with style():
     plt.show()
 ```
 
-Within each cluster, $\rho$ lies between `{python} sgn(rho_lo)` and `{python} sgn(rho_hi)`: close to
-nothing. The unit follows the outcome. Infant mortality is measured for a whole municipality, so within a
-cluster each municipality-year counts once, with the mean IRCA of its zones in that cluster.
+Within the clusters, $\rho$ runs from `{python} sgn(rho_lo)` in cluster `{python} c_lo` to
+`{python} sgn(rho_hi)` in cluster `{python} c_hi`, where it is as large as across all places. Two things
+make these figures hard to set beside the pooled one. The clusters were formed partly on IRCA, so inside
+`{python} clusters_text(narrow)` it varies less: standard deviations of `{python} sds_text(narrow)`
+against `{python} f"{sd_all:.1f}"` across all places, and a narrower range weakens a rank correlation by
+construction. (In `{python} clusters_text(wide)` it varies more, `{python} sds_text(wide)`, and $\rho$ is
+weaker there too.) And the units differ, because the unit follows the outcome. Infant mortality is
+measured for a whole municipality, so each municipality-year counts once, with the mean IRCA of its zones:
+all of them for the pooled figure, only those in the cluster for a cluster's.
+
+That mean is unweighted, and it covers only the zones with a score: in
+`{python} f"{one_zone:.0%}"` of the pooled municipality-years only one zone has one. So the IRCA beside a
+rate is one zone's score or the plain mean of two, not what the average resident drinks.
 
 It would be easy to read this as "water does not matter". That reading is as unsupported as the first one.
 
@@ -85,26 +164,37 @@ It would be easy to read this as "water does not matter". That reading is as uns
 
 ![What else could explain it. The dashed arrow is the question; every other path can create an association without an effect, or hide an effect that exists.](../media/diagrams/confounders){#fig-confounders .on-light fig-alt="The question is whether unsafe water raises infant mortality, a dashed arrow from water safety to infant deaths. Other paths connect the two. Poverty and rurality make water less safe and also make infant deaths more likely, a confounder. Poverty also limits health-service access, which affects infant deaths. Reporting quality stands between real and recorded deaths: weak registration hides deaths. And IRCA is measured per zone while infant deaths are per municipality."}
 
-**Poverty and rurality** are *confounders*: they make water less safe and, separately, make infant deaths
-more likely. They can produce an association between water and mortality with no effect of water at all.
+**Poverty and rurality** are likely *confounders*: poorer, more rural places tend to have less safe water
+and, for other reasons, more infant deaths. They can produce an association between water and mortality
+with no effect of water at all.
 **Health-service access**, worse in poor and remote places, lies on another path to infant deaths.
 **Reporting quality** works the other way: places with weak birth and death registration record fewer
-infant deaths than occur, and those are often the same places with unsafe water, so it can *hide* a real
-effect. A blank rate in these data may even mean no deaths were recorded.
+infant deaths than occur, and if those are also the places with unsafe water, under-recording can *hide* a
+real effect. Blanks add a second problem. The series holds no zeros, so a blank rate may mean no deaths
+were recorded, and `{python} f"{blank:.0%}"` of the clustered municipality-years in these years are blank.
+Leaving them out drops what may be recorded zeros, which raises small places' averages most: a selection
+on the outcome itself.
 
 Then there is the **ecological level**. IRCA is measured for an urban or rural zone, infant mortality for
 the whole municipality. A pattern across places need not hold for the people in them: the infants who
 died need not be the ones drinking the worst water. Drawing individual conclusions from aggregate data is
 known as the *ecological fallacy*.
 
-The clusters hold some of these constant, but not all: within a cluster, places still differ in poverty
-and access. And small municipalities produce extreme rates, which add noise that flattens any line.
+Tunja shows the mismatch in one place. In this check each of its `{python} NUM[len(tj_mean)]`
+municipality-years counts once in cluster `{python} tj_c`, with the mean IRCA of its two zones: in
+`{python} tj_yr`, for example, `{python} f"{tj_mean[tj_yr]:.2f}"`, halfway between its urban water's
+`{python} f"{tj_u[tj_yr]:.1f}"` and its rural water's `{python} f"{tj_r[tj_yr]:.1f}"`, a value neither zone
+had. The mean weighs the two zones equally, though at most `{python} f"{tj_share:.0%}"` of Tunja's people
+live in the rural one, and the infant mortality beside it is the whole municipality's.
+
+The clusters narrow some of these differences without removing them: within a cluster, places still
+differ in poverty and access. And small municipalities produce extreme rates, which add noise that flattens any line.
 
 ::: practice
 **Pause and think.** Pick one of these. Could it hide a real effect, or create a fake one?
 
-Poverty can create a fake one: it worsens both water and health, so the two move together without water
-doing anything. Reporting quality can hide a real one: if unsafe-water places under-record deaths, their
+Poverty can create a fake one: if poorer places tend to have both less safe water and, for other reasons,
+more infant deaths, the two move together without water doing anything. Reporting quality can hide a real one: if unsafe-water places under-record deaths, their
 measured rates are too low, and a real effect looks smaller than it is. Most confounders can push either
 way, which is exactly why a correlation cannot settle the question.
 :::
@@ -119,7 +209,7 @@ Every output of this analysis says the same thing in the same words, because the
 it: comparisons between clusters are descriptive and do not establish a causal effect of water safety.
 In practice that means a few habits:
 
-- Describe what was compared, and over which rows: "within each cluster, 2017–2019 and 2021–2023,
+- Describe what was compared, and over which rows: "within each cluster, `{python} IM_YEARS`,
   municipality-years with both values".
 - Use verbs of association ("is higher in", "varies with"), not of effect ("raises", "reduces", "leads
   to").
@@ -130,7 +220,7 @@ In practice that means a few habits:
 ::: pitfall
 The causal sentence usually arrives in the last step: a slide title, a blog post's headline, a summary
 for a council. Ask the assistant to check every title and summary against the project's rules, and read
-them yourself. "Unsafe water and infant mortality in Colombian municipalities" is a fair title; "How
+them yourself. "Utility-supplied water risk (IRCA) and infant mortality in Colombian municipalities" is a fair title; "How
 unsafe water kills infants" is not, however strongly you suspect it.
 :::
 
@@ -181,19 +271,24 @@ Catch me up: follow ../quarto-workshop/checkpoints/09-water-causation/README.md
 ## Summary {.unnumbered}
 
 Across all places, IRCA and infant mortality are weakly associated (Spearman's $\rho$ =
-`{python} sgn(pooled_rho)`); within each cluster, the association is close to zero. Neither number shows an
-effect, or its absence. Poverty and rurality can create an association, health-service access lies on
-another path, weak reporting can hide deaths, and the data meet at different levels, zone and
-municipality. A causal claim needs a design that deals with these, such as before-and-after comparisons
-with comparable places. Until then, write about association, over named rows, with the limits beside the
-result.
+`{python} sgn(pooled_rho)`); within the clusters it runs from `{python} sgn(rho_lo)` to
+`{python} sgn(rho_hi)`, as large as the pooled figure in one, and narrowed partly by design, since the
+clusters were formed partly on IRCA. Neither number shows an effect, or its absence. Poverty
+and rurality can create an association, health-service access lies on another path, weak reporting can
+hide deaths, blanks may be recorded zeros, and the data meet at different levels, as Tunja's averaged zones show. A causal claim needs
+a design that deals with these, such as before-and-after comparisons with comparable places. Until then,
+write about association, over named rows, with the limits beside the result, and check every title and
+summary against that rule before it goes out. @sec-publish-many takes the results, and those sentences,
+to the officials and the council, in every format they need.
 
 ## Further reading {.unnumbered}
 
 - W. S. Robinson, "Ecological correlations and the behavior of individuals", *American Sociological Review*
-  15 (1950), the classic account of the ecological fallacy; cited, with the Spearman paper, in
-  `examples/water/references.bib`, checked against their publishers' pages (2026-11-01).
+  15(3), 351–357 (1950), doi:[10.2307/2087176](https://doi.org/10.2307/2087176), the classic account of the
+  ecological fallacy; cited, with the Spearman paper, in `examples/water/references.bib`, checked against
+  their publishers' pages (2026-11-01; pages from the paper's 2009 reprint in the *International Journal of
+  Epidemiology*, checked 2026-11-12).
 - Miguel A. Hernán and James M. Robins, [*Causal Inference: What If*](https://miguelhernan.org/whatifbook)
-  (free online), on confounding and designs for causal questions (checked 2026-11-12).
+  (Boca Raton: Chapman & Hall/CRC, 2020; free online), on confounding and designs for causal questions (checked 2026-11-12).
 - SciPy, [`spearmanr`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html),
   the rank correlation and its assumptions (checked 2026-11-12).

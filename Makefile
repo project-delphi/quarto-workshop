@@ -3,7 +3,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -eo pipefail -c
 
 BOOK := book
-EPUB := $(BOOK)/_book/epub/one-source-every-format.epub
+EPUB := $(BOOK)/_book/epub/prompt-check-publish.epub
 EPUBCHECK_VERSION := 5.4.0
 EPUBCHECK_DIR ?= $(HOME)/.cache/quarto-book
 EPUBCHECK_JAR := $(EPUBCHECK_DIR)/epubcheck-$(EPUBCHECK_VERSION)/epubcheck.jar
@@ -26,10 +26,11 @@ book-sync:
 
 book-html: book-sync
 	$(QUARTO_BOOK) render --profile html --to html
+	@if grep -rl '<ol class="example"' $(BOOK)/_book/html; then echo "book-html: a line starting '@label.' became an example list in the file(s) above; rewrap it" >&2; exit 1; fi
 
 book-epub: book-sync
 	$(QUARTO_BOOK) render --profile epub --to epub
-	cd $(BOOK) && uv run python scripts/epub_postprocess.py _book/epub/one-source-every-format.epub
+	cd $(BOOK) && uv run python scripts/epub_postprocess.py _book/epub/prompt-check-publish.epub
 	$(MAKE) epubcheck
 
 ## book-fresh: re-execute every chapter (after changing examples/*/data or analysis.py)

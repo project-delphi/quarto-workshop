@@ -3,34 +3,71 @@
 ```{python}
 #| label: ch4-setup
 import pandas as pd
+from scripts.prose import number_words
 
 ldn_sights = pd.read_csv("../examples/london/data/sights.csv")
 ldn_att = pd.read_csv("../examples/london/data/attractions.csv")
 n_sight_rows = len(ldn_sights)
 n_sight_sources = ldn_sights["url"].nunique()
+WORDS = number_words()
+
+
+def word(n: int) -> str:
+    """A count in words, as prose writes small numbers."""
+    return WORDS[n] if n < len(WORDS) else f"{n:,}"
+
+
+# Where the guide's first list of five sights stands among London's ALVA members in 2025.
+five = ["British Museum", "Natural History Museum", "Tate Modern", "National Gallery",
+        "Tower of London"]
+by_visits = ldn_att.sort_values("visits_2025", ascending=False)["attraction"].tolist()
+rank = {s: next(i for i, a in enumerate(by_visits, 1) if s in a) for s in five}
+ordinal = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth",
+           "ninth", "tenth"]
+five_ranks = [ordinal[rank[s] - 1] for s in five]
+five_ranks = ", ".join(five_ranks[:-1]) + " and " + five_ranks[-1]
+n_att = len(ldn_att)
+tower = rank["Tower of London"]
+n_above_tower = tower - 1 - sum(rank[s] < tower for s in five)  # members not on the list
 ```
 
-The London guide starts as an empty folder and, by the end of this chapter, is a web page
-built from a plain-text file, with a written contract for the assistant and a Python
-environment ready for the code that follows. That is the first workshop block, and it is the
-one where most recovery happens, because everything is new at once: the assistant, the
-rules, the preview and the environment.
+The tourism office wants a visitor guide it can stand behind: a page anyone can open on a
+phone, every fact traced to a source, rebuilt rather than retyped when the facts change.
+@fig-london-guide is where Part II ends: the guide on its own website, with links to the same
+content in Word, PDF, PowerPoint, e-book and slide formats.
 
-The source format throughout is Markdown, a way of writing structured text with a few
-punctuation marks. It matters that you can read it, even though the assistant writes most of
-it: Markdown is the layer you review, compare between versions and fix by hand when a sentence
-is wrong. This chapter introduces it one construct at a time, each with the prompt that adds
-it to the guide.
+![Where Part II ends: the guide's page on its published website, with the other formats linked in the margin. Rendered from `examples/london/london.qmd`.](../media/figures/london-guide.png){#fig-london-guide fig-alt="A web page titled Visit London, under a navigation bar with Guide, Dashboard and a Downloads menu. Beneath the title, the author, London Tourism Office, and the date it was published. A welcome sentence with London in bold and riverside walks in italics; a numbered list, Five sights to start with: British Museum, Natural History Museum, Tate Modern, National Gallery and Tower of London; a bulleted list, Getting around: Tube, Bus and Santander Cycles; and the start of a Plan your visit section with a link to the TfL Journey Planner above a photograph. In the right margin, Other Formats: MS Word, PDF, Powerpoint, ePub and Slides."}
 
-## The brief and the folder {#sec-brief}
+It starts as an empty folder. By the end of this chapter the folder holds a web page built
+from one plain-text file, written rules that hold the assistant to cited facts, and a Python
+environment for the code to come.
 
-You work for London's tourism office, and the guide is written once and reused for every
-audience. Start the assistant in the project folder you made on the Part II page, next to the
-workshop repository:
+The plain text is Markdown, a way of writing structured text with a few punctuation marks.
+The assistant writes most of it, but Markdown is what you check: the layer you review, compare
+between versions and fix by hand when a sentence is wrong.
+
+More is new here than in any other chapter: the assistant, the rules, the preview and the
+environment. When a step goes wrong, nothing is lost: one line pasted into the assistant
+restores the chapter's finished state (@sec-catch-up).
+
+## A folder for the guide {#sec-brief}
+
+The guide gets its own folder in your home folder, beside the `quarto-workshop` repository
+you cloned during setup (@sec-step-check), so that its checkpoints are always at
+`../quarto-workshop/checkpoints/`:
+
+```text
+~                      your home folder
+├── quarto-workshop/   the clone from Chapter 3
+└── london-guide/      this part's project
+```
+
+Make the folder and start the assistant in it:
 
 ::: {.you}
 ```bash
-cd ~/london-guide
+cd ~
+mkdir -p london-guide && cd london-guide
 claude
 ```
 :::
@@ -40,7 +77,7 @@ the assistant asks your permission the first time it reads there. Approve it, or
 Code with `claude --add-dir ../quarto-workshop` to allow it up front (Codex has the same
 option, `--add-dir`).
 
-## Headings, paragraphs and emphasis {#sec-md-heading}
+## A first page: a title and a welcome {#sec-md-heading}
 
 ::: {.prompt}
 ```default
@@ -60,7 +97,7 @@ Welcome to **London**: free museums, royal history and *riverside walks*.
 Double asterisks mark **bold** text and single asterisks *italic*. A blank line separates
 paragraphs. That is already a complete document.
 
-## Render it, and keep a live preview {#sec-md-render}
+## Watch it become a web page {#sec-md-render}
 
 ::: {.prompt}
 ```default
@@ -90,7 +127,7 @@ when the assistant saves it, so the page in your browser follows each change
 
 ![A live preview: each time `london.md` is saved (left), `quarto preview` renders it again and the page reloads (right). A real recording of `quarto preview` with the edits this chapter makes.](../media/gifs/quarto-preview-reload.gif){#fig-preview-reload .anim fig-alt="Two panes. On the left, the source of london.md as the assistant saves it, with each new section highlighted: first the heading and welcome, then a numbered list of five sights, then a Plan your visit section with a link and a tip from a local, then a Before you go checklist. On the right, the page served by quarto preview reloads after each save and shows the new section, rendered as headings, a numbered list, a link, a quotation and a code block."}
 
-Keep the preview running from now on. It is the fastest way to see what each prompt did.
+Keep the preview running from now on. It is the fastest way to check what each prompt did.
 
 ::: pitfall
 A preview and a render of the same file at the same moment collide: both write temporary files
@@ -104,12 +141,6 @@ Paste the two prompts above, then start the preview in a second tab.
 
 ::: done
 `london.html` opens in your browser and updates whenever `london.md` changes.
-:::
-
-::: catchup
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/01-london-markdown/README.md
-```
 :::
 :::
 
@@ -158,7 +189,7 @@ The finished project's version reads, in part:
 Read what the assistant wrote and edit it yourself if the wording is off. It is your project's
 contract with the assistant, and the rules work best when they are concrete enough to check.
 
-## Lists {#sec-md-lists}
+## Five sights and how to get around {#sec-md-lists}
 
 ::: {.prompt}
 ```default
@@ -184,10 +215,11 @@ In london.md, add a "Five sights to start with" numbered list (British Museum, N
 
 `1.` starts a numbered list and `-` a bulleted one; leave a blank line before a list. The five
 sights are the five attractions whose visits the guide charts later, from ALVA's data. The
-list is a starting point, not a ranking: by 2025 visits the Natural History Museum is above the
-British Museum, and other London members rank above the Tower of London.
+list is a starting point, not a ranking. Among London's `{python} word(n_att)` most visited ALVA
+member attractions in 2025, the five, in the order listed, stand `{python} five_ranks`;
+`{python} word(n_above_tower)` attractions not on the list drew more visits than the Tower.
 
-## Links, images and quotes {#sec-md-link-image}
+## Planning a visit: a link, a photo and a tip {#sec-md-link-image}
 
 ::: {.prompt}
 ```default
@@ -221,7 +253,7 @@ The photo was chosen by the rules: it is in the public domain (CC0), its licence
 absence of people were checked on its Wikimedia Commons page (2026-10-30), and the credit
 comes from `images/ATTRIBUTION.md`, which records each photo's author, licence and source.
 
-## A table from cited data {#sec-md-table}
+## Sights at a glance, from cited data {#sec-md-table}
 
 The guide's sights table needs facts: each sight's price band, its nearest Underground
 station and its official page. They come from a file the assistant copies, not from its
@@ -234,8 +266,8 @@ Copy ../quarto-workshop/examples/london/data here. In london.md, add a "Sights a
 :::
 
 `data/sights.csv` holds one row per sight and fact, and every row names its own source and
-the date it was retrieved: `{python} n_sight_rows` facts from `{python} n_sight_sources`
-distinct pages. @tbl-sights-provenance shows three of them.
+the date it was retrieved: `{python} word(n_sight_rows)` facts from
+`{python} word(n_sight_sources)` distinct pages. @tbl-sights-provenance shows three of them.
 
 ```{python}
 #| label: tbl-sights-provenance
@@ -269,7 +301,7 @@ Some official sites, including the British Museum's and Historic Royal Palaces',
 automated requests with `403 Forbidden`, so an assistant that checks its links may report
 those two as broken. Open them in a browser before you believe it.
 
-## Code fences {#sec-md-code-fence}
+## A checklist that keeps its shape {#sec-md-code-fence}
 
 ::: {.prompt}
 ```default
@@ -300,18 +332,9 @@ above, watching each change arrive in the preview.
 `london.html` shows both lists, the photo with its credit, the five-row table and the
 checklist.
 :::
-
-::: catchup
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/01-london-markdown/README.md
-```
-:::
 :::
 
-If you want a single page to come back to, *Learn X in Y minutes* has a five-minute tour of
-Markdown that covers every construct above.
-
-## Environments, then and now {#sec-environments}
+## An environment for the code to come {#sec-environments}
 
 The next chapter runs Python, and code never runs in a vacuum. It runs on an operating system
 (macOS, Windows, Linux) and a processor (Intel and AMD `x86_64`, or Apple and other ARM
@@ -344,9 +367,10 @@ writes `pyproject.toml` (the packages), `uv.lock` (their exact versions) and `.v
 
 The four packages `ipykernel`, `nbclient`, `nbformat` and `pyyaml` are what Quarto needs to run
 Python cells; `pandas`, `matplotlib` and `plotly` are what the guide's code will use. The
-larger `jupyter` package, with its notebook applications, is not needed. On the workshop's dry
-run (2026-10-30), a cold install of Part III's larger package set took 8 seconds with uv and
-31 seconds with pip and `jupyter`, on one fast connection.
+larger `jupyter` package, with its notebook applications, is not needed. Measured in a dry run
+on 2026-10-30, on one fast connection, a cold install of Part III's larger package set took 8
+seconds with uv and 31 seconds with pip plus `jupyter`. That compares the old route with the new
+one, not the two installers like for like, since the pip run also installed `jupyter`.
 
 ::: why
 Why `uv run` in front of every command? Quarto refuses to run Python next to a `.venv` folder
@@ -370,46 +394,40 @@ Catch me up: follow ../quarto-workshop/checkpoints/01-london-markdown/README.md
 :::
 :::
 
-## When you fall behind {#sec-catch-up}
+## If you fall behind {#sec-catch-up}
 
-You will get stuck at some point: a prompt that goes wrong, a file you cannot repair, an
-environment that will not build. The book's routine, from the workshop, is to spend two
-minutes on it and then catch up, rather than debugging while the material moves on.
-
-::: {.prompt}
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/01-london-markdown/README.md
-```
-:::
+The preface set the rule, and drew its steps in @fig-catch-up: stuck for two minutes, catch
+up. The line at the end of the last *Try it* is this chapter's only catch-up, because its
+checkpoint holds the end of the whole chapter, whichever step you were stuck on. Pasted into
+the assistant, it:
 
 ::: {.agent}
 backs up `london-guide/` to `../london-guide-backup-01-<time>` · copies the checkpoint in · renders · names the section to rejoin at
 :::
 
-The checkpoint's README lists the steps, which you can also run by hand (@fig-catch-up-steps):
-back up the folder, copy the checkpoint into it, render, check a named output, and rejoin.
-Nothing is lost: each backup is a new folder named with the date and time, so earlier backups
-are kept.
+The checkpoint's README lists the same steps, which you can also run by hand
+(@fig-catch-up-steps). Nothing is lost: each backup is a new folder named with the date and
+time, so earlier backups are kept.
 
 ![Catching up by hand, as the checkpoint's README lists it: a time-stamped backup of the folder (all but `.venv/`), the checkpoint copied in, and a render that rebuilds the environment from `uv.lock` first. A real recording with a demo account.](../media/gifs/catch-up.gif){#fig-catch-up-steps .anim fig-alt="A terminal in london-guide, which holds only a london.md with a typo in its heading. A tar command copies everything except .venv to a backup folder named london-guide-backup-01 with the date and time. cp copies checkpoint 01 into the folder. uv run quarto render london.md creates the virtual environment from uv.lock, installs 51 packages and renders, ending with Output created: london.html. ls shows the guide's files, and ls of the parent shows london-guide beside its backup."}
 
 ::: why
 The backup leaves out `.venv/` because it can hold hundreds of megabytes and is rebuilt from
-`uv.lock` on the next `uv run`. Copying it would be slow and pointless. A checkpoint is the state
-at the *end* of its block, so it can include steps you have not reached: after catching up,
-skip the block's remaining prompts and read on to the next exercise.
+`uv.lock` on the next `uv run`. Copying it would be slow and pointless.
 :::
 
 ## Summary {.unnumbered}
 
-Markdown is the readable layer of the project: headings, emphasis, lists, links, images with alt
-text, quotations, tables and code fences cover almost everything a guide needs, and plain
-Markdown renders to a web page with no settings at all. `quarto preview` re-renders on every
-save; never run a second render of the same file while it does. `AGENTS.md` holds the rules
-every later prompt relies on, written concretely enough to check. Facts come from cited files
-that record their source and date, never from the assistant's memory. uv gives the project its
-own Python environment, pinned in `uv.lock` across systems, and `uv run` uses it. When you are
-stuck for two minutes, catch up from the checkpoint and rejoin at the next exercise.
+Markdown is the layer you read and check: headings, emphasis, lists, links, images with alt
+text, quotations, tables and code fences cover almost everything the guide needs, and plain
+Markdown renders to a web page with no settings at all. While `quarto preview` runs, let it do
+the rendering. `AGENTS.md` holds rules concrete enough to check, and facts come from cited
+files that record their source and date, never from the assistant's memory. uv gives the
+project its own Python environment, pinned in `uv.lock`, and `uv run` uses it.
+
+The guide still has no visitor numbers, because so far a number could only be typed, and a
+typed number goes stale the day its source is revised. The next chapter makes the guide
+compute them.
 
 ## Further reading {.unnumbered}
 

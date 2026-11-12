@@ -1,8 +1,8 @@
-# One Source, Every Format: the book edition
+# Prompt, Check, Publish: the book edition
 
 The workshop as a book, from one Quarto book project in two editions:
 
-- **EPUB** (the main edition): `_book/epub/one-source-every-format.epub`
+- **EPUB** (the main edition): `_book/epub/prompt-check-publish.epub`
 - **HTML** (the companion, where the live 3-D scenes and data explorers run): `_book/html/`
 
 Both are published under `docs/book/` and served at
@@ -49,9 +49,15 @@ the generated files. Each edition renders into its own folder, because rendering
 empties the output folder.
 
 `scripts/epub_postprocess.py` then repairs what Quarto 1.10.20 writes: it nests the chapters
-under their parts in the table of contents, puts the copyright page before the preface, adds
+under their parts in the table of contents and groups the appendices, puts the copyright page
+before the Contents page (the navigation document, in the spine because of `toc: true`) and
+the preface, keeps sections off the Contents page (the reader's menu still lists them), sets
+appendix headings as "Appendix A" above the title, gives the appendices, afterword and front
+matter their `epub:type`, adds the subtitle and guide references to the package file, adds
 landmarks, removes the `alt` attribute that Quarto puts on figure wrappers (invalid in XHTML),
-and flattens figures shown on a light panel onto the panel's colour. The EPUBCheck report is
+and flattens figures shown on a light panel onto the panel's colour. It stops with an error,
+as `make book-html` does for the HTML edition, if a line beginning "@label." has turned a
+cross-reference into a numbered example list. The EPUBCheck report is
 saved as `_book/epubcheck.txt`.
 
 ### Python and Jupyter
@@ -76,7 +82,9 @@ does not notice changes outside the chapter, so run `make book-fresh` after chan
   project's `analysis.py`, so the book quotes what the project computes, and its settings
   (`A.N_INIT`, `A.ELBOW_DROP` and so on) rather than typing them. Alt texts are static cell
   options, so a cell whose figure's alt text describes results checks them with
-  `alt_text_holds()` and stops the render when they change.
+  `alt_text_holds()` and stops the render when they change; sentences whose words depend on the
+  data use `text_holds()`. Both, with number words (`number_words()`) and year spans
+  (`spans()`), come from `scripts/prose.py`, so every chapter writes them the same way.
 - The live scenes run the deck's own three.js bundle and Tunja explorer, copied from `assets/`
   by `make` (book-sync) on every build. Their data come from `scripts/scenes.py`, which repeats
   the deck cells' computations; `scripts/check_scenes.py` (run by `make book`) fails if the
@@ -157,7 +165,7 @@ Sizes in decimal units, as built on 2026-11-12.
    or anchor that the website edition (or the deck) does not have, and with
    `scripts/check_scenes.py`, which fails if a live scene's data differ from the deck's.
    EPUBCheck runs with `--failonwarnings`, so a warning stops the build.
-2. `make book-shots` saves each EPUB chapter, screen by screen, at phone (390 × 844) and tablet
+2. `make book-shots` saves the title page, the Contents page and each EPUB chapter, screen by screen, at phone (390 × 844) and tablet
    (820 × 1180) sizes, in a light and a simulated night theme, to `_book/shots/`, and reports
    anything that sticks out sideways. Look at the changed chapters.
 3. `scripts/shoot_html.py` does the same for HTML pages at desktop (1440 × 1000) and laptop
@@ -199,12 +207,16 @@ untested; the Kindle column quotes Amazon's publishing guidelines, not a test.
 | Diagrams | SVG | PNG at twice the size | PNG, as the guidelines recommend over SVG[^kdp-img] | untested |
 | Mathematics | MathJax | MathML (four chapters) | not documented in the pages read[^kdp-tags] | untested |
 | Code | wraps, with copy buttons | wraps; no copy buttons | untested | untested |
-| Table of contents | sidebar, with parts | nested under the three parts | untested | untested |
+| Table of contents | sidebar, with parts | a Contents page after the copyright page (parts, chapters, appendices) and the reader's menu (every section), nested under the three parts | untested | untested |
 
 [^kdp-img]: Kindle Direct Publishing, *Image Guidelines – Reflowable*,
     <https://kdp.amazon.com/en_US/help/topic/G75V4YX5X8GRGXWV>, read 2026-11-12:
     "Kindle devices and reading applications do not support TIFF, multi-frame GIFs, or images
     with transparent areas"; "We recommend removing SVG tags and using the image tag in HTML for images."
+[^kdp-nav]: Kindle Direct Publishing, *Navigation Guidelines*,
+    <https://kdp.amazon.com/en_US/help/topic/GY3AD8C6C6GAG42N>, read 2026-11-12. The same page
+    asks for the HTML table of contents "toward the beginning of the book", with "HTML links"
+    and no page numbers, which the Contents page follows.
 [^kdp-tags]: Kindle Direct Publishing, *HTML and CSS Tags Supported in Kindle Format 8*,
     <https://kdp.amazon.com/en_US/help/topic/GG5R7N649LECKP7U>, read 2026-11-12: no `math`
     element is listed.
@@ -215,6 +227,9 @@ Known limitations:
   screen the text is about half that size. The commands they show are also printed in the text
   beside each one.
 - **Kindle.** Amazon converts EPUB for Kindle; the book has not been through that conversion.
+  Amazon's navigation guidelines say "Kindle devices and applications support two levels of
+  nesting"[^kdp-nav], and the contents nest three deep (part, chapter, section), so Kindle may
+  not show the sections under each chapter. Check in Kindle Previewer before uploading.
 - **Apple Books, Kobo and the asset guides.** Kobo's and Apple's own guidelines could not be
   read on 2026-11-12 (Kobo's help site refused automated access; Apple's guide needs
   JavaScript), so this table cites neither.

@@ -9,7 +9,8 @@ sideways, such as an unwrapped code block, is reported.
 
     uv run --with playwright python scripts/shoot_epub.py _book/epub/book.epub [ch004 ch009 ...]
 
-With no chapter names it shoots every chapter.
+With no chapter names it shoots the title page, the Contents page (nav) and every chapter;
+name them as title_page, nav, ch004 and so on.
 """
 from __future__ import annotations
 
@@ -36,7 +37,9 @@ def main(epub: str, names: list[str]) -> None:
     problems = 0
     with tempfile.TemporaryDirectory() as tmp:
         zipfile.ZipFile(epub).extractall(tmp)
-        files = sorted(Path(tmp, "EPUB", "text").glob("ch*.xhtml"))
+        text = Path(tmp, "EPUB", "text")
+        files = [text / "title_page.xhtml", Path(tmp, "EPUB", "nav.xhtml"),
+                 *sorted(text.glob("ch*.xhtml"))]
         if names:
             files = [f for f in files if f.stem in names]
         with sync_playwright() as p:

@@ -9,6 +9,7 @@ import pandas as pd
 from scripts import water as w
 from scripts.figures import INK, MUTED, style
 from scripts.scenes import tunja
+from scripts.prose import alt_text_holds, number_words, spans
 
 A = w.A
 raw = w.raw()
@@ -23,6 +24,28 @@ urban_high = tab.loc["urban", ["High", "Unfit"]].sum() / tab.loc["urban", A.IRCA
 med = raw.groupby(["year", "zone"])["irca"].median().unstack()
 ZONE = {"urban": "#2f72b0", "rural": "#b07a14"}
 tj = tunja(raw)
+first, last = int(raw["year"].min()), int(raw["year"].max())
+WORD = number_words()
+drops = sorted(med["rural"].diff().nsmallest(2).index)       # the two sharpest falls
+# Tunja: why it is a good case, from its rows.
+tjr = tj["rows"]
+munis = raw[raw["entity_type"] == "municipality"]
+n_munis = munis["divipola"].nunique()
+n_years = raw["year"].nunique()
+rural_full = int(munis[munis["zone"] == "rural"].groupby("divipola")["irca"].count().eq(n_years).sum())
+tj_full = bool(tjr["irca"].notna().all())
+tj_rural = tjr[tjr["zone"] == "rural"].set_index("year")["irca"].sort_index()
+tj_rural_high = A.irca_band(tj_rural).astype(str).eq("High")
+tj_rural_high_to = int(tj_rural.index[tj_rural_high.cumprod().astype(bool)].max())  # first run
+tj_urban_max = tjr.loc[tjr["zone"] == "urban", "irca"].max()
+tj_zero = sorted(int(y) for y in tjr.loc[tjr["water_coverage_total"].eq(0), "year"].unique())
+idf_last = int(raw.loc[raw["idf"].notna(), "year"].max())
+idf_new_first = int(raw.loc[raw["idf_new"].notna(), "year"].min())
+
+
+saber_years = spans(raw.loc[raw["saber11_mean"].notna(), "year"].unique())
+
+
 ```
 
 Before any model, look at the data. Exploring tells you what a model will and will not be able
@@ -32,10 +55,10 @@ an error. A clustering algorithm will happily group rows that have been made com
 filling their gaps, and a chart of a series whose method changed will draw a trend that is not
 there.
 
-This chapter does three things with the water data: it looks at how much is missing and where,
-it looks at how the IRCA moves over time, and it looks closely at one municipality, Tunja, to see
-what the caveats in the data's README mean in practice. Then the assistant builds the project's
-first page, `explore.qmd`.
+The water data hold two such surprises that a chart can show, and several more that show only
+up close, in one place. For those, this chapter meets Tunja, the municipality the rest of the part
+follows. Then the assistant builds the project's first page, `explore.qmd`, and you check it against
+what you have already seen.
 
 ## What exploring is for {#sec-explore-what}
 
@@ -57,6 +80,9 @@ about it rest on the minority that was measured, and that minority may not be ty
 #| fig-cap: "All rows, 2010–2023, by zone: no IRCA reported (hatched) and the Resolución 2115 risk band of the rest. Utility-supplied IRCA, INS open data (datos.gov.co nxt2-39c3)."
 #| fig-alt: "Two horizontal stacked bars, urban and rural. The urban bar is mostly no-risk and low-risk IRCA with a small hatched no-data share. The rural bar is more than half hatched no-data, and the largest share of the rest is in the high-risk band."
 #| classes: on-light
+alt_text_holds((first, last) == (2010, 2023) and pct.loc["rural", "No IRCA"] > 50
+               and pct.loc["urban", "No IRCA"] < 20 and pct.loc["urban", ["No risk", "Low"]].sum() > 50
+               and tab.loc["rural", A.IRCA_BANDS].idxmax() == "High", "fig-wat-bands")
 with style():
     fig, ax = plt.subplots(figsize=(6.6, 2.6))
     left = np.zeros(2)
@@ -74,14 +100,16 @@ with style():
     plt.show()
 ```
 
-@fig-wat-bands puts all `{python} w.fmt(len(raw))` rows side by side. `{python} rural_missing` of
+Side by side, @fig-wat-bands shows all `{python} w.fmt(len(raw))` rows. `{python} rural_missing` of
 rural rows have no IRCA at all, against `{python} urban_missing` of urban rows, because many rural
-systems are never sampled. Among the rural rows that do have a value,
+systems are never sampled, or are not run by a utility and so fall outside the utility-supplied
+table. Among the rural rows that do have a value,
 `{python} f"{rural_high:.0%}"` fall in the high or unfit bands, against `{python} f"{urban_high:.0%}"`
 of urban rows.
 
-The two facts compound. Rural water is riskier where it is measured, and much of it is not
-measured. Missingness is not random: it is concentrated in small, remote, rural places. Any
+The two facts compound, in the worst direction: the zones whose scores are worse are also the
+ones least often scored. The gaps are not missing at random: they depend on zone, and perhaps on
+the risk itself. Any
 analysis that drops the rows without IRCA, as Part III's must, describes *sampled* rural systems
 only, and should say so.
 
@@ -90,6 +118,8 @@ only, and should say so.
 #| fig-cap: "Median utility-supplied IRCA by year and zone, 2010–2023, over the rows that report one."
 #| fig-alt: "Two lines over the years 2010 to 2023. The urban median is low and falls gently, from the low-risk band in the early years to under 5 from the middle of the decade. The rural median is far higher and nearly flat until 2015, then falls sharply in 2016 and again in 2020, ending in the low-risk band."
 #| classes: on-light
+alt_text_holds((first, last) == (2010, 2023) and drops == [2016, 2020]
+               and str(A.irca_band(med["rural"].iloc[[-1]]).iloc[0]) == "Low", "fig-wat-years")
 with style():
     fig, ax = plt.subplots(figsize=(6.6, 2.8))
     for z in ("rural", "urban"):
@@ -101,17 +131,27 @@ with style():
     plt.show()
 ```
 
-@fig-wat-years shows why the fourth question matters. The rural median drops sharply in 2016 and
-again in 2020. That could be an improvement in rural water, or a change in which systems were
-sampled; the data's README warns that the 2020 drop may reflect sampling, and the open data cannot
-tell the two apart. An analysis that compares years should not read the drop as progress without
-evidence from outside the table.
+The fourth question matters, as @fig-wat-years shows. The rural median drops sharply in
+`{python} drops[0]` and again in `{python} drops[1]`. That could be an improvement in rural water, or
+a change in which systems were sampled; the data's README warns that the `{python} drops[1]` drop may
+reflect sampling, and the open data cannot tell the two apart. An analysis that compares years
+should not read the drop as progress without evidence from outside the table.
 
-## One municipality, up close: Tunja {#sec-tunja}
+## One municipality to follow: Tunja {#sec-tunja}
 
-Aggregates hide the details that make a variable trustworthy or not. Tunja, the capital of Boyacá
-department, has `{python} len(tj["rows"])` rows: two zones over fourteen years. Looking at them
-one variable at a time shows several of the README's caveats in a single place (@fig-tunja).
+Aggregates hide the details that make a variable trustworthy or not, so from here on this part
+follows one municipality through every step. Tunja, the capital of Boyacá department, is a good case
+for three reasons in its rows. As a department capital, it carries the coverage caveat that every
+capital does. Unlike most municipalities, it has an IRCA for both zones in every year: only
+`{python} w.fmt(rural_full)` of the `{python} w.fmt(n_munis)` municipalities have one for their rural
+zone in all `{python} WORD[n_years]` years, so the analysis will never lose Tunja for want of a
+score. And its two zones differ: its rural water scored in the high-risk band every year from
+`{python} first` to `{python} tj_rural_high_to`, while its urban water never scored above
+`{python} f"{tj_urban_max:.1f}"`.
+
+Tunja has `{python} len(tjr)` rows, `{python} WORD[tjr["zone"].nunique()]` zones over
+`{python} WORD[tjr["year"].nunique()]` years. Looking at them one variable at a time shows several of
+the README's caveats in a single place (@fig-tunja).
 
 ::: {.content-visible when-format="html:js"}
 ::: {#fig-tunja}
@@ -120,7 +160,7 @@ one variable at a time shows several of the README's caveats in a single place (
 print(tj["html"])
 ```
 
-Tunja's 28 rows, from `water_municipal.csv`. Pick a view (the data, a summary, a distribution, a time series or a scatter plot), then a variable and a zone. Variables that repeat the same value in both zone rows are municipal and are counted once.
+Tunja's `{python} len(tjr)` rows, from `water_municipal.csv`. Pick a view (the data, a summary, a distribution, a time series or a scatter plot), then a variable and a zone. Variables that repeat the same value in both zone rows are municipal and are counted once.
 :::
 :::
 
@@ -130,6 +170,8 @@ Tunja's 28 rows, from `water_municipal.csv`. Pick a view (the data, a summary, a
 #| fig-cap: "Tunja, 2010–2023: utility-supplied IRCA by zone (left) and the municipality's aqueduct coverage (right), where a hollow point is a value reported as 0. From `water_municipal.csv`."
 #| fig-alt: "Two small charts. Left: Tunja's urban IRCA is in the low-risk band in the first two years and near zero after that, while its rural IRCA is much higher, in the high-risk band until 2014, and falls to the low and medium bands from 2016. Right: the municipality's aqueduct coverage moves between about 60 and 100 percent, with a hollow point at 0 in the one year reported as 0, which probably means not reported rather than no service."
 #| classes: on-light
+alt_text_holds((first, last) == (2010, 2023) and tj_full and tj_rural_high_to == 2014
+               and len(tj_zero) == 1, "fig-tunja")
 p_irca = tj["pivot"]["irca"]
 p_cov = tj["pivot"]["water_coverage_total"]["urban"]
 with style():
@@ -149,18 +191,18 @@ with style():
 ```
 
 ::: {.live-link}
-Explore all thirteen of Tunja's variables in the website edition, at
-<https://project-delphi.github.io/quarto-workshop/book/chapters/09-explore.html#sec-tunja>,
-or scan: ![QR code for the Tunja explorer in the website edition.](../media/qr/tunja.png){.qr}
+Explore all `{python} WORD[len(tj["pivot"])]` of Tunja's variables
+[in the website edition](https://project-delphi.github.io/quarto-workshop/book/chapters/09-explore.html#sec-tunja), or scan: ![QR code for the Tunja explorer in the website edition.](../media/qr/tunja.png){.qr}
 :::
 :::
 
-Four things are worth finding. Because Tunja is a department capital, its coverage has no urban
-and rural split, so the explorer uses the municipality's total. Some years' coverage is reported as
-exactly 0, which in context probably means "not reported" rather than "no service"; those points are
-drawn hollow. The fiscal index `idf` ends in 2020 and `idf_new` starts there, on a different scale,
-so the two must never be joined into one line. And infant mortality changes method in 2017, so its
-apparent drop that year is not an improvement. Saber 11 exists only for 2014–2017, 2019, 2020 and 2022.
+Five things are worth finding. Because Tunja is a department capital, its coverage has no urban
+and rural split, so the explorer uses the municipality's total. That total is reported as exactly 0
+in `{python} spans(tj_zero)`, which beside its neighbouring years probably means "not reported"
+rather than "no service"; such points are drawn hollow. The fiscal index `idf` ends in
+`{python} idf_last` and `idf_new` starts there, on a different scale, so the two must never be joined
+into one line. Infant mortality changes method in 2017, so its apparent drop that year cannot be
+read as an improvement. And Saber 11 exists only for `{python} saber_years`.
 
 ::: practice
 Summaries in the explorer never pool the two zones. Averaging the small rural population's values
@@ -199,7 +241,7 @@ Run the prompt and read the page.
 
 ::: done
 `explore.html` shows rows and columns, missing values by zone, and IRCA by band, zone and year for
-2010–2023.
+`{python} first`–`{python} last`.
 :::
 
 ::: catchup
@@ -215,11 +257,14 @@ The catch-up also copies `data/` if it is missing: the water checkpoints hold so
 
 Explore before you model: size, missingness by group, distributions and trends over time. In the
 water data, rural rows are mostly unmeasured and, where measured, far riskier, so any analysis of
-measured rows describes sampled systems only. The rural median IRCA falls sharply in 2016 and 2020,
-which the data alone cannot distinguish from a change in sampling. One municipality up close shows
-the README's caveats in practice: no zone split for capitals, zeros that probably mean "not
-reported", two fiscal indices on different scales, and a method change in infant mortality. Read
-codes as text, and check each summary against what you already know it should say.
+measured rows describes sampled systems only. The rural median IRCA falls sharply in
+`{python} drops[0]` and `{python} drops[1]`, which the data alone cannot distinguish from a change in
+sampling. Tunja, the department capital this part follows, shows the README's caveats in practice:
+no zone split for capitals, a zero that probably means "not reported", two fiscal indices on
+different scales, and a method change in infant mortality. Read codes as text, and check each
+summary against what you already know it should say. Seeing the gaps is not the same as deciding
+what to do about them: the next chapter decides which rows and numbers the clustering will see, and
+counts what each decision costs.
 
 ## Further reading {.unnumbered}
 

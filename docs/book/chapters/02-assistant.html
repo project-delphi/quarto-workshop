@@ -9,7 +9,7 @@
 <meta name="keywords" content="Quarto, reproducible publishing, coding assistants, Markdown, Python, EPUB, data analysis, k-means clustering">
 <meta name="description" content="A practitioner’s guide to reproducible publishing: write once in Markdown, let a coding assistant write the code, check its work, and rebuild one source into a web page, Word, PDF, slides, an e-book, a website, a blog and a dashboard. Two real projects run through the book: a London visitor guide and a study of drinking-water risk in Colombian municipalities.">
 
-<title>2&nbsp; Working With a Coding Assistant – One Source, Every Format</title>
+<title>2&nbsp; Working With a Coding Assistant – Prompt, Check, Publish</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-7d94c0dda550a81dbfca4dade836747f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-101740c35b3b30c037b86c55ec0e8876.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-7d94c0dda550a81dbfca4dade836747f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-e85dad9e1173e1d97bd702522a9286d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -306,7 +306,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="../">One Source, Every Format</a> 
+      <a href="../">Prompt, Check, Publish</a> 
         <div class="sidebar-tools-main">
     <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
@@ -330,6 +330,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../copyright.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Copyright</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedication</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About the Author</span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
@@ -591,8 +603,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Quarto turns sources into outputs, but someone still has to write the sources: the Markdown, the settings, and above all the code that reads data and draws charts. In this book that someone is usually a <em>coding assistant</em>, a program that writes and edits files and runs commands at your request. You describe the work, it does the typing, and you decide whether the result is right.</p>
-<p>That division of labour is powerful, and it has sharp edges. An assistant can produce in a minute what would take an hour by hand, and it can produce plausible, confident, wrong work just as quickly. This chapter explains how assistants work, how to choose one and what it costs, where its reach begins and ends, how to give it rules that last, how to ask for work, and how to account for its use when the work is research. The rest of the book assumes all of it.</p>
+<p>Simon Willison, a developer, has asked most major new models the same question since 2024: “Generate an SVG of a pelican riding a bicycle”. Four Claude models, each at three effort levels, answered it with 12 drawings, and every one is recognisably a pelican on a bicycle. The dearest cost 13.09 cents, about 93 times as much as the cheapest that was good enough, at 0.14 cents (<a href="#fig-pelicans" class="quarto-xref">Figure&nbsp;<span>2.2</span></a>).</p>
+<p>Choosing between those drawings is the first of many judgements this chapter teaches. A <em>coding assistant</em> is a program that writes and edits files and runs commands at your request: you write the <em>Prompt</em>, it does the typing, and you <em>Check</em> whether the result is right. It can produce in a minute what would take an hour by hand, and it can produce plausible, confident, wrong work just as quickly. How do you get the first kind of work without being fooled by the second?</p>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Try it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>No installation needed. Paste Simon Willison’s prompt, <code>Generate an SVG of a pelican riding a bicycle</code>, into a web chat in your browser (Claude, ChatGPT and Gemini each have a free plan, checked <span class="nowrap">2026-11-12</span>), then paste it again in a new conversation and compare the replies.</p>
+<div class="done">
+<p><strong>You're done when</strong> the two replies differ, although the prompt was the same. Quarto, given the same source, never does that (<a href="01-quarto.html#sec-not-ai" class="quarto-xref"><span>Section 1.3</span></a>).</p>
+</div>
+</div>
+</div>
 <section id="sec-model-harness" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="sec-model-harness"><span class="header-section-number">2.1</span> Model plus harness</h2>
 <p>A coding assistant is two programs working together (<a href="#fig-agent-loop" class="quarto-xref">Figure&nbsp;<span>2.1</span></a>).</p>
@@ -629,7 +657,7 @@ Figure&nbsp;2.1: How a coding assistant works. The harness on your computer pass
 <div id="tbl-assistants" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026.
+Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked <span class="nowrap">2026-11-12</span>).
 </figcaption>
 <div aria-describedby="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -669,7 +697,7 @@ Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced G
 <section id="pick-a-model-by-task-not-by-rank" class="level3" data-number="2.2.1">
 <h3 data-number="2.2.1" class="anchored" data-anchor-id="pick-a-model-by-task-not-by-rank"><span class="header-section-number">2.2.1</span> Pick a model by task, not by rank</h3>
 <p>Each vendor offers a family of models, from small and cheap to large and capable. They are not simply better and worse versions of one thing. Larger, more recent models usually follow longer instructions, plan multi-step work and recover from their own errors better. Small models are faster and cheaper, and often good enough for short, well-specified edits such as fixing a typo or reformatting a table. Joining two datasets or debugging a failed render rewards the stronger model.</p>
-<p>The prompts in this book are short and specific, so a mid-sized model at a moderate <em>effort</em> setting (how long the model reasons before answering) is enough: Claude’s Haiku or Sonnet on medium effort, or OpenAI’s Sol on low. For unfamiliar, hard work, the vendors’ own advice starts higher: Anthropic suggests starting with Opus 5.5 for most workloads, and OpenAI with GPT-6 Astra for complex reasoning and coding. Start small, and move up only when a task keeps failing.</p>
+<p>The prompts in this book are short and specific, so a mid-sized model at a moderate <em>effort</em> setting (how long the model reasons before answering) is enough: Claude’s Sonnet on medium effort, or Haiku for small edits, or OpenAI’s Sol on low. For unfamiliar, hard work, the vendors’ own advice starts higher: Anthropic suggests starting with Opus 5.5 for most workloads, and OpenAI with GPT-6 Astra for complex reasoning and coding. Start small, and move up only when a task keeps failing.</p>
 <div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -680,7 +708,7 @@ Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced G
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Prices change monthly; the principle does not.</strong> The list prices below were correct on 2026-11-06 and will not be for long. Read them as a snapshot of the spread, not as numbers to plan with.</p>
+<p><strong>Prices change monthly; the principle does not.</strong> The list prices below were correct on <span class="nowrap">2026-11-12</span> and will not be for long. Read them as a snapshot of the spread, not as numbers to plan with.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
@@ -697,54 +725,54 @@ Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced G
 <tbody>
 <tr class="odd">
 <td>Claude Haiku 5.5</td>
-<td>simple, high-volume tasks</td>
+<td>“high-volume, latency-sensitive tasks such as classification, extraction, and routing”</td>
 <td>0.10 / 0.50</td>
 </tr>
 <tr class="even">
 <td>Claude Sonnet 5.5</td>
-<td>daily coding: speed with intelligence</td>
+<td>“the best combination of speed and intelligence”</td>
 <td>2 / 10</td>
 </tr>
 <tr class="odd">
 <td>Claude Opus 5.5</td>
-<td>long-running coding and knowledge work</td>
+<td>“long-running agentic coding and knowledge work”</td>
 <td>4 / 20</td>
 </tr>
 <tr class="even">
-<td>Claude Fable 5.1</td>
-<td>demanding reasoning, long-horizon work</td>
-<td>10 / 50</td>
+<td>Claude Fable 5.2</td>
+<td>“demanding reasoning and long-horizon agentic work”</td>
+<td>8 / 40</td>
 </tr>
 <tr class="odd">
 <td>GPT-6 Luna</td>
-<td>focused, high-volume tasks</td>
+<td>“focused, high-volume tasks”</td>
 <td>0.10 / 0.50</td>
 </tr>
 <tr class="even">
 <td>GPT-6.1 Terra</td>
-<td>visual reasoning, computer use, clear writing</td>
+<td>“visual reasoning, precise computer use, and clear, natural writing”</td>
 <td>1 / 5</td>
 </tr>
 <tr class="odd">
 <td>GPT-6.1 Sol</td>
-<td>complex work, balancing intelligence and cost</td>
+<td>“near-Astra performance for complex work at a lower cost”</td>
 <td>2 / 10</td>
 </tr>
 <tr class="even">
 <td>GPT-6 Astra</td>
-<td>the most demanding work</td>
+<td>“the most demanding work”</td>
 <td>10 / 50</td>
 </tr>
 </tbody>
 </table>
-<p>Haiku’s price is for prompts up to 100,000 tokens; longer ones cost five times as much. Subscriptions count usage differently from API prices, and which models you can choose depends on your plan and the assistant’s version. Sources: Anthropic’s models overview and pricing pages and OpenAI’s models pages (checked 2026-11-06).</p>
+<p>Haiku’s price is for prompts up to 100,000 tokens; longer ones cost five times as much. The pelican runs below used Fable 5.2’s predecessor, Fable 5.1, listed at 10 / 50. Subscriptions count usage differently from API prices, and which models you can choose depends on your plan and the assistant’s version. Sources: Anthropic’s models overview and pricing pages and OpenAI’s models pages (checked <span class="nowrap">2026-11-12</span>).</p>
 </div>
 </div>
-<p>The cost of a fixed level of capability has been falling fast. Measuring the cheapest model that reaches a given benchmark score, the venture firm a16z found the price falling about tenfold a year, a thousandfold over the three years from November 2021, and Epoch AI found falls of between 9 and 900 times a year depending on the benchmark (both checked 2026-11-07). Both warn that the pace may slow, and neither measures the frontier, where the price of the most capable work may fall more slowly. The practical lesson is the same either way: choose by what the task needs, not by today’s price.</p>
+<p>The cost of a fixed level of capability has been falling fast. Measuring the cheapest model that reaches a given benchmark score, the venture firm a16z found the price falling about tenfold a year, a thousandfold over the three years from November 2021, and Epoch AI found falls of between 9 and 900 times a year depending on the benchmark (both checked <span class="nowrap">2026-11-07</span>). Both warn that the pace may slow, and neither measures the frontier, where the price of the most capable work may fall more slowly. The practical lesson is the same either way: choose by what the task needs, not by today’s price.</p>
 </section>
 <section id="one-prompt-four-models-three-efforts" class="level3" data-number="2.2.2">
 <h3 data-number="2.2.2" class="anchored" data-anchor-id="one-prompt-four-models-three-efforts"><span class="header-section-number">2.2.2</span> One prompt, four models, three efforts</h3>
-<p>Simon Willison, a developer who has asked every new model the same question since 2024, gives a concrete feel for the trade-off: “Generate an SVG of a pelican riding a bicycle”. <a href="#fig-pelicans" class="quarto-xref">Figure&nbsp;<span>2.2</span></a> shows one run of each of four Claude models at three effort levels, with each reply’s cost at API list prices.</p>
+<p>The pelicans this chapter opened with make the trade-off concrete. <a href="#fig-pelicans" class="quarto-xref">Figure&nbsp;<span>2.2</span></a> shows one run of each of four Claude models at three effort levels, with each reply’s cost at API list prices.</p>
 <div id="fig-pelicans" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pelicans-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -792,12 +820,12 @@ Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced G
 </table>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pelicans-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2.2: One prompt, four models, three efforts: “Generate an SVG of a pelican riding a bicycle”. Images from Simon Willison’s pelican series, one run per cell; cost is each reply’s tokens at API list prices (checked 2026-11-06).
+Figure&nbsp;2.2: One prompt, four models, three efforts: “Generate an SVG of a pelican riding a bicycle”. Images from Simon Willison’s pelican series, one run per cell; cost is each reply’s tokens at API list prices (checked <span class="nowrap">2026-11-06</span>).
 </figcaption>
 </figure>
 </div>
-<p>Read the grid in two directions. Down the rows, the model grows and the price per token rises, so costs climb from fractions of a cent to more than ten cents. Across the columns, effort rises: the model reasons longer and writes more, so the cost usually rises while the picture gains details rather than becoming correct. Every cell is recognisably a pelican on a bicycle. Haiku on low effort has the weakest frame; from medium effort up, the frames are sound, which is why the book’s advice is medium effort.</p>
-<p>Be honest about what this shows. It is one run per cell of one small, self-contained task, not a benchmark: run it again and you get different birds, and Fable on medium effort even cost less than Fable on low. Both Sonnet 5.5 and Opus 5.5 failed at their maximum effort in these runs: they reasoned until they ran out of output before drawing anything. A drawing says little about a long job that joins datasets and recovers from errors, which is where stronger models earn their price. The dearest cell cost about 93 times the cheapest adequate one. Whether that is worth paying depends entirely on the task.</p>
+<p>Read the grid in two directions. Down the rows, the model grows and the price per token rises, so costs climb from fractions of a cent to more than ten cents. Across the columns, effort rises: the model reasons longer and writes more, so the cost usually rises while the picture gains details rather than becoming correct. Haiku on low effort has the weakest frame; from medium effort up, the frames are sound, which is consistent with, though no proof of, the book’s advice of medium effort.</p>
+<p>Keep the evidence in proportion. It is one run per cell of one small, self-contained task, not a benchmark: run it again and you get different birds, and Fable on medium effort even cost less than Fable on low. More effort is not always better, either: at their maximum effort, Sonnet 5.5 and Opus 5.5 each spent 128,000 tokens reasoning, the models’ output limit, and returned no drawing (Simon Willison’s transcripts, checked <span class="nowrap">2026-11-12</span>). A drawing says little about a long job that joins datasets and recovers from errors, which is where stronger models earn their price. Whether a 93-fold difference in price is worth paying depends entirely on the task.</p>
 </section>
 </section>
 <section id="sec-cost" class="level2" data-number="2.3">
@@ -812,7 +840,7 @@ Figure&nbsp;2.2: One prompt, four models, three efforts: “Generate an SVG of a
 <div id="tbl-slash" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-slash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2.2: Three commands that control cost and context (Claude Code commands reference and Codex CLI reference, checked 2026-11-12). Type <code>/</code> alone to list your assistant’s commands.
+Table&nbsp;2.2: Three commands that control cost and context (Claude Code commands reference and Codex CLI reference, checked <span class="nowrap">2026-11-12</span>). Type <code>/</code> alone to list your assistant’s commands.
 </figcaption>
 <div aria-describedby="tbl-slash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -872,7 +900,7 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 </section>
 <section id="sec-root-folder" class="level2" data-number="2.4">
 <h2 data-number="2.4" class="anchored" data-anchor-id="sec-root-folder"><span class="header-section-number">2.4</span> The root folder is the assistant’s world</h2>
-<p>An assistant treats the folder you start it in as its <em>root</em>: it reads and edits files there and in the folders below, and runs commands from there. The first time you start one in a new folder, it asks whether you trust it. Claude Code’s prompt, captured on 2026-11-07, warns that “Claude Code’ll be able to read, edit, and execute files here”; Codex asks the same question in a folder that is a Git repository, and says it can read, edit and run files “subject to your permission settings”.</p>
+<p>An assistant treats the folder you start it in as its <em>root</em>: it reads and edits files there and in the folders below, and runs commands from there. The first time you start one in a new folder, it asks whether you trust it. Claude Code’s prompt, captured on <span class="nowrap">2026-11-07</span>, warns that “Claude Code’ll be able to read, edit, and execute files here”; Codex asks the same question in a folder that is a Git repository, and says it can read, edit and run files “subject to your permission settings”.</p>
 <p>That question deserves a real answer. Trust only a folder you created for the work. Never start an assistant in your home folder, in Documents, or anywhere that holds other people’s projects, private documents or keys (such as <code>~/.ssh</code>). Project instructions in a trusted folder are read and followed too, which is another reason to trust only your own folders.</p>
 <p>Starting in a small project folder has three practical benefits. Paths in prompts stay short (<code>data/attractions.csv</code>), the project’s rules file is found, and a mistake stays inside one folder that you can restore. It is not a guaranteed boundary, though: a command can still name a path outside the folder, so read each command before you approve it.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
@@ -885,7 +913,7 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Two assistants writing to the same folder at once will overwrite each other’s work and collide when both render. To work on another project, leave with <code>/exit</code>, change folder, and start the assistant again there.</p>
+<p>Two assistants writing the same files, or rendering in one folder at once, will collide; <a href="06-audiences.html#sec-sub-agents" class="quarto-xref"><span>Section 6.2</span></a> shows the safe split. To work on another project, leave with <code>/exit</code>, change folder, and start the assistant again there.</p>
 </div>
 </div>
 </section>
@@ -897,7 +925,7 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 <li><strong>Rules:</strong> what must always hold (“every number comes from a cited file in <code>data/</code>”).</li>
 <li><strong>Commands:</strong> how to build and check the project.</li>
 </ul>
-<p>All three assistants in this book read it (checked 2026-10-30). Codex reads <code>AGENTS.md</code> files before doing any work. Antigravity reads <code>AGENTS.md</code> or <code>GEMINI.md</code> in the project’s folders. Claude Code reads <code>AGENTS.md</code> when there is no <code>CLAUDE.md</code> in the working folder or above it, from version 2.1.277; a <code>CLAUDE.md</code> whose first line is <code>@AGENTS.md</code> imports it, so one file can serve all three (Claude Code memory documentation, checked 2026-11-12). The repository behind this book works exactly that way: its <code>CLAUDE.md</code> imports its <code>AGENTS.md</code>.</p>
+<p>All three assistants in this book read it (checked <span class="nowrap">2026-10-30</span>). Codex reads <code>AGENTS.md</code> files before doing any work. Antigravity reads <code>AGENTS.md</code> or <code>GEMINI.md</code> in the project’s folders. Claude Code reads <code>AGENTS.md</code> when there is no <code>CLAUDE.md</code> in the working folder or above it, from version 2.1.277; a <code>CLAUDE.md</code> containing the line <code>@AGENTS.md</code> imports it, so one file can serve all three (Claude Code memory documentation, checked <span class="nowrap">2026-11-12</span>). The repository behind this book works exactly that way: its <code>CLAUDE.md</code> imports its <code>AGENTS.md</code>.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -920,7 +948,7 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 <p><strong>One step at a time.</strong> One task per prompt keeps each change small enough to review, and tells you which step broke when one does.</p>
 <p><strong>Ask it to run and check.</strong> End with a check the assistant can perform: “render it and tell me which file it wrote”, “check that the PDF is one page”. An assistant that verifies its own work catches many of its own mistakes.</p>
 <p><strong>Check what changed.</strong> You are responsible for the result. Read the changed files (most assistants can show you a <em>diff</em>, the lines added and removed) before moving on.</p>
-<p>The prompts in this book were designed with AI assistance and refined to reduce errors, but they are not magic, and assistants vary. When a prompt mentions something you do not understand, a YAML key, a Markdown construct, a Python call, ask before you paste:</p>
+<p>The prompts in this book were designed with AI assistance and refined to reduce errors, but they are not magic, and assistants vary. When a prompt mentions something you do not understand (a YAML key, a Markdown construct, a Python call), ask before you paste:</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
 <div class="box-label">
@@ -932,7 +960,7 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 <p>Asking for the documentation page matters: it turns the answer into something you can check.</p>
 <section id="a-web-chat-can-draft-your-prompt" class="level3" data-number="2.6.1">
 <h3 data-number="2.6.1" class="anchored" data-anchor-id="a-web-chat-can-draft-your-prompt"><span class="header-section-number">2.6.1</span> A web chat can draft your prompt</h3>
-<p>If you know what you want but not how to ask for it, a free web chat (Gemini, ChatGPT or Claude in the browser) can turn a rough idea into a prompt. Describe the goal in plain words, name your tools, and ask for a prompt of one to four lines, with one task, concrete file names and a check (<a href="#fig-chat-prompt" class="quarto-xref">Figure&nbsp;<span>2.3</span></a>). The chat cannot see your files, so it guesses; the assistant can see them, so it checks. Read the drafted prompt before you paste it, and fix any file name that does not match your folder.</p>
+<p>If you know what you want but not how to ask for it, a free web chat (Claude, ChatGPT or Gemini in the browser) can turn a rough idea into a prompt. Describe the goal in plain words, name your tools, and ask for a prompt of one to four lines, with one task, concrete file names and a check (<a href="#fig-chat-prompt" class="quarto-xref">Figure&nbsp;<span>2.3</span></a>). The chat cannot see your files, so it guesses; the assistant can see them, so it checks. Read the drafted prompt before you paste it, and fix any file name that does not match your folder.</p>
 <div id="fig-chat-prompt" class="anim quarto-float quarto-figure quarto-figure-center anchored" alt="An animated example in five steps. A free web chat gets a request typed in plain words: a one-page London visitor guide, and a prompt for a coding assistant, naming the tools Quarto and Markdown, of one to four lines with one task, concrete file names and a check. The chat replies with a prompt: use Quarto and Markdown, create london.md with the title Visit London, a level-1 heading and a two-sentence welcome, add a heading Top sights with three bullets each naming a place and why to visit, run quarto render london.md, then list the headings in london.html and any errors. The prompt is copied and pasted into a coding assistant in the terminal, which writes london.md, renders it, lists the headings and reports no errors.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-chat-prompt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -982,6 +1010,7 @@ Figure&nbsp;2.3: A web chat drafts a prompt, you read it, and the coding assista
 </div>
 </div>
 <p><strong>Ask your coding assistant</strong> holds the exact prompt to paste into the assistant (in the HTML edition, with a copy button). <strong>Expect it to run</strong> lists what the assistant will probably do, so you recognise it when it asks for approval; you do not type these yourself. <strong>You do</strong> lists the few things only you can do: start the assistant, sign in to accounts, approve commands, run a live preview, open results. The assistant occupies the terminal tab it runs in, so commands in a <strong>You do</strong> box go in a second terminal tab opened in the same folder.</p>
+<p>Together the boxes are one turn of the loop in the book’s title. <strong>Ask your coding assistant</strong> is the <em>Prompt</em>. <strong>Expect it to run</strong> and <strong>You do</strong> are where you <em>Check</em>, recognising each command before you approve it and opening the result yourself. The render is the <em>Publish</em>. Each exercise closes the loop with <strong>You’re done when</strong>: the check, stated so that you can see whether it passed.</p>
 <p>The prompts are examples, not transcripts. Assistants vary from version to version and run to run, so the files they write will differ in detail from the ones shown. What should not vary is the result you check. <a href="#fig-agent-session" class="quarto-xref">Figure&nbsp;<span>2.4</span></a> shows what a session looks like.</p>
 <div id="fig-agent-session" class="anim quarto-float quarto-figure quarto-figure-center anchored" alt="A terminal replay of a coding-assistant session, labelled as an illustration. The prompt asks for london.md with a level-1 heading Visit London and one welcome paragraph. The assistant says it will create the file and shows the lines it writes: the heading and a welcome sentence about free museums, royal history and riverside walks. It says it will render the file to check it, shows the command quarto render london.md, and asks Allow this command, with Yes selected. The output reads Output created: london.html, and the assistant reports that london.md has the heading and one welcome paragraph and that the render had no errors.">
 <figure class="quarto-float quarto-float-fig figure">
@@ -996,7 +1025,7 @@ Figure&nbsp;2.4: What running the first prompt looks like: the assistant writes 
 </section>
 <section id="sec-ai-policy" class="level2" data-number="2.8">
 <h2 data-number="2.8" class="anchored" data-anchor-id="sec-ai-policy"><span class="header-section-number">2.8</span> Using AI in research: say it, own it</h2>
-<p>If your work is research, using an assistant raises obligations beyond getting the code right. Journals and funders differ in detail, so read your venue’s own policy, but the International Committee of Medical Journal Editors (ICMJE), whose recommendations many journals follow, states a common core (checked 2026-11-12):</p>
+<p>If your work is research, using an assistant raises obligations beyond getting the code right. Journals and funders differ in detail, so read your venue’s own policy, but the International Committee of Medical Journal Editors (ICMJE), whose recommendations many journals follow, states a common core (checked <span class="nowrap">2026-11-12</span>):</p>
 <ul>
 <li><strong>An AI tool is never an author.</strong> Chatbots and other AI-assisted tools “should not be listed as authors because they cannot be responsible for the accuracy, integrity, and originality of the work”.</li>
 <li><strong>You are responsible for what it produced.</strong> Humans are responsible for any submitted material that used AI-assisted technologies, and should review and edit AI output, which “can be incorrect, incomplete, or biased”. That includes references: AI-generated material is not an acceptable primary source.</li>
@@ -1021,18 +1050,21 @@ Figure&nbsp;2.4: What running the first prompt looks like: the assistant writes 
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>A coding assistant is a model that decides and a harness that acts, with you directing and checking in between. Choose the model by the task: mid-sized models at moderate effort are enough for well-specified steps, and the price of a given capability is falling fast. Cost grows with model size, effort and conversation length, so keep one task per conversation and start fresh between tasks. Start the assistant only in a folder you created for the work, and put durable rules in <code>AGENTS.md</code>, remembering that rules are context, not enforcement. Good prompts are specific, single-step and end in a check, and every change they cause is yours to review. In research, the assistant is never an author, and its use is disclosed.</p>
+<p>A coding assistant is a model that decides and a harness that acts, with you directing and checking in between. Choose the model by the task: as the pelicans showed, a cheaper model at medium effort is often enough for a small, well-specified step. Cost grows with model size, effort and conversation length, so keep one task per conversation. Start the assistant only in a folder you created for the work, and put durable rules in <code>AGENTS.md</code>, remembering that rules are context, not enforcement. Good prompts are specific, single-step and end in a check, and every change they cause is yours to review. In research, the assistant is never an author, and its use is disclosed.</p>
+<p>All of this assumes a computer on which an assistant, Quarto and Python are installed and working together. Is yours? <a href="03-setup.html" class="quarto-xref"><span>Chapter 3</span></a> gets it there in six checked steps.</p>
 </section>
 <section id="further-reading" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>
 <ul>
-<li>Claude Code, <a href="https://code.claude.com/docs/en/commands">commands reference</a> and <a href="https://code.claude.com/docs/en/memory">memory and <code>AGENTS.md</code></a> (checked 2026-11-12).</li>
-<li>OpenAI, <a href="https://learn.chatgpt.com/docs/codex/cli">Codex CLI</a> and <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md"><code>AGENTS.md</code></a> (checked 2026-11-12 and 2026-10-30).</li>
-<li>Google, <a href="https://antigravity.google/docs/rules">Antigravity rules</a> (checked 2026-10-30).</li>
-<li>Anthropic, <a href="https://platform.claude.com/docs/en/about-claude/models/overview">models overview</a> and <a href="https://platform.claude.com/docs/en/about-claude/pricing">pricing</a>; OpenAI, <a href="https://developers.openai.com/api/docs/models">models</a> (checked 2026-11-06).</li>
-<li>Guido Appenzeller, <a href="https://a16z.com/llmflation-llm-inference-cost/">LLMflation</a>, a16z, 2024; Epoch AI, <a href="https://epoch.ai/data-insights/llm-inference-price-trends">LLM inference price trends</a>, 2025 (checked 2026-11-07).</li>
-<li>Simon Willison, <a href="https://simonwillison.net/tags/pelican-riding-a-bicycle/">pelican riding a bicycle</a> series (checked 2026-11-06).</li>
-<li>ICMJE, <a href="https://www.icmje.org/recommendations/browse/artificial-intelligence/ai-use-by-authors.html">Use of AI by authors</a> (checked 2026-11-12).</li>
+<li>Claude Code, <a href="https://code.claude.com/docs/en/commands">commands reference</a> and <a href="https://code.claude.com/docs/en/memory">memory and <code>AGENTS.md</code></a> (checked <span class="nowrap">2026-11-12</span>).</li>
+<li>OpenAI, <a href="https://learn.chatgpt.com/docs/codex/cli">Codex CLI</a> and <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md"><code>AGENTS.md</code></a> (checked <span class="nowrap">2026-11-12</span> and <span class="nowrap">2026-10-30</span>).</li>
+<li>Google, <a href="https://antigravity.google/docs/rules">Antigravity rules</a> (checked <span class="nowrap">2026-10-30</span>).</li>
+<li>Anthropic, <a href="https://platform.claude.com/docs/en/about-claude/models/overview">models overview</a> and <a href="https://platform.claude.com/docs/en/about-claude/pricing">pricing</a>; OpenAI, <a href="https://developers.openai.com/api/docs/models">models</a> (checked <span class="nowrap">2026-11-12</span>).</li>
+<li>Free plans for web chats: <a href="https://claude.com/pricing">Claude</a>, <a href="https://chatgpt.com/pricing">ChatGPT</a> and <a href="https://gemini.google/subscriptions/">Gemini</a> (checked <span class="nowrap">2026-11-12</span>).</li>
+<li>Gemini CLI, <a href="https://geminicli.com/docs/get-started/installation">installation</a>, on its replacement by Antigravity CLI (checked <span class="nowrap">2026-11-12</span>).</li>
+<li>Guido Appenzeller, <a href="https://a16z.com/llmflation-llm-inference-cost/">LLMflation</a>, a16z, 2024; Epoch AI, <a href="https://epoch.ai/data-insights/llm-inference-price-trends">LLM inference price trends</a>, 2025 (checked <span class="nowrap">2026-11-07</span>).</li>
+<li>Simon Willison, <a href="https://simonwillison.net/tags/pelican-riding-a-bicycle/">pelican riding a bicycle</a> series (checked <span class="nowrap">2026-11-06</span>).</li>
+<li>ICMJE, <a href="https://www.icmje.org/recommendations/browse/artificial-intelligence/ai-use-by-authors.html">Use of AI by authors</a> (checked <span class="nowrap">2026-11-12</span>).</li>
 </ul>
 
 

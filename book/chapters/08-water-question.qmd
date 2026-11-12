@@ -3,6 +3,7 @@
 ```{python}
 #| label: ch8-setup
 from scripts import water as w
+from scripts.prose import number_words
 
 raw = w.raw()
 n_rows, n_cols = raw.shape
@@ -11,31 +12,53 @@ first, last = int(raw["year"].min()), int(raw["year"].max())
 n_entities = raw.drop_duplicates("divipola")["entity_type"].value_counts()
 n_munis = int(n_entities.get("municipality", 0))
 n_feat = len(w.A.FEATURES)
+n_out = len(w.A.OUTCOMES)
+WORD = number_words()
+pop = raw[raw["year"] == last].groupby("zone")["population"].sum()
+rural_pop, rural_share = pop["rural"] / 1e6, pop["rural"] / pop.sum()
+idf_last = int(raw.loc[raw["idf"].notna(), "year"].max())
+idf_new_first = int(raw.loc[raw["idf_new"].notna(), "year"].min())
 ```
 
-Part II's numbers were simple counts; Part III's are not. The question is about public health
-and education in Colombia, the data come from five government sources joined on official codes,
-and the analysis groups places by statistical similarity and then compares outcomes between the
-groups. Every step has a way to go wrong that a clean render will not reveal: a variable that
-means something narrower than its name, a gap that is not random, a comparison that looks
-causal and is not.
+In 2023, Colombia's national report on drinking water scored the water of its urban areas at 5.7,
+in the low-risk band, and the water of its rural areas at 36.5, in the high-risk band
+(@tbl-irca-bands). DANE's projections put `{python} f"{rural_pop:.1f}"` million people,
+`{python} f"{rural_share:.0%}"` of the population, in rural zones in `{python} last`. People drink
+and cook with this water, so where the risk sits, and what goes with it, is worth knowing.
 
-So this chapter does the work that comes before any code: what the question is and why it is
-worth asking, what the two key measures mean, where the data come from and what one row
-represents, which variables may define the groups and which may only describe them, and how the
-project is built so that one analysis feeds every publication. It ends, as Part II began, with the
-project's rules and environment.
+The question for this part is therefore: **which kinds of municipal zone exist in Colombia, judged
+by water safety, services and context, and how do health and education outcomes differ between
+them?** Part II's numbers were simple counts; these are not. Every step has a way to go wrong that
+a clean render will not reveal: a variable that means something narrower than its name, a gap that
+is not random, a comparison that looks causal and is not. This chapter deals with all three before
+any code is written, and ends with the rules that hold the assistant to them.
 
-## Why drinking water {#sec-water-why}
+## The question and its readers {#sec-water-the-question}
 
-Colombia measures the safety of drinking water with the **IRCA**, the *Índice de Riesgo de la
+The question splits in two, and the order matters:
+
+1. **Which kinds of municipal zone exist**, judged by water safety, services and context?
+2. **How do health and education outcomes differ** between those kinds?
+
+"Kinds" will be *clusters*: groups of zone-years that are similar to each other on the chosen
+variables, found by an algorithm called k-means (@sec-cluster). Because the unit is a zone in a
+year, a municipality's two zones can belong to different kinds, and a zone can move between kinds
+over the years.
+
+The answer has two readers. Officials will read it as a report, in Word or as a PDF, and a municipal
+council will see it as a short deck of slides (@sec-publish-many). Both will look for where to act,
+and both will be tempted to read a difference between kinds as an effect of the water. So the limits
+are stated now, each with its reason. The water score covers only systems run by a utility
+(@sec-water-why). Many rural zones have no score at all, so the results describe sampled systems
+(@sec-water-bands). And the comparisons describe; they cannot establish that water causes any
+outcome (@sec-causation).
+
+## Scoring water risk: the IRCA {#sec-water-why}
+
+Colombia scores the safety of drinking water with the **IRCA**, the *Índice de Riesgo de la
 Calidad del Agua para consumo humano* (water-quality risk index for human consumption), defined in
-Resolución 2115 of 2007. Surveillance samples of tap water are tested against health limits. Each
-tested characteristic carries a risk score: *Escherichia coli* 25, total coliforms 15, turbidity 15,
-free residual chlorine 15, apparent colour 6 and pH 1.5, among others. A sample's IRCA is the score
-of the characteristics that fail their limit, as a percentage of the score of all those tested,
-and a month's IRCA is the mean over its samples (articles 13 and 14). So 0 means every test passed
-and 100 means every test failed. Article 15 sorts the scale into five bands (@tbl-irca-bands).
+Resolución 2115 of 2007. It runs from 0, every test passed, to 100, every test failed, and article 15
+sorts the scale into five bands (@tbl-irca-bands).
 
 | IRCA | Band | National figures for 2023 that fall in it |
 |---|---|---|
@@ -47,9 +70,17 @@ and 100 means every test failed. Article 15 sorts the scale into five bands (@tb
 
 : The IRCA risk bands (Resolución 2115 de 2007, art. 15) and where the 2023 national figures fall (MinSalud, MinVivienda, INS and Superservicios, *INCA 2023*, Bogotá, January 2025, Tabla 4; both checked 2026-10-30). {#tbl-irca-bands}
 
-The national average sits in the medium band, but averages hide where the risk is: urban water is
-low-risk on average and rural water high-risk. That gap is the reason to look at municipalities and
-their urban and rural zones separately, and the reason this part's data are organised that way.
+The national average sits in the medium band and hides the urban–rural gap, which is why this
+part's data keep each municipality's two zones apart.
+
+::: why
+Surveillance samples of tap water are tested against health limits. Each tested characteristic
+carries a risk score: *Escherichia coli* 25, total coliforms 15, turbidity 15, free residual
+chlorine 15, apparent colour 6 and pH 1.5, among others. A sample's IRCA is the score of the
+characteristics that fail their limit, as a percentage of the score of all those tested, and a
+month's IRCA is the mean over its samples (articles 13 and 14). That is why 0 means every test
+passed and 100 means every test failed.
+:::
 
 ::: pitfall
 The IRCA in this part's data is not the national figure. The open table it comes from (INS,
@@ -57,7 +88,7 @@ datos.gov.co `nxt2-39c3`) holds the *utility-supplied* ("prestadores") IRCA: sam
 run by a water utility. A check on 2026-10-30 found that its 2023 department totals match INCA's
 utility column in 30 of 30 departments and the overall figure in only 5. Self-supplied systems,
 which have no utility, score far worse (43.7 against 7.4 in 2023), so the data understate the risk
-exactly where no utility exists. Label the variable "utility-supplied IRCA" everywhere it appears.
+wherever people rely on self-supply, and say nothing where no utility exists. Label the variable "utility-supplied IRCA" everywhere it appears.
 :::
 
 ## Two measures: IRCA and Saber 11 {#sec-water-measures}
@@ -72,13 +103,14 @@ checked 2026-10-30).
 
 Both measures are averages, and an average describes only what it averaged over. IRCA is an average
 over the water samples taken, so a system that is never sampled has no IRCA at all. The Saber 11
-mean in the data is an average over the students who sat the exam in a municipality's schools, so it
-says nothing about students who had left school. Keep both facts in mind in every comparison that
+mean in the data is an average over the students who sat the exam at schools in that municipality and
+zone, so it says nothing about students who had left school. Keep both facts in mind in every comparison that
 follows.
 
 ## Where the data come from {#sec-water-data}
 
-All the data are Colombian open data, joined on DANE's DIVIPOLA municipality codes:
+Most of the data are Colombian open data from five public bodies; rainfall and altitude come from
+two scientific datasets. All are joined on DANE's DIVIPOLA municipality codes:
 
 - **INS** (Instituto Nacional de Salud): the IRCA surveillance results.
 - **DANE** (the national statistics office): the list of municipalities and their codes, population
@@ -86,25 +118,12 @@ All the data are Colombian open data, joined on DANE's DIVIPOLA municipality cod
 - **ICFES** and **MEN** (the Ministry of Education): Saber 11 results and school dropout rates.
 - **DNP** (the National Planning Department), through its TerriData portal: water and sewer coverage,
   multidimensional poverty, municipal performance, transfers for water and infant mortality.
-- **CHIRPS** and **NASA SRTM**: rainfall, and a derived altitude for each head town.
+- **CHIRPS** (the Climate Hazards Center's rainfall data) and **NASA SRTM** (elevation data):
+  rainfall, and a derived altitude for each head town.
 
-Start a new project folder beside the London one, start the assistant in it, and copy the data:
-
-::: {.you}
-```bash
-cd ~ && mkdir -p water-quality && cd water-quality
-claude
-```
-:::
-
-::: {.prompt}
-```default
-Copy ../quarto-workshop/examples/water/data into this folder as data/, then list the files in data/ with their sizes.
-```
-:::
-
-The folder holds `water_municipal.csv` (the analysis table), `municipios.geojson` (municipal
-boundaries for maps) and `README.md`, which documents every column, source, licence and caveat.
+They arrive as three files, in `examples/water/data/` in the workshop repository:
+`water_municipal.csv` (the analysis table), `municipios.geojson` (municipal boundaries for maps) and
+`README.md`, which documents every column, source, licence and caveat (@sec-sources lists them all).
 
 **One row is one municipality's urban or rural zone in one year.** The urban zone is the head town
 (*cabecera municipal*); the rural zone is the smaller settlements and the dispersed countryside. The
@@ -117,22 +136,10 @@ municipality has all its rows, a gap is an empty cell, never a missing row.
 ::: practice
 Read `data/README.md` before you analyse anything, and ask the assistant to read it first too. Its
 caveats are the analysis's traps, written down: the IRCA source above; department capitals that
-have no urban and rural split for coverage; a fiscal index whose method changes in 2020; infant
-mortality whose method changes in 2017; Saber 11 only in some years; pesos that are not adjusted for
-inflation. Each one turns up in the chapters that follow.
+have no urban and rural split for coverage; a fiscal index whose method changes in
+`{python} idf_new_first`; infant mortality whose method changes in 2017; Saber 11 only in some years;
+pesos that are not adjusted for inflation. Each one turns up in the chapters that follow.
 :::
-
-## The question {#sec-water-the-question}
-
-The analysis asks two questions, in order:
-
-1. **Which kinds of municipal zone exist**, judged by water safety, services and context?
-2. **How do health and education outcomes differ** between those kinds?
-
-"Kinds" will be *clusters*: groups of zone-years that are similar to each other on the chosen
-variables, found by an algorithm called k-means (@sec-cluster). Because the unit is a zone in a
-year, a municipality's two zones can belong to different kinds, and a zone can move between kinds
-over the years.
 
 ## Features and outcomes {#sec-water-features}
 
@@ -152,10 +159,11 @@ it would find exactly what was put in. Keeping outcomes out of the clustering is
 comparison say anything at all.
 
 ::: why
-The split is also why the fiscal index `idf` is not a feature, although it describes municipal
-government: its method changes in 2020 (`idf` to 2020, `idf_new` from 2020, on different scales), so
-it cannot form one series across the years the analysis uses. A variable that changes meaning
-partway through would create kinds that are artefacts of the change.
+The same care is why the fiscal index `idf` is not a feature, although it describes municipal
+government: its method changes in `{python} idf_new_first` (`idf` to `{python} idf_last`, `idf_new`
+from `{python} idf_new_first`, on different scales), so it cannot form one series across the years the
+analysis uses. A variable that changes meaning partway through would create kinds that are artefacts
+of the change.
 :::
 
 ## Compute once, publish many {#sec-compute-once}
@@ -175,7 +183,36 @@ result to disagree with. Results are saved as Parquet, which keeps column types 
 This book follows the same rule: every number in Part III is computed when the book is built, by
 importing the finished project's `analysis.py` and running it in memory.
 
-## Rules and environment {#sec-water-rules}
+## Setting up the project: data, rules and environment {#sec-water-rules}
+
+The project lives beside the London one, so that the workshop repository's checkpoints are always at
+`../quarto-workshop/checkpoints/`:
+
+```text
+~                      your home folder
+├── quarto-workshop/   the clone from Chapter 3
+├── london-guide/      Part II
+└── water-quality/     this part's project
+```
+
+Make the folder, start the assistant in it, and copy the data:
+
+::: {.you}
+```bash
+cd ~ && mkdir -p water-quality && cd water-quality
+claude
+```
+:::
+
+::: {.prompt}
+```default
+Copy ../quarto-workshop/examples/water/data into this folder as data/, then list the files in data/ with their sizes.
+```
+:::
+
+Then write the rules. If you have never clustered anything, the worry is fair: the assistant can
+write an analysis that runs, renders and is wrong. You do not guard against that by writing the code
+yourself. You guard against it by checking, and a check needs something to check against.
 
 ::: {.prompt}
 ```default
@@ -206,7 +243,7 @@ written as Markdown. Packages shared with Part II come from uv's cache.
 Copy the data, write the rules and create the environment.
 
 ::: done
-`AGENTS.md` states the analysis's scope and its four rules, and `uv run quarto check jupyter` shows
+`AGENTS.md` states the analysis's scope and its rules, and `uv run quarto check jupyter` shows
 this project's `.venv` Python.
 :::
 
@@ -220,13 +257,17 @@ Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md
 ## Summary {.unnumbered}
 
 The question is which kinds of municipal zone exist in Colombia, by water safety, services and
-context, and how outcomes differ between them. IRCA scores tap-water samples from 0 (no risk) to 100
+context, and how outcomes differ between them; its readers, officials and a municipal council, need
+the limits stated as plainly as the results. IRCA scores tap-water samples from 0 (no risk) to 100
 (unfit), in five official bands; the data's IRCA is the utility-supplied figure, which understates
-risk where there is no utility. Saber 11 and IRCA are both averages over what was measured. One row
-is a municipality's urban or rural zone in one year, every row exists, and gaps are empty cells. Nine
-features define the kinds and three outcomes only describe them, because clustering on an outcome
-makes the comparison circular. One script computes everything once, and every publication reads its
-results. The project's rules write these decisions down for the assistant.
+risk wherever people rely on self-supply; and both IRCA and Saber 11 average only over what was
+measured. One row is a municipality's urban or rural zone
+in one year, every row exists, and gaps are empty cells. `{python} WORD[n_feat].capitalize()` features
+define the kinds and `{python} WORD[n_out]` outcomes only describe them, because clustering on an
+outcome makes the comparison circular. One script computes everything once, and the project's rules
+write these decisions down for the assistant. What the rules cannot say is what the table holds:
+where it is empty, and where a series moves for reasons unrelated to water. That is the next
+chapter's question.
 
 ## Further reading {.unnumbered}
 
@@ -239,7 +280,7 @@ results. The project's rules write these decisions down for the assistant.
 - ICFES, [*Guía de orientación Saber 11.° 2017-1*](https://www.icfes.gov.co/wp-content/uploads/2024/11/Guia-de-orientacion-saber-11-2017-1.pdf)
   (checked 2026-10-30).
 - [datos.gov.co](https://www.datos.gov.co/) and DNP [TerriData](https://terridata.dnp.gov.co/), the
-  sources' portals; every table, licence and cut-off date is in `examples/water/data/README.md` and
-  @sec-sources.
+  sources' portals; every table, licence and cut-off date is in
+  `examples/water/data/README.md` and @sec-sources.
 - Quarto, [project scripts](https://quarto.org/docs/projects/scripts.html): running a script before
   every render (checked 2026-10-30).

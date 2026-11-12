@@ -9,6 +9,8 @@
 -- 2. Asides. ::: why, ::: pitfall, ::: practice and ::: tryit become Quarto callouts
 --    with fixed titles; the class stays for styling.
 -- 3. Exercise lines. ::: done is prefixed "You're done when"; ::: catchup is labelled.
+-- 4. Dates. An ISO date in prose (2026-11-12) is wrapped in a .nowrap span, so a narrow
+--    screen never breaks it at a hyphen.
 
 local BOX = {
   prompt = "Ask your coding assistant",
@@ -97,7 +99,32 @@ local function aside(div)
   return nil
 end
 
+local DATE = "%d%d%d%d%-%d%d%-%d%d"
+
+local function keep_dates(str)
+  local text, out, pos = str.text, pandoc.Inlines({}), 1
+  if not text:find(DATE) then return nil end
+  while true do
+    local s, e = text:find(DATE, pos)
+    if not s then break end
+    if s > pos then out:insert(pandoc.Str(text:sub(pos, s - 1))) end
+    out:insert(pandoc.Span({ pandoc.Str(text:sub(s, e)) }, pandoc.Attr("", { "nowrap" })))
+    pos = e + 1
+  end
+  if pos <= #text then out:insert(pandoc.Str(text:sub(pos))) end
+  return out
+end
+
 return {
+  -- Every date in a Str, but none inside a link: a URL's own dates must stay breakable. The
+  -- walk is bottom-up, so a link's text has been wrapped by the time its Link is seen.
+  { Str = keep_dates,
+    Link = function(link)
+      link.content = link.content:walk({ Span = function(span)
+        if span.classes:includes("nowrap") then return span.content end
+      end })
+      return link
+    end },
   { Div = function(div)
       if div.classes:includes("agent-box") then return label_children(div) end
       return aside(div)

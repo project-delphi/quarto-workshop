@@ -1,4 +1,6 @@
-# Book plan: *One Source, Every Format*
+# Book plan: *Prompt, Check, Publish*
+
+The book was planned as *One Source, Every Format*; §10 records the rename.
 
 Status: **approved** (2026-11-12), with the decisions in §10; built, with the changes in §11.
 
@@ -86,6 +88,7 @@ size. This is an estimate, not a target. Chapters will be as long as their conte
 |---|---|---|
 | cover | Typographic cover, 1600 × 2560 PNG from `media/cover.svg` | new |
 | title page | Pandoc's EPUB title page from metadata (EPUB); Quarto's title block (HTML) | `_quarto.yml` metadata |
+| Contents | The EPUB's navigation document, placed in the spine after the copyright page (`toc: true`); the page shows parts, chapters and appendices, the reader's menu every section (§6.3) | generated |
 | `copyright.qmd` | Rights, edition and date, versions validated (Quarto 1.10.20 with Typst 0.15), an AI usage statement written the way the book teaches it, a summary of data licences, and the HTML edition URL | `#ai-use-deck`, `examples/*/data/README.md` |
 | `index.qmd` · **Preface: How to Use This Book** | Who it is for; the two running examples; how the hands-on boxes and asides work; **two paths**: self-paced (chapter order) and workshop-paced (the 6-hour agenda mapped to chapters, breaks included); falling behind (checkpoints, the two-minute rule, a catch-up flow diagram); the HTML edition vs the EPUB; versions and verification dates | `#agenda`, `#objective`, `#expected-outcomes`, README "How the slides work", INSTRUCTOR §1 and §3, `#london-story`, `#catch-up-drill` |
 
@@ -355,7 +358,10 @@ would otherwise shadow the book's.
 
 1. Nest each part's chapters under the part entry in `nav.xhtml` and `toc.ncx` (S1).
 2. Add `bodymatter` and `copyright-page` landmarks (S8); the cover landmark comes from
-   `epub-cover-image`.
+   `epub-cover-image`, and Pandoc adds the `toc` landmark once `toc: true` puts the
+   navigation document in the spine.
+2a. Group the appendices under one "Appendices" entry, and mark the Contents page so that
+   it shows parts, chapters and appendices (sections stay in the reader's menu).
 3. Remove `alt` from figure `div`s and fix whatever else epubcheck reports that the source
    cannot avoid (S9).
 4. Re-zip with `mimetype` first and stored, as the OCF spec requires.
@@ -479,6 +485,12 @@ Each has a recommended default; "approve with defaults" works.
 7. No static e-ink variant.
 8. Defaults stand for the rest: `book/_freeze/` is committed, no emoji in prose, CSS light
    panels for figures, workshop logistics dropped or moved to Appendix I.
+
+Later the same day the book was renamed *Prompt, Check, Publish: Reproducible Data Publishing
+with Quarto and AI Coding Assistants*, after the method it teaches, with "Quarto" and "AI" in
+the subtitle where readers search for them; the EPUB became `prompt-check-publish.epub`. The
+EPUB gained an in-book Contents page and both editions an About the Author page after the
+preface.
 
 ## 11. Changes during the build (2026-11-12)
 

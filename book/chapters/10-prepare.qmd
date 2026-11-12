@@ -7,6 +7,7 @@ import numpy as np
 
 from scripts import water as w
 from scripts.figures import ACCENT, MUTED, style
+from scripts.prose import alt_text_holds, number_words
 
 A = w.A
 s = w.res()["summary"]
@@ -15,22 +16,43 @@ var = prepared[A.FEATURES].var(ddof=0)
 raw_share = (var / var.sum() * 100).sort_values()
 top2 = raw_share[["rainfall_mm", "altitude_m"]].sum()
 equal = 100 / len(A.FEATURES)
+raw = w.raw()
+WORD = number_words()
+years = f"{A.FIRST_YEAR}–{A.LAST_YEAR}"
+mdm_first = int(raw.loc[raw["mdm"].notna(), "year"].min())
+n_capitals = int(raw.drop_duplicates("divipola")["department_capital"].sum())
+WATER = ["irca", "water_coverage", "sewer_coverage"]       # the water-safety and coverage features
+water_share = len(WATER) / len(A.FEATURES)
+r_cov = prepared["water_coverage"].corr(prepared["sewer_coverage"])
+sgp_vs_rain = prepared["sgp_water_pc"].var(ddof=0) / prepared["rainfall_mm"].var(ddof=0)
+by_year = prepared.groupby("year")["sgp_water_pc"]
+z_raw_sgp = (prepared["sgp_water_pc"] - by_year.transform("mean")) / by_year.transform(lambda v: v.std(ddof=0))
+z_max_raw, z_max_log = z_raw_sgp.abs().max(), prepared["z_log_sgp_water_pc"].abs().max()
+# Tunja, the municipality Part III follows (@sec-tunja), after preparation.
+tjp = prepared[prepared["divipola"] == "15001"]
+tj_urban, tj_rural = tjp[tjp["zone"] == "urban"], tjp[tjp["zone"] == "rural"]
+tj_from_total = int(tj_urban["water_coverage_from_total"].sum())
+tj_imputed = int(tj_rural["water_coverage_imputed"].sum())
+tj_zero = sorted(int(y) for y in tj_urban.loc[tj_urban["water_coverage"].eq(0), "year"])
+n_window = 2 * (A.LAST_YEAR - A.FIRST_YEAR + 1)           # two zones a year
+if len(tj_zero) != 1 or len(tjp) != n_window:   # what the Tunja paragraph below says
+    raise ValueError("Tunja's prepared rows changed: rewrite the Tunja paragraph in @sec-prepare-counts")
+
+
 ```
 
 A clustering algorithm does not read a table the way a person does. It sees numbers, measures
 distances between rows, and groups rows that are close. Everything about the result depends on
 which rows it sees, which numbers, on what scale, and what it is given where a number is
 missing. *Preparation* is the name for those decisions, and they shape the clusters as much as
-the algorithm does.
-
-This chapter makes four decisions about the water data, explains each, and counts what each one
-costs in rows. Then the assistant writes them into `scripts/analysis.py`, the one script that
-every later page reads.
+the algorithm does. Four of them stand between the water table and the clustering. Each has a price,
+counted here in rows and in guesses, before the assistant writes all four into
+`scripts/analysis.py`, the one script that every later page reads.
 
 ## Four steps from table to features {#sec-prepare-steps}
 
-**1. Select.** Keep the years 2016 to 2023, because the municipal performance index (MDM), one of
-the features, starts in 2016. Keep municipalities only: San Andrés has none of DNP's values and the
+**1. Select.** Keep the years `{python} A.FIRST_YEAR` to `{python} A.LAST_YEAR`, because the
+municipal performance index (MDM), one of the features, starts in `{python} mdm_first`. Keep municipalities only: San Andrés has none of DNP's values and the
 non-municipalised areas are nearly empty. Keep only rows with an IRCA value, since water safety is
 the point of the analysis.
 
@@ -39,7 +61,8 @@ values, so the analysis uses their logarithm. Department capitals have no urban 
 coverage, so their urban rows use the municipality's total coverage instead, and a flag column
 records that they did.
 
-**3. Impute, with flags.** Drop rows missing more than two of the nine features. Fill the remaining
+**3. Impute, with flags.** Drop rows missing more than `{python} WORD[A.MAX_MISSING]` of the
+`{python} WORD[len(A.FEATURES)]` features. Fill the remaining
 gaps with the median of the same year and zone, and add a flag column, such as
 `water_coverage_imputed`, that marks every filled value.
 
@@ -54,8 +77,9 @@ that year's kept rows. A z-score of +1 means one standard deviation above that y
 Why within each year rather than over all years? Two reasons. SGP is in nominal pesos, not adjusted
 for inflation, so its values drift upwards over time for reasons unrelated to any municipality. And
 other features shift as a whole from year to year. Standardising within each year removes both
-shifts, so a single clustering over all years gives labels that mean the same thing in 2016 and in
-2023.
+shifts, so a single clustering over all years gives labels that mean the same relative position in
+every year: a zone is compared with that year's other zones, so a nationwide shift, real or an
+artefact of sampling, does not move it between clusters.
 :::
 
 ::: pitfall
@@ -70,9 +94,9 @@ Each decision has a price in rows (@tbl-prepare-counts).
 
 | Step | Rows |
 |---|--:|
-| municipality rows, 2016–2023 | `{python} w.fmt(s["municipality_rows"])` |
+| municipality rows, `{python} years` | `{python} w.fmt(s["municipality_rows"])` |
 | dropped: no IRCA | `{python} w.fmt(s["dropped_no_irca"])` |
-| dropped: more than two features missing | `{python} w.fmt(s["dropped_too_many_missing"])` |
+| dropped: more than `{python} WORD[A.MAX_MISSING]` features missing | `{python} w.fmt(s["dropped_too_many_missing"])` |
 | **kept**: `{python} w.fmt(s["kept_urban"])` urban and `{python} w.fmt(s["kept_rural"])` rural | **`{python} w.fmt(s["kept"])`** |
 
 : What each preparation step keeps, computed by the finished project's `prepare()`. {#tbl-prepare-counts}
@@ -82,15 +106,24 @@ rows have at least one imputed value, and `{python} w.fmt(s["capital_urban_rows_
 urban rows of department capitals took the municipal total for coverage.
 
 Almost all the loss is the first drop: rows without an IRCA value, most of them rural zones that are
-never sampled (@sec-water-bands). So the rural cluster that appears in the next chapter describes
+never sampled or have no utility (@sec-water-bands). So the rural cluster that appears in the next chapter describes
 *sampled* rural systems only. The imputed values are coverage values: the rural rows of capitals, and
 municipalities whose split is missing in some years.
+
+Tunja shows both treatments of a capital, and loses none of its `{python} n_window` zone-years from
+`{python} A.FIRST_YEAR` to `{python} A.LAST_YEAR`. Its `{python} tj_from_total` urban rows took the municipal total for
+coverage, flagged in `water_coverage_from_total`, and its `{python} tj_imputed` rural rows took the
+rural median of their year, flagged in `water_coverage_imputed`. The check also turns up something
+the flags do not mark: the total that the urban row for `{python} tj_zero[0]` took is the 0 that
+the Tunja section (@sec-tunja) flagged as probably "not reported". The analysis keeps it as published, as the data's README
+does. Treating such zeros as missing would be a defensible change, but one to make in `prepare()`
+and report, never silently.
 
 ## Why scale? {#sec-scaling}
 
 k-means groups rows by straight-line, or *Euclidean*, distance: the square root of the sum of squared
-differences across the features. A feature's share of that squared distance, between two rows picked
-at random, is proportional to its variance. In raw units, the features measured in thousands, such as
+differences across the features. A feature's share of the expected squared distance, between two rows
+picked at random, is proportional to its variance. In raw units, the features measured in thousands, such as
 millimetres of rain and metres of altitude, dwarf those measured from 0 to 100 (@fig-wat-scale).
 
 ```{python}
@@ -98,6 +131,9 @@ millimetres of rain and metres of altitude, dwarf those measured from 0 to 100 (
 #| fig-cap: "Each feature's share of the squared distance between rows, in raw units and after z-scores. Kept rows, 2016–2023."
 #| fig-alt: "Horizontal bar chart with nine features. In raw units, rainfall and altitude together make up almost all of the distance and the other seven bars are too small to see. After z-scores every feature contributes the same share, about 11 percent."
 #| classes: on-light
+alt_text_holds((A.FIRST_YEAR, A.LAST_YEAR) == (2016, 2023) and len(A.FEATURES) == 9 and top2 > 99
+               and (raw_share.drop(["rainfall_mm", "altitude_m"]) < 1).all() and round(equal) == 11,
+               "fig-wat-scale")
 with style():
     fig, ax = plt.subplots(figsize=(6.6, 3.6))
     y = np.arange(len(raw_share))
@@ -116,12 +152,18 @@ with style():
 Unscaled, rainfall and altitude together would make up `{python} f"{top2:.1f}%"` of the distance, so the
 clusters would be climate zones and the water variables would hardly count. After z-scores, every
 feature has variance 1 and contributes the same share, about `{python} f"{equal:.0f}%"`. The log of SGP
-matters too: with raw pesos, SGP alone would dominate.
+matters too. In raw pesos, its variance would be about `{python} w.fmt(int(round(sgp_vs_rain, -2)))` times
+rainfall's, so it would dominate even rainfall; after z-scores, the log keeps a few very large
+transfers from sitting far from every other row, cutting the largest z-score from
+`{python} f"{z_max_raw:.1f}"` to `{python} f"{z_max_log:.1f}"`.
 
 ::: practice
-Equal weight is itself a choice, not a neutral default. Nine z-scored features count equally, so the
-three coverage-and-safety variables count for a third of the distance and context for the rest. If
-water safety should weigh more, that is a decision to make explicitly and report, not to leave to the
+Equal weight is itself a choice, not a neutral default. `{python} WORD[len(A.FEATURES)].capitalize()`
+z-scored features count equally, so the `{python} WORD[len(WATER)]` safety-and-coverage variables
+count for `{python} f"{water_share:.0%}"` of the distance and context for the rest. Equal weight
+per feature is not equal weight per idea, either: water and sewer coverage are strongly correlated
+(r = `{python} f"{r_cov:.2f}"` over the kept rows), so what they share counts twice. If water safety
+should weigh more, that is a decision to make explicitly and report, not to leave to the
 units the data happened to come in.
 :::
 
@@ -162,12 +204,12 @@ for col in FEATURES:
 grp = d.groupby("year")[FEATURES]                                        # <4>
 z = (d[FEATURES] - grp.transform("mean")) / grp.transform(lambda s: s.std(ddof=0))
 ```
-1. `MAX_MISSING` is 2, set once at the top of the script; Part III's last exercise changes it.
+1. `MAX_MISSING` is `{python} A.MAX_MISSING`, set once at the top of the script; Part III's last exercise changes it.
 2. The median of each feature within the same year and zone, aligned with every row.
 3. The flag is written before the fill, so it records exactly which values were missing.
 4. Means and standard deviations by year: the within-year z-scores of the formula above.
 
-`department_capital`, which the first prompt relies on, marks the 32 department capitals. The build
+`department_capital`, which the first prompt relies on, marks the `{python} n_capitals` department capitals. The build
 script writes it from the DIVIPOLA codes, where each capital is numbered `001`, except that
 Cundinamarca's capital is Bogotá, so `25001` (Agua de Dios) is not one: a detail the assistant can
 only get right by reading the data's README.
@@ -188,12 +230,15 @@ Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md
 
 ## Summary {.unnumbered}
 
-Preparation decides what a clustering sees: which rows (2016–2023, municipalities, with IRCA), which
-transformations (log SGP, capitals' totals for coverage, flagged), how gaps are filled (year-by-zone
-medians, flagged, after dropping rows missing more than two features), and on what scale
-(z-scores within each year). Each decision costs rows, and the biggest cost, unsampled rural zones,
-limits what the rural results can claim. Scaling is not cosmetic: unscaled, rainfall and altitude
-would decide the clusters on their own. Equal weights are a choice, and flags keep every fill visible.
+Preparation decides what a clustering sees: which rows (`{python} years`, municipalities, with
+IRCA), which transformations (log SGP, capitals' totals for coverage, flagged), how gaps are filled
+(year-by-zone medians, flagged, after dropping rows missing more than `{python} WORD[A.MAX_MISSING]`
+features), and on what scale (z-scores within each year). Each decision costs rows, and the biggest
+cost, unsampled rural zones, limits what the rural results can claim. Scaling is not cosmetic:
+unscaled, rainfall and altitude would decide the clusters on their own. Equal weights are a choice,
+flags keep every fill visible, and Tunja shows that a check can still find a value no flag marks.
+What is left is `{python} w.fmt(s["kept"])` rows of `{python} WORD[len(A.FEATURES)]` z-scores each,
+too many for anyone to read: the next chapter asks an algorithm to summarise them in a few kinds.
 
 ## Further reading {.unnumbered}
 

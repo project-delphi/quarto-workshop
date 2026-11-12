@@ -9,15 +9,15 @@ on them.
 - **[Quarto workshop](https://project-delphi.github.io/quarto-workshop/)**: Part 1 builds a
   London tourist guide from Markdown to a published dashboard. Part 2 clusters Colombian
   municipalities by drinking-water risk and context, then publishes one analysis many ways.
-- **The book**, *One Source, Every Format*, is the workshop as a book: an
-  [EPUB](https://project-delphi.github.io/quarto-workshop/book/one-source-every-format.epub) e-book, or [HTML](https://project-delphi.github.io/quarto-workshop/book/) online with the live 3-D scenes.
+- **The book**, *Prompt, Check, Publish*, is the workshop as a book: an
+  [EPUB](https://project-delphi.github.io/quarto-workshop/book/prompt-check-publish.epub) e-book, or [HTML](https://project-delphi.github.io/quarto-workshop/book/) online with the live 3-D scenes.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)**: an
   optional 90-minute graduate lab built on a real randomized email-marketing experiment, with a
   report in PDF (Typst), DOCX and IPYNB, eight slides, and verified revisions.
 
 ## For attendees
 
-Quick links: 📖 Book ([EPUB](https://project-delphi.github.io/quarto-workshop/book/one-source-every-format.epub) · [HTML](https://project-delphi.github.io/quarto-workshop/book/)) · [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLESHOOTING.md)
+Quick links: 📖 Book ([EPUB](https://project-delphi.github.io/quarto-workshop/book/prompt-check-publish.epub) · [HTML](https://project-delphi.github.io/quarto-workshop/book/)) · [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLESHOOTING.md)
 
 ### Pre-work (before the workshop)
 
@@ -143,9 +143,9 @@ Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [T
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, ⭐ white paper, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
-| `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `threejs-visits.png` is the ✨ slide's dry run; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides) |
+| `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `threejs-visits.png` is the ✨ slide's dry run; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides); `deck-qr.svg` is the title slide's QR code to the published deck, written by `uv run --with segno python scripts/deck_qr.py` |
 | `book/` | The book edition (EPUB and HTML) of the workshop, built with `make book`; see `book/README.md` |
-| `Makefile`, `scripts/keep-book.ts` | `make deck`, `make book`, `make site` and the other book targets; the deck's post-render step that restores `docs/book/` |
+| `Makefile`, `scripts/keep-book.ts`, `scripts/deck_qr.py` | `make deck`, `make book`, `make site` and the other book targets; the deck's post-render step that restores `docs/book/`; the title slide's QR code |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |

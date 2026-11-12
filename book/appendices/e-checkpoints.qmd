@@ -61,13 +61,27 @@ missing), render, check a named output, and rejoin at the next block. Paste
 
 ## Answer: changing a London input {.unnumbered #sec-answer-london}
 
+```{python}
+#| label: appE-london
+# The white paper copies ALVA's UK rank from the file: the Tower's rank there.
+import pandas as pd
+
+ldn_att = pd.read_csv("../examples/london/data/attractions.csv")
+tower_rank_uk = int(ldn_att.loc[ldn_att["attraction"] == "Tower of London", "rank_uk"].iloc[0])
+ORDINALS = ["zeroth", "first", "second", "third", "fourth", "fifth", "sixth", "seventh",
+            "eighth", "ninth", "tenth"]
+```
+
 The task (@sec-london-change): set the Tower of London's `visits_2025` to 8,000,000.
 
-**What changes.** The Tower of London becomes the most visited attraction, because every page that loads
-`attractions.csv` (@tbl-london-deps) finds the top attraction with `idxmax()` and the total with `.sum()`.
-So the guide changes in every format it writes (web page, Word and PDF, and PowerPoint, slides and EPUB if
-made), and so do the dashboard's value boxes and bar chart, the partner brief (`london-email.docx`), the
-square advert if made, and the white paper's figures for 2025.
+**What changes.** Every page that loads `attractions.csv` (@tbl-london-deps) is rebuilt with the new count,
+and what it shows depends on its code. The guide, in every format it writes (web page, Word and PDF, and
+PowerPoint, slides and EPUB if made), the dashboard's value boxes and bar chart, and the partner brief
+(`london-email.docx`) find the top attraction with `idxmax()` and the total with `.sum()`, so the Tower of
+London becomes the most visited attraction and the total rises. The square advert, if made, uses only
+`idxmax()`, so it names the Tower too. The white paper names no top attraction: its sums by admission change,
+but its table keeps ALVA's `rank_uk` column from the file, so it would still rank the Tower
+`{python} ORDINALS[tower_rank_uk]` in the UK beside the most visits of the ten. A copied column goes stale too.
 
 **What does not.** The flyer, which copies its facts and quotes no visit counts; the covering email
 (`london-email-message.md`), which quotes no numbers and is not rendered; the dashboard's line chart and the

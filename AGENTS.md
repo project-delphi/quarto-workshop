@@ -236,8 +236,8 @@ output or blindly restore over someone else's changes. `.gitignore` explicitly p
 
 ## Book edition
 
-`book/` is a Quarto book project that turns the workshop into a book, *One Source, Every
-Format*, in two editions: an EPUB (the main one) and an HTML companion where the 3-D scenes and
+`book/` is a Quarto book project that turns the workshop into a book, *Prompt, Check,
+Publish*, in two editions: an EPUB (the main one) and an HTML companion where the 3-D scenes and
 explorers run. `book/README.md` has the tools, build targets, media pipeline and reader table;
 `book/PLAN.md` the design and decisions. Build from the repository root with `make book`
 (`make book-fresh` after changing `examples/*/data/`, `examples/water/scripts/analysis.py` or
