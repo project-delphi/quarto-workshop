@@ -1,7 +1,6 @@
 # Book plan: *One Source, Every Format*
 
-Status: **draft for approval** (2026-11-12). Nothing outside `book/` has been changed.
-Working title only; see open question 1.
+Status: **approved** (2026-11-12), with the decisions in §10.
 
 This plan turns the 6-hour workshop deck (`index.qmd` with `slides/_london.qmd` and
 `slides/_water.qmd`), its long-form pages and its Markdown guides into one Quarto book
@@ -85,7 +84,7 @@ size. This is an estimate, not a target. Chapters will be as long as their conte
 
 | File | Content | Sources |
 |---|---|---|
-| cover | Typographic cover, 1600 × 2560 PNG from `media/cover/cover.svg` | new |
+| cover | Typographic cover, 1600 × 2560 PNG from `media/cover.svg` | new |
 | title page | Pandoc's EPUB title page from metadata (EPUB); Quarto's title block (HTML) | `_quarto.yml` metadata |
 | `copyright.qmd` | Rights, edition and date, versions validated (Quarto 1.10.20 with Typst 0.15), an AI usage statement written the way the book teaches it, a summary of data licences, and the HTML edition URL | `#ai-use-deck`, `examples/*/data/README.md` |
 | `index.qmd` · **Preface: How to Use This Book** | Who it is for; the two running examples; how the hands-on boxes and asides work; **two paths**: self-paced (chapter order) and workshop-paced (the 6-hour agenda mapped to chapters, breaks included); falling behind (checkpoints, the two-minute rule, a catch-up flow diagram); the HTML edition vs the EPUB; versions and verification dates | `#agenda`, `#objective`, `#expected-outcomes`, README "How the slides work", INSTRUCTOR §1 and §3, `#london-story`, `#catch-up-drill` |
@@ -126,12 +125,6 @@ Part page: the question, the unit of analysis (municipality × zone × year) and
 | 13 | **Correlation Is Not Causation** | 13.1 Worse water, more infant deaths? The within-cluster check (executed). 13.2 What else could explain it: poverty, rurality, health-service access, reporting quality, the ecological level. 13.3 Writing descriptive results honestly | 09 | `#water-within`, `#water-confounders`, `#water-causation-use`, `#water-causation-calc`, `#water-causation-do` |
 | 14 | **Publish Many** | 14.1 Report to Word and PDF. 14.2 Slides to Reveal.js and PowerPoint. 14.3 Report to EPUB (optional), with what building this book taught (links to Appendix H). 14.4 Blog and website: `pre-render` and `freeze`, and how to invalidate a cache. 14.5 Publish it. 14.6 Change an input and explain the rebuild (`MAX_MISSING`). 14.7 Dashboard and white paper (optional); further challenges | 10–13, `examples/water` | `#water-report` … `#water-stretch`, `#water-sources`; `examples/water/README.md` |
 | — | **Exercises for Part III** | As for Part II | 05–13, `examples/water` | checkpoint READMEs |
-
-### Part IV · Capstone (optional; open question 3)
-
-| Ch | Title | Sections | Sources |
-|---|---|---|---|
-| 15 | **Auditing an Agent's Analysis: A Randomized Email Experiment** | The Hillstrom experiment; eight reviewable turns; one source, three report formats (PDF, Word, runnable notebook) and eight slides; correcting an overclaim; an independent numerical check; uncertainty and the business decision; partner review and rubric | `ai-workflows.qmd`, `examples/marketing-context/` |
 
 ### Afterword · What You Built, and Where Next
 
@@ -186,7 +179,7 @@ or animated version e-readers support.** Each live element in HTML is wrapped in
 | **Diagrams**: `quarto-hub.svg`, `water-hub.svg`, `gh-pages-flow.svg` (drawn for dark slides; the hub contains the Quarto logo) | Redrawn in one book style (light ink, transparent background), without logos; originals stay for the deck | PNG at 2× from the same SVGs |
 | **New diagrams**: render pipeline, agent loop, sub-agents, git cycle, London dependency graph, water compute-once, catch-up flow, four part roadmaps | SVG | PNG at 2× |
 | **Windows step drawings** (`assets/windows-steps/*.svg`) | Reused as SVG | PNG at 2× |
-| **Pelican grid**, 12 SVGs in a 5-column table (`#pelican-grid`) | Open question 5. If kept: the table | A single composite figure (a 5-column table does not fit a phone) |
+| **Pelican grid**, 12 SVGs in a 5-column table (`#pelican-grid`) | The table, credited as on the slide | A single composite figure with the same credits (a 5-column table does not fit a phone) |
 | **London photos** (`examples/london/images/*.jpg`, credited, CC0/CC BY/CC BY-SA) | Reused with credits | Recompressed to ≤ 1200 px; credits kept |
 | **`threejs-visits.png`** (a dated dry run) | Reused with its caption | Reused |
 | **Executed figures** (ALVA bars, IRCA bands, PCA, heatmap, outcomes, within-cluster) | Book plot style, SVG | Book plot style, PNG at 200 dpi |
@@ -326,15 +319,16 @@ book/
   _quarto-html.yml       generated: chapters with part: grouping; output-dir _book/html
   _quarto-epub.yml       generated: flat list with part pages; output-dir _book/epub
   pyproject.toml, uv.lock   the book's Python environment (uv), like the examples'
-  index.qmd, copyright.qmd, part-1.qmd … part-4.qmd, afterword.qmd
-  chapters/01-quarto.qmd … 15-capstone.qmd
+  index.qmd, copyright.qmd, part-1.qmd … part-3.qmd, afterword.qmd
+  chapters/01-quarto.qmd … 14-publish-many.qmd
   appendices/a-windows.qmd … i-workshop.qmd
-  filters/agent-box.lua, filters/epub-static.lua (GIF → still, for the static variant)
+  filters/agent-box.lua
   styles/epub.css, styles/book.scss, styles/book-dark.scss
   assets/deck-host.js    Reveal-like host so assets/deck-3d.min.js runs in the HTML book
   scripts/sync_chapters.py, epub_postprocess.py, scenes.py, figures.py,
           check_prompts.py, check_media.py, shoot_epub.py (screenshots)
-  media/cover/  diagrams/  roadmaps/  gifs/  stills/  qr/  tapes/  capture/
+  media/cover.svg, cover.png (media/cover/ would match the Python gitignore's cover/ rule)
+  media/diagrams/  roadmaps/  gifs/  stills/  qr/  tapes/  capture/
   _freeze/               execution cache (committed or not: open question 8)
   _book/                 render output (gitignored)
 ```
@@ -348,7 +342,6 @@ book/
 |---|---|
 | `make book` | Sync chapter lists → render HTML (`--profile html`) → render EPUB (`--profile epub`) → post-process EPUB → epubcheck |
 | `make book-html`, `make book-epub` | One edition |
-| `make book-static` | Optional EPUB variant with every GIF replaced by its still (open question 7) |
 | `make book-fresh` | Delete `book/_freeze/`, then `make book` |
 | `make media` | Re-record GIFs, stills, diagrams' PNGs, roadmaps, cover and QR codes (only when asked; never part of `make book`) |
 | `make epubcheck` | Run epubcheck on the built EPUB(s) |
@@ -406,10 +399,11 @@ Conventional commits on `feat/epub-book`, rendering and fixing after each chapte
 3. `feat(book): add a media pipeline` (tapes, capture scripts, diagram rasterising, QR),
    with the first GIF as proof.
 4. One commit per chapter: Part I (1–3), Part II (4–7 + exercises), Part III (8–14 +
-   exercises), Part IV if approved, the afterword, then appendices A–I.
+   exercises), the afterword, then appendices A–I.
 5. `docs(book): add README, compatibility table and AGENTS.md section`.
 6. Validation fixes.
-7. If approved: publish the HTML edition (and the EPUB download) under `docs/book/`.
+7. Publish the HTML edition and the EPUB download under `docs/book/`, and link the book
+   from the deck's title slide.
 
 No push, PR or publish without your go-ahead.
 
@@ -421,7 +415,7 @@ No push, PR or publish without your go-ahead.
 - **Headless WebGL.** Chromium's software renderer may be slow or differ slightly from a GPU.
   Fallback: capture in headed Chromium.
 - **Reader variety.** No EPUB fallback mechanism chooses a still over a GIF on readers that do
-  not animate; first-frame design and the optional static EPUB cover that.
+  not animate; first-frame design covers that (no separate e-ink variant).
 - **Fast-changing facts.** Model names and prices, assistant screens and free-plan limits will
   date quickly; they live in clearly dated sidebars so the prose around them does not age.
 - **Windows.** As INSTRUCTOR.md notes, the Windows procedure has been checked only against
@@ -469,3 +463,19 @@ Each has a recommended default; "approve with defaults" works.
     backgrounds only if testing shows a reader strips the CSS. *Default: as stated.*
 11. **Workshop logistics in the book.** Discord and WhatsApp details dropped; instructor
     material in Appendix I. *Default: as stated.*
+
+## 10. Decisions (2026-11-12)
+
+1. Title *One Source, Every Format: Reproducible Publishing with Quarto and Coding
+   Assistants*, by Ravi Kalia; rights "© 2026 Ravi Kalia. All rights reserved."
+2. The HTML edition and the EPUB are published under `docs/book/`, and the deck's title
+   slide links to the book. Pages settings stay as they are (`main:/docs`). The Makefile
+   renders the deck first and the book second, because a full deck render can empty `docs/`.
+3. The AI workflows lab is left out (no Part IV).
+4. The agent-session GIF is a scripted VHS replay, labelled as an illustration.
+5. The pelican images are reproduced, credited and linked as on the slide.
+6. Tools: `vhs` via Homebrew, the official epubcheck jar, Playwright and `segno` through
+   `uv`; no Calibre.
+7. No static e-ink variant.
+8. Defaults stand for the rest: `book/_freeze/` is committed, no emoji in prose, CSS light
+   panels for figures, workshop logistics dropped or moved to Appendix I.
