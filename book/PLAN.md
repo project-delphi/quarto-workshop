@@ -1,6 +1,6 @@
 # Book plan: *One Source, Every Format*
 
-Status: **approved** (2026-11-12), with the decisions in §10.
+Status: **approved** (2026-11-12), with the decisions in §10; built, with the changes in §11.
 
 This plan turns the 6-hour workshop deck (`index.qmd` with `slides/_london.qmd` and
 `slides/_water.qmd`), its long-form pages and its Markdown guides into one Quarto book
@@ -479,3 +479,25 @@ Each has a recommended default; "approve with defaults" works.
 7. No static e-ink variant.
 8. Defaults stand for the rest: `book/_freeze/` is committed, no emoji in prose, CSS light
    panels for figures, workshop logistics dropped or moved to Appendix I.
+
+## 11. Changes during the build (2026-11-12)
+
+What the finished book does differently from this plan, and why:
+
+1. **The five optional 3-D outcome scenes are linked, not reproduced.** Section 12.6 describes
+   them and links (and QR-codes) the workshop slides at `#/water-meta-terrain`, in both editions,
+   instead of a contact sheet in the EPUB and live scenes in HTML. Porting five more scene
+   computations was a large share of the work for an optional section.
+2. **Playwright drives the installed Google Chrome** (`channel="chrome"`), not Playwright's own
+   Chromium, which the network could not download in reasonable time. WebGL runs through
+   SwiftShader as planned.
+3. **Light-panel figures are flattened in the EPUB.** The post-processor composites the
+   transparent PNGs shown on a light panel onto the panel's colour, because Amazon's guidelines
+   list images with transparent areas as unsupported and a reader that drops CSS backgrounds
+   would show dark ink on a night page.
+4. **Extra checks:** `make book` also checks every EPUB link and QR code into the website
+   edition (`scripts/check_live_links.py`); matplotlib's SVGs are made reproducible so the
+   committed `_freeze/` changes only when results do.
+5. **No e-reader was tested.** The EPUB was validated with EPUBCheck and checked as rendered in
+   Chrome with its own stylesheet; `book/README.md` marks every reader as untested, except where
+   it quotes Amazon's guidelines.
