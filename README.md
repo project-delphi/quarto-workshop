@@ -145,7 +145,7 @@ Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [T
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
 | `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `threejs-visits.png` is the ✨ slide's dry run; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides) |
 | `book/` | The book edition (EPUB and HTML) of the workshop, built with `make book`; see `book/README.md` |
-| `Makefile`, `scripts/keep-book.ts` | `make book`, `make site` and the other book targets; the deck's post-render step that keeps `docs/book/` |
+| `Makefile`, `scripts/keep-book.ts` | `make deck`, `make book`, `make site` and the other book targets; the deck's post-render step that restores `docs/book/` |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
@@ -176,9 +176,11 @@ QUARTO_PYTHON="$PWD/.conda/bin/python" \
 
 Preview does not open a browser automatically: open the URL printed in the terminal.
 
-A full render empties `docs/`; its post-render step (`scripts/keep-book.ts`) puts the committed
-book edition, `docs/book/`, back. To rebuild the book too, run `make site` (the decks, then the
-book; tools and steps in [`book/README.md`](book/README.md)).
+A full render empties `docs/`, including the book edition in `docs/book/`. `make deck` renders
+the decks and keeps `docs/book/` exactly as it was; after a plain `quarto render`, the
+post-render step (`scripts/keep-book.ts`) restores its committed or staged version. To rebuild
+the book too, run `make site` (the decks, then the book; tools and steps in
+[`book/README.md`](book/README.md)).
 Quarto 1.10.20 (with bundled Typst 0.15) is the locally validated baseline; dashboards and
 Typst need Quarto ≥ 1.4. The white-paper examples use `#set par(spacing: …)`, which Quarto
 1.6.40's Typst rejects, so they need a newer Quarto (checked 2026-11-01).

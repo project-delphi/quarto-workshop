@@ -50,7 +50,10 @@ The 3-D slides (Part 1's map, Part 2's cloud and relief) load the prebuilt
 `assets/deck-3d.min.js` (three.js), so rendering needs no npm. After editing a script in
 `assets/deck-3d/`, rebuild it with `npm ci && npm run build` in that folder
 (`assets/deck-3d/README.md`) and commit the bundle. The deck cells compute the slides'
-points and numbers; the scripts only draw.
+points and numbers; the scripts only draw. The book edition runs the same bundle and
+`assets/tunja-explorer.js`: `make book` copies them into `book/assets/` and checks that its
+copies of the scene computations (`book/scripts/scenes.py`) still give the deck's data, so
+change a scene cell and its `scenes.py` function together.
 
 Do not disable execution or hide errors to make a build pass. `freeze: false` and `cache: false`
 keep teaching computations fresh. Changes to external data are not automatically detected by
@@ -244,14 +247,16 @@ explorers run. `book/README.md` has the tools, build targets, media pipeline and
 - Compute every number in a cell from the repository's data; Part III imports the water
   project's `analysis.py`. HTML-only content uses `when-format="html:js"` (plain `html` also
   matches EPUB), with an EPUB stand-in under `when-format="epub"`.
-- The EPUB must pass EPUBCheck with no errors or warnings, and `make book`'s link check, before
-  it is published. Check changed chapters with `make book-shots` (phone and tablet, light and
+- The EPUB must pass EPUBCheck with no errors or warnings (`make` runs it with
+  `--failonwarnings`), and `make book`'s link and scene checks, before it is published.
+  Use the analysis settings (`A.N_INIT` and so on) in prose instead of typing them. Check changed chapters with `make book-shots` (phone and tablet, light and
   night) and changed HTML pages at desktop and laptop sizes.
 - Each GIF stays under 2 MB and 800 px wide, opens on a finished frame, has a still in
   `book/media/stills/`, and is remade by `make media`, not edited by hand.
 - `make book-publish` copies the HTML edition and the EPUB into `docs/book/`; commit it with the
-  sources. A full deck render empties `docs/`, and `scripts/keep-book.ts` (the deck's
-  `post-render`) restores the committed `docs/book/`; `make site` renders the deck, then the book.
+  sources. A full deck render empties `docs/`: render the deck with `make deck`, which keeps
+  `docs/book/` exactly; a plain `quarto render` restores only its committed or staged version
+  (`scripts/keep-book.ts`). `make site` renders the deck, then the book.
 
 ## Git and handoff
 

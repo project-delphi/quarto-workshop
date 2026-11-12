@@ -12,13 +12,17 @@ QUARTO_BOOK := cd $(BOOK) && JUPYTER_PATH="$$PWD/.venv/share/jupyter" uv run qua
 
 .PHONY: book book-sync book-html book-epub book-fresh epubcheck media book-shots book-publish deck site
 
-## book: render the HTML and EPUB editions, post-process the EPUB, run epubcheck, and check
-## the EPUB's links into the website edition
+## book: render the HTML and EPUB editions, post-process the EPUB, run epubcheck, check the
+## EPUB's links into the website edition, and check the live scenes' data against the deck's
 book: book-html book-epub
 	cd $(BOOK) && uv run python scripts/check_live_links.py $(EPUB:$(BOOK)/%=%)
+	cd $(BOOK) && uv run python scripts/check_scenes.py
 
+## book-sync: chapter lists for both editions, and fresh copies of the deck's assets
+## (its three.js bundle, Tunja explorer and reused images; book/media/build.py step "deck")
 book-sync:
 	cd $(BOOK) && uv run python scripts/sync_chapters.py
+	cd $(BOOK) && uv run python media/build.py deck
 
 book-html: book-sync
 	$(QUARTO_BOOK) render --profile html --to html
@@ -35,7 +39,7 @@ book-fresh:
 
 ## epubcheck: validate the EPUB; the report is saved beside it
 epubcheck: $(EPUBCHECK_JAR)
-	java -jar $(EPUBCHECK_JAR) $(EPUB) 2>&1 | tee $(BOOK)/_book/epubcheck.txt
+	java -jar $(EPUBCHECK_JAR) --failonwarnings $(EPUB) 2>&1 | tee $(BOOK)/_book/epubcheck.txt
 
 $(EPUBCHECK_JAR):
 	mkdir -p $(EPUBCHECK_DIR)
@@ -54,13 +58,19 @@ book-shots:
 	cd $(BOOK) && uv run --with playwright python scripts/shoot_epub.py $(EPUB:$(BOOK)/%=%)
 
 ## book-publish: copy the HTML edition and the EPUB into docs/book/ for GitHub Pages
+## (build both first: it stops before touching docs/book/ if either is missing)
 book-publish:
-	rsync -a --delete $(BOOK)/_book/html/ docs/book/
+	@test -f $(BOOK)/_book/html/index.html -a -f $(EPUB) \
+	  || { echo "book-publish: build both editions first (make book)" >&2; exit 1; }
+	rsync -a --delete --exclude $(notdir $(EPUB)) $(BOOK)/_book/html/ docs/book/
 	cp $(EPUB) docs/book/
 
-## deck: render the workshop decks into docs/ (the post-render script keeps docs/book/)
+## deck: render the workshop decks into docs/, keeping docs/book/ exactly as it was (a full
+## render empties docs/). A copy waits in .book-keep/; if the render fails, the next run keeps it.
 deck:
+	if [ -d docs/book ]; then rm -rf .book-keep && cp -R docs/book .book-keep; fi
 	QUARTO_PYTHON="$$PWD/.conda/bin/python" JUPYTER_PATH="$$PWD/.conda/share/jupyter" quarto render
+	if [ -d .book-keep ]; then rsync -a --delete .book-keep/ docs/book/ && rm -rf .book-keep; fi
 
 ## site: everything GitHub Pages serves from docs/: the decks, then the book (in this order)
 site:

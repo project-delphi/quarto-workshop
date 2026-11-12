@@ -32,12 +32,13 @@ Building the book needs only the first four. Playwright and segno come in throug
 From the repository root:
 
 ```bash
-make book          # both editions; EPUBCheck and a check of the EPUB's links to the website
+make book          # both editions; EPUBCheck, and checks of the EPUB's links and the scenes' data
 make book-html     # the HTML edition only
 make book-epub     # the EPUB only, with post-processing and EPUBCheck
 make book-fresh    # the same as `make book`, re-executing every chapter
 make book-shots    # screenshot the EPUB's chapters at phone and tablet widths, light and night
-make book-publish  # copy the HTML edition and the EPUB into docs/book/
+make book-publish  # copy the HTML edition and the EPUB into docs/book/ (both must be built)
+make deck          # render the deck into docs/, keeping docs/book/ as it was
 make site          # render the deck, then the book, then publish the book into docs/
 ```
 
@@ -72,7 +73,14 @@ does not notice changes outside the chapter, so run `make book-fresh` after chan
 ## Conventions
 
 - Every number is computed by a cell from the repository's data. Part III imports the water
-  project's `analysis.py`, so the book quotes what the project computes.
+  project's `analysis.py`, so the book quotes what the project computes, and its settings
+  (`A.N_INIT`, `A.ELBOW_DROP` and so on) rather than typing them. Alt texts are static cell
+  options, so a cell whose figure's alt text describes results checks them with
+  `alt_text_holds()` and stops the render when they change.
+- The live scenes run the deck's own three.js bundle and Tunja explorer, copied from `assets/`
+  by `make` (book-sync) on every build. Their data come from `scripts/scenes.py`, which repeats
+  the deck cells' computations; `scripts/check_scenes.py` (run by `make book`) fails if the
+  JSON differs from the rendered deck's in anything but the deck's emoji and step numbering.
 - Edition-specific content: `when-format="html:js"` for the HTML edition (plain `html` also
   matches EPUB) and `when-format="epub"` for its EPUB stand-in.
 - Asides are divs with the classes `why`, `pitfall`, `practice` and `tryit`, turned into
@@ -146,7 +154,9 @@ Sizes in decimal units, as built on 2026-11-12.
 1. `make book` ends with EPUBCheck's summary, where anything but
    `0 fatals / 0 errors / 0 warnings / 0 infos` is a failure to fix, and with
    `scripts/check_live_links.py`, which fails if a link or QR code from the EPUB names a page
-   or anchor that the website edition (or the deck) does not have.
+   or anchor that the website edition (or the deck) does not have, and with
+   `scripts/check_scenes.py`, which fails if a live scene's data differ from the deck's.
+   EPUBCheck runs with `--failonwarnings`, so a warning stops the build.
 2. `make book-shots` saves each EPUB chapter, screen by screen, at phone (390 × 844) and tablet
    (820 × 1180) sizes, in a light and a simulated night theme, to `_book/shots/`, and reports
    anything that sticks out sideways. Look at the changed chapters.
@@ -157,10 +167,22 @@ Sizes in decimal units, as built on 2026-11-12.
 ## Publishing
 
 GitHub Pages serves `main:/docs`; the book is `docs/book/`, copied there by `make book-publish`
-and committed with its sources. A full render of the deck empties `docs/`, so the deck's
-`post-render` script, `scripts/keep-book.ts`, restores the committed `docs/book/` afterwards.
-To rebuild everything, run `make site`, which renders the deck first and then publishes the
-book over the restored copy. Never use `quarto publish` for this repository.
+and committed with its sources. `make book-publish` refuses to run unless both editions are
+built, so it never leaves `docs/book/` without its EPUB.
+
+A full render of the deck empties `docs/`, book included, before anything else runs. Two things
+put the book back:
+
+- `make deck` copies `docs/book/` aside (to `.book-keep/`, ignored by git) before rendering and
+  puts that copy back afterwards, so the book is kept exactly, unpublished changes included. If
+  the render fails, the copy stays and the next `make deck` restores it.
+- For a plain `quarto render`, the deck's `post-render` script, `scripts/keep-book.ts`,
+  restores `docs/book/` from git's index: the committed version, or the staged one. Changes that
+  were neither committed nor staged are lost; run `make book-publish` again. The script says so
+  when the last book build differs from what it restored.
+
+To rebuild everything, run `make site`: the deck, then the book, then `make book-publish`.
+Never use `quarto publish` for this repository.
 
 ## How the editions behave in readers
 

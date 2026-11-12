@@ -89,12 +89,22 @@ def step_deck() -> None:
     # The deck's three.js bundle and Tunja explorer, run unchanged in the HTML edition.
     copies += [(BOOK.parent / "assets", name, BOOK / "assets")
                for name in ("deck-3d.min.js", "tunja-explorer.js")]
+    # `make book` runs this step first (book-sync), so the copies never fall behind the deck.
+    import filecmp
+    stale_gifs = []
     for src, pattern, dest_dir in copies:
         for f in sorted(src.glob(pattern)):
             dest = dest_dir / f.relative_to(src)
+            if dest.exists() and filecmp.cmp(f, dest, shallow=False):
+                continue
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(f, dest)
             print("copy", dest.relative_to(BOOK))
+            if dest.suffix == ".gif":
+                stale_gifs.append(dest.name)
+    if stale_gifs:
+        print("deck GIFs changed (" + ", ".join(stale_gifs) + "): run "
+              '`make media STEPS="posters stills check"` to rebuild the book versions')
 
 
 def step_cover() -> None:
