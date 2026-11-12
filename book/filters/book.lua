@@ -99,18 +99,32 @@ local function aside(div)
   return nil
 end
 
+local DATE = "%d%d%d%d%-%d%d%-%d%d"
+
 local function keep_dates(str)
-  local pre, date, post = str.text:match("^(.-)(%d%d%d%d%-%d%d%-%d%d)(.*)$")
-  if not date then return nil end
-  local out = pandoc.Inlines({})
-  if pre ~= "" then out:insert(pandoc.Str(pre)) end
-  out:insert(pandoc.Span({ pandoc.Str(date) }, pandoc.Attr("", { "nowrap" })))
-  if post ~= "" then out:insert(pandoc.Str(post)) end
+  local text, out, pos = str.text, pandoc.Inlines({}), 1
+  if not text:find(DATE) then return nil end
+  while true do
+    local s, e = text:find(DATE, pos)
+    if not s then break end
+    if s > pos then out:insert(pandoc.Str(text:sub(pos, s - 1))) end
+    out:insert(pandoc.Span({ pandoc.Str(text:sub(s, e)) }, pandoc.Attr("", { "nowrap" })))
+    pos = e + 1
+  end
+  if pos <= #text then out:insert(pandoc.Str(text:sub(pos))) end
   return out
 end
 
 return {
-  { Str = keep_dates },
+  -- Every date in a Str, but none inside a link: a URL's own dates must stay breakable. The
+  -- walk is bottom-up, so a link's text has been wrapped by the time its Link is seen.
+  { Str = keep_dates,
+    Link = function(link)
+      link.content = link.content:walk({ Span = function(span)
+        if span.classes:includes("nowrap") then return span.content end
+      end })
+      return link
+    end },
   { Div = function(div)
       if div.classes:includes("agent-box") then return label_children(div) end
       return aside(div)

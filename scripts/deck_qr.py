@@ -1,19 +1,26 @@
 """Write assets/deck-qr.svg, the QR code on the workshop deck's title slide.
 
-It opens the published deck, so participants can follow the slides on their own screens.
+It opens the published deck, so participants can follow the slides on their own screens; the
+URL is read from `title-qr: url:` in index.qmd, which the slide also links to.
 Dark modules in the deck's background colour on a warm off-white, with the standard
 four-module quiet zone; the viewBox lets theme.scss size it. Run from the repository root
-after changing the URL:
+after changing that URL:
 
     uv run --with segno python scripts/deck_qr.py
 """
 import io
+import re
 from pathlib import Path
 
 import segno
 
-URL = "https://project-delphi.github.io/quarto-workshop/"
+DECK = Path("index.qmd")
 OUT = Path("assets/deck-qr.svg")
+# The URL comes from the deck's own `title-qr: url:`, so the code and the slide's link agree.
+m = re.search(r'^title-qr:\n(?:  .*\n)*?  url: "([^"]+)"', DECK.read_text(), re.M)
+if not m:
+    raise SystemExit(f"{DECK} has no title-qr url")
+URL = m.group(1)
 
 qr = segno.make(URL, error="m", micro=False)
 size = qr.symbol_size(scale=1, border=4)[0]

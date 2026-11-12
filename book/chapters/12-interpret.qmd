@@ -14,6 +14,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from scripts import water as w
 from scripts.figures import INK, style
+from scripts.prose import number_words, spans, text_holds
 
 A = w.A
 res = w.res()
@@ -61,12 +62,9 @@ def cname(c):
 #| label: ch12-checks
 # Values for the prose, and guards for its sentences whose words, not only their numbers,
 # depend on the data: the render stops when the data no longer support one.
-def text_holds(ok: bool, what: str) -> None:
-    if not ok:
-        raise ValueError(f"the text about {what} no longer matches the data: rewrite it")
+NUM = number_words(zero="no")
 
 
-NUM = dict(enumerate(["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]))
 OUT_WORDS = {"infant_mortality": "infant mortality", "saber11_mean": "exam scores",
              "dropout_rate": "dropout"}
 
@@ -74,17 +72,6 @@ OUT_WORDS = {"infant_mortality": "infant mortality", "saber11_mean": "exam score
 def listing(words):
     words = list(words)
     return ", ".join(words[:-1]) + " and " + words[-1] if len(words) > 1 else words[0]
-
-
-def spans(years):
-    """(2017, 2018, 2019, 2021) -> "2017–2019 and 2021"."""
-    years, runs = sorted(years), []
-    for y in years:
-        if runs and y == runs[-1][1] + 1:
-            runs[-1][1] = y
-        else:
-            runs.append([y, y])
-    return listing(f"{a}–{b}" if b > a else f"{a}" for a, b in runs)
 
 
 IM_YEARS = spans(A.OUTCOME_YEARS["infant_mortality"])
@@ -284,7 +271,7 @@ and inside the window its utility-supplied IRCA is never in the no-risk band, an
 in `{python} NUM[tj_medium]` of the `{python} NUM[len(tjr)]` years.
 
 Two things are at work. The risk word describes the cluster's median, not each member, as
-@sec-names warned. And k-means places a row by all nine features at once. On its own `{python} NUM[len(own)]`,
+@sec-names warned. And k-means places a row by all `{python} NUM[len(A.FEATURES)]` features at once. On its own `{python} NUM[len(own)]`,
 `{python} listing(WORDS[c] for c in own)`, Tunja's rural zone sits nearest the centre of
 `{python} cname(rural_c)`, and two of those, the coverages, are fills (@sec-prepare-counts). On the
 `{python} NUM[len(shared)]` it shares with the urban zone as one municipality,
@@ -541,8 +528,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
 The slide deck this book grew from has five more 3-D views of the outcomes the clustering never used,
 by cluster and year: dropout as terrain, clusters as hulls, the years stacked, clusters as orbits, and dropout in
 Voronoi columns. They are exploratory pictures rather than evidence, and they run live in the
-published slides, starting at
-<https://project-delphi.github.io/quarto-workshop/#/water-meta-terrain>.
+published slides, starting with [dropout as terrain](https://project-delphi.github.io/quarto-workshop/#/water-meta-terrain).
 
 ::: {.content-visible when-format="epub"}
 Scan to open them: ![QR code for the 3-D explorations in the workshop slides.](../media/qr/explorations.png){.qr}

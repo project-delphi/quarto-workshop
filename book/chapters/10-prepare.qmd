@@ -7,6 +7,7 @@ import numpy as np
 
 from scripts import water as w
 from scripts.figures import ACCENT, MUTED, style
+from scripts.prose import alt_text_holds, number_words
 
 A = w.A
 s = w.res()["summary"]
@@ -16,8 +17,7 @@ raw_share = (var / var.sum() * 100).sort_values()
 top2 = raw_share[["rainfall_mm", "altitude_m"]].sum()
 equal = 100 / len(A.FEATURES)
 raw = w.raw()
-WORD = dict(enumerate(["zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
-                       "nine", "ten", "eleven", "twelve"]))
+WORD = number_words()
 years = f"{A.FIRST_YEAR}–{A.LAST_YEAR}"
 mdm_first = int(raw.loc[raw["mdm"].notna(), "year"].min())
 n_capitals = int(raw.drop_duplicates("divipola")["department_capital"].sum())
@@ -39,11 +39,6 @@ if len(tj_zero) != 1 or len(tjp) != n_window:   # what the Tunja paragraph below
     raise ValueError("Tunja's prepared rows changed: rewrite the Tunja paragraph in @sec-prepare-counts")
 
 
-def alt_text_holds(ok: bool, figure: str) -> None:
-    """Alt texts and captions are static cell options, so they cannot quote computed values.
-    Stop the render when the data no longer match what one says, so that it is rewritten."""
-    if not ok:
-        raise ValueError(f"the alt text of {figure} no longer matches the data: rewrite it")
 ```
 
 A clustering algorithm does not read a table the way a person does. It sees numbers, measures

@@ -8,6 +8,7 @@ import numpy as np
 from scripts import scenes as sc
 from scripts import water as w
 from scripts.figures import ACCENT, INK, MUTED, style
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 A = w.A
 res = w.res()
@@ -22,8 +23,7 @@ rl = sc.relief(res, w.raw(), A)
 next_drop = ktab["inertia_drop"].get(k + 1, 0.0)
 ORDINAL = dict(enumerate(["first", "second", "third", "fourth", "fifth", "sixth", "seventh",
                           "eighth", "ninth", "tenth"], start=1))
-WORD = dict(enumerate(["zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
-                       "nine", "ten", "eleven", "twelve"]))
+WORD = number_words()
 n_feat = len(A.FEATURES)
 # How close the call on k is, by choose_k()'s own rule (examples/water/scripts/analysis.py).
 drop_at_k = ktab["inertia_drop"].get(k, 0.0)          # what the k-th cluster itself cut
@@ -35,9 +35,14 @@ sil_out_text = ("rules out nothing here" if not sil_out else
 sil_best = ktab["silhouette"].max()
 nxt = ktab["inertia_drop"].shift(-1).fillna(0.0)
 t_alt = np.ceil(drop_at_k * 100) / 100                # the next whole percentage point above it
-k_alt = min(j for j in cand.index if nxt[j] < t_alt and sil_ok[j])
-if k_alt == k or "altitude_m" not in cl["pc3_top"]:
-    raise ValueError("the elbow or the third-component sentences no longer match the data: rewrite them")
+k_alt = min((j for j in cand.index if nxt[j] < t_alt and sil_ok[j]), default=None)
+# The prose calls the elbow marginal ("only just above" the threshold, and a threshold one
+# point higher picks another k), the best silhouette "near 0.2" and at most 0.25 (Struyf,
+# Hubert and Rousseeuw's "no substantial structure"), and names altitude in the third component.
+text_holds(k_alt is not None and k_alt != k and drop_at_k - A.ELBOW_DROP < 0.01, "the marginal elbow")
+text_holds(abs(ktab.loc[k, "silhouette"] - 0.2) < 0.03 and sil_best <= 0.25,
+           "the chosen silhouette near 0.2 and the best at most 0.25")
+text_holds("altitude_m" in cl["pc3_top"], "the third component's altitude")
 # Tunja, the municipality Part III follows (@sec-tunja): which clusters its zone-years fall in.
 tj_cl = clusters[clusters["divipola"] == "15001"]
 tj_in = {z: sorted(int(c) for c in tj_cl.loc[tj_cl["zone"] == z, "cluster"].unique())
@@ -57,11 +62,6 @@ else:
                f"{clusters_text(tj_in['rural'])}")
 
 
-def alt_text_holds(ok: bool, figure: str) -> None:
-    """Alt texts are static cell options, so they cannot quote computed values. Stop the
-    render when the data no longer match what one says, so that it is rewritten."""
-    if not ok:
-        raise ValueError(f"the alt text of {figure} no longer matches the data: rewrite it")
 ```
 
 The water data now have `{python} w.fmt(s["kept"])` prepared rows, each described by
@@ -115,9 +115,8 @@ k-means on synthetic toy points. The numbered buttons step through the algorithm
 ![k-means on synthetic toy points, step by step: centres drop, points join their nearest centre, centres move to their points' mean, until nothing changes.](../media/gifs/kmeans-steps.gif){#fig-kmeans-steps .anim fig-alt="A turning cloud of toy points in three groups. Three centres drop in at random, each point takes the colour of its nearest centre, the centres move to the mean of their points leaving trails, and the steps repeat until the colours stop changing."}
 
 ::: {.live-link}
-Step through it yourself, and try the start that gets stuck, in the website edition:
-<https://project-delphi.github.io/quarto-workshop/book/chapters/11-cluster.html#sec-kmeans-steps>,
-or scan: ![QR code for the live k-means scene in the website edition.](../media/qr/kmeans.png){.qr}
+Step through it yourself, and try the start that gets stuck,
+[in the website edition](https://project-delphi.github.io/quarto-workshop/book/chapters/11-cluster.html#sec-kmeans-steps), or scan: ![QR code for the live k-means scene in the website edition.](../media/qr/kmeans.png){.qr}
 :::
 :::
 
@@ -275,9 +274,8 @@ The zone-years on the first three principal components, coloured and shaped by c
 ![The zone-years on the first three principal components, turning from the 2-D picture to stand PC3 upright.](../media/gifs/cluster-cloud-orbit.gif){#fig-cloud-3d .anim fig-alt="A dense cloud of points in four colours, seen face on as in the 2-D picture, then turning so a third axis comes forward, and finally standing that axis upright, where one cluster separates from the others."}
 
 ::: {.live-link}
-Turn the cloud yourself in the website edition:
-<https://project-delphi.github.io/quarto-workshop/book/chapters/11-cluster.html#fig-cloud-3d>,
-or scan: ![QR code for the live cluster cloud in the website edition.](../media/qr/cluster-cloud.png){.qr}
+Turn the cloud yourself
+[in the website edition](https://project-delphi.github.io/quarto-workshop/book/chapters/11-cluster.html#fig-cloud-3d), or scan: ![QR code for the live cluster cloud in the website edition.](../media/qr/cluster-cloud.png){.qr}
 :::
 :::
 
@@ -306,9 +304,8 @@ Clustered urban zones as columns at their head towns' altitude, coloured by clus
 ![Clustered urban zones as columns at their head towns' altitude, coloured by cluster, tilting up and flying into the highlands.](../media/gifs/colombia-relief-orbit.gif){#fig-relief .anim fig-alt="A map of mainland Colombia seen from above, with coloured columns at municipal centroids, tilting so the columns rise to their head towns' altitude: the tallest columns run along the Andes in the centre and west, the shortest along the Caribbean coast and in the east, and the view then flies into the highlands."}
 
 ::: {.live-link}
-Explore the map in the website edition:
-<https://project-delphi.github.io/quarto-workshop/book/chapters/11-cluster.html#sec-relief>,
-or scan: ![QR code for the live relief map in the website edition.](../media/qr/colombia-relief.png){.qr}
+Explore the map
+[in the website edition](https://project-delphi.github.io/quarto-workshop/book/chapters/11-cluster.html#sec-relief), or scan: ![QR code for the live relief map in the website edition.](../media/qr/colombia-relief.png){.qr}
 :::
 :::
 

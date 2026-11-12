@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from scripts import water as w
 from scripts.figures import INK, style
+from scripts.prose import number_words, spans, text_holds
 
 A = w.A
 res = w.res()
@@ -29,21 +30,7 @@ def sgn(x):
 ```{python}
 #| label: ch13-checks
 # Values for the prose, and guards for its sentences whose words depend on the data.
-def text_holds(ok: bool, what: str) -> None:
-    if not ok:
-        raise ValueError(f"the text about {what} no longer matches the data: rewrite it")
-
-
-def spans(years):
-    """(2017, 2018, 2019, 2021) -> "2017–2019 and 2021"."""
-    runs = []
-    for y in sorted(years):
-        if runs and y == runs[-1][1] + 1:
-            runs[-1][1] = y
-        else:
-            runs.append([y, y])
-    parts = [f"{a}–{b}" if b > a else f"{a}" for a, b in runs]
-    return ", ".join(parts[:-1]) + " and " + parts[-1] if len(parts) > 1 else parts[0]
+NUM = number_words(zero="no")
 
 
 IM_YEARS = spans(A.OUTCOME_YEARS["infant_mortality"])
@@ -79,7 +66,6 @@ text_holds(w.raw()["infant_mortality"].eq(0).sum() == 0
            and my_pop.loc[my_pop["infant_mortality"].isna(), "muni_pop"].median()
            < my_pop.loc[my_pop["infant_mortality"].notna(), "muni_pop"].median(),
            "a series without zeros, blank in smaller places")
-NUM = dict(enumerate(["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]))
 
 
 def clusters_text(cs):

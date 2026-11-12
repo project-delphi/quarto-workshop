@@ -82,7 +82,9 @@ does not notice changes outside the chapter, so run `make book-fresh` after chan
   project's `analysis.py`, so the book quotes what the project computes, and its settings
   (`A.N_INIT`, `A.ELBOW_DROP` and so on) rather than typing them. Alt texts are static cell
   options, so a cell whose figure's alt text describes results checks them with
-  `alt_text_holds()` and stops the render when they change.
+  `alt_text_holds()` and stops the render when they change; sentences whose words depend on the
+  data use `text_holds()`. Both, with number words (`number_words()`) and year spans
+  (`spans()`), come from `scripts/prose.py`, so every chapter writes them the same way.
 - The live scenes run the deck's own three.js bundle and Tunja explorer, copied from `assets/`
   by `make` (book-sync) on every build. Their data come from `scripts/scenes.py`, which repeats
   the deck cells' computations; `scripts/check_scenes.py` (run by `make book`) fails if the

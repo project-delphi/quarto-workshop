@@ -3,6 +3,7 @@
 ```{python}
 #| label: ch8-setup
 from scripts import water as w
+from scripts.prose import number_words
 
 raw = w.raw()
 n_rows, n_cols = raw.shape
@@ -12,8 +13,7 @@ n_entities = raw.drop_duplicates("divipola")["entity_type"].value_counts()
 n_munis = int(n_entities.get("municipality", 0))
 n_feat = len(w.A.FEATURES)
 n_out = len(w.A.OUTCOMES)
-WORD = dict(enumerate(["zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
-                       "nine", "ten", "eleven", "twelve"]))
+WORD = number_words()
 pop = raw[raw["year"] == last].groupby("zone")["population"].sum()
 rural_pop, rural_share = pop["rural"] / 1e6, pop["rural"] / pop.sum()
 idf_last = int(raw.loc[raw["idf"].notna(), "year"].max())

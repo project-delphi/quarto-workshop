@@ -9,6 +9,7 @@ import pandas as pd
 from scripts import water as w
 from scripts.figures import INK, MUTED, style
 from scripts.scenes import tunja
+from scripts.prose import alt_text_holds, number_words, spans
 
 A = w.A
 raw = w.raw()
@@ -24,8 +25,7 @@ med = raw.groupby(["year", "zone"])["irca"].median().unstack()
 ZONE = {"urban": "#2f72b0", "rural": "#b07a14"}
 tj = tunja(raw)
 first, last = int(raw["year"].min()), int(raw["year"].max())
-WORD = dict(enumerate(["zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
-                       "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen"]))
+WORD = number_words()
 drops = sorted(med["rural"].diff().nsmallest(2).index)       # the two sharpest falls
 # Tunja: why it is a good case, from its rows.
 tjr = tj["rows"]
@@ -43,25 +43,9 @@ idf_last = int(raw.loc[raw["idf"].notna(), "year"].max())
 idf_new_first = int(raw.loc[raw["idf_new"].notna(), "year"].min())
 
 
-def spans(years) -> str:
-    """[2014, 2015, 2016, 2017, 2019, 2020, 2022] -> "2014–2017, 2019, 2020 and 2022"."""
-    ys, out = sorted(int(y) for y in years), []
-    start = ys[0]
-    for a, b in zip(ys, ys[1:] + [None]):
-        if b != a + 1:
-            out += [f"{start}–{a}"] if a - start > 1 else [str(y) for y in range(start, a + 1)]
-            start = b
-    return out[0] if len(out) == 1 else ", ".join(out[:-1]) + " and " + out[-1]
-
-
 saber_years = spans(raw.loc[raw["saber11_mean"].notna(), "year"].unique())
 
 
-def alt_text_holds(ok: bool, figure: str) -> None:
-    """Alt texts and captions are static cell options, so they cannot quote computed values.
-    Stop the render when the data no longer match what one says, so that it is rewritten."""
-    if not ok:
-        raise ValueError(f"the alt text of {figure} no longer matches the data: rewrite it")
 ```
 
 Before any model, look at the data. Exploring tells you what a model will and will not be able
@@ -207,9 +191,8 @@ with style():
 ```
 
 ::: {.live-link}
-Explore all `{python} WORD[len(tj["pivot"])]` of Tunja's variables in the website edition, at
-<https://project-delphi.github.io/quarto-workshop/book/chapters/09-explore.html#sec-tunja>,
-or scan: ![QR code for the Tunja explorer in the website edition.](../media/qr/tunja.png){.qr}
+Explore all `{python} WORD[len(tj["pivot"])]` of Tunja's variables
+[in the website edition](https://project-delphi.github.io/quarto-workshop/book/chapters/09-explore.html#sec-tunja), or scan: ![QR code for the Tunja explorer in the website edition.](../media/qr/tunja.png){.qr}
 :::
 :::
 
