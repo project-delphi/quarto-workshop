@@ -231,6 +231,28 @@ render can clean the output directory: fix the failure and re-render; do not com
 output or blindly restore over someone else's changes. `.gitignore` explicitly permits
 `docs/site_libs/**` despite the generic `dist/` rule.
 
+## Book edition
+
+`book/` is a Quarto book project that turns the workshop into a book, *One Source, Every
+Format*, in two editions: an EPUB (the main one) and an HTML companion where the 3-D scenes and
+explorers run. `book/README.md` has the tools, build targets, media pipeline and reader table;
+`book/PLAN.md` the design and decisions. Build from the repository root with `make book`
+(`make book-fresh` after changing `examples/*/data/`, `examples/water/scripts/analysis.py` or
+`book/scripts/*.py`, since `freeze: auto` cannot see them). Keep these rules:
+
+- Edit the chapter list only in `book/_chapters.yml`; `make` generates the profiles' lists.
+- Compute every number in a cell from the repository's data; Part III imports the water
+  project's `analysis.py`. HTML-only content uses `when-format="html:js"` (plain `html` also
+  matches EPUB), with an EPUB stand-in under `when-format="epub"`.
+- The EPUB must pass EPUBCheck with no errors or warnings, and `make book`'s link check, before
+  it is published. Check changed chapters with `make book-shots` (phone and tablet, light and
+  night) and changed HTML pages at desktop and laptop sizes.
+- Each GIF stays under 2 MB and 800 px wide, opens on a finished frame, has a still in
+  `book/media/stills/`, and is remade by `make media`, not edited by hand.
+- `make book-publish` copies the HTML edition and the EPUB into `docs/book/`; commit it with the
+  sources. A full deck render empties `docs/`, and `scripts/keep-book.ts` (the deck's
+  `post-render`) restores the committed `docs/book/`; `make site` renders the deck, then the book.
+
 ## Git and handoff
 
 Work on a feature branch, preserve unrelated changes, and use `type(scope): lowercase description`

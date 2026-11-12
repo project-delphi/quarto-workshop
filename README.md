@@ -9,6 +9,9 @@ on them.
 - **[Quarto workshop](https://project-delphi.github.io/quarto-workshop/)**: Part 1 builds a
   London tourist guide from Markdown to a published dashboard. Part 2 clusters Colombian
   municipalities by drinking-water risk and context, then publishes one analysis many ways.
+- **[The book](https://project-delphi.github.io/quarto-workshop/book/)**: the workshop as a book,
+  *One Source, Every Format*, to read online or as an
+  [EPUB](https://project-delphi.github.io/quarto-workshop/book/one-source-every-format.epub).
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)**: an
   optional 90-minute graduate lab built on a real randomized email-marketing experiment, with a
   report in PDF (Typst), DOCX and IPYNB, eight slides, and verified revisions.
@@ -142,13 +145,15 @@ Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [T
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
 | `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `threejs-visits.png` is the ✨ slide's dry run; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides) |
+| `book/` | The book edition (EPUB and HTML) of the workshop, built with `make book`; see `book/README.md` |
+| `Makefile`, `scripts/keep-book.ts` | `make book`, `make site` and the other book targets; the deck's post-render step that keeps `docs/book/` |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
 | `examples/marketing-context/`, `examples/ai-context/` | Inputs for the AI workflows lab |
 | `AGENTS.md` / `CLAUDE.md` | Repository instructions, slide conventions, data contracts, delegation roles |
 | `environment.yml`, `environment-r.yml` | Python (and optional R) environment recipes |
-| `docs/` | Committed rendered output; GitHub Pages serves `main:/docs` |
+| `docs/` | Committed rendered output (the decks, and the book in `docs/book/`); GitHub Pages serves `main:/docs` |
 
 `examples/`, `checkpoints/` and `slides/` stay outside `project.render`; the examples and
 checkpoints are rendered separately when they change.
@@ -171,6 +176,10 @@ QUARTO_PYTHON="$PWD/.conda/bin/python" \
 ```
 
 Preview does not open a browser automatically: open the URL printed in the terminal.
+
+A full render empties `docs/`; its post-render step (`scripts/keep-book.ts`) puts the committed
+book edition, `docs/book/`, back. To rebuild the book too, run `make site` (the decks, then the
+book; tools and steps in [`book/README.md`](book/README.md)).
 Quarto 1.10.20 (with bundled Typst 0.15) is the locally validated baseline; dashboards and
 Typst need Quarto ≥ 1.4. The white-paper examples use `#set par(spacing: …)`, which Quarto
 1.6.40's Typst rejects, so they need a newer Quarto (checked 2026-11-01).
