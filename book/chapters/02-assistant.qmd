@@ -12,20 +12,50 @@ pelican_cost = {m.group(1): float(m.group(2)) for m in re.finditer(
 cheapest_ok = pelican_cost["haiku-medium"]
 dearest = max(pelican_cost.values())
 ratio = dearest / cheapest_ok
+
+# The grid (@fig-pelicans) is a Markdown table in HTML and a picture in the EPUB, so its cell
+# costs and its alt text are typed. Stop the render if they no longer match the README.
+QUOTED_CENTS = {"haiku-low": 0.09, "haiku-medium": 0.14, "haiku-high": 0.25,
+                "sonnet-low": 1.63, "sonnet-medium": 1.80, "sonnet-high": 2.34,
+                "opus-low": 3.79, "opus-medium": 5.89, "opus-high": 6.74,
+                "fable-low": 10.02, "fable-medium": 9.91, "fable-high": 13.09}
+
+
+def alt_text_holds(ok: bool, figure: str) -> None:
+    """Alt texts and figure tables cannot quote computed values. Stop the render when the
+    data no longer match what one says, so that it is rewritten."""
+    if not ok:
+        raise ValueError(f"the typed costs of {figure} no longer match the data: rewrite them")
+
+
+alt_text_holds(pelican_cost == QUOTED_CENTS, "fig-pelicans")
 ```
 
-Quarto turns sources into outputs, but someone still has to write the sources: the
-Markdown, the settings, and above all the code that reads data and draws charts. In this
-book that someone is usually a *coding assistant*, a program that writes and edits files and
-runs commands at your request. You describe the work, it does the typing, and you decide
-whether the result is right.
+Simon Willison, a developer, has asked most major new models the same question since 2024:
+"Generate an SVG of a pelican riding a bicycle". Four Claude models, each at three effort
+levels, answered it with `{python} len(pelican_cost)` drawings, and every one is recognisably
+a pelican on a bicycle. The dearest cost `{python} f"{dearest:.2f}"` cents, about
+`{python} f"{ratio:.0f}"` times as much as the cheapest that was good enough, at
+`{python} f"{cheapest_ok:.2f}"` cents (@fig-pelicans).
 
-That division of labour is powerful, and it has sharp edges. An assistant can produce in a
-minute what would take an hour by hand, and it can produce plausible, confident, wrong work
-just as quickly. This chapter explains how assistants work, how to choose one and what it
-costs, where its reach begins and ends, how to give it rules that last, how to ask for work,
-and how to account for its use when the work is research. The rest of the book assumes all
-of it.
+Choosing between those drawings is the first of many judgements this chapter teaches. A
+*coding assistant* is a program that writes and edits files and runs commands at your
+request: you write the *Prompt*, it does the typing, and you *Check* whether the result is
+right. It can produce in a minute what would take an hour by hand, and it can produce
+plausible, confident, wrong work just as quickly. How do you get the first kind of work
+without being fooled by the second?
+
+::: tryit
+No installation needed. Paste Simon Willison's prompt,
+`Generate an SVG of a pelican riding a bicycle`, into a web chat in your browser (Claude,
+ChatGPT and Gemini each have a free plan, checked 2026-11-12), then paste it again in a new
+conversation and compare the replies.
+
+::: done
+the two replies differ, although the prompt was the same. Quarto, given the same source,
+never does that (@sec-not-ai).
+:::
+:::
 
 ## Model plus harness {#sec-model-harness}
 
@@ -68,7 +98,7 @@ default models:
 | Codex | `codex` | OpenAI | GPT |
 | Antigravity | `agy` | Google | Gemini |
 
-: The assistants this book was tested with. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026. {#tbl-assistants}
+: The assistants this book was tested with. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked 2026-11-12). {#tbl-assistants}
 
 Other assistants exist; this book does not test them, so it does not list them. Every prompt
 in the book is written to work in any of the three. A vendor's own pairing of harness and
@@ -85,32 +115,33 @@ fixing a typo or reformatting a table. Joining two datasets or debugging a faile
 rewards the stronger model.
 
 The prompts in this book are short and specific, so a mid-sized model at a moderate *effort*
-setting (how long the model reasons before answering) is enough: Claude's Haiku or Sonnet on
-medium effort, or OpenAI's Sol on low. For unfamiliar, hard work, the vendors' own advice
-starts higher: Anthropic suggests starting with Opus 5.5 for most workloads, and OpenAI with
-GPT-6 Astra for complex reasoning and coding. Start small, and move up only when a task keeps
-failing.
+setting (how long the model reasons before answering) is enough: Claude's Sonnet on medium
+effort, or Haiku for small edits, or OpenAI's Sol on low. For unfamiliar, hard work, the
+vendors' own advice starts higher: Anthropic suggests starting with Opus 5.5 for most
+workloads, and OpenAI with GPT-6 Astra for complex reasoning and coding. Start small, and move
+up only when a task keeps failing.
 
 ::: practice
 **Prices change monthly; the principle does not.** The list prices below were correct on
-2026-11-06 and will not be for long. Read them as a snapshot of the spread, not as numbers to
+2026-11-12 and will not be for long. Read them as a snapshot of the spread, not as numbers to
 plan with.
 
 | Model | What the vendor says it is for | Input / output, \$ per million tokens |
 |---|---|---|
-| Claude Haiku 5.5 | simple, high-volume tasks | 0.10 / 0.50 |
-| Claude Sonnet 5.5 | daily coding: speed with intelligence | 2 / 10 |
-| Claude Opus 5.5 | long-running coding and knowledge work | 4 / 20 |
-| Claude Fable 5.1 | demanding reasoning, long-horizon work | 10 / 50 |
-| GPT-6 Luna | focused, high-volume tasks | 0.10 / 0.50 |
-| GPT-6.1 Terra | visual reasoning, computer use, clear writing | 1 / 5 |
-| GPT-6.1 Sol | complex work, balancing intelligence and cost | 2 / 10 |
-| GPT-6 Astra | the most demanding work | 10 / 50 |
+| Claude Haiku 5.5 | "high-volume, latency-sensitive tasks such as classification, extraction, and routing" | 0.10 / 0.50 |
+| Claude Sonnet 5.5 | "the best combination of speed and intelligence" | 2 / 10 |
+| Claude Opus 5.5 | "long-running agentic coding and knowledge work" | 4 / 20 |
+| Claude Fable 5.2 | "demanding reasoning and long-horizon agentic work" | 8 / 40 |
+| GPT-6 Luna | "focused, high-volume tasks" | 0.10 / 0.50 |
+| GPT-6.1 Terra | "visual reasoning, precise computer use, and clear, natural writing" | 1 / 5 |
+| GPT-6.1 Sol | "near-Astra performance for complex work at a lower cost" | 2 / 10 |
+| GPT-6 Astra | "the most demanding work" | 10 / 50 |
 
-Haiku's price is for prompts up to 100,000 tokens; longer ones cost five times as much.
+Haiku's price is for prompts up to 100,000 tokens; longer ones cost five times as much. The
+pelican runs below used Fable 5.2's predecessor, Fable 5.1, listed at 10 / 50.
 Subscriptions count usage differently from API prices, and which models you can choose
 depends on your plan and the assistant's version. Sources: Anthropic's models overview and
-pricing pages and OpenAI's models pages (checked 2026-11-06).
+pricing pages and OpenAI's models pages (checked 2026-11-12).
 :::
 
 The cost of a fixed level of capability has been falling fast. Measuring the cheapest model
@@ -123,10 +154,9 @@ way: choose by what the task needs, not by today's price.
 
 ### One prompt, four models, three efforts
 
-Simon Willison, a developer who has asked every new model the same question since 2024,
-gives a concrete feel for the trade-off: "Generate an SVG of a pelican riding a bicycle".
-@fig-pelicans shows one run of each of four Claude models at three effort levels, with each
-reply's cost at API list prices.
+The pelicans this chapter opened with make the trade-off concrete. @fig-pelicans shows one
+run of each of four Claude models at three effort levels, with each reply's cost at API list
+prices.
 
 ::: {.content-visible when-format="html:js"}
 ::: {#fig-pelicans}
@@ -143,23 +173,24 @@ One prompt, four models, three efforts: "Generate an SVG of a pelican riding a b
 :::
 
 ::: {.content-visible when-format="epub"}
-![One prompt, four models, three efforts: "Generate an SVG of a pelican riding a bicycle". Images from Simon Willison's pelican series, one run per cell; cost is each reply's tokens at API list prices (checked 2026-11-06).](../media/figures/pelican-grid.png){#fig-pelicans fig-alt="A grid of twelve drawings of a pelican riding a bicycle: one row per model (Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.1) and one column per effort (low, medium, high), each with its cost. Every cell shows a recognisable pelican on a bicycle. Costs rise from 0.09 cents for Haiku on low effort to 13.09 cents for Fable on high effort. Haiku and Sonnet on medium effort, at 0.14 and 1.80 cents, are marked as enough."}
+![One prompt, four models, three efforts: "Generate an SVG of a pelican riding a bicycle". Images from Simon Willison's pelican series, one run per cell; cost is each reply's tokens at API list prices (checked 2026-11-06).](../media/figures/pelican-grid.png){#fig-pelicans .on-light fig-alt="A grid of twelve drawings of a pelican riding a bicycle: one row per model (Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.1) and one column per effort (low, medium, high), each with its cost. Every cell shows a recognisable pelican on a bicycle. Costs rise from 0.09 cents for Haiku on low effort to 13.09 cents for Fable on high effort. Haiku and Sonnet on medium effort, at 0.14 and 1.80 cents, are marked as enough."}
 :::
 
 Read the grid in two directions. Down the rows, the model grows and the price per token rises,
 so costs climb from fractions of a cent to more than ten cents. Across the columns, effort
 rises: the model reasons longer and writes more, so the cost usually rises while the picture
-gains details rather than becoming correct. Every cell is recognisably a pelican on a
-bicycle. Haiku on low effort has the weakest frame; from medium effort up, the frames are
-sound, which is why the book's advice is medium effort.
+gains details rather than becoming correct. Haiku on low effort has the weakest frame; from
+medium effort up, the frames are sound, which is consistent with, though no proof of, the
+book's advice of medium effort.
 
-Be honest about what this shows. It is one run per cell of one small, self-contained task,
+Keep the evidence in proportion. It is one run per cell of one small, self-contained task,
 not a benchmark: run it again and you get different birds, and Fable on medium effort even
-cost less than Fable on low. Both Sonnet 5.5 and Opus 5.5 failed at their maximum effort in
-these runs: they reasoned until they ran out of output before drawing anything. A drawing
+cost less than Fable on low. More effort is not always better, either: at their maximum
+effort, Sonnet 5.5 and Opus 5.5 each spent 128,000 tokens reasoning, the models' output limit,
+and returned no drawing (Simon Willison's transcripts, checked 2026-11-12). A drawing
 says little about a long job that joins datasets and recovers from errors, which is where
-stronger models earn their price. The dearest cell cost about `{python} f"{ratio:.0f}"`
-times the cheapest adequate one. Whether that is worth paying depends entirely on the task.
+stronger models earn their price. Whether a `{python} f"{ratio:.0f}"`-fold difference in
+price is worth paying depends entirely on the task.
 
 ## What a conversation costs {#sec-cost}
 
@@ -215,9 +246,9 @@ folder that you can restore. It is not a guaranteed boundary, though: a command 
 name a path outside the folder, so read each command before you approve it.
 
 ::: pitfall
-Two assistants writing to the same folder at once will overwrite each other's work and
-collide when both render. To work on another project, leave with `/exit`, change folder,
-and start the assistant again there.
+Two assistants writing the same files, or rendering in one folder at once, will collide;
+@sec-sub-agents shows the safe split. To work on another project, leave with `/exit`, change
+folder, and start the assistant again there.
 :::
 
 ## Rules that persist: `AGENTS.md` {#sec-agents-md}
@@ -234,7 +265,7 @@ has three parts:
 All three assistants in this book read it (checked 2026-10-30). Codex reads `AGENTS.md` files
 before doing any work. Antigravity reads `AGENTS.md` or `GEMINI.md` in the project's folders.
 Claude Code reads `AGENTS.md` when there is no `CLAUDE.md` in the working folder or above
-it, from version 2.1.277; a `CLAUDE.md` whose first line is `@AGENTS.md` imports it, so one
+it, from version 2.1.277; a `CLAUDE.md` containing the line `@AGENTS.md` imports it, so one
 file can serve all three (Claude Code memory documentation, checked 2026-11-12). The
 repository behind this book works exactly that way: its `CLAUDE.md` imports its `AGENTS.md`.
 
@@ -267,7 +298,7 @@ assistants can show you a *diff*, the lines added and removed) before moving on.
 
 The prompts in this book were designed with AI assistance and refined to reduce errors, but
 they are not magic, and assistants vary. When a prompt mentions something you do not
-understand, a YAML key, a Markdown construct, a Python call, ask before you paste:
+understand (a YAML key, a Markdown construct, a Python call), ask before you paste:
 
 ::: {.prompt}
 ```default
@@ -279,8 +310,8 @@ Asking for the documentation page matters: it turns the answer into something yo
 
 ### A web chat can draft your prompt
 
-If you know what you want but not how to ask for it, a free web chat (Gemini, ChatGPT or
-Claude in the browser) can turn a rough idea into a prompt. Describe the goal in plain words,
+If you know what you want but not how to ask for it, a free web chat (Claude, ChatGPT or
+Gemini in the browser) can turn a rough idea into a prompt. Describe the goal in plain words,
 name your tools, and ask for a prompt of one to four lines, with one task, concrete file names
 and a check (@fig-chat-prompt). The chat cannot see your files, so it guesses; the assistant
 can see them, so it checks. Read the drafted prompt before you paste it, and fix any file name
@@ -318,6 +349,12 @@ so you recognise it when it asks for approval; you do not type these yourself. *
 the few things only you can do: start the assistant, sign in to accounts, approve commands, run
 a live preview, open results. The assistant occupies the terminal tab it runs in, so commands
 in a **You do** box go in a second terminal tab opened in the same folder.
+
+Together the boxes are one turn of the loop in the book's title. **Ask your coding
+assistant** is the *Prompt*. **Expect it to run** and **You do** are where you *Check*,
+recognising each command before you approve it and opening the result yourself. The render
+is the *Publish*. Each exercise closes the loop with **You're done when**: the check, stated
+so that you can see whether it passed.
 
 The prompts are examples, not transcripts. Assistants vary from version to version and run to
 run, so the files they write will differ in detail from the ones shown. What should not vary
@@ -363,13 +400,16 @@ exception for it, so when in doubt, disclose.
 ## Summary {.unnumbered}
 
 A coding assistant is a model that decides and a harness that acts, with you directing and
-checking in between. Choose the model by the task: mid-sized models at moderate effort are
-enough for well-specified steps, and the price of a given capability is falling fast. Cost
-grows with model size, effort and conversation length, so keep one task per conversation and
-start fresh between tasks. Start the assistant only in a folder you created for the work, and
-put durable rules in `AGENTS.md`, remembering that rules are context, not enforcement. Good
-prompts are specific, single-step and end in a check, and every change they cause is yours to
-review. In research, the assistant is never an author, and its use is disclosed.
+checking in between. Choose the model by the task: as the pelicans showed, a cheaper model at
+medium effort is often enough for a small, well-specified step. Cost grows with model size,
+effort and conversation length, so keep one task per conversation. Start the assistant only
+in a folder you created for the work, and put durable rules in `AGENTS.md`, remembering that
+rules are context, not enforcement. Good prompts are specific, single-step and end in a
+check, and every change they cause is yours to review. In research, the assistant is never an
+author, and its use is disclosed.
+
+All of this assumes a computer on which an assistant, Quarto and Python are installed and
+working together. Is yours? @sec-setup gets it there in six checked steps.
 
 ## Further reading {.unnumbered}
 
@@ -381,7 +421,12 @@ review. In research, the assistant is never an author, and its use is disclosed.
 - Google, [Antigravity rules](https://antigravity.google/docs/rules) (checked 2026-10-30).
 - Anthropic, [models overview](https://platform.claude.com/docs/en/about-claude/models/overview)
   and [pricing](https://platform.claude.com/docs/en/about-claude/pricing); OpenAI,
-  [models](https://developers.openai.com/api/docs/models) (checked 2026-11-06).
+  [models](https://developers.openai.com/api/docs/models) (checked 2026-11-12).
+- Free plans for web chats: [Claude](https://claude.com/pricing),
+  [ChatGPT](https://chatgpt.com/pricing) and [Gemini](https://gemini.google/subscriptions/)
+  (checked 2026-11-12).
+- Gemini CLI, [installation](https://geminicli.com/docs/get-started/installation), on its
+  replacement by Antigravity CLI (checked 2026-11-12).
 - Guido Appenzeller, [LLMflation](https://a16z.com/llmflation-llm-inference-cost/), a16z,
   2024; Epoch AI, [LLM inference price trends](https://epoch.ai/data-insights/llm-inference-price-trends),
   2025 (checked 2026-11-07).

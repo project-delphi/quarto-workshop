@@ -5,7 +5,7 @@ media/build.py, must name a page that exists in _book/html and, if it has a #fra
 on that page. Links to the workshop deck (#/slide-id) are checked against ../docs/index.html.
 Run from book/ after building both editions:
 
-    uv run python scripts/check_live_links.py _book/epub/one-source-every-format.epub
+    uv run python scripts/check_live_links.py _book/epub/prompt-check-publish.epub
 """
 from __future__ import annotations
 

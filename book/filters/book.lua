@@ -9,6 +9,8 @@
 -- 2. Asides. ::: why, ::: pitfall, ::: practice and ::: tryit become Quarto callouts
 --    with fixed titles; the class stays for styling.
 -- 3. Exercise lines. ::: done is prefixed "You're done when"; ::: catchup is labelled.
+-- 4. Dates. An ISO date in prose (2026-11-12) is wrapped in a .nowrap span, so a narrow
+--    screen never breaks it at a hyphen.
 
 local BOX = {
   prompt = "Ask your coding assistant",
@@ -97,7 +99,18 @@ local function aside(div)
   return nil
 end
 
+local function keep_dates(str)
+  local pre, date, post = str.text:match("^(.-)(%d%d%d%d%-%d%d%-%d%d)(.*)$")
+  if not date then return nil end
+  local out = pandoc.Inlines({})
+  if pre ~= "" then out:insert(pandoc.Str(pre)) end
+  out:insert(pandoc.Span({ pandoc.Str(date) }, pandoc.Attr("", { "nowrap" })))
+  if post ~= "" then out:insert(pandoc.Str(post)) end
+  return out
+end
+
 return {
+  { Str = keep_dates },
   { Div = function(div)
       if div.classes:includes("agent-box") then return label_children(div) end
       return aside(div)

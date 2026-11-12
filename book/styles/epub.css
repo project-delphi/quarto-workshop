@@ -1,4 +1,4 @@
-/* One Source, Every Format: EPUB stylesheet (book/PLAN.md §5.5–5.6).
+/* Prompt, Check, Publish: EPUB stylesheet (book/PLAN.md §5.5–5.6).
    Rules for e-readers:
    - Never set the page's background or text colour: the reader's themes (day, sepia,
      night) stay in control. Tints use rgba so they work on any background.
@@ -32,6 +32,10 @@ h1 .header-section-number { display: block; font-size: 0.55em; letter-spacing: 0
 h2 .header-section-number, h3 .header-section-number { opacity: 0.7; margin-right: 0.3em; }
 a { color: inherit; text-decoration: underline; text-decoration-color: rgba(64, 128, 191, 0.7);
   text-underline-offset: 0.15em; overflow-wrap: anywhere; }
+/* A hyphen added to a printed URL ("ht-tps://") gets copied or typed: break URLs without one. */
+a.uri { hyphens: manual; -webkit-hyphens: manual; }
+/* Dates such as 2026-11-12 stay on one line (filters/book.lua marks them). */
+.nowrap { white-space: nowrap; }
 blockquote { margin: 1em 0 1em 1em; padding-left: 0.8em; border-left: 3px solid rgba(128, 128, 128, 0.5); }
 ul, ol { margin: 0 0 0.75em; padding-left: 1.4em; }
 li { margin: 0.2em 0; }
@@ -39,6 +43,8 @@ hr { border: none; border-top: 1px solid rgba(128, 128, 128, 0.4); margin: 1.5em
 
 /* Part pages and front matter */
 h1.part { margin-top: 2em; font-size: 2em; }
+/* A chapter's opening paragraph is its hook: set it a little larger. */
+section.level1 > h1 + p { font-size: 1.08em; }
 .copyright p { font-size: 0.85em; }
 
 /* ---- Code --------------------------------------------------------------------- */
@@ -128,11 +134,48 @@ th, td { border-bottom: 1px solid rgba(128, 128, 128, 0.4); padding: 0.3em 0.4em
 thead th { border-bottom-width: 2px; hyphens: manual; -webkit-hyphens: manual; }
 caption { font-size: 0.9em; margin-bottom: 0.4em; text-align: left; }
 .live-link { font-size: 0.85em; }
-.qr img { width: 7em; }
+/* Pandoc puts the class on the img itself. */
+img.qr, .qr img { width: 7em; }
 
-/* ---- Navigation document ------------------------------------------------------------- */
-nav#toc ol { list-style: none; padding-left: 1em; }
-nav#toc > ol { padding-left: 0; }
+/* ---- Title page (Pandoc's title_page.xhtml) ------------------------------------------ */
+section.titlepage { text-align: center; margin-top: 18%; }
+section.titlepage h1.title { font-size: 2.4em; line-height: 1.1; margin: 0 0 0.5em; }
+section.titlepage .subtitle { font-size: 1.15em; font-style: italic; margin: 0 0 3em; }
+section.titlepage .author { font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1em; letter-spacing: 0.12em; text-transform: uppercase; }
+/* The publisher is the author, and the date and rights are on the copyright page. */
+section.titlepage .publisher, section.titlepage .date, section.titlepage .rights { display: none; }
+
+/* ---- Dedication page (dedication.qmd) ------------------------------------------------- */
+/* No visible heading: the page holds only the dedication, a third of the way down. Its h1
+   still names the page in the reader's contents menu. */
+section.dedication > h1 { display: none; }
+.dedication-text { margin: 9em 1em 0; text-align: center; }
+.dedication-text p { font-size: 1.4em; font-style: italic; line-height: 1.6; hyphens: none;
+  -webkit-hyphens: none; }
+.dedication-text::before { content: ""; display: block; width: 2.5em; margin: 0 auto 1.4em;
+  border-top: 1px solid rgba(128, 128, 128, 0.6); }
+
+/* ---- Contents page (nav.xhtml in the spine; scripts/epub_postprocess.py) ---------------- */
+/* The page lists parts, chapters and appendices; the reader's own contents menu, which does
+   not use this stylesheet, keeps every section. */
+nav#toc h1 { margin-bottom: 1.2em; }
+nav#toc ol { list-style: none; margin: 0; padding: 0; }
+nav#toc li { margin: 0.5em 0; line-height: 1.3; }
+nav#toc li.toc-before, nav#toc ol.toc-sections { display: none; }
+nav#toc li.toc-part, nav#toc li.toc-part + li, nav#toc li.toc-group { margin-top: 1.4em; }
+nav#toc li.toc-part > a, nav#toc li.toc-group > span {
+  font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.8em; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+nav#toc li.toc-part > ol, nav#toc li.toc-group > ol { margin-top: 0.5em; padding-left: 0.9em; }
+nav#toc a { text-decoration-color: rgba(64, 128, 191, 0.35); }
+nav#toc .header-section-number { opacity: 0.7; }
+nav#toc li.toc-group .header-section-number { opacity: 1; }
+nav#toc li.toc-group > ol > li { padding-left: 1.4em; text-indent: -1.4em; }
+/* Chapter numbers hang in the margin; floated, they are not underlined, and the space after
+   them starts the line, so it collapses. */
+nav#toc li.toc-part > ol > li { padding-left: 2em; }
+nav#toc li.toc-part > ol > li > a > .header-section-number { float: left; width: 2em; margin-left: -2em; }
 
 @media (prefers-color-scheme: dark) {
   .agent-box .prompt { border-color: #b9a0ed; }

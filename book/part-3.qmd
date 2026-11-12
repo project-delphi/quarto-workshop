@@ -1,20 +1,39 @@
 # Part III: One Analysis, Many Publications {.unnumbered .part}
 
-Which kinds of municipality exist in Colombia, judged by the safety of their drinking water,
-their services and their context? And how do infant mortality, exam scores and school dropout
-differ between those kinds? Part III answers both questions with real public data, then
-publishes the answer as a report, slides, a blog post and a website, all reading the results
-of one analysis script.
+```{python}
+#| label: part3-setup
+from scripts import water as w
 
-The unit of analysis is one municipality's urban or rural zone in one year, so a
-municipality's two zones can belong to different kinds, and a zone can move between kinds
-over the years. The project lives beside the London one:
-
-```text
-~                      your home folder
-├── quarto-workshop/   the clone from Chapter 3
-├── london-guide/      Part II
-└── water-quality/     this part's project
+raw = w.raw()
+last = int(raw["year"].max())
+scored = raw[raw["year"] == last].dropna(subset=["irca"])
+high = w.A.irca_band(scored["irca"]).isin(["High", "Unfit"]).groupby(scored["zone"]).mean()
+rural_now = raw[(raw["year"] == last) & (raw["zone"] == "rural")]
+rural_pop = rural_now["population"].sum() / 1e6
+unscored_pop = rural_now.loc[rural_now["irca"].isna(), "population"].sum() / 1e6
 ```
+
+Where Colombia's tap water is tested, the countryside's is far riskier than the towns'. In
+`{python} last`, of the rural zones (a municipality's countryside, outside its head town) with a
+utility-supplied water-risk score, `{python} f"{high['rural']:.0%}"` fell in the high-risk or unfit
+bands, against `{python} f"{high['urban']:.0%}"` of urban ones. And much rural water has no score at
+all: that year, `{python} f"{unscored_pop:.1f}"` million of the `{python} f"{rural_pop:.1f}"` million
+people in rural zones lived where the open data hold none.
+
+This part asks which kinds of municipal zone exist, judged by water safety, services and context,
+and how infant mortality, exam scores and school dropout differ between those kinds. You are the
+analyst. Your readers are officials, who need a report, and a municipal council, which needs
+slides, and both deserve an answer that says plainly what the data cannot show:
+
+- @sec-water-question pins down what is asked, what the data mean and what the assistant may not do.
+- @sec-explore finds where the data are empty or misleading, and meets Tunja, the municipality this
+  part follows.
+- @sec-prepare turns the table into features a clustering can use, and counts the cost.
+- @sec-cluster lets an algorithm group the zone-years, and decides how many groups there are.
+- @sec-interpret names the kinds and compares their outcomes.
+- @sec-causation asks whether worse water goes with more infant deaths, and why that is not a cause.
+- @sec-publish-many turns one set of results into a report, slides, a blog post and a website.
+
+The exercises at the end of the part test whether you can do it without the prompts.
 
 ![Where we are: Part III.](media/roadmaps/part-3){.on-light fig-alt="Where we are: Part III, One Analysis, Many Publications, highlighted among the book's three parts. Its chapters: 8, The Question, the Data and the Rules, workshop 2:55, checkpoint 05; 9, Look Before You Model, 3:15, checkpoint 05; 10, From Table to Features, 3:35, checkpoint 06; 11, Finding Kinds of Places: k-Means, 3:55, checkpoint 07; 12, Interpreting Clusters, 4:35, checkpoint 08; 13, Correlation Is Not Causation, 4:55, checkpoint 09; 14, Publish Many, 5:10, checkpoints 10 to 13 and the finished examples/water; then the exercises for Part III."}

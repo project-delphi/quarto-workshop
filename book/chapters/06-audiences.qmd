@@ -10,23 +10,31 @@ visits = pd.read_csv("../examples/london/data/visits.csv")
 churches = pd.read_csv("../examples/london/data/churches.csv")
 first_year, last_year = int(visits["year"].min()), int(visits["year"].max())
 n_churches = len(churches)
+WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+         "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
+         "eighteen", "nineteen", "twenty"]
+
+
+def word(n: int) -> str:
+    """A count in words, as prose writes small numbers."""
+    return WORDS[n] if n < len(WORDS) else f"{n:,}"
+
 ldn = london_map()
 top_sight = ldn["top"]["place"]
 top_sight_m = f"{ldn['top']['visits'] / 1e6:.1f}"
 paid_sights = " and the ".join(ldn["paid"]["place"])
 ```
 
-A tourism office does not have one reader. Managers want to see the numbers at a glance,
-partners want a document they can forward, people walking past the office want something to
-take away, and visitors want a website. Writing each of those by hand is how the same fact
-ends up four ways in four places.
+Correct one fact, then count the documents that repeat it. Written by hand, a dashboard, a
+partner brief and a printed flyer each hold their own copy of the same facts, and every copy
+has to be found and fixed. The one that is missed is the one that disagrees in public.
 
-This chapter writes the guide once more, in three new forms at the same time: a dashboard, a
-Word brief with its covering email, and a printed flyer. All three read the same data, so one
-correction reaches all of them. Because the three are independent, they are also the first
-task in this book worth splitting across several assistants working in parallel, and the
-chapter explains when that is a good idea and when it is not. It ends with an optional look
-at the same data in three dimensions.
+This chapter writes all three in one step: a dashboard for managers, a Word brief and its
+covering email for partners, and a flyer for walk-ins. The dashboard and the brief read the
+same data file, so a corrected count reaches both; the flyer copies its facts from
+`data/sights.csv`, a choice @sec-london-change returns to. None of the three needs another to
+exist, which makes them the first job in this book worth splitting across several assistants
+at once, and the first chance to ask when that is worth what it costs.
 
 ## Content once, format per audience {#sec-content-once}
 
@@ -65,11 +73,11 @@ Most visited: `{{python}} top_name`
 
 It also needs a second data file. `data/visits.csv` holds the yearly visits to the five sights
 from `{python} first_year` to `{python} last_year`, from ALVA's annual tables. Two notes travel
-with it, from the data's README: 2020 and 2021 are pandemic years and not comparable with the
-others, and from 2024 the Natural History Museum's count includes its reopened gardens, so
-2024 and 2025 are not like-for-like with earlier years for that museum. `data/churches.csv`
-lists the `{python} n_churches` cathedrals and churches on Visit London's own list, an
-editorial choice with no visitor numbers.
+with it, from the data's README. The years 2020 and 2021 are pandemic years, not comparable
+with the others. And from 2024 the Natural History Museum's count includes its reopened
+gardens, so for that museum 2024 and 2025 are not like-for-like with earlier years.
+`data/churches.csv` lists the `{python} word(n_churches)` cathedrals and churches on Visit
+London's own list, an editorial choice with no visitor numbers.
 
 **A Word brief** turns Markdown headings into Word's heading styles, so the partner's copy has a
 navigable outline and working links. Its covering email is not rendered at all: it is a plain
@@ -95,10 +103,9 @@ assistant, the *lead*, waits for all of them and then checks the results.
 The gain is time: three independent tasks take about as long as the slowest of them. The cost
 is tokens, because each sub-agent does its own reading, reasoning and tool calls. The three
 assistants differ in how they offer it (all checked 2026-10-31). Claude Code starts sub-agents
-in parallel when a prompt asks for them; its own documentation's example is "Research the
-authentication, database, and API modules in parallel using separate subagents". Codex enables
-sub-agents by default and starts them when asked, and its documentation warns both that
-parallel edits "can create conflicts" and that sub-agent runs use more tokens. Antigravity's
+in parallel when a prompt asks for them. Codex enables sub-agents by default and starts them
+when asked, and its documentation warns both that parallel edits "can create conflicts" and
+that sub-agent runs use more tokens. Antigravity's
 command-line agent can delegate to parallel sub-agents, but its documentation does not say a
 prompt can require it, so it may do the tasks itself.
 
@@ -113,7 +120,7 @@ Use sub-agents when tasks are independent, substantial and write different files
 them for tasks where one needs another's result, for several edits to the same file, or for
 small tasks where the overhead of starting and briefing a sub-agent outweighs the work. A
 prompt that might run without sub-agents should say what to do then: the prompt below ends its
-first line with "none? do the items in turn".
+first sentence with "none? do the items in turn".
 :::
 
 ## One prompt, three audiences {#sec-audiences-do}
@@ -137,7 +144,10 @@ approve its commands · watch it report each sub-agent's progress · open the da
 :::
 
 The prompt is long because it is three specifications in one, each as concrete as a single
-prompt would be: the files to write, the data to read, what goes on each page.
+prompt would be. The lead checks each file it renders; the office's checks are yours. Open
+each output as its reader would: can a manager find the top attraction without reading a
+sentence, can a partner forward the brief and its email as they are, and does the flyer fit on
+one A5 page?
 
 ::: pitfall
 "End each chart cell with `fig`" is there because of a failure seen in practice: a Plotly chart
@@ -195,7 +205,7 @@ Catch me up: follow ../quarto-workshop/examples/london/README.md
 ## The sights in three dimensions (optional) {#sec-london-3d}
 
 The guide's data can also be drawn as a map: the five sights as columns as tall as their
-`{python} ldn['year']` visits, Visit London's `{python} n_churches` churches as short markers,
+`{python} ldn['year']` visits, Visit London's `{python} word(n_churches)` churches as short markers,
 and the London boroughs around the Thames (@fig-london-map). Nothing in the project changes:
 the scene is drawn from the same files. The tallest column is the `{python} top_sight`, at
 `{python} top_sight_m` million visits; the only paid sight is the `{python} paid_sights`.
@@ -251,7 +261,7 @@ a published page keeps that dependency, which is why this book, like the worksho
 ships its own copy of the library.
 
 ::: pitfall
-Be honest about 3-D charts. Perspective makes bars harder to compare than a plain bar chart:
+A 3-D chart has to earn its third dimension. Perspective makes bars harder to compare than a plain bar chart:
 the near bar looks taller than an equal bar behind it. @fig-ldn-top10 is the better chart for
 comparing visits. Use 3-D when the third dimension means something, as height does on a map,
 or for delight, and say which.
@@ -259,7 +269,7 @@ or for delight, and say which.
 
 ## Summary {.unnumbered}
 
-One source of data can feed every audience, each in its own format: a dashboard
+One project's cited files can serve every audience, each in its own format: a dashboard
 (`format: dashboard`, where headings become pages and rows), a Word brief with a plain-text
 covering email that quotes no numbers, an A5 Typst flyer, and an optional square advert made
 with a raw Typst page size. Independent, substantial tasks that write different files can run as
@@ -267,6 +277,10 @@ parallel sub-agents, which saves time at the cost of tokens, provided each write
 files and the lead renders one file at a time. Ask for unfamiliar tools, such as three.js, by
 naming the library, the data and the check, and choose 3-D only when the third dimension means
 something.
+
+The office now has a version of the guide for every reader but one, and all of them sit on
+your computer. Visitors need a website: the next chapter publishes one, then changes one
+number to test whether every reader really does get the same fact.
 
 ## Further reading {.unnumbered}
 

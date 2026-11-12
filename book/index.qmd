@@ -1,137 +1,149 @@
 # Preface: How to Use This Book {.unnumbered epub:type=preface}
 
-This book teaches a way of publishing in which you write once, in plain text, and every
-output rebuilds itself from that one source: a web page, a Word document, a PDF, slides, an
-e-book, a website, a blog and a dashboard. A coding assistant writes most of the code; you
-decide what to build, check what it wrote, and remain responsible for the result. The tool
-that turns the sources into outputs is Quarto, which is free and open source.
+```{python}
+#| label: preface-setup
+# The two projects' headline facts: London's most visited ALVA member attraction, and the
+# years the water analysis covers (its own settings).
+import pandas as pd
 
-It grew out of a one-day workshop, and it keeps the workshop's shape: two real projects, built
-step by step, with a way to catch up from any point. It also explains what the workshop only
-had time to show: why each step works, where it fails, and when not to take it.
+from scripts import water as w
+
+A = w.A
+att = pd.read_csv("../examples/london/data/attractions.csv")
+visits_col = next(c for c in att.columns if c.startswith("visits_"))
+top = att.loc[att[visits_col].idxmax()]
+top_name = top["attraction"]
+top_visits = f"{top[visits_col]:,}"
+visits_year = visits_col.removeprefix("visits_")
+```
+
+Change one number in a dataset, and how many documents are now wrong? If the number was
+copied by hand into a report, a slide, an email and a web page, nobody knows without
+searching. This book teaches a way of publishing with nothing to search for: you write once,
+in plain text, and a web page, a Word document, a PDF, slides, an e-book, a website, a blog
+and a dashboard all rebuild from that one source with one command. The program that rebuilds
+them is Quarto, which is free and open source.
+
+## Prompt, Check, Publish {.unnumbered}
+
+The title names the method, a loop you run at every step of both projects. You **prompt** a
+*coding assistant*, a program that writes files and runs commands at your request, describing
+one small piece of work with its files and columns named. You **check** what it did: read
+what changed, look at the result, compare it with the data. An assistant can be fluent, fast
+and wrong, so this step is never skipped, and it is always yours. Then Quarto **publishes**,
+rebuilding every output from the checked source the same way every time. Chapter 1 explains
+why the last step can be trusted, and Chapter 2 how to make the first two reliable.
 
 ## Who this book is for {.unnumbered}
 
 Researchers, analysts, students and anyone else who writes documents from data and is new to
-Quarto, to coding assistants or to both. Many readers will have little experience with a
-terminal, and Chapter 3 teaches the little you need. No programming is assumed: the book
-explains the Python the assistant writes, but you will not have to write it yourself.
+Quarto, to coding assistants or to both. No programming is assumed: the book explains the
+Python the assistant writes, but you do not have to write it. If the terminal is new to you,
+Chapter 3 teaches the little you need, one checked step at a time.
 
 You will need a computer on which you can install software (Windows, Mac or Linux), a free
-GitHub account, and access to one coding assistant, which requires a paid plan or an API key.
+GitHub account, and an account with one coding assistant (@sec-before-setup lists what each
+needs).
 
 ## The two running examples {.unnumbered}
 
 Every concept is tied to one of two projects, both built on real, cited data.
 
-**A London visitor guide** (Part II). You work for the city's tourism office and write one
-guide that becomes a web page, a Word brief for partners, a printed flyer, a dashboard for
-managers and a published website, with every visitor number computed from the Association of
-Leading Visitor Attractions' published counts.
+**A London visitor guide** (Part II). For the city's tourism office, you write one guide that
+becomes a web page, a Word brief for partners, a printed flyer, a dashboard for managers and
+a published website. Every visitor number in it, from the `{python} top_visits` visits to the
+`{python} top_name` in `{python} visits_year` down, is computed from the counts published by
+the Association of Leading Visitor Attractions.
 
 **Drinking-water risk in Colombian municipalities** (Part III). You group Colombia's
-municipal zones into kinds by water safety, services and context, compare health and
-education outcomes between the kinds, and publish the analysis as a report, slides, a blog
-post and a website, all from one analysis script. The data are Colombian open data, joined
-by official municipality codes.
+municipal zones into kinds by water safety, services and context, from `{python} A.FIRST_YEAR`
+to `{python} A.LAST_YEAR`, compare health and education outcomes between the kinds, and
+publish the analysis as a report, slides, a blog post and a website, all from one analysis
+script. Most of the data are Colombian open data, joined by official municipality codes;
+rainfall comes from CHIRPS and altitude from NASA's SRTM (@sec-sources).
 
 ## How the book is organised {.unnumbered}
 
-**Part I** covers what you need before the first project: what Quarto does (@sec-quarto),
-how to work with a coding assistant safely (@sec-assistant) and how to set up your computer
-(@sec-setup). **Part II** builds the London guide, from a first Markdown file to a published
-website, and ends by changing an input and explaining what the rebuild changed. **Part III**
-does the same for the water analysis, with the statistics explained on the way: exploring
-data, preparing features, clustering with k-means, interpreting the clusters and resisting a
-causal reading of them. The appendices hold the Windows setup, a cheatsheet, troubleshooting,
-every checkpoint, the data sources and an account of how this book itself is built.
+**Part I** covers what you need first: what Quarto does (@sec-quarto), how to work with a
+coding assistant safely (@sec-assistant) and how to set up your computer (@sec-setup).
+**Parts II and III** build the two projects, with the statistics explained on the way, and
+each ends by changing an input and explaining what the rebuild changed. The appendices hold
+the Windows setup, a cheatsheet, troubleshooting, every checkpoint, the data sources and how
+this book is built.
 
-## How the hands-on parts work {.unnumbered}
+## What a hands-on step looks like {.unnumbered #how-the-hands-on-parts-work}
 
-Hands-on steps use a three-part box, explained in @sec-boxes: the exact prompt to give your
+Each step is a three-part box, explained in @sec-boxes: the exact prompt to give your
 assistant, what it will probably run, and the few things only you can do. Prompts are
-examples, not transcripts: assistants vary, so check the result rather than the wording.
-
-Four kinds of aside appear throughout:
+examples, not transcripts: assistants vary, so check the result rather than the wording. Four
+kinds of aside step out of the main text; here is one of each.
 
 ::: why
-**Why this works** explains the mechanism behind a step.
+A number computed from the data cannot disagree with the data. Asides like this one explain
+the mechanism behind a step, so that you can adapt it to your own project.
 :::
 
 ::: pitfall
-**Common pitfall** describes a failure seen in practice, and how to avoid it.
+A render started while a live preview is rendering the same file collides with it. Asides
+like this one describe failures seen in practice, and how to avoid them.
 :::
 
 ::: practice
-**In practice** gives a judgement call or a habit, and the occasional question to pause on.
+**Pause and think.** The assistant reports a render with no errors. Is the work checked?
+
+Not yet: a clean render proves that the code ran, not that its numbers are right. Asides like
+this one hold judgement calls, habits and questions to pause on.
 :::
 
 ::: tryit
-**Try it** is an exercise, ending with the check that tells you it worked.
+Asides like this one are exercises. Think of one document you produce more than once, and
+note where each of its numbers comes from.
 
 ::: done
-you can tell the four asides apart.
+you can say which of its numbers are typed by hand and which come from a file.
 :::
 :::
 
-Steps marked *optional* are extensions for readers who are ahead; nothing later depends on
-them.
+Steps marked *optional* are for readers who are ahead; nothing later depends on them.
 
 ## Two ways through {.unnumbered}
 
-**Self-paced.** Read in order. Chapters 2 and 3 can be done in one sitting before you start
-Part II; each later chapter ends at a checkpoint, so you can stop there and resume later.
+**Self-paced.** Read in order. Chapters 2 and 3 can be read and done in one sitting before
+Part II; each later chapter ends at a checkpoint, where you can stop and resume later.
 
-**Workshop-paced.** The book follows the six-hour workshop it came from (with two 15-minute
-breaks and a 30-minute meal). In the workshop, Chapter 3 and the reading in Chapter 2 are done
-at home beforehand.
+**Workshop-paced.** The book grew out of a six-hour workshop and keeps its shape, while
+explaining what the workshop only had time to show: why each step works, where it fails, and
+when not to take it. @sec-workshop has the day's agenda and the chapters each block covers
+(@tbl-agenda).
 
-| Time | Block | Chapters |
-|---|---|---|
-| before the day | Setup, and reading about assistants and AI policy | 2, 3 |
-| 0:00 | Welcome, objective, outcome | Preface |
-| 0:10 | What Quarto is | 1 |
-| 0:15 | Ready to prompt: the boxes and prompting | 2 |
-| 0:30 | London: Markdown to HTML, rules, environment | 4 |
-| 1:05 | *Break* | |
-| 1:20 | London: computed documents, audiences, publishing, a rebuild | 5, 6, 7 |
-| 2:25 | *Meal* | |
-| 2:55 | Water: question, data, explore, prepare, cluster | 8 to 11 |
-| 4:20 | *Break* | |
-| 4:35 | Water: interpret, correlation and causation, publish many | 12, 13, 14 |
-| 5:50 | Done: show your sites | Afterword |
+## When you get stuck {.unnumbered #when-you-fall-behind}
 
-: The workshop day, with times counted from the start, and the chapters for each block. {#tbl-agenda}
-
-## When you fall behind {.unnumbered}
-
-Every hands-on block ends at a *checkpoint*: a folder in the workshop repository
-(`checkpoints/`) holding the project as it should be at that point, with a README listing the
-steps to catch up. The workshop's rule is simple: **stuck for two minutes, catch up**, and
-rejoin everyone at the next block. The same rule works alone. Each exercise ends with its
-catch-up line, which you paste into your assistant (@fig-catch-up).
+You will get stuck: an install fails, a prompt goes wrong, a render stops with an error you
+have never seen. That is expected, and the book is built for it. Every hands-on block ends at
+a *checkpoint*, a folder in the workshop repository (`checkpoints/`) holding the project as it
+should be at that point, with a README listing the steps to catch up. The rule is simple:
+**stuck for two minutes, catch up**, and rejoin at the next block. Each exercise ends with
+its catch-up line, which you paste into your assistant (@fig-catch-up).
 
 ![Catching up from a checkpoint. Your work is backed up first, so nothing is lost.](media/diagrams/catch-up){#fig-catch-up .on-light fig-alt="Stuck for two minutes, you paste the line Catch me up: follow ../quarto-workshop/checkpoints/NN/README.md into the assistant. It follows four steps. One, back up your project folder, all but its .venv environment, to a new time-stamped folder beside it. Two, copy the checkpoint in, and for the water project the data if they are missing. Three, render and check a named output. Four, rejoin at the next hands-on block, which the README names."}
 
 A checkpoint holds the end of its block, so it can be ahead of the step you were on: after
-catching up, skip the block's remaining prompts and read on to the next exercise. The
-exercises at the end of each part, and @sec-checkpoints, list every checkpoint.
+catching up, skip the block's remaining prompts and read on to the next exercise.
+@sec-checkpoints lists every checkpoint.
 
 ## Two editions {.unnumbered}
 
-This book comes as an e-book (EPUB) and as a website, built from the same source. Everything
-interactive runs in the website edition: three 3-D scenes you can turn with the mouse and two
-data explorers with menus. The e-book shows each of them as an animation or a still picture,
-with a link and a QR code to the live version. Animations play in readers that support them;
-readers that do not show the first frame, which is designed to be a useful still. The website
-also respects your system's reduced-motion setting.
-
-The website edition is at <https://project-delphi.github.io/quarto-workshop/book/>.
+This book comes as an e-book (EPUB) and as a website, built from the same source: it is its
+own first example of the method. The website edition, at
+<https://project-delphi.github.io/quarto-workshop/book/>, runs everything interactive: three
+3-D scenes and two data explorers. The e-book shows each as an animation or a still, with a
+link and a QR code to the live version. Readers that cannot play animations show the first
+frame, designed as a useful still, and the website respects your reduced-motion setting.
 
 ## Versions and dates {.unnumbered}
 
 The book was built and checked with Quarto 1.10.20 (with its bundled Typst 0.15), Python 3.12
-and uv, in November 2026. Facts that change, such as the price of a model, the wording of an
-assistant's screens or the limits of a free hosting plan, carry the date they were checked,
-in the form "(checked 2026-11-06)". Expect some of them to have changed by the time you read
-them; the principles around them should not have.
+and uv, in November 2026. Facts that change, such as a model's price, an assistant's screens
+or a free hosting plan's limits, carry the date they were checked, as in "(checked
+2026-11-06)". Some will have changed by the time you read them; the principles around them
+should not have.

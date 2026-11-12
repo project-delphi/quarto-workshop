@@ -57,14 +57,155 @@ def cname(c):
     return f"cluster {c} ({names[c].split(',')[0].lower()})"
 ```
 
-Clusters are only useful if they can be described in words: these are the cities, those the rural
-zones with poor water. This chapter turns the four clusters into four named kinds, by a rule rather
-than by eye, and then does what the analysis was built for: it compares health and education outcomes
-between the kinds, which the clustering never saw.
+```{python}
+#| label: ch12-checks
+# Values for the prose, and guards for its sentences whose words, not only their numbers,
+# depend on the data: the render stops when the data no longer support one.
+def text_holds(ok: bool, what: str) -> None:
+    if not ok:
+        raise ValueError(f"the text about {what} no longer matches the data: rewrite it")
 
-The comparison is where readers draw conclusions, so it is where honesty matters most. The chapter
-shows the outcomes three ways, as medians over time, as standard-deviation units and as full
-distributions, because each view hides something the others show.
+
+NUM = dict(enumerate(["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]))
+OUT_WORDS = {"infant_mortality": "infant mortality", "saber11_mean": "exam scores",
+             "dropout_rate": "dropout"}
+
+
+def listing(words):
+    words = list(words)
+    return ", ".join(words[:-1]) + " and " + words[-1] if len(words) > 1 else words[0]
+
+
+def spans(years):
+    """(2017, 2018, 2019, 2021) -> "2017–2019 and 2021"."""
+    years, runs = sorted(years), []
+    for y in years:
+        if runs and y == runs[-1][1] + 1:
+            runs[-1][1] = y
+        else:
+            runs.append([y, y])
+    return listing(f"{a}–{b}" if b > a else f"{a}" for a, b in runs)
+
+
+IM_YEARS = spans(A.OUTCOME_YEARS["infant_mortality"])
+text_holds(IM_YEARS == "2017–2019 and 2021–2023", "infant mortality's years in fig-wat-outcomes' caption")
+
+worst = int(prof["irca_median"].idxmax())          # the worst water
+rural_c = int(prof["urban_row_share"].idxmin())   # the rural cluster
+im_max = int(omean["infant_mortality_mean"].idxmax())
+fz_max = prof[zcols].abs().to_numpy().max()
+widest = (oz.max() - oz.min()).idxmax()           # the outcome whose cluster means spread most
+text_holds(worst != im_max, "the worst water and the highest infant mortality")
+text_holds(oz_max < fz_max, "outcomes differing less than features")
+
+# The municipality-years behind each cluster's infant mortality: median population, both zones.
+pop = w.raw().groupby(["divipola", "year"])["population"].sum().rename("muni_pop")
+im_rows = clusters[clusters["year"].isin(A.OUTCOME_YEARS["infant_mortality"])]
+im_rows = A.once_per_municipality(im_rows.dropna(subset=["infant_mortality"]), "infant_mortality")
+pop_med = im_rows.join(pop, on=["divipola", "year"]).groupby("cluster")["muni_pop"].median()
+text_holds(pop_med.idxmin() == im_max, "the highest-mortality kind being the smallest places")
+
+# Every outcome's 5th-95th percentile ranges (the box plots' whiskers) share a common stretch.
+for col in ocols:
+    r = clusters[clusters["year"].isin(A.OUTCOME_YEARS[col])].dropna(subset=[col])
+    q = A.once_per_municipality(r, col).groupby("cluster")[col].quantile([0.05, 0.95]).unstack()
+    text_holds(q[0.05].max() < q[0.95].min(), f"overlapping distributions of {col}")
+
+# What the highest-IRCA cluster stands out on, in words (@sec-heatmap).
+text_holds(prof.loc[ex_c, "irca_median_band"] == "High" and prof.loc[ex_c, "z_irca"] > 0.5
+           and prof.loc[ex_c, "z_ipm"] > 0.5 and prof.loc[ex_c, "z_water_coverage"] < -0.5,
+           "the highest-IRCA cluster's combination")
+
+# Blank infant-mortality rates: the series has no zeros, so a blank may be a recorded zero.
+im_years = clusters[clusters["year"].isin(A.OUTCOME_YEARS["infant_mortality"])]
+blank_all = im_years.drop_duplicates(["divipola", "year"])["infant_mortality"].isna().mean()
+blank_c = (im_years.drop_duplicates(["cluster", "divipola", "year"])
+           .groupby("cluster")["infant_mortality"].apply(lambda v: v.isna().mean()))
+text_holds(w.raw()["infant_mortality"].eq(0).sum() == 0 and blank_c.idxmax() == im_max,
+           "blank rates in the highest-mortality kind")
+
+# Alt texts are static cell options: stop the render when the data no longer match one.
+zp = prof[zcols]
+text_holds(k == 4 and len(zcols) == 9 and zp.loc[4, "z_irca"] > 0.5 and zp.loc[4, "z_ipm"] > 0.5
+           and zp.loc[4, ["z_water_coverage", "z_sewer_coverage"]].max() < -1
+           and zp.loc[1, "z_rural_share"] < -0.5 and zp.loc[1, "z_mdm"] > 0.5
+           and zp.loc[3, "z_altitude_m"] < -0.5 and zp.loc[2, "z_altitude_m"] > 0.5,
+           "fig-wat-heatmap's alt text")
+by_year = res["outcomes_by_year"].pivot_table(index=["outcome", "year"], columns="cluster", values="median")
+im_y, sb_y, dr_y = (by_year.loc[c] for c in ("infant_mortality", "saber11_mean", "dropout_rate"))
+text_holds([names[c].split(",")[0] for c in (1, 2, 3, 4)]
+           == ["Cities and large towns", "Highland towns", "Lowland towns", "Rural"]
+           and (im_y.idxmin(axis=1) == 1).all() and (im_y.idxmax(axis=1) == 2).all()
+           and (sb_y.idxmax(axis=1) == 1).all()
+           and all(set(row.nsmallest(2).index) == {3, 4} for _, row in sb_y.iterrows())
+           and 1 < dr_y.min().min() and dr_y.max().max() < 5 and (dr_y.idxmin() == 2020).all(),
+           "fig-wat-outcomes' alt text")
+
+
+def quartiles(col):
+    """The box plots' quartiles (@sec-compare): outcomes in their years, once per municipality."""
+    r = clusters
+    if col in A.OUTCOMES:
+        r = A.once_per_municipality(r[r["year"].isin(A.OUTCOME_YEARS[col])].dropna(subset=[col]), col)
+    return r.groupby("cluster")[col].quantile([0.25, 0.5, 0.75]).unstack()
+
+
+qi, qw, qm = quartiles("irca"), quartiles("water_coverage"), quartiles("infant_mortality")
+text_holds(qi.loc[4, 0.5] > qi.loc[[1, 2, 3], 0.75].max() and qi.loc[1, 0.5] < qi.loc[2, 0.5] < qi.loc[3, 0.5]
+           and qw.loc[4, 0.75] < qw.loc[[1, 2, 3], 0.25].min()
+           and qm[0.25].max() < qm[0.75].min() and qm[0.5].idxmin() == 1 and qm[0.5].idxmax() == 2,
+           "fig-compare's alt text (EPUB)")
+
+# Tunja (@sec-tunja) in the clusters: where each zone falls, and what puts it there.
+tjc = clusters[clusters["divipola"] == "15001"]
+tju = tjc[tjc["zone"] == "urban"].set_index("year").sort_index()
+tjr = tjc[tjc["zone"] == "rural"].set_index("year").sort_index()
+tj_c = int(tjc["cluster"].iloc[0])
+years = list(range(A.FIRST_YEAR, A.LAST_YEAR + 1))
+text_holds(tjc["municipio"].eq("TUNJA").all() and tjc["cluster"].eq(tj_c).all()
+           and list(tju.index) == years and list(tjr.index) == years, "Tunja's zones in one cluster")
+tj_medium = int(tjr["irca_band"].astype(str).eq("Medium").sum())
+text_holds(not tjr["irca_band"].astype(str).eq("No risk").any(), "Tunja's rural IRCA never no-risk")
+risk_word = names[tj_c].rsplit(", ", 1)[1]
+text_holds(tj_medium > 0 and prof.loc[tj_c, "irca_median_band"] == "No risk"
+           and tju["irca_band"].astype(str).eq("No risk").all(), "Tunja's IRCA by zone")
+shared = [c for c in A.FEATURES if np.allclose(tju[c], tjr[c])]   # the municipality's own values
+own = [c for c in A.FEATURES if c not in shared]
+centres = res["centers"]
+
+
+def nearest(cols):
+    """The clusters whose centres are nearest Tunja's rural zone-years on these features alone."""
+    i = [A.FEATURES.index(c) for c in cols]
+    x = tjr[[f"z_{c}" for c in cols]].to_numpy()
+    d = ((x[:, None, :] - centres[:, i][None, :, :]) ** 2).sum(axis=2)
+    return set((d.argmin(axis=1) + 1).tolist())
+
+
+text_holds(nearest(own) == {rural_c} and nearest(shared) == {tj_c} != {rural_c},
+           "what places Tunja's rural zone")
+text_holds(tju[["water_coverage_from_total", "sewer_coverage_from_total"]].eq(1).all().all()
+           and tjr[["water_coverage_imputed", "sewer_coverage_imputed"]].eq(1).all().all()
+           and sum(tjr[f"{c}_imputed"].eq(1).all() for c in own) == 2, "how Tunja's coverage was filled")
+tj_c_rural = 1 - prof.loc[tj_c, "urban_row_share"]
+# Before the window: the first run of high-risk years in Tunja's rural water, from the raw rows.
+raw = w.raw()
+tj_raw = raw[(raw["divipola"] == "15001") & (raw["zone"] == "rural")].set_index("year").sort_index()
+tj_first = int(tj_raw.index.min())
+tj_high = A.irca_band(tj_raw["irca"]).astype(str).eq("High")
+tj_high_to = int(tj_raw.index[tj_high.cumprod().astype(bool)].max())
+text_holds(tj_high.iloc[0] and tj_high_to < A.FIRST_YEAR, "Tunja's high-risk years before the window")
+```
+
+Cluster `{python} worst` is a number, and a number is hard to act on. "`{python} names[worst]`" is a
+phrase an official can repeat and a council can argue over, and anyone can check it, provided a rule
+produced it rather than someone's eye. Names like that come first, for every cluster, with the one
+Tunja's zones fall in. Then comes the comparison the analysis was built for: infant mortality, exam
+scores and school dropout, which the clustering never saw, kind by kind.
+
+That comparison is where readers draw conclusions, so it is where honesty matters most. It gets three
+views, as medians over time, in standard-deviation units and as full distributions, because each hides
+something the others show.
 
 ## What sets each cluster apart {#sec-heatmap}
 
@@ -97,7 +238,7 @@ with style():
 ```
 
 The highest-IRCA cluster, cluster `{python} ex_c`, stands out most on `{python} ex_text`: a combination
-of unsafe water, poverty and missing infrastructure, not any one of them. Each cluster is a combination,
+of high-risk utility-supplied water, poverty and low coverage, not any one of them. Each cluster is a combination,
 which is exactly what a single variable could not have found.
 
 ## Name them by a rule {#sec-names}
@@ -133,6 +274,24 @@ Check every name against the heatmap and the profile table before you use it, an
 the name in anything you publish. A name is a summary someone else will quote without the table.
 :::
 
+## Where Tunja lands {#sec-tunja-kind}
+
+The cluster that holds all `{python} len(tjc)` of Tunja's zone-years, urban and rural, now has a name:
+`{python} cname(tj_c)`, "`{python} names[tj_c]`". For the urban zone, it fits. For the rural zone, the
+label hides most of what @sec-tunja found. Its water scored in the high-risk band every year from
+`{python} tj_first` to `{python} tj_high_to`, before the analysis's window opens in `{python} A.FIRST_YEAR`,
+and inside the window its utility-supplied IRCA is never in the no-risk band, and is in the medium band
+in `{python} NUM[tj_medium]` of the `{python} NUM[len(tjr)]` years.
+
+Two things are at work. The risk word describes the cluster's median, not each member, as
+@sec-names warned. And k-means places a row by all nine features at once. On its own `{python} NUM[len(own)]`,
+`{python} listing(WORDS[c] for c in own)`, Tunja's rural zone sits nearest the centre of
+`{python} cname(rural_c)`, and two of those, the coverages, are fills (@sec-prepare-counts). On the
+`{python} NUM[len(shared)]` it shares with the urban zone as one municipality,
+`{python} listing(WORDS[c] for c in shared)`, it sits nearest cluster `{python} tj_c`'s, and those decide.
+It has company: `{python} f"{tj_c_rural:.0%}"` of that cluster's zone-years are rural zones. A label
+describes a kind; to say anything about one member, go back to its rows.
+
 ## Outcomes by cluster {#sec-outcomes}
 
 Now the outcomes, which the clustering never used (@fig-wat-outcomes). Each line is a cluster's median
@@ -141,7 +300,7 @@ within each year, so the comparison never mixes years.
 ```{python}
 #| label: fig-wat-outcomes
 #| fig-cap: "Median outcome by cluster and year. Infant mortality: 2017–2019 and 2021–2023 only (its method changes in 2017, and 2020 looks like another source). Saber 11: published years. Descriptive only: not causal effects of water safety."
-#| fig-alt: "Three small line charts by year, one line per cluster. Cluster 1, cities and large towns, has the lowest infant mortality and the highest Saber 11 scores. Cluster 2, highland towns, has the highest infant mortality. Cluster 3, lowland towns, has the lowest Saber 11 scores. Dropout medians stay within a few percent and dip in 2020 for every cluster."
+#| fig-alt: "Three small line charts by year, one line per cluster. Cluster 1, cities and large towns, has the lowest infant mortality and the highest Saber 11 scores. Cluster 2, highland towns, has the highest infant mortality. Clusters 3 and 4, lowland towns and rural, have the lowest Saber 11 scores. Dropout medians stay within a few percent and dip in 2020 for every cluster."
 #| classes: on-light
 out = res["outcomes_by_year"]
 short = {"infant_mortality": "Infant mortality\nper 1,000 births", "saber11_mean": "Saber 11\nmean score",
@@ -200,18 +359,25 @@ with style():
 ```
 
 The paleness is the finding. No cluster's mean outcome is more than `{python} f"{oz_max:.2f}"` standard
-deviations from the average, so the kinds differ far less in outcomes than in the features that formed
-them. Within that: the lowest infant mortality is in `{python} cname(omean["infant_mortality_mean"].idxmin())`
-and the highest in `{python} cname(omean["infant_mortality_mean"].idxmax())`; the best Saber 11 scores are in
-`{python} cname(omean["saber11_mean_mean"].idxmax())`; and the lowest dropout is in
+deviations from the average, against `{python} f"{fz_max:.2f}"` for the features that formed them: the
+kinds differ less in outcomes than in what defines them. Part of this is by design: k-means chose the
+clusters to separate the features, so they should differ more on those than on anything else. Within
+that: the lowest recorded infant mortality is in `{python} cname(omean["infant_mortality_mean"].idxmin())`
+and the highest in `{python} cname(omean["infant_mortality_mean"].idxmax())`; the best Saber 11 scores are
+in `{python} cname(omean["saber11_mean_mean"].idxmax())`; and the lowest dropout is in
 `{python} cname(omean["dropout_rate_mean"].idxmin())`.
 
 ::: pitfall
-The highest infant mortality is not in the cluster with the worst water. That is a good moment to
-slow down rather than to explain it away. The highland towns are small municipalities, where a handful
-of deaths moves a rate a long way, and from 2017 a blank rate may mean no recorded deaths rather than
-an unknown. Small numbers, reporting and a dozen other differences between the kinds all sit between a
-cluster's water and its outcomes. @sec-causation takes that up directly.
+The highest recorded infant mortality is not in the cluster with the worst water, `{python} cname(worst)`.
+That is a good moment to slow down rather than to explain it away. The rates of
+`{python} cname(im_max)` come from the smallest places of any kind, a median of
+`{python} w.fmt(int(pop_med[im_max]))` people per municipality-year, where a handful of deaths moves a rate
+a long way. And they are only the rates that exist. The series holds no zeros, so from 2017 a blank may be
+a recorded zero, and `{python} f"{blank_c[im_max]:.0%}"` of this kind's municipality-years are blank,
+against `{python} f"{blank_all:.0%}"` of all clustered municipality-years. Leaving blanks out drops what may
+be zeros and raises small places' averages most: a selection on the outcome that may account for part of
+this kind's place at the top. Small numbers, reporting and many other differences between the kinds all
+sit between a cluster's water and its outcomes. @sec-causation takes that up directly.
 :::
 
 ## Every variable, cluster by cluster {#sec-compare}
@@ -280,7 +446,7 @@ print('<div class="wat-compare on-light"><select aria-label="Variable" onchange=
 print("```")
 ```
 
-Every feature and outcome, cluster by cluster: pick a variable. Boxes show the middle half, the solid line the median, the dashed line the mean, and the whiskers the 5th to 95th percentiles. All zone-years 2016–2023; outcomes in their years, municipal ones once per municipality.
+Every feature and outcome, cluster by cluster: pick a variable. Boxes show the middle half, the solid line the median, the dashed line the mean, and the whiskers the 5th to 95th percentiles. All zone-years `{python} A.FIRST_YEAR`–`{python} A.LAST_YEAR`; outcomes in their years, municipal ones once per municipality.
 :::
 :::
 
@@ -288,7 +454,7 @@ Every feature and outcome, cluster by cluster: pick a variable. Boxes show the m
 ```{python}
 #| label: fig-compare
 #| fig-cap: "Three variables, cluster by cluster: utility-supplied IRCA, piped-water coverage and infant mortality. Boxes show the middle half, the solid line the median, the dashed line the mean, and the whiskers the 5th to 95th percentiles. The website edition has a menu of all twelve variables."
-#| fig-alt: "Three box-plot panels, one box per cluster in each. IRCA: cluster 4's box sits far higher than the others, which are low, rising from cluster 1 to cluster 3. Water coverage: cluster 4's box sits far lower, the others high. Infant mortality: the four boxes overlap heavily, with cluster 1's lowest and cluster 2's highest."
+#| fig-alt: "Three box-plot panels, one box per cluster in each. IRCA: cluster 4's median lies above every other cluster's box, and the other medians rise from cluster 1 to cluster 3. Water coverage: cluster 4's box sits far lower, the others high. Infant mortality: the four boxes overlap heavily, with cluster 1's lowest and cluster 2's highest."
 #| classes: on-light
 with style():
     fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.9))
@@ -299,9 +465,14 @@ with style():
 ```
 :::
 
-The boxes make the overlap visible. Clusters differ sharply on the features that built them, IRCA and
-coverage above all, and overlap heavily on the outcomes. A gap between two clusters' boxes is a
-description of the data, not an effect of water safety.
+The boxes make the overlap visible. Clusters differ sharply on the features that built them and overlap
+on the outcomes, and a gap between two clusters' boxes is a description of the data, not an effect of
+water safety.
+
+So Part III's second question has an answer, and it is descriptive: infant mortality, exam scores and
+dropout do differ between the kinds of place, `{python} OUT_WORDS[widest]` most, but by no more than
+`{python} f"{oz_max:.2f}"` standard deviations in any cluster's mean, and for every outcome the middle
+90% of each kind's values overlaps every other kind's.
 
 ## Building the interpretation {#sec-interpret-do}
 
@@ -367,8 +538,8 @@ Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
 
 ## Explorations in 3-D (optional) {#sec-explorations}
 
-The workshop's slides have five more 3-D views of the outcomes the clustering never used, by cluster
-and year: dropout as terrain, clusters as hulls, the years stacked, clusters as orbits, and dropout in
+The slide deck this book grew from has five more 3-D views of the outcomes the clustering never used,
+by cluster and year: dropout as terrain, clusters as hulls, the years stacked, clusters as orbits, and dropout in
 Voronoi columns. They are exploratory pictures rather than evidence, and they run live in the
 published slides, starting at
 <https://project-delphi.github.io/quarto-workshop/#/water-meta-terrain>.
@@ -379,18 +550,21 @@ Scan to open them: ![QR code for the 3-D explorations in the workshop slides.](.
 
 ## Summary {.unnumbered}
 
-A cluster's profile, its mean z-score on each feature, describes it as a combination of traits. Names
-come from a written rule (setting, relative coverage, median IRCA band), so they can be checked and do
-not depend on arbitrary numbering; "low-coverage" is relative and the risk word describes a median.
-Outcomes, never used to form the clusters, are compared by year, in z units and as distributions: the
-kinds differ much less in outcomes than in the features that formed them, the worst water is not where
-infant mortality is highest, and the distributions overlap heavily. All of it is description.
+A cluster's profile, its mean z-score on each feature, describes it as a combination of traits, and a
+written rule (setting, relative coverage, median IRCA band) names it, so that anyone can check the name.
+"Low-coverage" is relative, and the risk word describes a median: Tunja's rural zone, never no-risk inside
+the window, sits in a cluster named for `{python} risk_word`, carried there by what it shares with its urban
+zone. The outcomes, never used to form the clusters, differ between the kinds less than the features do;
+the highest recorded infant mortality is not where the water is worst, though blank rates make that
+ranking fragile; and the distributions overlap. All of it
+is description. Yet a description like this invites a causal reading, and @sec-causation tests the link
+inside each kind of place, where poverty, rurality and coverage are more alike than across the country.
 
 ## Further reading {.unnumbered}
 
 - `examples/water/scripts/analysis.py`, `name_rule()`, `profiles()` and `outcomes_by_year()`, in the
-  workshop repository.
-- `examples/water/data/README.md`, caveat 8, on why infant mortality is compared only in 2017–2019 and
-  2021–2023.
+  repository.
+- `examples/water/data/README.md`, caveat 8, on why infant mortality is compared only in
+  `{python} IM_YEARS`.
 - matplotlib, [boxplot](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.boxplot.html):
   what the boxes, whiskers and means show (checked 2026-11-12).

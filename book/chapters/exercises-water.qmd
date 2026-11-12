@@ -1,10 +1,32 @@
 # Exercises for Part III {.unnumbered #sec-exercises-water}
 
-These exercises collect Part III's hands-on work in order, one per checkpoint, as Part II's did. Start
-the assistant in `~/water-quality/`, next to `~/quarto-workshop/`. The water checkpoints hold sources
-only, so each catch-up also copies `examples/water/data/` into your folder if `data/` is missing. From
-Exercise III.4 on, the normal route copies each block's finished `scripts/analysis.py`; the prompts that
-write the analysis yourself are optional. @sec-checkpoints has the whole table.
+```{python}
+#| label: exw-setup
+from scripts import water as w
+
+raw = w.raw()
+first, last = int(raw["year"].min()), int(raw["year"].max())
+
+# Tunja (@sec-tunja-kind), for review question 3 and its answer.
+A = w.A
+clusters = w.res()["clusters"]
+tj = clusters[clusters["divipola"] == "15001"]
+tj_risk = w.names()[int(tj["cluster"].iloc[0])].rsplit(", ", 1)[1]
+tj_bands = tj.loc[tj["zone"] == "rural", "irca_band"].astype(str)
+if (tj["cluster"].nunique() != 1 or len(tj_bands) == 0 or tj_bands.eq("No risk").any()
+        or not tj_bands.eq("Medium").any() or tj_risk != "no-risk water"):
+    raise ValueError("Tunja's rows changed: rewrite review question 3 and its answer")
+```
+
+Part III's exercises come in three kinds. The eight numbered ones rebuild the project in order;
+those that end at a checkpoint give the lines that catch you up. The transfer tasks after them supply no
+prompt: you write the prompt and the check. The review questions test the ideas rather than the
+commands, and their answers are at the end.
+
+Start the assistant in `~/water-quality/`, next to `~/quarto-workshop/`. The water checkpoints hold
+sources only, so each catch-up also copies `examples/water/data/` into your folder if `data/` is
+missing. From Exercise III.3 on, the normal route copies each chapter's finished
+`scripts/analysis.py`; writing the analysis yourself is optional. @sec-checkpoints has the whole table.
 
 ## Exercise III.1: rules, environment and a first look {.unnumbered}
 
@@ -12,7 +34,8 @@ From @sec-water-question and @sec-explore. Copy the data, write `AGENTS.md` from
 create the uv environment, and build `explore.qmd`.
 
 ::: done
-`explore.html` shows missing values by zone and IRCA by band, zone and year for 2010–2023.
+`explore.html` shows missing values by zone and IRCA by band, zone and year for
+`{python} first`–`{python} last`.
 :::
 
 ::: catchup
@@ -112,8 +135,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/12-water-epub/README.md
 ```
 :::
 
-Use the catch-up for the last step you completed: 10 after the report, 11 after the slides, 12 after the
-optional e-book.
+Use the catch-up for the last step you completed: the report, the slides, or the optional e-book.
 
 ## Exercise III.7: the website, published {.unnumbered}
 
@@ -133,19 +155,75 @@ Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
 
 ## Exercise III.8: change an input, explain the rebuild {.unnumbered}
 
-From @sec-water-change, with no prompt supplied. Change `MAX_MISSING = 2` to `1` in
-`scripts/analysis.py`, predict which outputs change, rebuild, explain, and undo with
-`git restore scripts/analysis.py`.
+From @sec-water-change, with no prompt supplied: change `MAX_MISSING`, predict, rebuild, explain,
+and undo with `git restore scripts/analysis.py`.
 
 ::: done
-you can name the outputs that changed, the ones that did not, and the mechanism that links them
-(`pre-render`, `outputs/`, `freeze: false`). The model answer is in @sec-checkpoints.
+you can name the outputs that changed, the ones that did not, what happened to Tunja's two zones, and
+the mechanism that links them (`pre-render`, `outputs/`, `freeze: false`). The model answer is in
+@sec-checkpoints.
 :::
+
+## Transfer tasks: your prompt, your check {.unnumbered}
+
+Each task applies one of Part III's rules to something the chapters did not do. Write the prompt
+yourself, one task with concrete file and column names, and write the check before you run it: what
+will you look at, and what would tell you the assistant got it wrong?
+
+1. **Follow another municipality.** Choose one you know, or another department's capital, and list
+   each of its zones' clusters by year from `outputs/clusters.parquet`, with every flag that marks a
+   filled value.
+
+   ::: done
+   you can say which kind each zone falls in, whether either moves between kinds, and which of its
+   values were filled rather than measured.
+   :::
+
+2. **Dropout within each kind.** Repeat the within-cluster check (@sec-water-within) for school
+   dropout instead of infant mortality, and add it to `clusters.qmd`. The prompt has to carry the rules that
+   apply to dropout: the years `OUTCOME_YEARS` gives it, and the level at which it is measured.
+
+   ::: done
+   the page shows $\rho$ and n per cluster beside a sentence saying the check is descriptive, and you
+   can explain why its n differs from the infant-mortality check's.
+   :::
+
+3. **Guard a sentence.** Find a sentence in `report.qmd` or the blog post whose words, not only its
+   numbers, depend on the data, such as one naming the kind with the lowest coverage. Make the page
+   fail its render if the data stop supporting it, as `assert k == 4` does for the post's title.
+
+   ::: done
+   the page renders with the guard, and fails with a message naming the sentence when you
+   temporarily reverse the guard's condition.
+   :::
+
+4. **Another reader.** Suppose a regional health office asks for one page: a PDF with one figure, one
+   table and the sentence saying what the comparison does not show. Build it from `outputs/` only.
+
+   ::: done
+   `brief.pdf` renders, every number in `brief.qmd` is inline code, the IRCA is labelled
+   utility-supplied, and the last sentence says the comparison does not establish a causal effect of
+   water safety.
+   :::
+
+## Review questions {.unnumbered}
+
+1. A colleague suggests adding infant mortality to the features, since it says more about health risk
+   than altitude does. Why does Part III never cluster on an outcome?
+2. Why is the IRCA called "utility-supplied" every time it appears, and where does the label matter
+   most?
+3. Tunja's rural zone had medium-risk water in some of the analysis's years, yet sits in a cluster
+   named for `{python} tj_risk`. Is the name wrong?
+4. Two draft titles for the council's last slide: "Safer water lowers infant mortality" and, after
+   the within-cluster check (@sec-water-within), "Water quality makes no difference to infant mortality". What is wrong
+   with each, and what would you write instead?
+5. After you change `MAX_MISSING` and rebuild, every page in your folder shows new numbers, but the
+   live site does not. Why both? And what would go wrong if the site used `freeze: auto`?
 
 ## Going further {.unnumbered}
 
-1. **Optional pieces.** Build the dashboard and the white paper (@sec-water-dashboard); the finished project,
-   `examples/water/`, is their checkpoint:
+1. **Optional pieces.** Build the dashboard and the white paper (@sec-water-dashboard); the finished
+   project, `examples/water/`, is their checkpoint:
 
    ::: catchup
    ```default
@@ -153,11 +231,38 @@ you can name the outputs that changed, the ones that did not, and the mechanism 
    ```
    :::
 
-2. **Change the seed.** Repeat Exercise III.8 with `SEED` instead of `MAX_MISSING`. Clusters are numbered by
-   their centre's IRCA, so the names and colours should stay; check whether anything else moves, and why
-   very little does (@sec-choose-k, on stability).
-3. **Freeze it.** Switch the site to `freeze: auto`, change `MAX_MISSING`, render, and find a page that kept
-   its old numbers. Then write the invalidation rule into the project's `AGENTS.md`, apply it, and undo both
-   changes.
-4. **The challenges** in @sec-water-stretch: moves between kinds as a Sankey diagram, positive deviants, and
-   other clustering methods.
+2. **Change the seed.** Repeat Exercise III.8 with `SEED` instead of `MAX_MISSING`. Clusters are
+   numbered by their centre's IRCA, so the names and colours should stay; check whether anything else
+   moves, and why very little does (@sec-choose-k, on stability).
+3. **Freeze it.** Switch the site to `freeze: auto`, change `MAX_MISSING`, render, and find a page
+   that kept its old numbers. Then write the invalidation rule into the project's `AGENTS.md`, apply
+   it, and undo both changes.
+4. **The challenges** in @sec-water-stretch: moves between kinds as a Sankey diagram, positive
+   deviants, and other clustering methods.
+
+## Answers to the review questions {.unnumbered}
+
+1. Because the analysis then compares outcomes between the kinds. If infant mortality helped define
+   them, they would differ in infant mortality by construction, and the comparison would find exactly
+   what was put in (@sec-water-features). Outcomes describe the clusters; they never define them.
+2. The open table holds the IRCA of systems run by water utilities, not the national figure.
+   Self-supplied systems, which have no utility, score far worse (@sec-water-why), so the data
+   understate the risk wherever people rely on self-supply, and say nothing where no utility exists.
+   Without the label, a reader would take the figure for the national one, and think water safer than
+   it is wherever self-supply is common.
+3. Right about the kind, wrong about this member: Tunja's rural water was never in the no-risk band in
+   `{python} A.FIRST_YEAR`–`{python} A.LAST_YEAR`. The risk word is the band of the cluster's median
+   IRCA, not a claim about every zone-year in it, and k-means places a row by all nine features, several
+   of which Tunja's two zones share as one municipality (@sec-names, @sec-tunja-kind). A statement
+   about Tunja needs Tunja's rows.
+4. Both read a description as an effect. The first turns a difference between kinds into a cause,
+   though poverty, rurality, health-service access and reporting differ between the kinds too. The
+   second reads a weak association as no effect, though weak reporting can hide deaths and small
+   municipalities add noise (@sec-confounders). Instead, say what was compared over which rows, with
+   verbs of association, and add one sentence saying the comparison does not establish a causal
+   effect of water safety (@sec-honest-writing).
+5. `pre-render` re-runs the analysis, which rewrites `outputs/`, and `freeze: false` re-executes every
+   page that reads them, so your folder is fresh. The live site is the last `_site/` you published,
+   and changes only when you publish again (@sec-water-ship). With `freeze: auto`, Quarto would
+   re-execute a page only when its own source changed: it does not see `outputs/` or `data/`, so
+   pages would keep their old numbers until the cache was cleared (@sec-water-website).

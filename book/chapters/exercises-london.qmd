@@ -1,10 +1,22 @@
 # Exercises for Part II {.unnumbered #sec-exercises-london}
 
-These exercises collect Part II's hands-on work in order, one per checkpoint. Each names the
-chapter that explains it, how you know you are done, and the line that catches you up if you
-are not. A checkpoint is the state at the *end* of its block, so after catching up, skip to the
-next exercise. Each checkpoint README also lists its steps, which work by hand; @sec-checkpoints
-has the whole table.
+```{python}
+#| label: ex2-setup
+import pandas as pd
+
+n_churches = len(pd.read_csv("../examples/london/data/churches.csv"))
+WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+         "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
+         "eighteen", "nineteen", "twenty"]
+churches_word = WORDS[n_churches] if n_churches < len(WORDS) else f"{n_churches:,}"
+```
+
+The first five exercises collect Part II's hands-on work in order. Each names the chapter
+that explains it, how you know you are done, and the line that catches you up if you are not;
+a checkpoint is the state at the *end* of its block, so after catching up, skip to the next
+exercise. @sec-checkpoints has the whole table. The rest leave the prompts out. In the transfer
+tasks you write the prompt and the check yourself, and the review questions test whether the
+reasons stuck; short answers are at the end.
 
 Start the assistant in `~/london-guide/`, next to `~/quarto-workshop/`. Catching up reads
 outside that folder, so approve the assistant's request to read `../quarto-workshop`.
@@ -50,7 +62,7 @@ with its covering email, and the A5 flyer; the lead renders them one at a time.
 
 ::: done
 `london-dashboard.html` has an Attractions page with three value boxes, a bar chart and a line
-chart, and a Churches page listing ten churches with Visit London links; `london-email.docx`
+chart, and a Churches page listing `{python} churches_word` churches with Visit London links; `london-email.docx`
 opens with headings and working links; `london-email-message.md` holds the email in one text
 block; `london-flyer.pdf` is one A5 page.
 :::
@@ -92,19 +104,66 @@ you can name the outputs that changed, the ones that did not, and the line of co
 each changed output to the input. Model answers are in @sec-checkpoints.
 :::
 
-## Going further {.unnumbered}
+## Write your own prompts {.unnumbered #going-further}
 
-These build on Part II and have no checkpoints.
+These build on Part II and have no checkpoints. For each, write the prompt yourself, as
+concrete as the book's (the files, the columns, the output) and ending with a check you can
+verify without trusting the assistant's report. If you skipped them, the optional pieces come
+first: the square advert (@sec-london-social), the white paper (@sec-london-whitepaper) and
+the three.js page (@sec-london-3d).
 
-1. **Optional pieces.** Make the square advert (@sec-london-social), the white paper
-   (@sec-london-whitepaper) or the three.js page (@sec-london-3d), if you skipped them.
-2. **Turn a copy into a computation.** The flyer and the guide's table copy their facts from
-   `data/sights.csv` (@tbl-london-deps). Ask the assistant to build the flyer's table from the
-   file instead, then repeat Exercise II.5 with a change to a station name in `sights.csv`, and
-   check that the flyer now follows. Restore the file afterwards.
-3. **A map in two dimensions.** The 3-D map's data are in `data/places.csv` and the borough
-   boundaries in `data/london-boroughs.geojson`. Ask for a third dashboard page that draws the
+1. **A handout of free attractions.** The office wants a one-page A5 handout of the
+   attractions in `data/attractions.csv` that are free to enter, each with its 2025 visits.
+   Decide which `admission` values count as free and say so in the prompt. You are done when
+   the handout lists as many attractions as the dashboard's "Top 10 with free entry" value
+   box counts, and no number on it was typed.
+2. **Then and now.** Add a section to `london.qmd` comparing each of the five sights' 2025
+   visits with 2019's, from `data/visits.csv`. Your prompt should say why 2019 is the year to
+   compare with, and ask for the one sight whose counts are not like-for-like to be flagged.
+   You are done when every percentage comes from a cell and the flagged sight is the one
+   `data/README.md` names.
+3. **Turn a copy into a computation.** The flyer and the sights tables in the guide and the
+   partner brief all copy their facts from `data/sights.csv` (@tbl-london-deps). Make the flyer's table read the file instead. Your
+   check: change one station name in `sights.csv` yourself, rebuild, and see it on the flyer.
+   Restore the file afterwards.
+4. **A map in two dimensions.** The 3-D map's data are in `data/places.csv` and the borough
+   boundaries in `data/london-boroughs.geojson`. Add a third dashboard page that draws the
    sights and churches on a 2-D Plotly map from those files, with each point's source in its
-   hover text.
-4. **Update the live site.** After any change, ask the assistant to publish again with
-   `uv run quarto publish gh-pages --no-prompt`, and check the change on your phone.
+   hover text. Decide how you will check that every point is where it should be.
+5. **Update the live site.** Change the guide's welcome sentence, then write one prompt that
+   commits with a message that says why and publishes the update with
+   `uv run quarto publish gh-pages --no-prompt`. You are done when the new sentence is on
+   your phone.
+
+## Review questions {.unnumbered}
+
+1. The project's rules say "ALVA member attractions", never "London's most visited
+   attractions". What would be wrong with the second phrase?
+2. While `quarto preview` runs on `london.qmd`, the assistant runs `quarto render london.qmd`
+   and it fails with `readfile 'london.quarto_ipynb'`. What happened, and what are two ways
+   to avoid it?
+3. The guide's bar chart has a caption and alt text. What should each say, and why are they
+   not the same?
+4. You need two changes to `london-dashboard.qmd`: a new value box and a fix to the line
+   chart's legend. Should you give them to two sub-agents working in parallel?
+5. After the rebuild in Exercise II.5, the dashboard on your computer shows the Tower of
+   London as the most visited attraction, but the flyer has not changed and the dashboard on
+   your phone still shows the old numbers. Explain both.
+
+## Answers {.unnumbered}
+
+1. ALVA counts only its member sites, so its table is not a list of every London
+   attraction. "London's most visited attractions" would claim more than the data show
+   (@sec-london-agents).
+2. A render writes a temporary notebook named after the file, and the preview was rendering
+   the same file at the same moment, so the two collided. Let the preview do the rendering
+   while it runs, or stop it with Ctrl+C first and restart it afterwards
+   (@sec-render-mechanics).
+3. The caption says what the chart is: the measure, the year and whose attractions. The alt
+   text says what it shows, such as which bar is longest and which shortest, for a reader who
+   cannot see it (@sec-cell-options).
+4. No. Both edit the same file, and both are small. Sub-agents suit independent, substantial
+   tasks that write different files; make these two edits in turn (@sec-sub-agents).
+5. The flyer loads no data at all: its facts were copied into its Markdown, so a change to
+   `attractions.csv` cannot reach it. The live site shows what was last published, and
+   changes only when you publish again (@sec-london-change).
