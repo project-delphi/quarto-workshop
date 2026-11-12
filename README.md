@@ -9,16 +9,15 @@ on them.
 - **[Quarto workshop](https://project-delphi.github.io/quarto-workshop/)**: Part 1 builds a
   London tourist guide from Markdown to a published dashboard. Part 2 clusters Colombian
   municipalities by drinking-water risk and context, then publishes one analysis many ways.
-- **[The book](https://project-delphi.github.io/quarto-workshop/book/)**: the workshop as a book,
-  *One Source, Every Format*, to read online or as an
-  [EPUB](https://project-delphi.github.io/quarto-workshop/book/one-source-every-format.epub).
+- **The book**, *One Source, Every Format*, is the workshop as a book: an
+  [EPUB](https://project-delphi.github.io/quarto-workshop/book/one-source-every-format.epub) e-book, or [HTML](https://project-delphi.github.io/quarto-workshop/book/) online with the live 3-D scenes.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)**: an
   optional 90-minute graduate lab built on a real randomized email-marketing experiment, with a
   report in PDF (Typst), DOCX and IPYNB, eight slides, and verified revisions.
 
 ## For attendees
 
-Quick links: [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLESHOOTING.md)
+Quick links: 📖 Book ([EPUB](https://project-delphi.github.io/quarto-workshop/book/one-source-every-format.epub) · [HTML](https://project-delphi.github.io/quarto-workshop/book/)) · [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLESHOOTING.md)
 
 ### Pre-work (before the workshop)
 
