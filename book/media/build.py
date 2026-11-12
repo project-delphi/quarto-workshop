@@ -5,6 +5,7 @@
 Steps (all by default, in this order):
   deck      copy the deck assets the book reuses (DECK_ASSETS) into media/deck/
   cover     media/cover.svg -> media/cover.png (1600 x 2560)
+  roadmaps  media/roadmaps/part-N.svg from _chapters.yml (scripts/roadmaps.py)
   diagrams  media/diagrams/*.svg and media/roadmaps/*.svg -> PNG at 2x, beside each SVG
   qr        media/qr/*.png from QR_TARGETS below
   tapes     media/tapes/*.tape -> media/gifs/*.gif with VHS (real, local commands only)
@@ -85,6 +86,10 @@ def step_deck() -> None:
 
 def step_cover() -> None:
     rasterise([MEDIA / "cover.svg"], scale=1, transparent=False)
+
+
+def step_roadmaps() -> None:
+    subprocess.run([sys.executable, str(BOOK / "scripts" / "roadmaps.py")], cwd=BOOK, check=True)
 
 
 def step_diagrams() -> None:
@@ -194,7 +199,7 @@ def step_check() -> None:
         sys.exit("media check failed:\n  " + "\n  ".join(problems))
 
 
-STEPS = {"deck": step_deck, "cover": step_cover, "diagrams": step_diagrams, "qr": step_qr, "tapes": step_tapes,
+STEPS = {"deck": step_deck, "cover": step_cover, "roadmaps": step_roadmaps, "diagrams": step_diagrams, "qr": step_qr, "tapes": step_tapes,
          "capture": step_capture, "posters": step_posters, "stills": step_stills, "check": step_check}
 
 if __name__ == "__main__":
