@@ -170,3 +170,92 @@ def london_map() -> dict:
         "sights": sights, "churches": churches, "shown": shown,
         "top": top, "paid": paid,
     }
+
+
+def tunja(raw: pd.DataFrame) -> dict:
+    """Tunja's 28 rows (urban and rural, 2010-2023) and their summary statistics, for the deck's
+    explorer (assets/tunja-explorer.js), as in slides/_water.qmd #water-tunja. Labels are the
+    deck's, without its emoji."""
+    tj = raw[raw["divipola"] == "15001"].sort_values(["year", "zone"])
+    assert tj["municipio"].eq("TUNJA").all() and len(tj) == 28
+    tvars = [
+        ("irca", "IRCA, utility-supplied (0–100 %)", "IRCA (0–100 %)"),
+        ("water_coverage_total", "aqueduct coverage, municipality (%)", "aqueduct coverage (%)"),
+        ("sewer_coverage_total", "sewer coverage, municipality (%)", "sewer coverage (%)"),
+        ("population", "population (people)", "people"),
+        ("ipm", "multidimensional poverty IPM, 2018 census (%)", "IPM, 2018 census (%)"),
+        ("mdm", "municipal performance MDM (points)", "MDM (points)"),
+        ("idf", "fiscal performance, old method (points)", "IDF, old method (points)"),
+        ("idf_new", "fiscal performance, new method (points)", "IDF, new method (points)"),
+        ("sgp_water_pc", "SGP water, nominal pesos per person", "SGP water (pesos per person)"),
+        ("rainfall_mm", "rainfall (mm per year)", "rainfall (mm per year)"),
+        ("infant_mortality", "infant mortality (per 1000 births)", "infant deaths per 1000 births"),
+        ("saber11_mean", "Saber 11 mean (points)", "Saber 11 mean (points)"),
+        ("dropout_rate", "school dropout (%)", "school dropout (%)"),
+    ]
+    cav = {
+        "water_coverage_total": {"note": "hollow = reported as 0, probably “not reported” (data README, caveat 2)"},
+        "sewer_coverage_total": {"note": "hollow = reported as 0, probably “not reported” (data README, caveat 2)"},
+        "population": {"note": "DANE back-projection to 2017, a newer series from 2018 (data README, caveat 9)",
+                       "breaks": [[2018, "new series"]]},
+        "infant_mortality": {"note": "modelled to 2016, observed rates from 2017, 2020 from another source: "
+                                     "the 2017 drop is not an improvement (data README, caveat 8)",
+                             "breaks": [[2017, "new method"], [2020, "2020: other source"], [2021, ""]]},
+    }
+    piv = {k: tj.pivot(index="year", columns="zone", values=k) for k, _, _ in tvars}
+
+    def lvl(p):
+        if ((p.urban == p.rural) | (p.urban.isna() & p.rural.isna())).all():
+            return "municipal"
+        return "fixed" if all(p[z].dropna().nunique() <= 1 for z in ("urban", "rural")) else "zone"
+
+    def dp(v):
+        return next((d for d in range(3) if ((v.dropna() * 10 ** d).round(6) % 1 == 0).all()), 2)
+
+    def stats(v):
+        x = v.dropna()
+        q = x.quantile([0.25, 0.5, 0.75]) if len(x) else None
+        return {"n": int(len(x)), "missing": int(v.isna().sum()),
+                "mean": None if x.empty else round(float(x.mean()), 4),
+                "sd": None if len(x) < 2 else round(float(x.std()), 4),
+                "min": None if x.empty else float(x.min()), "max": None if x.empty else float(x.max()),
+                "q1": None if q is None else float(q[0.25]), "median": None if q is None else float(q[0.5]),
+                "q3": None if q is None else float(q[0.75])}
+
+    level = {k: lvl(p) for k, p in piv.items()}
+    summary = {}
+    for key, p in piv.items():
+        if level[key] == "municipal":
+            summary[key] = {"municipal": stats(p["urban"])}
+        elif level[key] == "fixed":
+            summary[key] = {z: stats(p[z].drop_duplicates()) for z in ("urban", "rural")}
+        else:
+            summary[key] = {z: stats(p[z]) for z in ("urban", "rural")}
+    data = {
+        "years": sorted(int(y) for y in tj["year"].unique()),
+        "vars": [{"key": k, "label": lab, "short": sh, "level": level[k], "dp": dp(tj[k]),
+                  "suspect": sorted(int(y) for y in tj.loc[tj[k].eq(0), "year"].unique())
+                  if k in ("water_coverage_total", "sewer_coverage_total") else [],
+                  **cav.get(k, {})} for k, lab, sh in tvars],
+        "rows": [{"year": int(r["year"]), "zone": r["zone"],
+                  **{k: (None if pd.isna(r[k]) else float(r[k])) for k, _, _ in tvars}}
+                 for _, r in tj.iterrows()],
+        "summary": summary,
+    }
+    opts = "".join(f'<option value="{k}">{html.escape(lab)}</option>' for k, lab, _ in tvars)
+    block = "\n".join([
+        "```{=html}",
+        '<div class="tunja">'
+        f'<script type="application/json">{json.dumps(data, separators=(",", ":"))}</script>'
+        '<div class="tj-bar">'
+        '<label>view <select name="view"><option value="table">data</option><option value="summary">summary</option>'
+        '<option value="distribution">distribution</option><option value="series">time series</option>'
+        '<option value="scatter">scatter</option></select></label>'
+        f'<label class="tj-x"><span class="tj-xl">variable</span> <select name="x">{opts}</select></label>'
+        f'<label class="tj-y" hidden>y <select name="y">{opts}</select></label>'
+        '<label>zone <select name="zone"><option value="both">both zones</option><option value="urban">urban</option>'
+        '<option value="rural">rural</option></select></label></div>'
+        '<div class="tj-out"></div><p class="tj-note"></p></div>',
+        '<script src="../assets/tunja-explorer.js"></script>',
+        "```"])
+    return {"html": block, "rows": tj, "pivot": piv}
