@@ -3,7 +3,8 @@
     uv run --with playwright --with segno python media/build.py [step ...]
 
 Steps (all by default, in this order):
-  deck      copy the deck assets the book reuses (DECK_ASSETS) into media/deck/
+  deck      copy the deck assets the book reuses (DECK_ASSETS) into media/deck/ and the
+            London photos (examples/london/images) into media/london/
   cover     media/cover.svg -> media/cover.png (1600 x 2560)
   roadmaps  media/roadmaps/part-N.svg from _chapters.yml (scripts/roadmaps.py)
   diagrams  media/diagrams/*.svg and media/roadmaps/*.svg -> PNG at 2x, beside each SVG
@@ -75,13 +76,14 @@ def rasterise(svgs: list[Path], scale: float, transparent: bool = True) -> None:
 
 def step_deck() -> None:
     import shutil
-    src = BOOK.parent / "assets"
-    for pattern in DECK_ASSETS:
+    copies = [(BOOK.parent / "assets", pattern, MEDIA / "deck") for pattern in DECK_ASSETS]
+    copies += [(BOOK.parent / "examples" / "london" / "images", "*.jpg", MEDIA / "london")]
+    for src, pattern, dest_dir in copies:
         for f in sorted(src.glob(pattern)):
-            dest = MEDIA / "deck" / f.relative_to(src)
+            dest = dest_dir / f.relative_to(src)
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(f, dest)
-            print("deck", dest.relative_to(BOOK))
+            print("copy", dest.relative_to(BOOK))
 
 
 def step_cover() -> None:
