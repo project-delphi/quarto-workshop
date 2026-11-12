@@ -20,10 +20,19 @@ km = sc.kmeans_toy(A.CLUSTER_COLORS)
 cl = sc.cloud(res, A)
 rl = sc.relief(res, w.raw(), A)
 next_drop = ktab["inertia_drop"].get(k + 1, 0.0)
+ORDINAL = dict(enumerate(["first", "second", "third", "fourth", "fifth", "sixth", "seventh",
+                          "eighth", "ninth", "tenth"], start=1))
+
+
+def alt_text_holds(ok: bool, figure: str) -> None:
+    """Alt texts are static cell options, so they cannot quote computed values. Stop the
+    render when the data no longer match what one says, so that it is rewritten."""
+    if not ok:
+        raise ValueError(f"the alt text of {figure} no longer matches the data: rewrite it")
 ```
 
 The water data now have `{python} w.fmt(s["kept"])` prepared rows, each described by nine z-scores.
-Nobody can read eleven thousand rows. The point of clustering is to turn them into a few *kinds* that
+Nobody can read that many rows. The point of clustering is to turn them into a few *kinds* that
 a person can name, compare and act on: these municipal zones are like each other, and unlike those.
 
 This chapter explains k-means, the algorithm the analysis uses, by watching it work on toy data; then
@@ -99,9 +108,11 @@ with style():
     plt.show()
 ```
 
-Different starts can end in different groupings, so the real analysis runs k-means from 20 random
-starts (`n_init=20`) and keeps the one with the lowest inertia, with a fixed random seed so that the
-result is the same on every render.
+Different starts can end in different groupings, so the real analysis runs k-means from
+`{python} A.N_INIT` starts (scikit-learn's `n_init`) and keeps the one with the lowest inertia. Its starts
+are not dropped at random, as in the toy: scikit-learn's default, *k-means++*, chooses the starting
+centres one at a time, each with a probability that grows with its distance from the centres already
+chosen, which spreads them out and makes a stuck start less likely. A fixed random seed makes the result the same on every render.
 
 ::: why
 Why cluster at all? A table of thousands of rows becomes a few kinds a person can read and name. Kinds
@@ -113,15 +124,19 @@ it cannot do is explain: clusters describe, they do not show causes.
 ## Choosing k {#sec-choose-k}
 
 k is a *hyperparameter*: a choice made before fitting, not a result of it. The analysis fits k-means for
-k from 2 to 8 and reads two measures (@fig-k-selection). Inertia always falls as k grows, so the
+k from `{python} min(A.K_RANGE)` to `{python} max(A.K_RANGE)` and reads two measures (@fig-k-selection). Inertia always falls as k grows, so the
 question is where it stops falling much, the *elbow*. The *silhouette* scores, from −1 to 1, how much
-closer each point is to its own cluster than to the next one, on a fixed sample of 5,000 rows.
+closer each point is to its own cluster than to the next one, on a fixed sample of `{python} w.fmt(A.SILHOUETTE_N)` rows.
 
 ```{python}
 #| label: fig-k-selection
 #| fig-cap: "Choosing k: inertia (left) and silhouette (right) for k = 2 to 8, fitted on all kept rows. The chosen k is marked."
 #| fig-alt: "Two line charts over k from 2 to 8. Inertia falls steadily, steeply at first and more gently after k equals 4. The silhouette is highest at k equals 2, then flat near 0.19 to 0.20 from k equals 3 to 7, and lower at 8. The chosen k, 4, is marked on both."
 #| classes: on-light
+sil = ktab["silhouette"]
+alt_text_holds(k == 4 and list(ktab.index) == list(range(2, 9)) and sil.idxmax() == 2
+               and sil.loc[3:7].round(2).between(0.19, 0.20).all() and sil.loc[8] < sil.loc[3:7].min(),
+               "fig-k-selection")
 with style():
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.0, 2.7))
     a1.plot(ktab.index, ktab["inertia"] / 1000, marker="o", color=ACCENT)
@@ -142,9 +157,9 @@ The rule, written into `choose_k()` in the analysis script before looking at the
   the zone is `{python} f"{ktab.loc[2, 'ari_vs_zone']:.2f}"`, where 1 would mean identical), which we
   knew already.
 - **The elbow:** take the smallest k from 3 up after which one more cluster cuts inertia by less than
-  10%. Here that is k = `{python} k`: a fifth cluster cuts inertia by only
-  `{python} f"{next_drop:.0%}"`.
-- **The silhouette check:** k's silhouette must be within 0.01 of the best for k ≥ 3. At k = `{python} k`
+  `{python} f"{A.ELBOW_DROP:.0%}"`. Here that is k = `{python} k`: a `{python} ORDINAL[k + 1]` cluster cuts
+  inertia by only `{python} f"{next_drop:.0%}"`.
+- **The silhouette check:** k's silhouette must be within `{python} A.SILHOUETTE_TOL` of the best for k ≥ 3. At k = `{python} k`
   it is `{python} f"{ktab.loc[k, 'silhouette']:.3f}"`.
 
 Two more checks follow the fit. **Stability**: refitting with `{python} len(A.STABILITY_SEEDS)` other
@@ -170,6 +185,7 @@ data vary most and projects the rows onto them. @fig-wat-pca uses the first two,
 #| fig-cap: "Each dot is a zone-year on the first two principal components of the nine z-scored features, coloured and shaped by cluster. PCA is only for the picture: k-means used all nine features."
 #| fig-alt: "Scatter plot of about eleven thousand dots in four coloured groups that overlap at their edges. Cluster 4 spreads to one side, clusters 1 and 2 to others, and cluster 3 sits in the middle, drawn on top."
 #| classes: on-light
+alt_text_holds(k == 4 and round(s["kept"], -3) == 11_000, "fig-wat-pca")
 with style():
     fig, ax = plt.subplots(figsize=(6.6, 4.0))
     centres = clusters.groupby("cluster")[["pc1", "pc2"]].mean()
@@ -331,8 +347,8 @@ Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
 
 k-means repeats two moves, assign each point to its nearest centre and move each centre to its points'
 mean, until nothing changes; it always lowers inertia but can stall in a worse grouping, so the analysis
-uses 20 starts and a fixed seed. k is chosen by a rule written down in advance: k = 2 is excluded as the
-urban-rural split, the elbow picks k = `{python} k`, and the silhouette, about 0.2, says the kinds
+uses `{python} A.N_INIT` starts and a fixed seed. k is chosen by a rule written down in advance: k = 2 is excluded as the
+urban-rural split, the elbow picks k = `{python} k`, and the silhouette, `{python} f"{ktab.loc[k, 'silhouette']:.2f}"`, says the kinds
 overlap. Refits with other seeds agree. PCA gives a picture, not the model; a third component and a
 relief map show that altitude separates the kinds geographically. Using the finished model is a
 legitimate route: the lesson of this part is how one result feeds every publication.

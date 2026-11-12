@@ -310,7 +310,7 @@ def kmeans_toy(cluster_colors: list[str]) -> dict:
             return f"2. each point joins its nearest centre · inertia {i:.1f}"
         if i <= best + 1e-6:
             return f"4. nothing changes: stable · inertia {i:.1f}, the lowest of the three starts"
-        return f"4. stable, but stuck · inertia {i:.1f} against {best:.1f}: a bad start gives a worse answer"
+        return f"4. stable, but stuck · inertia {i:.1f} vs {best:.1f}: a bad start gives a worse answer"
 
     data = {
         "k": K, "scale": SK, "colors": list(cluster_colors[:K]), "pts": ints(toy),
