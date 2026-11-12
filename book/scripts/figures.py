@@ -10,9 +10,16 @@ cluster and IRCA band colours come from examples/water/scripts/analysis.py.
 """
 from __future__ import annotations
 
+import os
 from contextlib import contextmanager
 
 import matplotlib.pyplot as plt
+
+# Reproducible SVGs, so a re-executed chapter leaves its frozen figures unchanged: a fixed
+# date in the SVG metadata (the book's date, 2026-11-12) and fixed element ids. Set at import,
+# because figures are saved after the cell ends, outside style().
+os.environ.setdefault("SOURCE_DATE_EPOCH", "1794441600")
+plt.rcParams["svg.hashsalt"] = "one-source-every-format"
 
 INK = "#24313f"
 MUTED = "#5b6b7b"
