@@ -57,8 +57,9 @@ Also relevant from the repo:
 
 AGENTS.md asks for these before a new module is written.
 
-- **Audience:** researchers, analysts and students who are new to Quarto and to coding
-  assistants, many with little terminal experience. The same readers as the workshop, now
+- **Audience:** researchers, practitioners, lecturers and students, anyone who works with
+  data and needs to share the results (the author's words in the preface), many new to Quarto
+  and to coding assistants and with little terminal experience. The same readers as the workshop, now
   reading alone.
 - **Prerequisites:** a computer they can install software on, a GitHub account, and access
   to one coding assistant (paid plan or API key). No programming is assumed; the Python is
