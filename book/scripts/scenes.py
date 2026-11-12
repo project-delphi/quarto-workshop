@@ -259,3 +259,229 @@ def tunja(raw: pd.DataFrame) -> dict:
         '<script src="../assets/tunja-explorer.js"></script>',
         "```"])
     return {"html": block, "rows": tj, "pivot": piv}
+
+
+GLYPH = {"o": "●", "s": "■", "^": "▲", "D": "◆", "v": "▼", "P": "✚", "X": "✖", "*": "★"}
+
+
+def kmeans_toy(cluster_colors: list[str]) -> dict:
+    """Synthetic toy points (not the water data) clustered with Lloyd's algorithm written out
+    step by step, three random starts (slides/_water.qmd, #water-kmeans)."""
+    rng = np.random.default_rng(7)
+    toy = np.vstack([rng.normal(m, 0.62, size=(n, 3)) for m, n in
+                     (([0, 0, 0], 220), ([3, 0.6, 0.4], 180), ([1.4, 2.8, -0.5], 160))])
+    K = 3
+
+    def lloyd(start):
+        c = start.copy()
+        states = [(c.copy(), None, "drop")]
+        while True:
+            lab = ((toy[:, None, :] - c[None]) ** 2).sum(-1).argmin(1)
+            states.append((c.copy(), lab, "assign"))
+            n = np.array([toy[lab == j].mean(0) if (lab == j).any() else c[j] for j in range(K)])
+            if np.allclose(n, c):
+                return states
+            c = n
+            states.append((c.copy(), lab, "move"))
+
+    def inertia(c, lab):
+        return float(((toy - c[lab]) ** 2).sum())
+
+    runs = [lloyd(toy[np.random.default_rng(sd).choice(len(toy), K, replace=False)]) for sd in (50, 43, 753)]
+    assert len({len(r) for r in runs}) == 1
+    best = min(inertia(r[-1][0], r[-1][1]) for r in runs)
+    assert sum(inertia(r[-1][0], r[-1][1]) > best + 1e-6 for r in runs) == 1
+    N = max(len(r) for r in runs)
+    mid, span = toy.mean(0), np.abs(toy - toy.mean(0)).max()
+    SK = 1000
+
+    def ints(a):
+        return np.rint((a - mid) / span * SK).astype(int).ravel().tolist()
+
+    def note(state, last, prev):
+        c, lab, kind = state
+        if kind == "drop":
+            return f"1. drop {K} centres at random points"
+        if kind == "move":
+            far = np.linalg.norm(c - prev, axis=1).max()
+            return f"3. each centre moves to the mean of its points · farthest move {far:.2f}"
+        i = inertia(c, lab)
+        if not last:
+            return f"2. each point joins its nearest centre · inertia {i:.1f}"
+        if i <= best + 1e-6:
+            return f"4. nothing changes: stable · inertia {i:.1f}, the lowest of the three starts"
+        return f"4. stable, but stuck · inertia {i:.1f} against {best:.1f}: a bad start gives a worse answer"
+
+    data = {
+        "k": K, "scale": SK, "colors": list(cluster_colors[:K]), "pts": ints(toy),
+        "runs": [{"states": [
+            {"c": ints(c), "l": None if lab is None else lab.tolist(),
+             "note": note((c, lab, kind), i == len(r) - 1, r[i - 1][0])}
+            for i, (c, lab, kind) in enumerate(r)]} for r in runs],
+        "states": [{} for _ in range(N)],
+    }
+    alt = (f"Turning 3-D scatter of {len(toy)} synthetic toy points in three groups. Three centres "
+           "drop in, each point takes the colour of its nearest centre, the centres move to their "
+           "points' mean, leaving a trail, and the steps repeat until nothing changes.")
+    steps = "".join(f'<button data-state="{i}" aria-pressed="false" aria-label="Step {i + 1}">{i + 1}</button>'
+                    for i in range(N))
+    starts = "".join(f'<button data-cluster="{i}" aria-pressed="false" aria-label="Random start {i + 1}">start {i + 1}</button>'
+                     for i in range(len(runs)))
+    extra = ('<div class="legend"><span>● point</span><span>◉ centre</span><span>━ its path</span></div>'
+             f'<div class="t-picker" role="group" aria-label="Step"><button class="t-play" aria-pressed="true">⏸ fix</button>{steps}</div>'
+             f'<div class="c-picker" role="group" aria-label="Random start">{starts}</div>')
+    return {"data": data, "alt": alt, "extra": extra, "toy": toy, "runs": runs, "inertia": inertia,
+            "best": best, "n_steps": N, "first_note": data["runs"][0]["states"][0]["note"]}
+
+
+def cloud(res: dict, A) -> dict:
+    """The clusters on the first three principal components (slides/_water.qmd, #water-pca-3d)."""
+    from sklearn.decomposition import PCA
+    from sklearn.neighbors import NearestNeighbors
+
+    clusters = res["clusters"]
+    colors = res["profiles"]["color"].to_dict()
+    Z = A.zmatrix(res["prepared"])
+    pca3 = PCA(n_components=3, random_state=A.SEED).fit(Z)
+    xyz = pca3.transform(Z)
+    assert np.allclose(xyz[:, :2], clusters[["pc1", "pc2"]].to_numpy())
+    var3 = pca3.explained_variance_ratio_
+    lab = clusters["cluster"].to_numpy()
+
+    def same(d):
+        _, idx = NearestNeighbors(n_neighbors=15).fit(xyz[:, :d]).kneighbors()
+        return pd.Series((lab[idx] == lab[:, None]).mean(axis=1))
+
+    same2, same3 = same(2), same(3)
+    own2, own3 = same2.groupby(lab).mean(), same3.groupby(lab).mean()
+    focus = int(own2.idxmin())
+    pc3 = pd.Series(pca3.components_[2], index=A.FEATURES)
+    top = pc3.abs().nlargest(2).index
+
+    def word(f):
+        s = A.SHORT_LABELS.get(f, f)
+        return s[0].lower() + s[1:] if s[1:2].islower() else s
+
+    f1, f2 = top
+    pc3_text = ("−" if pc3[f1] < 0 else "") + word(f1) + (" + " if pc3[f2] > 0 else " − ") + word(f2)
+    means = pd.Series(xyz[:, 2]).groupby(lab).mean()
+    others = means.drop(focus)
+    side = ("sits below the others" if means[focus] < others.min()
+            else "sits above the others" if means[focus] > others.max() else "moves apart")
+    data = {
+        "scale": 100, "xyz": np.round(xyz * 100).astype(int).ravel().tolist(), "cluster": lab.tolist(),
+        "focus": focus,
+        "lo": np.percentile(xyz, 1, axis=0).round(2).tolist(),
+        "hi": np.percentile(xyz, 99, axis=0).round(2).tolist(),
+        "clusters": [{"id": int(c), "color": colors[c], "marker": A.CLUSTER_MARKERS[c - 1]} for c in sorted(colors)],
+    }
+    legend = "".join(f'<span><span style="color:{c["color"]}">{GLYPH.get(c["marker"], "●")}</span> '
+                     f'Cluster {c["id"]}</span>' for c in data["clusters"])
+    axes = "".join(f'<span class="axis-label">PC{a + 1} · {var3[a]:.0%}</span>' for a in range(3))
+    alt = (f"Turning 3-D scatter of {len(lab):,} zone-years on the first three principal components, "
+           f"coloured and shaped by cluster. Face on it is the 2-D picture; turned upright on PC3, "
+           f"cluster {focus} {side}.")
+    return {"data": data, "alt": alt, "extra": f'<div class="legend">{legend}</div>{axes}',
+            "var3": var3, "own2": own2, "own3": own3, "focus": focus, "pc3": pc3, "pc3_top": top,
+            "pc3_text": pc3_text, "side": side, "same2": same2, "same3": same3}
+
+
+def relief(res: dict, raw: pd.DataFrame, A) -> dict:
+    """Urban zones as columns at their head towns' altitude, coloured by cluster
+    (slides/_water.qmd, #water-relief)."""
+    clusters = res["clusters"]
+    colors = res["profiles"]["color"].to_dict()
+    year = A.LAST_YEAR
+    rel = clusters[(clusters["zone"] == "urban") & (clusters["year"] == year)
+                   & ~clusters["divipola"].str.startswith("88")]
+    filled = int(rel["altitude_m_imputed"].sum())
+    rel = rel[rel["altitude_m_imputed"] == 0]
+
+    def part(ring):
+        x, y = ring[:, 0], ring[:, 1]
+        c = x * np.roll(y, -1) - np.roll(x, -1) * y
+        a = c.sum() / 2
+        return abs(a), (x + np.roll(x, -1)) @ c / (6 * a), (y + np.roll(y, -1)) @ c / (6 * a)
+
+    centroid, edges, edge_dpts = {}, collections.Counter(), collections.defaultdict(set)
+    geo = A.load_geojson(for_plotly=False)
+    for feat in geo["features"]:
+        code = feat["properties"]["divipola"]
+        if code.startswith("88"):
+            continue
+        gm = feat["geometry"]
+        polys = [gm["coordinates"]] if gm["type"] == "Polygon" else gm["coordinates"]
+        polys = [[np.asarray(r, dtype=float) for r in p] for p in polys]
+        centroid[code] = max((part(p[0]) for p in polys), key=lambda t: t[0])[1:]
+        for ring in (r for p in polys for r in p):
+            pts = [tuple(v) for v in np.round(ring, 4)]
+            for u, v in zip(pts, pts[1:]):
+                if u != v:
+                    e = (u, v) if u < v else (v, u)
+                    edges[e] += 1
+                    edge_dpts[e].add(code[:2])
+    outline = [e for e, n in edges.items() if n == 1]
+    dpt_edges = [e for e, n in edges.items() if n > 1 and len(edge_dpts[e]) > 1]
+    ll = np.array([p for e in outline for p in e])
+    lon0, lat0 = (ll.min(0) + ll.max(0)) / 2
+    kx, ky = 111.32 * np.cos(np.radians(lat0)), 110.57
+
+    def km(lon, lat):
+        return (lon - lon0) * kx, (lat - lat0) * ky
+
+    def segments(es, step):
+        seen = set()
+        for u, v in es:
+            a, b = (tuple(np.round(np.array(p) / step).astype(int)) for p in (u, v))
+            if a != b:
+                seen.add((a, b) if a < b else (b, a))
+        return [round(c) for s in sorted(seen) for p in s for c in km(p[0] * step, p[1] * step)]
+
+    exag = 50
+    xy = np.array([km(*centroid[c]) for c in rel["divipola"]])
+    alt_med = rel.groupby("cluster")["altitude_m"].median()
+    high, low = int(alt_med.idxmax()), int(alt_med.idxmin())
+    hi_mask = rel["cluster"].to_numpy() == high
+    hi_cols = xy[hi_mask]
+    hi_i = np.argmin(((hi_cols - np.median(hi_cols, axis=0)) ** 2).sum(axis=1))
+    hi_xy, hi_alt = hi_cols[hi_i], rel["altitude_m"].to_numpy()[hi_mask][hi_i]
+    ext = np.array([km(*p) for p in ll])
+    data = {
+        "exaggeration": exag,
+        "cols": [int(v) for x, y, a, k in zip(xy[:, 0], xy[:, 1], rel["altitude_m"], rel["cluster"])
+                 for v in (round(x), round(y), round(a), k)],
+        "outline": segments(outline, 0.03), "departments": segments(dpt_edges, 0.05),
+        "extent": [round(v) for v in (ext[:, 0].min(), ext[:, 0].max(), ext[:, 1].min(), ext[:, 1].max())],
+        "clusters": [{"id": int(c), "color": colors[c]} for c in sorted(colors)],
+        "focus": [high, low],
+        "view": [round(hi_xy[0]), round(hi_xy[1]), round(hi_alt / 1000 * exag / 2)],
+    }
+    towns = raw[(raw["zone"] == "urban") & (raw["year"] == year)
+                & (raw["entity_type"] == "municipality")].set_index("divipola")
+    col_of = rel.set_index("divipola")[["altitude_m", "cluster"]]
+    capitals = towns[(towns["department_capital"] == 1) & towns.index.isin(col_of.index)]
+    city_top = list(capitals["population"].nlargest(10).index)
+    codes = city_top[:1] + ["15001"] + [c for c in city_top[1:] if c != "15001"]
+    short = {"11001": "Bogotá", "76001": "Cali", "13001": "Cartagena", "54001": "Cúcuta"}
+
+    def city(c):
+        return short.get(c, towns.loc[c, "municipio"].title())
+
+    data["cities"] = [int(v) for c in codes for v in (*(round(t) for t in km(*centroid[c])),
+                                                      round(col_of.loc[c, "altitude_m"]), col_of.loc[c, "cluster"])]
+    labels = "".join(f'<span class="place-label" translate="no">{html.escape(city(c))}</span>' for c in codes)
+    medians = {c: (f"{alt_med[c]:,.0f} m" if c in alt_med else f"no {year} urban zones") for c in sorted(colors)}
+    legend = "".join(f'<span><span style="color:{colors[c]}">■</span> Cluster {c} · {m}</span>'
+                     for c, m in medians.items())
+    alt = (f"3-D map of mainland Colombia with one column for each of the {len(rel)} clustered urban "
+           f"zones in {year}, at its municipality's centroid, as tall as its head town's altitude and "
+           f"coloured by cluster. Cluster {high}'s columns are the tallest (median {alt_med[high]:,.0f} m); "
+           f"cluster {low}'s are the shortest ({alt_med[low]:,.0f} m). Labels name the ten most populous "
+           "department capitals and Tunja.")
+    region_top = {c: rel.loc[rel["cluster"] == c, "region"].value_counts(normalize=True) for c in (high, low)}
+    return {"data": data, "alt": alt, "extra": f'<div class="legend">{legend}</div>{labels}',
+            "fallback": f"Median head-town altitude, {year} urban zones: "
+                        + "; ".join(f"cluster {c}: {m}" for c, m in medians.items()) + ".",
+            "year": year, "n": len(rel), "filled": filled, "exag": exag, "alt_med": alt_med,
+            "high": high, "low": low, "region_top": region_top,
+            "cities": [city(c) for c in codes], "tunja_alt": col_of.loc["15001", "altitude_m"]}

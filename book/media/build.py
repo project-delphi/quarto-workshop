@@ -42,7 +42,7 @@ QR_TARGETS = {
 # Deck assets the book reuses, copied so both editions resolve them inside book/.
 DECK_ASSETS = ["chat-prompt.gif", "windows-session.gif", "threejs-visits.png",
                "pelicans/*.svg", "windows-steps/*.svg"]
-MAX_GIF_BYTES = 2 * 1024 * 1024
+MAX_GIF_BYTES = 2_000_000  # 2 MB, decimal
 MAX_GIF_WIDTH = 800
 
 
@@ -136,12 +136,13 @@ def step_capture() -> None:
 
 
 def optimise(gif: Path) -> None:
-    """Shrink a GIF in place with gifsicle, more lossy until it fits MAX_GIF_BYTES."""
-    for lossy in (0, 30, 60, 90, 120):
-        args = ["gifsicle", "-O3", "--colors", "128", "-o", str(gif), str(gif)]
+    """Shrink a GIF in place with gifsicle, more lossy (then fewer colours) until it fits
+    MAX_GIF_BYTES."""
+    for colors, lossy in ((128, 0), (128, 30), (128, 60), (128, 90), (128, 120), (64, 120), (48, 160)):
+        args = ["gifsicle", "-O3", "--colors", str(colors), "-o", str(gif), str(gif)]
         if lossy:
             args.insert(1, f"--lossy={lossy}")
-        subprocess.run(args, check=True)
+        subprocess.run(args, check=True, capture_output=True)
         if gif.stat().st_size <= MAX_GIF_BYTES:
             return
 

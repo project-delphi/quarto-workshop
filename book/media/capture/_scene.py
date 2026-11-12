@@ -63,7 +63,8 @@ def record(page_rel: str, out_name: str, steps: list[tuple], index: int = 0) -> 
             if kind == "hold":
                 snap_for(step[1])
             elif kind == "view":
-                page.locator(f".view-buttons button[data-view='{step[1]}']").nth(index).click()
+                section = scene.locator("xpath=ancestor::section[1]")
+                section.locator(f".view-buttons button[data-view='{step[1]}']").first.click()
                 snap_for(step[2])
             elif kind == "click":
                 page.locator(step[1]).click()
