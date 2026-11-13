@@ -2,66 +2,64 @@
 
 ```{python}
 #| label: ch14-setup
-from scripts import water as w
-from scripts.prose import number_words, text_holds
-
-s = w.res()["summary"]
-k = s["k"]
-```
-
-```{python}
-#| label: ch14-rebuild
-# The rebuild in the summary, computed: the finished analysis again with MAX_MISSING = 1 instead
-# of its setting, in memory, as in @sec-answer-water; then where Tunja's zones and the department
-# capitals' rural zones went.
+# Which page of the finished water project reads which files, and which files it writes. Read
+# from the sources: a page reads a file if its code names a path in data/ or outputs/, or calls
+# analysis.load_geojson(), whose default is data/municipios.geojson.
+import re
 from pathlib import Path
 
+import yaml
+
+from scripts.prose import number_words, text_holds
 
 NUM = number_words(zero="no")
-
-
-A = w.A
-before = w.res()
-original = A.MAX_MISSING
-A.MAX_MISSING = 1
-try:
-    after = A.run()
-finally:
-    A.MAX_MISSING = original
-c0, c1 = before["clusters"], after["clusters"]
-cap0 = c0[(c0["department_capital"] == 1) & (c0["zone"] == "rural")]
-cap1 = c1[(c1["department_capital"] == 1) & (c1["zone"] == "rural")]
-tj0, tj1 = c0[c0["divipola"] == "15001"], c1[c1["divipola"] == "15001"]
-tj_rural0 = int((tj0["zone"] == "rural").sum())
-tj_c = int(tj0["cluster"].iloc[0])
-kept = c0.merge(c1, on=["divipola", "zone", "year"], suffixes=("_0", "_1"))
-same = (kept["cluster_0"] == kept["cluster_1"]).mean()
-# The rows the stricter rule drops, which reach it with coverage missing (imputation comes after).
-gone = c0.merge(c1[["divipola", "zone", "year"]], on=["divipola", "zone", "year"], how="left", indicator=True)
-gone = gone[gone["_merge"] == "left_only"]
-gone_cap = (gone["department_capital"] == 1) & (gone["zone"] == "rural")
-gone_both = gone[["water_coverage_imputed", "sewer_coverage_imputed"]].eq(1).all(axis=1)
-other_both = int((gone_both & ~gone_cap).sum())
-text_holds(gone_both.all() and gone_cap.sum() == len(cap0) and len(gone) == len(c0) - len(c1),
-           "what the stricter rule drops")
-text_holds(original == 2 and len(cap1) == 0 and len(cap0) > 0
-           and cap0[["water_coverage_imputed", "sewer_coverage_imputed"]].eq(1).all().all()
-           and set(tj1["zone"]) == {"urban"} and tj1["cluster"].eq(tj_c).all()
-           and len(tj1) == (tj0["zone"] == "urban").sum() and tj0["cluster"].eq(tj_c).all()
-           and after["k"] == before["k"] == 4    # the post's `assert k == 4`
-           and list(after["profiles"]["name"]) == list(before["profiles"]["name"]),
-           "the MAX_MISSING rebuild")
-geo_mb = Path("../examples/water/data/municipios.geojson").stat().st_size / 1e6
+WORD = number_words()
+wat = Path("../examples/water")
+cfg = yaml.safe_load((wat / "_quarto.yml").read_text())
+ext = {"html": "html", "docx": "docx", "typst": "pdf", "epub": "epub", "revealjs": "html",
+       "pptx": "pptx", "dashboard": "html"}
+deps = []
+for page in cfg["project"]["render"]:
+    text = (wat / page).read_text()
+    fmt = yaml.safe_load(text.split("---")[1]).get("format", "html")
+    outs = list(dict.fromkeys(ext.get(f, "html") for f in (fmt if isinstance(fmt, dict) else [fmt])))
+    reads = set(re.findall(r'["\'](data|outputs)/([\w.-]+)["\']', text))
+    if "load_geojson(" in text:
+        reads.add(("data", "municipios.geojson"))
+    deps.append({"page": page, "outputs": outs,
+                 "from_outputs": sorted(f for d, f in reads if d == "outputs"),
+                 "from_data": sorted(f for d, f in reads if d == "data")})
+no_outputs = {d["page"] for d in deps if not d["from_outputs"]}
+text_holds(no_outputs == {"index.qmd", "explore.qmd"}
+           and next(d for d in deps if d["page"] == "explore.qmd")["from_data"] == ["water_municipal.csv"],
+           "the pages that read no outputs/")
+geo_mb = (wat / "data/municipios.geojson").stat().st_size / 1e6
 ```
 
 The officials will read the findings as a report, so they need it in the formats offices pass around:
 Word and PDF. The municipal council will see them on a screen in a meeting, and will look to the last
 slide for the conclusion. Both will look for where to act, and anyone else needs a link. So the project
-gets a report, slides, and a website with a blog post, and not one of them may compute anything. Each
+gets a report, slides and a website with a blog post, and not one of them may compute anything. Each
 reads `outputs/`, and that is what makes the chapter's last test fair: change one setting in the
-analysis, predict what follows, rebuild, and check that every publication followed. On the way, the old
-trade-off between recomputing and caching comes back, now that the project is big enough for it to
-matter.
+analysis, predict what follows, rebuild, and check that every publication followed.
+
+::: opener
+- Publish one set of results as a report in Word and PDF, slides for a council and, optionally, an
+  EPUB, with no page recomputing the analysis.
+- Configure a website that re-runs the analysis before every render, and explain what caching with
+  `freeze: auto` would miss.
+- Guard a sentence whose words depend on the data, and publish the site on GitHub Pages.
+- Predict, check and explain which outputs a changed setting updates, and which it does not.
+
+Start from
+: your `water-quality` folder at checkpoint 09, with the within-cluster check.
+
+You build
+: a report, council slides and a website with a blog post, published on GitHub Pages.
+
+Checkpoint
+: `checkpoints/10-water-report/` to `checkpoints/13-water-website/`
+:::
 
 ## The report, in Word and PDF {#sec-water-report}
 
@@ -87,7 +85,8 @@ PowerPoint and PDF cannot run the JavaScript that interactive Plotly charts need
 ![The first page of the finished water report as a Typst PDF. Rendered from `examples/water/report.qmd`.](../media/figures/water-report-p1.png){#fig-water-report width=70% .on-light fig-alt="The first page of the report PDF, titled Kinds of municipal zone in Colombia, with the subtitle Water quality, services, poverty and outcomes, 2016 to 2023: a descriptive cluster analysis. A summary in four bullet points says how many zone-years were grouped into four kinds, describes the highest-risk kind and the kind with the lowest infant mortality, and says the comparisons are descriptive and do not establish a causal effect of water quality. Then come the Question, the Data section, which names the utility-supplied IRCA, and the start of the Method."}
 
 Every number in the text is inline code reading `outputs/`, never typed: a report that quotes the
-number of kept rows quotes whatever the analysis last computed.
+number of kept rows quotes whatever the analysis last computed. You should have `report.html`,
+`report.docx` and `report.pdf`, each with the heatmap, the outcomes and the within-cluster figure.
 
 ::: catchup
 ```default
@@ -107,7 +106,12 @@ Create slides.qmd (revealjs and pptx) for the municipal council, 6 slides with t
 writes `slides.qmd` · `uv run quarto render slides.qmd`
 :::
 
-In both formats each `##` heading starts a slide. A PowerPoint slide holds text, or one figure, or one
+::: {.you}
+open `slides.html` in your browser and `slides.pptx` in PowerPoint or LibreOffice
+:::
+
+The assistant should count six slides in each, the title included. In both formats each `##` heading
+starts a slide. A PowerPoint slide holds text, or one figure, or one
 table, so keep each slide to one thing. The council deck repeats the "descriptive only" message on its
 last slide, where a council will look for the conclusion (@fig-water-slides).
 
@@ -130,7 +134,8 @@ In report.qmd, add an epub format (toc: true), set lang: en, and add ePub to the
 An EPUB is a zipped set of web pages whose text reflows to fit the reader's screen. Most e-book readers
 do not run JavaScript, so figures must be static images, which the report's already are. `lang: en`
 records the book's language (without it the file declares an unknown one), and `toc: true` adds a
-table of contents. Open the result in Apple Books on a Mac or in Calibre.
+table of contents. Open the result in Apple Books on a Mac or in Calibre: it should hold the three
+figures and the sources.
 
 The book in your hands is the same thing at a larger scale, and building it showed where a report-sized
 EPUB stops being enough. Parts and part pages disappear from a Quarto book's EPUB; content marked for
@@ -152,10 +157,10 @@ The publications become one website, with a blog post that tells the story in pr
 # _quarto.yml
 project:
   type: website
-  execute-dir: project               # <1>
-  pre-render: scripts/analysis.py    # <2>
+  execute-dir: project # <1>
+  pre-render: scripts/analysis.py # <2>
 execute:
-  freeze: false                      # <3>
+  freeze: false # <3>
 ```
 1. Every page, including a post in `posts/…/`, reads `outputs/` and `data/` from the project folder.
 2. Quarto runs the analysis before every render, including a single page's render: `outputs/` is always
@@ -165,7 +170,7 @@ execute:
 ```yaml
 # index.qmd
 listing:
-  contents: posts                    # <1>
+  contents: posts # <1>
 ```
 1. A *listing* turns every `posts/*/index.qmd` into an entry on the home page: a blog.
 
@@ -179,10 +184,15 @@ Make this folder a Quarto website: _quarto.yml (execute-dir: project, `pre-rende
 `uv run quarto preview`
 :::
 
+The preview's home page should list one post, whose title states the real k.
+
 The post's title states the number of clusters, so a change in the analysis could leave it wrong. The
 finished post protects itself with one line in its setup cell, `assert k == 4`, which fails the render if
-the analysis ever finds a different k. A loud failure is better than a quiet falsehood
-(@fig-water-post).
+the analysis ever finds a different k (@fig-water-post). That line is a *guard*: it stops the render when
+a sentence's words, not only its numbers, no longer match the data, because a loud failure is better than
+a quiet falsehood. This book guards its own sentences the same way. @sec-outcomes says that the highest
+recorded infant mortality is not in the cluster with the worst water; if new data made that false, the
+book would stop building rather than print it.
 
 ![The finished blog post, whose title states the number of clusters the analysis found. Rendered from `examples/water/posts/four-kinds-of-municipal-zone/index.qmd`.](../media/figures/water-post.png){#fig-water-post width=85% fig-alt="A blog post titled Four kinds of municipal zone, tagged water, clustering and Colombia, with an opening paragraph about the zone-years and the nine features used, and a list of the four kinds, each with its zone-years, municipalities, median IRCA, piped-water coverage and poverty."}
 
@@ -196,6 +206,15 @@ The catch is in that last phrase. Quarto does not know which files a page reads,
 to `outputs/` is not detected, and a frozen page keeps its old numbers. With `freeze: auto` you need a rule
 for throwing results away: delete `_freeze/` (or render that one page directly, which ignores the cache)
 whenever the data or the analysis change.
+
+::: think
+Your site uses `freeze: auto`. You change `MAX_MISSING` in `scripts/analysis.py` and run
+`uv run quarto render`. Which pages show the new numbers?
+
+Only pages whose own source changed, and you changed none. `pre-render` still rewrites `outputs/`, but
+every frozen page reuses its stored results, so the site shows the old numbers beside new output files
+until you delete `_freeze/` or render each page on its own.
+:::
 
 ::: practice
 Start with `freeze: false` and switch only when renders become slow enough to matter, and when you do,
@@ -224,16 +243,18 @@ approve `gh` · when it shows the website URL, in the second tab: `uv run quarto
 :::
 
 The steps are Part II's (@sec-london-publish), with one addition to the `.gitignore`: `outputs/`, which
-the pre-render step rebuilds. The data are public, and `data/README.md` lists each source's terms:
-CC BY-SA 4.0 for DANE's DIVIPOLA list and the INS, ICFES and MEN tables, CC BY 4.0 for TerriData and
-CHIRPS, citation terms for DANE's population and boundaries, and none for SRTM. Publishing them with the
-site is fine, provided the attributions travel with them and the CC BY-SA data, and what is built from
-them, such as `water_municipal.csv`, stay under that licence, as its ShareAlike condition requires
-([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), checked 2026-11-12). In a test run on 2026-11-01 the first publish took about two minutes, then GitHub Pages built
-the site in 20 to 35 seconds.
+the pre-render step rebuilds. In a test run on 2026-11-01 the first publish took about two minutes, then
+GitHub Pages built the site in 20 to 35 seconds.
 
-::: practice
-**Pause and think**, while it publishes: what is the difference between your folder and the live site?
+The data are public, and publishing them with the site is fine, provided the attributions travel with
+them. `data/README.md` lists each source's terms: CC BY-SA 4.0 for DANE's DIVIPOLA list and the INS,
+ICFES and MEN tables, CC BY 4.0 for TerriData and CHIRPS, citation terms for DANE's population and
+boundaries, and none for SRTM. CC BY-SA adds a *ShareAlike* condition: anything built from those data,
+such as `water_municipal.csv`, must be shared under the same licence
+([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), checked 2026-11-12).
+
+::: think
+While it publishes: what is the difference between your folder and the live site?
 
 The live site is the last `_site/` you published. Changes in your folder, including re-rendered outputs,
 do not appear online until you publish again.
@@ -259,8 +280,8 @@ Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
 This is the second task with no prompt supplied, and the test of this part's design.
 
 ::: tryit
-1. **Predict.** In `scripts/analysis.py`, change `MAX_MISSING = 2` to `1`. Which outputs will change,
-   and what will happen to Tunja's two zones?
+1. **Predict**, and write it down before you rebuild. In `scripts/analysis.py`, change
+   `MAX_MISSING = 2` to `1`. Which outputs will change, and what will happen to Tunja's two zones?
 2. **Rebuild** the site.
 3. **Explain** which outputs changed, which did not, and why.
 4. **Undo** the change (`git restore scripts/analysis.py`) and rebuild, so the outputs match the real
@@ -271,22 +292,48 @@ you can name the outputs that changed, the ones that did not, and why.
 :::
 :::
 
-`MAX_MISSING` drops rows missing more than that many of the nine features (@sec-prepare). A strong answer
-names the mechanism: `pre-render` re-runs the analysis, which rewrites every file in `outputs/`, and
-`freeze: false` re-executes every page that reads them. It checks at least two outputs against the new row
-counts. And it notices what did not change, including the live site. The model answer, computed with the
-setting changed, is in @sec-checkpoints, and the summary below follows Tunja through the rebuild.
+`MAX_MISSING` drops rows missing more than that many of the nine features (@sec-prepare). To answer, you
+need to know which page reads what. @tbl-water-deps is computed from the finished project's sources: a
+page counts as reading a file only if its code names it.
+
+```{python}
+#| label: tbl-water-deps
+#| tbl-cap: "What each page of the finished water project reads and writes, from its code. The post is `posts/four-kinds-of-municipal-zone/index.qmd`."
+#| output: asis
+def count(files):
+    return "none" if not files else f"{len(files)} file" + ("s" if len(files) > 1 else "")
+
+
+rows = ["| Page | Reads `outputs/` | Reads `data/` | Writes |", "|---|---|---|---|"]
+for d in deps:
+    name = "the post" if d["page"].startswith("posts/") else d["page"].removesuffix(".qmd")
+    data = ", ".join(f"`{f}`" for f in d["from_data"]) or "none"
+    rows.append(f"| {name} | {count(d['from_outputs'])} | {data} | {', '.join(d['outputs'])} |")
+print("\n".join(rows))
+```
+
+Every page but two reads its numbers from `outputs/`. The explore page reads only
+`data/water_municipal.csv`, which the setting does not touch, so it re-runs and shows the same numbers;
+the home page reads no files at all. A strong answer names the mechanism: `pre-render` re-runs the
+analysis, which rewrites every file in `outputs/`, and `freeze: false` re-executes every page that reads
+them. It checks at least two outputs against the new row counts. And it notices what did not change:
+`data/`, the explore page and the live site. Once your prediction is written down, check it against the
+model answer in @sec-checkpoints, which follows Tunja through the rebuild with the numbers computed
+(@tbl-answer-water).
 
 ## A dashboard and a white paper (optional) {#sec-water-dashboard}
 
-A dashboard can show the clusters on a map. The first prompt builds a Plotly map of each urban zone's IRCA
-band with a year slider; the second adds pages for the kinds, the outcomes and the method:
+A dashboard can show the clusters on a map. The first prompt builds a Plotly *choropleth*, a map whose
+areas are coloured by a value, here each municipality by its urban zone's IRCA band, with a year slider;
+the second adds pages for the kinds, the outcomes and the method:
 
 ::: {.prompt .long}
 ```default
 Create dashboard.qmd (format: dashboard): a Plotly choropleth of the IRCA band of the "urban" rows of outputs/clusters.parquet on data/municipios.geojson (featureidkey="properties.divipola"), a year slider over their years (frames update only z), an itables table of outputs/clusters.parquet (maxBytes=0); end each chart cell with `fig`. Make it polished: IRCA bands in order from no risk to unfit, light to dark, with a legend, titled cards and readable labels. Add it to the navbar; render, check it looks good at laptop size and report errors.
 ```
 :::
+
+When the map page looks right, the second prompt adds the other pages:
 
 ::: {.prompt .long}
 ```default
@@ -303,9 +350,10 @@ drawn as "the world minus the municipality", a grey rectangle; the finished scri
 reverses them. Animation frames must update only the colours (`z`): if every year repeats the
 `{python} f"{geo_mb:.1f}"` MB of boundaries, the page balloons. And a dashboard cell shows every top-level expression, not only the last, so
 a bare `fig.add_vline(…)` draws the chart twice; assign it, `fig = fig.add_vline(…)`, and end the cell
-with `fig`. The searchable table needs `maxBytes=0`, or `itables` silently drops rows to keep the page
-small.
+with `fig`.
 :::
+
+The searchable table needs `maxBytes=0`, or `itables` silently drops rows to keep the page small.
 
 The same outputs can also become an academic paper, as London's did (@sec-london-whitepaper), now with
 numbered equations (`$$ … $$ {#eq-kmeans}`, referred to as `@eq-kmeans`) and citations of the papers behind
@@ -319,7 +367,9 @@ Create whitepaper.qmd from outputs/: A4 Typst, "New Computer Modern"; an abstrac
 
 ::: pitfall
 "Open each DOI" is there for a reason: an assistant can produce a plausible reference that does not exist.
-Ask it to drop any reference it cannot open rather than guess, and check the reference list yourself. The
+A *DOI* is a document's permanent identifier, and `https://doi.org/` followed by it opens the publisher's
+page, so it is a quick test that a reference exists. Ask the assistant to drop any reference it cannot
+open rather than guess, and check the reference list yourself. The
 finished paper cites Lloyd (1982) for k-means, Rousseeuw (1987) for the silhouette, Hubert and Arabie
 (1985) for the adjusted Rand index and Pedregosa et al. (2011) for scikit-learn, each checked against its
 publisher's page on 2026-11-01.
@@ -345,30 +395,29 @@ is not yet available:
 - **Other clusterings.** A Gaussian mixture model gives each row a probability per cluster instead of a hard
   label; HDBSCAN finds dense groups and leaves outliers unclustered. Do the kinds survive?
 - **A better outcome.** Diarrhoeal disease in children under five is the outcome most directly linked to
-  water. Its incidence is not in the open SIVIGILA data, which publish only deaths; the data's README records
+  water. Its incidence is not in the open data of SIVIGILA, Colombia's public-health surveillance system, which
+  publish only deaths; the data's README records
   it as a source to add when it becomes available.
 
 ## Summary {.unnumbered}
 
-Part III ends on a prediction. Set `MAX_MISSING` to 1, and every row missing more than one of the nine
-features goes. Department capitals have no zone-level coverage, so their rural zones reach that rule
-with both coverage values missing (imputation comes after the rule): predict that every one of their
-rural zone-years will go, Tunja's `{python} NUM[tj_rural0]` among them, along with every other zone-year
-missing both coverages, while Tunja's urban zone, which takes the municipal total, stays. Then rebuild,
-and check. `pre-render` re-runs the analysis and `freeze: false` re-executes every page. The kept rows
-fall from `{python} w.fmt(len(c0))` to `{python} w.fmt(len(c1))`: the capitals'
-`{python} w.fmt(len(cap0))` rural zone-years and `{python} w.fmt(other_both)` other zone-years missing
-both coverages, and nothing else; Tunja's urban zone stays in cluster `{python} tj_c` in every year. k
-stays `{python} after["k"]`, so the post's `assert k == 4` passes, the names stay, and
-`{python} f"{same:.0%}"` of the remaining rows keep their cluster. The officials' report, the council's
-slides, the post and the dashboard all change together, because none of them computes anything; the live
-site does not change at all until you publish again.
+::: keyideas
+- Every publication reads `outputs/` and none computes, so one analysis reaches each reader in the
+  format they use: Word and PDF for officials, slides for a council, a website for anyone.
+- Word, PowerPoint, PDF and most e-book readers cannot run JavaScript, so their figures must be static
+  images.
+- `pre-render` re-runs the analysis before every render and `freeze: false` re-executes every page, so
+  nothing is stale; `freeze: auto` is faster but cannot see `data/` or `outputs/`, so it needs a written
+  rule for clearing `_freeze/`.
+- A guard turns a sentence that no longer matches the data into a failed render instead of a quiet
+  falsehood.
+- The live site is the last `_site/` you published, and changes only when you publish again.
+- A changed setting reaches every page that reads `outputs/` and nothing else: predict that, rebuild
+  and check.
+:::
 
-That one exercise holds the part's design: one script, every publication reading its `outputs/`,
-`pre-render` and `freeze: false` keeping both fresh (`freeze: auto` is faster, but needs a written rule for
-clearing its cache), and guards that turn a silent inconsistency into a failed render. It is also the
-book's method at full size, and the afterword takes it back to its three verbs, and to a project of your
-own.
+That last exercise holds the part's design, and it is the book's method at full size. The afterword
+takes it back to its three verbs, and to a project of your own.
 
 ## Further reading {.unnumbered}
 

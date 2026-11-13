@@ -2,7 +2,7 @@
 
 The deck's coloured progress bar becomes, for each part of the book, a static roadmap: a strip
 of the three parts with this one highlighted, then this part's chapters in order, each with
-its workshop start time and the checkpoint it ends at. Titles come from the chapter files
+what the reader reads about or builds there and the checkpoint it ends at. Titles come from the chapter files
 listed in _chapters.yml, so the roadmaps follow the book. Run from book/ (media/build.py
 roadmaps), then rasterise with the diagrams step.
 """
@@ -18,25 +18,25 @@ import yaml
 BOOK = Path(__file__).resolve().parents[1]
 OUT = BOOK / "media" / "roadmaps"
 COLORS = ["#2f72b0", "#b07a14", "#7c5cdb", "#2f9e77", "#c2416b", "#3d7fd9", "#8a7f1e", "#c8662a"]
-# Workshop clock (start of the block, from the deck's agenda) and the checkpoint each
-# chapter's hands-on work ends at; "" where a chapter has none.
+# What the reader comes away with from each chapter (what they read about, or what they
+# build), and the checkpoint its hands-on work ends at; "" where a chapter has none.
 META = {
-    "01-quarto": ("0:10", ""),
-    "02-assistant": ("before the day, 0:15", ""),
-    "03-setup": ("before the day", ""),
-    "04-markdown": ("0:30", "checkpoint 01"),
-    "05-compute": ("1:20", "checkpoint 02"),
-    "06-audiences": ("1:40", "checkpoint 04"),
-    "07-publish": ("1:55, 2:15", "examples/london"),
-    "exercises-london": ("", "checkpoints 01, 02, 04, examples/london"),
-    "08-water-question": ("2:55", "checkpoint 05"),
-    "09-explore": ("3:15", "checkpoint 05"),
-    "10-prepare": ("3:35", "checkpoint 06"),
-    "11-cluster": ("3:55", "checkpoint 07"),
-    "12-interpret": ("4:35", "checkpoint 08"),
-    "13-causation": ("4:55", "checkpoint 09"),
-    "14-publish-many": ("5:10", "checkpoints 10–13, examples/water"),
-    "exercises-water": ("", "checkpoints 05–13, examples/water"),
+    "01-quarto": ("Read: why one source beats copies", ""),
+    "02-assistant": ("Read: how to ask for work and check it", ""),
+    "03-setup": ("Build: a computer that renders the test run", ""),
+    "04-markdown": ("Build: london.md, its rules and environment", "ends at checkpoint 01"),
+    "05-compute": ("Build: london.qmd as HTML, Word and PDF", "ends at checkpoint 02"),
+    "06-audiences": ("Build: a dashboard, a Word brief, a flyer", "ends at checkpoint 04"),
+    "07-publish": ("Build: a published website, a rebuild explained", "ends at examples/london"),
+    "exercises-london": ("Practise: five exercises, then your own prompts", ""),
+    "08-water-question": ("Build: the project folder, its data and rules", ""),
+    "09-explore": ("Build: explore.qmd, a first look at the data", "ends at checkpoint 05"),
+    "10-prepare": ("Build: prepare(), nine comparable features", "ends at checkpoint 06"),
+    "11-cluster": ("Build: k-means and the clusters page", "ends at checkpoint 07"),
+    "12-interpret": ("Build: named clusters and their outcomes", "ends at checkpoint 08"),
+    "13-causation": ("Build: the within-cluster check", "ends at checkpoint 09"),
+    "14-publish-many": ("Build: report, slides, website and blog", "ends at checkpoints 10–13"),
+    "exercises-water": ("Practise: exercises, then your own prompts", ""),
 }
 
 
@@ -65,19 +65,20 @@ def svg(part_index: int, parts: list[dict], first_number: int) -> str:
     for k, ch in enumerate(part["chapters"]):
         stem = Path(ch).stem
         title = title_of(BOOK / ch)
-        clock, cp = META.get(stem, ("", ""))
+        gain, cp = META.get(stem, ("", ""))
         numbered = not stem.startswith("exercises")
         color = COLORS[k % len(COLORS)]
         lines = textwrap.wrap(title, 36)
-        meta = " · ".join(x for x in (f"workshop {clock}" if clock else "", cp) if x)
-        h = 34 * len(lines) + (30 if meta else 0) + 22
+        extra = [(line, "g") for line in textwrap.wrap(gain, 50)] + ([(cp, "n")] if cp else [])
+        h = 34 * len(lines) + 30 * len(extra) + 26
         label = str(number) if numbered else "✓"
         rows.append(f'<circle cx="52" cy="{y + 22}" r="24" fill="{color}"/>'
                     f'<text x="52" y="{y + 30}" text-anchor="middle" class="num">{label}</text>')
         for j, line in enumerate(lines):
             rows.append(f'<text x="96" y="{y + 30 + 34 * j}" class="t">{html.escape(line)}</text>')
-        if meta:
-            rows.append(f'<text x="96" y="{y + 30 + 34 * len(lines)}" class="n">{html.escape(meta)}</text>')
+        for j, (line, cls) in enumerate(extra):
+            rows.append(f'<text x="96" y="{y + 30 + 34 * (len(lines) - 1) + 30 * (j + 1)}" '
+                        f'class="{cls}">{html.escape(line)}</text>')
         if k < len(part["chapters"]) - 1:
             rows.append(f'<line x1="52" y1="{y + 46}" x2="52" y2="{y + h - 2}" stroke="#c3ccd5" stroke-width="4"/>')
         y += h
@@ -94,6 +95,7 @@ def svg(part_index: int, parts: list[dict], first_number: int) -> str:
   .h {{ font-size: 28px; font-weight: 700; }}
   .t {{ font-size: 24px; font-weight: 600; }}
   .s {{ font-size: 20px; }}
+  .g {{ font-size: 20px; fill: #3d4b59; }}
   .n {{ font-size: 19px; fill: #5b6b7b; }}
   .num {{ font-size: 22px; font-weight: 700; fill: #ffffff; }}
   .on {{ fill: #ffffff; font-weight: 700; }}

@@ -14,14 +14,24 @@
    title page and contents landmarks that Pandoc writes.
 5. Validity: remove `alt` from the figure wrapper divs (not allowed on div in XHTML; the
    img inside keeps its alt text).
-5a. Semantics: appendix headings read "Appendix A" above the title, like a chapter number
-   (the stylesheet sets the number on its own line, which split "Appendix A —" in three);
+5a. Semantics: chapter headings read "Chapter 1" and appendix headings "Appendix A" above the
+   title (the stylesheet sets the number on its own line, which split "Appendix A —" in
+   three), and a part's heading "Part I: Foundations" becomes a "Part I" label and its name;
    appendices and the afterword get their epub:type and sit in backmatter, and front matter
    pages Pandoc marks bodymatter (About the Author) become frontmatter. The OPF gains the
    subtitle as a refined dc:title and title-page, copyright and text guide references; the
    NCX's cover meta names the cover image's real manifest id.
 5b. Guard: the book uses no example lists, so an `<ol class="example">` means a line began
    with "@label." and Pandoc took a cross-reference for a list item: stop with an error.
+5c. Typography: a caption's "Figure 1.1:" or "Table 1.1:" becomes a caption-label span; the
+   no-break space Quarto puts in "Chapter 3" or "Figure 1.1" becomes a space; numbered
+   chapters' and appendices' h1 get the class "chapter" and their first paragraph "hook";
+   every other no-break space outside code becomes a space too; an identifier in a table cell
+   may break after an underscore (<wbr/>);
+   "Exercise II.1:" headings become an exercise-label span and the title; and on the
+   Contents page an appendix reads by its letter, "A Windows: …", under "Appendices";
+   a live-link card's QR code moves to the front of the card (styles/epub.css floats it); and
+   the glossary's definition lists get epub:type glossary, glossterm and glossdef.
 6. Light panels: figures drawn in dark ink on a transparent background sit on a light
    panel (class "on-light" on the img or an ancestor) that the stylesheet paints. A reader
    that drops CSS backgrounds, or Kindle, whose guidelines say it does not support
@@ -50,7 +60,7 @@ ET.register_namespace("epub", OPS)
 # Front matter that comes before the Contents page, in this order, after the title page.
 FRONT = ("copyright", "dedication")
 H1 = re.compile(r"<h1([^>]*)>(.*?)</h1>", re.S)
-PANEL = (0xFB, 0xFB, 0xF8)  # styles/epub.css: img.on-light, .on-light img
+PANEL = (0xF1, 0xF0, 0xEB)  # styles/epub.css: img.on-light, .on-light img
 DIV_ALT = re.compile(r'(<div\b[^>]*?)\s+alt="[^"]*"')
 
 
@@ -225,12 +235,84 @@ def fix_spine(text: str, kinds: dict[str, str]) -> str:
 
 
 APPENDIX_H1 = re.compile(r'<h1([^>]*)>Appendix <span class="header-section-number">([^<]+)</span>\s*—\s*')
+CHAPTER_H1 = re.compile(r'<h1([^>]*)><span class="header-section-number">(\d+)</span>')
+PART_H1 = re.compile(r'<h1([^>]*\bpart\b[^>]*)>(Part [IVX]+):\s*')
+CAPTION = re.compile(r'(<figcaption\b[^>]*>\s*)((?:Figure|Table) [A-Z0-9]+(?:\.\d+)?):\s*')
+# Quarto joins "Chapter", "Figure" and the like to their number with a no-break space, which
+# macOS's Charter (a reading font in Apple Books) draws twice as wide as a space.
+NBSP_REF = re.compile("(Chapter|Section|Figure|Table|Appendix|Part|Equation)\u00a0")
+HOOK = re.compile(r'(<h1 class="chapter"[^>]*>.*?</h1>\s*)<p>', re.S)
+EXERCISE_H2 = re.compile(r'<h2 class="unnumbered"([^>]*)>(Exercise [IVX]+\.\d+):\s*')
+NAV_APPENDIX = re.compile(r'Appendix (<span class="header-section-number">[A-Z]</span>) — ')
+
+
+LIVE_LINK = re.compile(r'<div class="live-link">\s*<p>(.*?)</p>\s*</div>', re.S)
+QR_IMG = re.compile(r'<img [^>]*class="qr"[^>]*/>')
+
+
+def live_links(text: str) -> str:
+    """A live-link card ("Turn the map yourself in the website edition, or scan: [QR]") gets
+    its QR code first, in a paragraph of its own that the stylesheet floats right, and the
+    sentence ends "or scan the code." instead of running into the image."""
+    def card(m: re.Match) -> str:
+        body = m.group(1)
+        img = QR_IMG.search(body)
+        if not img:
+            return m.group(0)
+        body = re.sub(r",?\s*or scan:\s*$", ", or scan the code.", body.replace(img.group(0), "").strip())
+        return f'<div class="live-link"><p class="qr">{img.group(0)}</p><p>{body}</p></div>'
+    return LIVE_LINK.sub(card, text)
+
+
+PRE = re.compile(r"<pre\b.*?</pre>", re.S)
+TD_CODE = re.compile(r"(<td\b[^>]*>)(.*?)(</td>)", re.S)
+
+
+def plain_spaces(text: str) -> str:
+    """"Chapter 3" and "Figure 1.1" with an ordinary space (the stylesheet keeps them on one
+    line), and so every other no-break space outside code blocks (Pandoc adds them after
+    abbreviations such as "No." and "et al."): macOS's Charter draws them twice as wide."""
+    text = NBSP_REF.sub(r"\1 ", text)
+    parts, last = [], 0
+    for m in PRE.finditer(text):
+        parts += [text[last:m.start()].replace("\u00a0", " "), m.group(0)]
+        last = m.end()
+    return "".join(parts + [text[last:].replace("\u00a0", " ")])
+
+
+def code_breaks(text: str) -> str:
+    """A long identifier in a table cell (`sewer_coverage_total`) may break after an underscore
+    (<wbr/>, which copying leaves out), not at an arbitrary letter."""
+    def cell(m: re.Match) -> str:
+        body = re.sub(r"(<code>)(.*?)(</code>)",
+                      lambda c: c.group(1) + c.group(2).replace("_", "_<wbr/>") + c.group(3), m.group(2))
+        return m.group(1) + body + m.group(3)
+    return TD_CODE.sub(cell, text)
+
+
+def label_captions(text: str) -> str:
+    """"Figure 1.1: What…" becomes a caption-label span and the caption, so the stylesheet
+    can set the label apart; without CSS it still reads "Figure 1.1 What…"."""
+    return CAPTION.sub(r'\1<span class="caption-label">\2</span> ', text)
 
 
 def fix_chapter(text: str, kind: str, front: bool) -> str:
-    """Appendix headings, and epub:type for appendices, the afterword and front matter."""
+    """Chapter, part and appendix headings, and epub:type for appendices, the afterword and
+    front matter."""
+    if kind == "":
+        text = CHAPTER_H1.sub(r'<h1 class="chapter"\1><span class="header-section-number">Chapter \2</span>',
+                              text, 1)
+        text = HOOK.sub(r'\1<p class="hook">', text, 1)
+        text = EXERCISE_H2.sub(r'<h2 class="unnumbered exercise"\1><span class="exercise-label">\2</span> ', text)
+    elif kind == "part":
+        text = PART_H1.sub(r'<h1\1><span class="part-label">\2</span> ', text, 1)
+    if kind == "appendix" and 'id="sec-glossary"' in text:
+        # EPUB 3 structural semantics for the glossary, so reading systems can find its terms.
+        text = (text.replace("<dl>", '<dl epub:type="glossary">').replace("<dt>", '<dt epub:type="glossterm">')
+                .replace("<dd>", '<dd epub:type="glossdef">'))
     if kind == "appendix":
-        text = APPENDIX_H1.sub(r'<h1\1><span class="header-section-number">Appendix \2</span> ', text, 1)
+        text = APPENDIX_H1.sub(r'<h1 class="chapter"\1><span class="header-section-number">Appendix \2</span> ',
+                               text, 1)
         text = text.replace('<body epub:type="bodymatter">', '<body epub:type="backmatter">', 1)
         text = re.sub(r'<section ([^>]*class="level1[^"]*")>', r'<section \1 epub:type="appendix">', text, 1)
     elif kind == "end":
@@ -313,12 +395,13 @@ def main(path: str) -> None:
     for info, data in entries:
         name = info.filename
         if name.endswith(".xhtml") and name.startswith("EPUB/text/"):
-            text = DIV_ALT.sub(r"\1", data.decode("utf-8"))
+            text = code_breaks(live_links(label_captions(plain_spaces(DIV_ALT.sub(r"\1", data.decode("utf-8"))))))
             if name in kinds:
                 text = fix_chapter(text, kinds[name], bool(first_part) and name < first_part)
             data = text.encode("utf-8")
         elif name == "EPUB/nav.xhtml":
-            data = fix_nav(data.decode("utf-8"), kinds).encode("utf-8")
+            nav = NAV_APPENDIX.sub(r"\1 ", plain_spaces(data.decode("utf-8")))
+            data = fix_nav(nav, kinds).encode("utf-8")
         elif name == "EPUB/toc.ncx":
             text = fix_ncx(data.decode("utf-8"), kinds)
             if cover:

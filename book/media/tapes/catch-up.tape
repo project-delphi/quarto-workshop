@@ -1,6 +1,7 @@
 # catch-up.gif: the checkpoint 01 catch-up steps, typed by hand (Chapter 4), run for real under
 # the demo account in _demo-env.sh. ~/quarto-workshop links to this repository, read-only use.
 # poster: media/build.py puts the finished screen first, as a still for readers that don't animate.
+# --quiet keeps the render's log off the screen, so the still shows all four steps and the result.
 Output ../gifs/catch-up.gif
 Set Shell "bash"
 Set FontSize 15
@@ -18,5 +19,5 @@ Show
 Type "ls" Sleep 300ms Enter Sleep 1000ms
 Type `b="../london-guide-backup-01-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclude=.venv . | tar -xf - -C "$b"` Sleep 300ms Enter Sleep 1000ms
 Type "cp -R ../quarto-workshop/checkpoints/01-london-markdown/. ." Sleep 300ms Enter Sleep 800ms
-Type "uv run quarto render london.md" Sleep 300ms Enter Sleep 9s
+Type "uv run quarto render london.md --quiet" Sleep 300ms Enter Sleep 9s
 Type "ls && ls -d ../london-guide*" Sleep 300ms Enter Sleep 3s

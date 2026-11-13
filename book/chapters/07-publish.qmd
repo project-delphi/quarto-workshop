@@ -63,9 +63,25 @@ question the whole workflow is built to answer: if one input changes, which outp
 with it, and how do you know? That question comes with no prompt. It tests whether you can
 predict what a rebuild will do, and then check.
 
+::: opener
+- Explain commits, branches and pull requests, and read a diff.
+- Make the folder a website and publish it to GitHub Pages.
+- Choose between hosts that take your files and hosts that build.
+- Predict, rebuild and explain what one changed input reaches.
+
+Start from
+: the end of @sec-audiences, with `gh` signed in
+
+You build
+: a website, its GitHub repository and the live site
+
+Checkpoint
+: none; the catch-up copies `examples/london/`
+:::
+
 ## Git: every change, safely {#sec-git}
 
-Chapter 1 likened Git to Word's Track Changes for a whole folder, with a lasting history. In
+@sec-reproducible likened Git to Word's Track Changes for a whole folder, with a lasting history. In
 practice that means two things. You see exactly what changed, line by line, and someone else
 can approve it before it counts. And every earlier version of the whole project is kept, with
 a note saying why it changed, so any of them can be restored or compared.
@@ -77,7 +93,8 @@ The vocabulary is short (@fig-git-cycle; Pro Git and GitHub's documentation, che
 ![Every change, safely. A team takes each change round the whole loop; working alone, as in this book, you commit to the main line and push.](../media/diagrams/git-cycle){#fig-git-cycle .on-light fig-alt="Six steps. Branch: work on a branch, so main stays untouched. Commit: save a snapshot of the files with a message saying why. Push: copy the commits to GitHub. Pull request: propose the change and show the difference. Review: someone reads the difference and comments, approves or asks for changes. Merge: the commits join main. Working alone, you commit to main and push; in a team, every change goes round the whole loop."}
 
 A *branch* is a movable label on a line of commits, so work can go on there while the main
-line, `main`, keeps working. To *push* is to copy commits to the shared repository on GitHub.
+line, `main`, keeps working. To *push* is to copy commits to the shared repository on GitHub,
+the website that keeps a copy of a repository online.
 A *pull request* proposes merging a branch and shows the difference, or *diff*, line by line;
 a *review* comments on it, approves it or asks for changes; *merging* adds its commits to
 `main`.
@@ -86,6 +103,14 @@ Working alone, as in this book, you commit straight to `main` and push; in a tea
 change goes round the loop. Either way the assistant runs the Git commands and you approve
 them. Ask it to "commit with a message that says why", and read its diffs before you approve:
 a diff is the clearest check you have of what the assistant actually did.
+
+::: think
+The assistant reports "Committed the dashboard changes" and asks to push. What do you check
+before you approve?
+
+The diff behind the commit: which files and lines changed, that they are the ones you asked
+for, that nothing in `data/` or `images/` changed, and that the message says why.
+:::
 
 ## Where a site lives {#sec-hosting}
 
@@ -103,21 +128,38 @@ Quarto, Python and every package the project needs, or if the rendered output is
 The London repository leaves its rendered `_site/` folder out, so a host that builds would
 produce nothing until the build is set up.
 
-::: practice
-Free static hosts, checked on their official pages on 2026-11-07. Free plans change: read the
-current limits before choosing.
+::: think
+You connect `london-guide` to a host that builds from Git, and it publishes an empty site. Why?
 
-| Host | How the site gets there | Note on the free plan |
-|---|---|---|
-| GitHub Pages | you upload: `quarto publish gh-pages` | the route in this book |
-| Netlify | you upload: `quarto publish netlify` | 300 credits a month, 15 per production deploy; Quarto's Netlify build plugin runs no Python, so render locally |
-| Cloudflare | you upload `_site/` with `wrangler deploy` | Pages allows 500 builds a month and 20,000 files |
-| Vercel | the host builds from Git | Hobby plan: personal, non-commercial use only |
-| GitLab Pages | the host builds, in a CI job | publishes a `public` folder: set `output-dir: public`, and install Quarto and Python in the job |
-| Render | the host builds from Git | rebuilds on every push to the connected branch |
-
-Quarto Pub, Quarto's own free host, is being replaced by Posit Connect Cloud.
+The repository holds no rendered site, because `.gitignore` leaves `_site/` out, and the host's
+build has no Quarto, Python or packages unless you install them in it. Either render on your
+computer and upload the result, or set up the build.
 :::
+
+Six hosts with free plans for static sites, checked on their official pages on 2026-11-07, show
+the two routes (@tbl-hosts-upload, @tbl-hosts-build). Free plans change: read the current
+limits before choosing.
+
+| Host | Upload with | Free plan |
+|---|---|---|
+| [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html) | `quarto publish gh-pages` | this book's route |
+| [Netlify](https://quarto.org/docs/publishing/netlify.html) | `quarto publish netlify` | [300 credits a month, 15 per deploy](https://www.netlify.com/pricing/) |
+| [Cloudflare](https://developers.cloudflare.com/workers/static-assets/) | `wrangler deploy` | [Pages: 500 builds a month, 20,000 files](https://developers.cloudflare.com/pages/platform/limits/) |
+
+: Hosts you render for and upload to. {#tbl-hosts-upload}
+
+| Host | Free plan |
+|---|---|
+| [Vercel](https://vercel.com/docs/plans/hobby) | personal, non-commercial use only |
+| [GitLab Pages](https://docs.gitlab.com/user/project/pages/) | publishes a `public` folder |
+| [Render](https://render.com/docs/static-sites) | rebuilds on every push |
+
+: Hosts that build the site from your repository. {#tbl-hosts-build}
+
+Two details matter for this project. Quarto's Netlify build plugin runs no Python, so render on
+your computer and upload. GitLab builds in a *CI job*, a build it runs on each push: set
+`output-dir: public` and install Quarto and Python in the job. Quarto Pub, Quarto's own free
+host, is being [replaced by Posit Connect Cloud](https://quarto.org/docs/publishing/quarto-pub.html).
 
 ## One folder, one website {#sec-london-website}
 
@@ -136,8 +178,8 @@ then, in the preview tab: Ctrl+C, and `uv run quarto preview`
 :::
 
 A `_quarto.yml` file at the top of the folder turns it into a *project*. `quarto render` with no
-file name then builds every listed page into `_site/`, with shared navigation, and the dashboard
-becomes one page of the site:
+file name then builds every listed page into `_site/`, with shared navigation, and `quarto
+preview` with no file name previews the whole site. The dashboard becomes one page of it:
 
 ```yaml
 project:
@@ -161,9 +203,22 @@ website:
 
 `.gitignore` lists what Git should not track: the rendered `_site/` (rebuilt from the source
 and published separately), Quarto's working folder `.quarto/`, the environment `.venv/`
-(rebuilt from `uv.lock`) and the `*_files/` folders of figures.
+(rebuilt from `uv.lock`) and the `*_files/` folders of figures. `index.qmd` becomes the site's
+home page, `index.html`, the page a visitor sees at the site's address.
+
+::: tryit
+Make the folder a website and restart the preview.
+
+::: done
+the site opens with Guide, Dashboard and Downloads in its navigation bar, and each Downloads
+link opens its file.
+:::
+:::
 
 ## Publish {#sec-london-publish}
+
+Before you paste the next prompt, replace `<your-github-username>` with your GitHub username
+(the assistant can look it up with `gh api user` if you ask it to).
 
 ::: {.prompt}
 ```default
@@ -172,18 +227,21 @@ Initialise a git repository here. Replace README.md in this folder with a short 
 :::
 
 ::: {.agent}
-`git init` · `git add` · `git commit` · `gh repo create london-guide --public --source=. --push` · `gh repo edit --homepage …`
+`git init` · `git commit` · `gh repo create london-guide …` · `gh repo edit --homepage …`
 :::
 
 ::: {.you}
-approve `gh` · in the second tab: `uv run quarto publish gh-pages`, then Enter at "Publish site … (Y/n)" · open the address on your phone · a 404? wait a minute and reload
+approve `gh` · in the preview tab: Ctrl+C, then `uv run quarto publish gh-pages` and Enter · open the address on your phone
 :::
 
-The assistant creates the repository on GitHub from your folder and pushes the commits, using
-the sign-in from the setup check. Its README is the first thing visitors to the repository
+The assistant creates the repository on GitHub from your folder with `gh repo create
+london-guide --public --source=. --push`, which also pushes the commits, using the sign-in
+from the setup check. Its README is the first thing visitors to the repository
 see, and its link takes them on to the live site.
 
-The first publish is yours, typed in the terminal. It asks one question, then renders the site,
+The first publish is yours, typed in the terminal. Stop the preview first: the publish renders
+the whole site, and two renders in one folder collide. It asks one question, "Publish site …
+(Y/n)", which Enter answers yes; then it renders the site,
 creates the `gh-pages` branch, pushes the rendered site and opens it. Quarto's GitHub Pages guide
 says to run `quarto publish gh-pages` locally, once, before setting up a GitHub Action to publish
 (checked 2026-11-12). Make that first run interactive, too: in a dry run with Quarto 1.6.40,
@@ -229,29 +287,32 @@ Catch me up: follow ../quarto-workshop/examples/london/README.md
 @sec-quarto began with a correction (@sec-drift): ALVA revises one figure, and in a
 copy-and-paste workflow someone has to carry it by hand into every file that quotes it. Here
 is that scenario for real, in a project where no visitor count was ever copied. No prompt is
-supplied: write your own, or do it by hand.
+supplied: write your own, or do it by hand. Make the edit to the data yourself, for example
+with `nano data/attractions.csv` (Ctrl+O, Enter, Ctrl+X): the project's rules keep the
+assistant out of `data/`, which is the point of them.
 
 ::: tryit
 1. **Predict.** Set the Tower of London's `visits_2025` in `data/attractions.csv` to `8000000`.
-   Which outputs will change?
-2. **Rebuild** the site.
+   Which outputs will change? Write it down before you read on.
+2. **Rebuild**: stop the preview, then run `uv run quarto render`.
 3. **Explain** which outputs changed, which did not, and why.
-4. **Undo**: `git restore data/attractions.csv`, then rebuild, so no trial number stays in your
-   files.
-
-Make the edit yourself (for example `nano data/attractions.csv`; Ctrl+O, Enter, Ctrl+X to save
-and leave): the project's rules keep the assistant out of `data/`, which is the point of them.
+4. **Undo** with `git restore data/attractions.csv`, then rebuild.
 
 ::: done
-you can name the outputs that changed, the ones that did not, and why.
+you can name the outputs that changed, the ones that did not, and the line of code that links
+each changed output to the input.
 :::
 :::
 
 The value is fictitious: chosen to change the top attraction, so that the effect is visible,
-and reversible, because the publish step committed the real file.
+and reversible, because the publish step committed the real file. `git restore` puts a file
+back as it was at the last commit, and the second rebuild leaves no trial number in your files.
 
-To answer, you need to know which page reads which input. @tbl-london-deps is computed from the
-finished project's sources: a page counts as reading a file only if its code loads it.
+### Check your prediction {.unnumbered}
+
+To check, you need to know which page reads which input. @tbl-london-deps is computed from the
+finished project's sources, optional pages included: a page counts as reading a file only if its
+code loads it.
 
 ```{python}
 #| label: tbl-london-deps
@@ -270,11 +331,14 @@ print("\n".join(lines))
 
 In all, `{python} word(len(readers))` pages load `attractions.csv`, and between them they write
 `{python} word(n_outputs_attr)` files, so the change reaches all of them at the next render.
+
 What it does there depends on each page's code. Of those pages, `{python} word(len(top_and_total))`
 (the guide, the dashboard and the partner brief) find the top attraction with
 `attractions["visits_2025"].idxmax()` and the total with `.sum()`, so in each of them the Tower
 of London becomes the most visited attraction and the total rises. The square advert uses only
-the first call, so it names the Tower too. The white paper names no top attraction: its sums by
+the first call, so it names the Tower too.
+
+The white paper names no top attraction: its sums by
 admission change, but its table keeps ALVA's `rank_uk` column from the file, which would still
 rank the Tower `{python} ORDINALS[tower_rank_uk]` in the UK beside the most visits of the ten. A
 copied column goes stale too. Still, that answers the question @sec-quarto began with: the
@@ -289,7 +353,7 @@ correction to `sights.csv` updates none of them. A cited copy is still a copy.
 
 ::: why
 Why does every page recompute, even ones whose sources did not change? Because the project
-renders with `freeze: false`: every render re-runs every page's code, which keeps this
+keeps Quarto's default, `freeze: false`: every render re-runs every page's code, which keeps this
 exercise's answer simple. With caching turned on, a page whose own source did not change would
 keep its old numbers, and the answer would depend on the cache; @sec-publish-many returns to
 that trade-off.
@@ -341,12 +405,13 @@ example `quarto install tinytex`. For most reports Typst is faster and simpler.
 
 ## Summary {.unnumbered}
 
-Git keeps every version of the source as commits; teams move each change through branch, pull
-request, review and merge. A rendered site is static files that any host can serve, and
-`quarto publish gh-pages` fills GitHub Pages from your own computer, interactively the first
-time. A `_quarto.yml` with an explicit render list makes a folder a website. When an input
-changes, every page whose code loads it updates at the next render, in every format; copied
-facts do not, and neither does the live site until you publish again.
+::: keyideas
+- Git keeps every version as commits; a diff shows what the assistant did.
+- A built site is static files: upload them, or let a host build them.
+- A `_quarto.yml` with a render list makes a folder a website.
+- The first `quarto publish gh-pages` is yours; later updates can be the assistant's.
+- A changed input reaches every page whose code loads it; copies and the live site do not.
+:::
 
 That completes one guide for many audiences. In Part III the hard part is the analysis
 itself: grouping Colombia's municipal zones into kinds by water safety, services and context.

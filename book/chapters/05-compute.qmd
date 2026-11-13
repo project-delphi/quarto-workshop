@@ -5,10 +5,12 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from scripts.figures import ACCENT, style
-from scripts.prose import alt_text_holds
+from scripts.figures import ACCENT, figsize, style
+from scripts.prose import alt_text_holds, text_holds
 
 attractions = pd.read_csv("../examples/london/data/attractions.csv")
+# The guide's own sentence, quoted below, types "ten most visited": stop if the file changes size.
+text_holds(len(attractions) == 10, "the guide's ten most visited attractions")
 top = attractions.loc[attractions["visits_2025"].idxmax()]
 top_name = top["attraction"]
 top_visits = f"{top['visits_2025']:,}"
@@ -36,9 +38,95 @@ the `{python} lead_then` is the most visited of the five went on saying it after
 its `{python} y_now` table, in every copy, until someone noticed.
 
 This chapter makes the guide compute instead. Code reads the data at every render, so a new
-table corrects every sentence, the chart drawn from it, and the Word and PDF versions at once,
+table corrects every sentence, the chart drawn from it and the Word and PDF versions at once,
 without a single number copied by hand. That is the workflow's central promise, and the rest
 of the book builds on it.
+
+::: opener
+- Write front matter that sets the title block and the formats.
+- Tell a code cell that runs from a fence that is only shown, and explain how inline code
+  puts a computed number in a sentence.
+- Label, caption and describe a figure with cell options.
+- Render one source to HTML, Word and PDF, and say why renders collide.
+
+Start from
+: the end of @sec-markdown, with the preview running
+
+You build
+: `london.qmd` with a computed sentence and chart, as HTML, Word and PDF
+
+Checkpoint
+: `checkpoints/02-london-qmd/`
+:::
+
+## The anatomy of a .qmd file {#sec-qmd-basics}
+
+A Markdown file can only say what you typed into it. A Quarto document, a `.qmd` file, can
+also compute what it says, so before the guide becomes one, here are the parts of one.
+@sec-what-quarto showed `hello.qmd`, the test run's file, which multiplies two numbers.
+`toy.qmd` has the same parts, and reads the guide's own data file, so its numbers are real:
+
+```{python}
+#| label: ch5-toy-qmd
+#| output: asis
+import re
+from pathlib import Path
+
+
+def show_file(path: str, lang: str = "markdown") -> str:
+    """A file's text, as it is, in a fence longer than any run of backticks inside it."""
+    text = Path(path).read_text()
+    ticks = "`" * max(4, 1 + max(map(len, re.findall("`+", text)), default=0))
+    return f"{ticks}{lang}\n{text}{ticks}"
+
+
+# The screenshot's alt text below quotes the computed sentence: stop if the data change it.
+alt_text_holds(top_name == "Natural History Museum (South Kensington)"
+               and top_visits == "7,116,929", "fig-toy-qmd")
+print(show_file("media/examples/toy.qmd"))
+```
+
+From the top:
+
+1. **Front matter.** The block between the two `---` lines at the very top holds the
+   document's settings, written in *YAML*, a format for settings in which indentation is
+   meaning: a nested setting is indented by two spaces, and a wrong indent changes what it
+   belongs to. `title` gives the page its title and `format` chooses the output.
+2. **Markdown.** Everything outside the fences is the Markdown of @sec-md-basics.
+3. **A fence that is only shown.** ```` ```python ```` names a language, so the code is
+   coloured as Python, but Quarto never runs it. If it did, `1 / 0` would stop the render.
+4. **A code cell.** ```` ```{{python}} ````, with the language in braces, is a fence whose
+   code runs when the document renders. Its first lines, starting `#|`, are *cell options*:
+   `label` names the cell, and `echo: false` hides its code from the page.
+5. **Inline code.** `` `{{python}} visits` `` runs `visits` and writes its value into the
+   sentence, so the number in the sentence is computed, not typed.
+
+The braces are the whole difference, as @tbl-qmd-code sets out.
+
+| You write | Quarto |
+|:-----------|:-----------|
+| ```` ```python ```` fence | shows the code; never runs it |
+| ```` ```{{python}} ```` cell | runs it; shows the output, and the code unless `echo: false` |
+| `` `{{python}} visits` `` | runs `visits`; writes its value into the sentence |
+| ```` ```{=typst} ```` raw block | passes it to Typst untouched; other formats leave it out (@sec-london-social) |
+
+: Four kinds of code in a `.qmd` file. {#tbl-qmd-code}
+
+`quarto render toy.qmd` makes @fig-toy-qmd. The title comes from the front matter. The fence
+is there, `1 / 0` and all. The cell is not, because `echo: false` hid it, but its work is:
+the sentence names the `{python} top_name`, with `{python} top_visits` visits, read from the
+file at the moment the page was rendered.
+
+![What `quarto render toy.qmd` makes of the file, at a phone's width: a screenshot of `toy.html` as Quarto 1.10.20 renders it.](../media/figures/toy-qmd.png){#fig-toy-qmd width=50% fig-alt="A web page at a phone's width, titled Top of the list. Below the title: Visits in 2025 to ALVA member attractions, from a cited file. Then a grey code block holding the comment A fence: shown, never run, and the line 1 / 0. Last, the sentence: Most visited: the Natural History Museum (South Kensington), with 7,116,929 visits. The code cell itself does not appear."}
+
+::: think
+You put braces round the fence's language, so that it reads ```` ```{{python}} ````, and render
+`toy.qmd` again. What happens?
+
+The render stops. The fence is now a cell, so Quarto runs `1 / 0`, Python raises a
+`ZeroDivisionError`, and no `toy.html` is written. The failure is in the first step, execute
+(@fig-pipeline): your code, not the document.
+:::
 
 ## Settings at the top: the title block {#sec-yaml}
 
@@ -56,6 +144,9 @@ renames to `london.qmd` · edits the top of the file
 in the preview tab: Ctrl+C, then `uv run quarto preview london.qmd`
 :::
 
+The `.qmd` extension tells Quarto to look for front matter and code cells (@sec-qmd-basics).
+The guide's front matter is four settings:
+
 ```yaml
 ---
 title: "Visit London"           # <1>
@@ -69,11 +160,7 @@ format: html                    # <3>
 2. `today` is filled in when the document is rendered.
 3. `format` chooses the output; later in this chapter it becomes a list.
 
-*Front matter* is a block of settings between two lines of three dashes at the very top of a
-file. It is written in YAML, a format for settings in which indentation is meaning: nested
-settings are indented by two spaces, and a wrong indent changes what a setting belongs to.
-A `.qmd` file is Markdown plus front matter plus code; the extension tells Quarto to look for
-both.
+The page in the preview now opens with the title, the author and today's date.
 
 ::: pitfall
 Delete `london.md` once `london.qmd` exists. Both would write `london.html`, and the one
@@ -89,8 +176,7 @@ In london.qmd, add a Python cell that reads data/attractions.csv and finds the m
 ```
 :::
 
-The assistant writes a *code cell*, a code fence whose language is in braces, and a sentence
-that uses its results:
+The assistant writes a code cell (@sec-qmd-basics) and a sentence that uses its results:
 
 ````markdown
 ```{{python}}
@@ -106,9 +192,19 @@ Most visited in 2025: the `{{python}} top_name`, with `{{python}} top_visits` vi
 London's ten most visited ALVA member attractions drew `{{python}} total_visits` visits.
 ````
 
-When the document renders, the cell runs and its variables are kept; each `` `{{python}} name` ``
-is *inline code*, replaced by the value of `name`. Rendered in this book from the same data
-file, the sentence reads:
+You do not need to write Python to check it, but you should be able to read it. The cell does
+four things:
+
+1. `import pandas as pd` loads pandas, the package for tables, under the short name `pd`.
+2. `pd.read_csv(...)` reads the CSV file into a table, `attractions`, one row per attraction.
+3. `attractions["visits_2025"].idxmax()` finds the row with the most visits in 2025, and
+   `.loc[…]` takes that row, so `top["attraction"]` is its name.
+4. `.sum()` adds up the column, and `f"{…:,}"` writes a number as text with a comma between
+   the thousands, ready for a sentence.
+
+When the document renders, the cell runs and its variables are kept, so each piece of inline
+code, `` `{{python}} name` ``, is replaced by the value of `name`. Rendered in this book from
+the same data file, the sentence reads:
 
 > Most visited in 2025: the `{python} top_name`, with `{python} top_visits` visits. London's
 > ten most visited ALVA member attractions drew `{python} total_visits` visits.
@@ -117,12 +213,13 @@ Quarto 1.4 introduced this inline syntax, one for every engine, Python included;
 already wrote inline code with knitr's `` `r x` ``, a syntax Quarto still supports (Quarto 1.4
 release notes, checked 2026-11-12).
 
-::: practice
-**Pause and think.** If `attractions.csv` changes, which numbers in the sentence update?
+::: think
+If `attractions.csv` changes, which values in those two sentences update?
 
-All three: the top attraction's name, its visits and the total, because each is computed from
-the file. They update at the *next render*, not when the file is saved. Anything typed by hand
-does not update at all.
+The three that are computed: the top attraction's name, its visits and the total. They update
+at the *next render*, not when the file is saved. The word "ten" is typed, so it never updates:
+it is right only while the file holds ten rows, and `len(attractions)` would compute it.
+Anything typed by hand behaves the same way.
 :::
 
 The figures come from ALVA's table of visits made in 2025 to its member attractions, retrieved
@@ -137,7 +234,8 @@ Add a matplotlib cell: a horizontal bar chart of visits_2025 by attraction. Hide
 ```
 :::
 
-Instructions for a cell go in its first lines, as comments that start with `#|`:
+A cell's options go in its first lines, as comments that start with `#|`, like the `label`
+and `echo` of `toy.qmd` (@sec-qmd-basics):
 
 ```python
 #| label: fig-top10                                  # <1>
@@ -145,7 +243,9 @@ Instructions for a cell go in its first lines, as comments that start with `#|`:
 #| fig-cap: "Visits in 2025 (ALVA)."                 # <3>
 #| fig-alt: "Bar chart of visits by attraction."     # <4>
 top10 = attractions.sort_values("visits_2025")
-top10.plot.barh(x="attraction", y="visits_2025", legend=False)
+top10.plot.barh(
+    x="attraction", y="visits_2025",
+    legend=False)
 ```
 1. A label starting `fig-` numbers the figure and lets the text refer to it as `@fig-top10`,
    which renders as "Figure 1" with a link.
@@ -168,7 +268,7 @@ alt_text_holds(len(attractions) == 10
                == "Royal Museums Greenwich", "fig-ldn-top10")
 short = attractions.assign(attraction=attractions["attraction"].str.replace(" (South Kensington)", ""))
 with style():
-    fig, ax = plt.subplots(figsize=(6.4, 3.6))
+    fig, ax = plt.subplots(figsize=figsize(6.4, 3.6))
     s = short.sort_values("visits_2025")
     ax.barh(s["attraction"], s["visits_2025"], color=ACCENT)
     ax.set_xlabel("Visits in 2025")
@@ -223,7 +323,9 @@ format:
 
 One `quarto render` now writes three files. Each format runs the code cells again, so the
 inline numbers and the figure appear in every file without anything being copied. To render
-only one format, add `--to docx` (or `--to typst`).
+only one format, add `--to docx` (or `--to typst`). Each format is one more pass through the
+steps of @fig-pipeline. When you restart the preview, the web page has a list of *Other
+Formats* in its margin, with a link to each file; open the Word file and the PDF from there.
 
 ::: why
 Why render the code once per format? Because a format can change what code produces: a figure
@@ -231,6 +333,14 @@ may be drawn at a different size or resolution, and some outputs, such as intera
 only make sense in HTML. Re-running is the price of each format getting output made for it.
 For a slow analysis, the cure is to compute once in a script and have every format read the
 results, which is exactly how Part III is built (@sec-compute-once).
+:::
+
+::: think
+The bar chart has to appear in the Word file and the PDF as well as the web page. Why does its
+prompt ask for matplotlib, when the next chapter's dashboard uses Plotly?
+
+Matplotlib draws a static image, which every format can hold. Plotly's charts are JavaScript
+that runs in a browser, so they suit the web page and the dashboard but not Word or a PDF.
 :::
 
 ## Three more formats (optional) {#sec-formats-more}
@@ -281,20 +391,28 @@ a variable from an earlier one, and the order of cells matters. And two renders 
 file at the same moment write the same temporary files, which is why a render started while a
 preview is re-rendering fails with `readfile 'london.quarto_ipynb'`.
 
-Every render runs every cell again. That is deliberate in this book's projects: they set
-`freeze: false`, so outputs always match the data. It also means a slow cell slows every
-render; @sec-publish-many returns to the trade-off and to `freeze: auto`, which caches results
-and needs a rule for when to throw them away.
+Every render runs every cell again. That is Quarto's default (`freeze: false`), and this book's
+projects keep it deliberately, so outputs always match the data. It also means a slow cell
+slows every render; @sec-publish-many returns to the trade-off and to `freeze: auto`, which
+caches results and needs a rule for when to throw them away.
 
 Each render also prints the harmless `IPKernelApp` warning described in @sec-step-test.
 
+::: think
+A later cell uses `attractions`, which an earlier cell creates. You move the later cell above
+the earlier one. What happens at the next render?
+
+It fails with a `NameError`: the cells run top to bottom in one Python session, so
+`attractions` does not exist yet when the moved cell runs.
+:::
+
 ::: tryit
-Stop the preview, then add the formats with the prompt in @sec-formats (and, if you like, the
-optional three).
+If you have not yet, run the formats prompts (@sec-formats, and optionally @sec-formats-more)
+with the preview stopped, then restart it.
 
 ::: done
-`london.docx` and `london.pdf` show the computed sentence and the chart (and, with the optional
-formats, so do the slides, the PowerPoint deck and the e-book).
+`london.docx` and `london.pdf` show the computed sentence and the chart, as do any optional
+formats you made.
 :::
 
 ::: catchup
@@ -306,13 +424,14 @@ Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
 
 ## Summary {.unnumbered}
 
-A `.qmd` file is Markdown plus YAML front matter plus code cells. Front matter sets the title
-block and the formats, with indentation as meaning. Code cells run at render time in one shared
-Python session, and inline code writes their results into sentences, so the guide's numbers
-follow the data instead of going stale. `#|` cell options label, caption and describe figures;
-a `fig-` label makes a figure numbered and referable. One source renders to HTML, Word and a
-Typst PDF, and optionally to PowerPoint, an e-book and Reveal.js slides, each format running
-the code again.
+::: keyideas
+- A `.qmd` file is YAML front matter, Markdown and code cells; only a fence whose language
+  is in braces runs.
+- Cells run at render time, top to bottom, in one Python session.
+- Inline code puts results in sentences, so they follow the data; typed words do not.
+- The caption says what a figure is, the alt text what it shows.
+- Each format re-runs the code, and two renders of one file at once collide.
+:::
 
 Every one of those formats is still the visitor's guide, though. The tourism office has other
 readers (managers, partners and people who walk in off the street), and the next chapter

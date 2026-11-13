@@ -35,9 +35,18 @@ still right. When the data change, someone has to find every copy, and nobody ca
 sure where each one came from.
 
 The alternative is **one source that rebuilds every output**, the *Publish* step of this
-book's loop. By the end of this chapter you will be able to say, for any document Quarto
-builds, where each number came from and what happens to every copy when it changes. You will
-also know when the whole approach is not worth it.
+book's loop.
+
+::: opener
+- Explain why numbers copied by hand drift out of date, and how one source that rebuilds
+  every output prevents it.
+- Trace a `.qmd` file through the three steps of `quarto render`, and say which step a given
+  error comes from.
+- Distinguish what Quarto does from what a coding assistant does, and say how each is
+  checked.
+- Decide whether a document is worth building with Quarto, from what "reproducible" promises
+  and where Quarto is the wrong tool.
+:::
 
 ## Why reports drift {#sec-drift}
 
@@ -47,7 +56,7 @@ visitors, a dashboard for managers, a Word brief for partners, a square social-m
 and, later, a white paper. In the finished project, `{python} in_words(n_pages)` pages read
 the same table of attraction visits, and between them they write
 `{python} in_words(n_outputs)` files: the guide alone becomes a web page, a Word document, a
-PDF, a PowerPoint deck, an e-book and a set of slides.
+PDF, a PowerPoint deck, an e-book and a slide deck that runs in the browser.
 
 Suppose the Association of Leading Visitor Attractions (ALVA), the source of those counts,
 corrects one figure. In a copy-and-paste workflow, that correction has to reach
@@ -61,17 +70,22 @@ corrects one figure. In a copy-and-paste workflow, that correction has to reach
 
 None of these is a failure of care. They are what happens when the *output* is treated as
 the thing you edit. The fix is structural: edit the source, and let a program rebuild the
-outputs.
+outputs (@fig-drift).
+
+![One correction, two workflows. By hand, each copy waits to be retyped and some go stale; from one source, one render updates every output.](../media/diagrams/drift){#fig-drift .on-light fig-alt="Two ways to publish the London guide's attraction counts after ALVA corrects one figure in attractions.csv. By hand: each number is copied into each output, one at a time, so the web guide and the dashboard get the new number while the Word brief, the social card and the white paper still show the old one. One source: code cells in the project's .qmd pages read attractions.csv, and one quarto render rebuilds the web guide, the dashboard, the Word brief, the social card and the white paper, all with the corrected number."}
 
 ## What Quarto is {#sec-what-quarto}
 
-Quarto is an open-source publishing system: a command-line program, free for anyone to use,
-that turns plain-text source files into finished documents.
+Quarto is an open-source publishing system, free for anyone to use: a *command-line
+program*, one you run by typing a command in a terminal (@sec-step-terminal), that turns
+plain-text source files into finished documents.
 
-The input is either a plain Markdown file (`.md`) or a Quarto document (`.qmd`). A `.qmd`
-file is Markdown with two additions: a block of settings at the top, written in YAML, and
-*code cells*, fenced blocks of code that run when the document is built. Here is a complete
-one, the file the test run in @sec-setup asks your assistant to write:
+The input is either a plain Markdown file (`.md`) or a Quarto document (`.qmd`). *Markdown*
+is a way of writing structured text with a few punctuation marks, such as `#` before a
+heading (@sec-markdown). A `.qmd` file is Markdown with two additions: a block of settings at
+the top, written in *YAML*, a format for settings in which indentation is meaning
+(@sec-qmd-basics), and *code cells*, fenced blocks of code that run when the document is built.
+Here is a complete one, the file the test run in @sec-setup asks your assistant to write:
 
 ````markdown
 ---
@@ -88,13 +102,16 @@ answer = 6 * 7
 The answer is `{{python}} answer`.
 ````
 
-The sentence at the bottom contains *inline code*: when the document is built, Quarto runs
-`answer` and writes its value into the sentence. When this book was built, the same
+Between the two `---` lines are the settings: a title and two formats, a web page (`html`)
+and a PDF (`typst`). The fenced block below them is a code cell. The sentence
+at the bottom contains *inline code*: when the document is built, Quarto runs `answer` and
+writes its value into the sentence. When this book was built, the same
 calculation gave `{python} 6 * 7`, and that number was computed, not typed.
 
 ### Three steps: execute, convert, typeset
 
-`quarto render` does three things in order (@fig-pipeline).
+To *render* a document is to build its outputs from its source, and `quarto render` does it
+in three steps (@fig-pipeline).
 
 ![What `quarto render` does. One source becomes Markdown with results, which Pandoc converts to each output format; for PDF, Typst typesets the result.](../media/diagrams/render-pipeline){#fig-pipeline .on-light fig-alt="A source file, london.qmd, holding Markdown, YAML and code cells, goes through three steps. Step 1, execute: Jupyter for Python or knitr for R runs each code cell. The result is Markdown with the results in place of the code. Step 2, convert: Pandoc turns that Markdown into html, docx, epub, pptx and revealjs. Step 3, typeset: for PDF, Pandoc writes Typst source and Typst typesets it into a pdf. One command, quarto render, runs all three steps."}
 
@@ -114,6 +131,15 @@ package, a wrong column name, a cell that raises an error. A failure in step 2 o
 failure of *the document*: a malformed table, an image too large for the page, a
 format-specific option that does not exist. When a render fails, the error message tells
 you which step stopped, and that tells you where to look.
+
+::: think
+A render of `london.qmd` stops with `KeyError: 'visits_2025'`. Which step failed, and where do
+you look first?
+
+Step 1, execute. A code cell asked the data for a column it does not have, so compare the cell
+with the column names in the data file. The format settings are not the problem: Pandoc and
+Typst never ran.
+:::
 
 ::: why
 Pandoc converts between many formats by reading every input into one internal document
@@ -165,6 +191,14 @@ a file you can read or a command you approve before anything is published: that 
 where the *Check* step of the loop happens. And because the render is repeatable, anyone can
 rebuild your outputs to confirm them, without trusting the assistant at all.
 
+::: think
+Asked twice for the same chart, the assistant writes two different code cells. If you keep
+one and render it twice, do you get two different charts?
+
+No. The assistant varies; Quarto does not. Once the cell is in the file, every render runs the
+same code on the same data, so you check the cell once and every rebuild inherits that check.
+:::
+
 ::: pitfall
 Quarto runs whatever code your cells contain. If a cell calls an AI service, the document
 becomes as unpredictable as that service, and the cause is your code, not Quarto. Keep
@@ -187,19 +221,19 @@ cell or inline code that reads the data. Nothing is typed in or pasted from else
 export steps to remember.
 
 **Versioned.** Git, the version-control tool installed in @sec-setup, is something like
-Word's Track Changes for a whole folder, with a lasting history. Each state of the source,
-data and settings that you choose to record becomes a *commit*, with a message saying why it
-changed.
+Word's Track Changes for a whole folder, with a lasting history; a project folder with its
+history is a *repository*. Each state of the source, data and settings that you choose to
+record becomes a *commit*, with a message saying why it changed.
 Any earlier state can be restored, two states can be compared, and a result can be tied to
 the exact files that made it. The project's Python packages are pinned too, in a lockfile
-(`uv.lock`, introduced in @sec-markdown), so a colleague's machine builds the same
-environment as yours.
+(`uv.lock`, introduced in @sec-environments), so a colleague's machine builds the same
+*environment*, the Python version and packages the code runs with, as yours.
 
 Together these turn the drift problem around. Correct one value in the data, render, and
 the table, the chart and the sentence that quote it all update together, in every format.
 
-::: practice
-**Pause and think.** You correct one number in the data. What do you retype in the report?
+::: think
+You correct one number in the data. What do you retype in the report?
 
 Nothing. You fix the data file and render again. If the answer is anything else, some
 number in the report was typed rather than computed, and that is the bug to fix.
@@ -249,11 +283,20 @@ likely, use whatever is fastest.
 
 ## Summary {.unnumbered}
 
-Reports drift because their outputs are edited by hand. Quarto removes the copies:
-`quarto render` executes a `.qmd` source's code, converts the result with Pandoc and, for
-PDF, typesets it with Typst, the same way every time. Add computed numbers and version
-control, and the *Publish* step is reproducible: checkable, though not automatically right.
-The setup pays only for documents that will be built again.
+::: keyideas
+- Reports drift when their outputs are edited by hand; editing one source and letting a
+  program rebuild every output removes the copies.
+- `quarto render` executes the code cells, converts the result with Pandoc and, for PDF,
+  typesets it with Typst; the step that stops tells you where to look.
+- Quarto is conventional software, not AI: the same source and data give the same outputs, so
+  you check the assistant's work once and anyone can rebuild yours without trusting it.
+- Reproducible means one source, computed numbers, one command and versioned files; it makes
+  errors findable, not absent.
+- A cache such as `freeze` re-runs a page when its source changes, not when its data do, so it
+  needs a rule for clearing it.
+- Quarto pays for documents that will be built again, and is the wrong tool for co-editing in
+  Word, designed layouts and one-off notes.
+:::
 
 Quarto, though, renders only what it is given. In this book a coding assistant writes those
 sources, and its output varies from run to run and can be confidently wrong. How do you ask

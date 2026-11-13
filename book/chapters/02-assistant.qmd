@@ -26,8 +26,10 @@ alt_text_holds(pelican_cost == QUOTED_CENTS, "fig-pelicans")
 ```
 
 Simon Willison, a developer, has asked most major new models the same question since 2024:
-"Generate an SVG of a pelican riding a bicycle". Four Claude models, each at three effort
-levels, answered it with `{python} len(pelican_cost)` drawings, and every one is recognisably
+"Generate an SVG of a pelican riding a bicycle" (an SVG is a drawing written as text, so a
+model writes one as it writes code). Four Claude models, each at three *effort* levels (how
+long the model reasons before answering), answered it with `{python} len(pelican_cost)`
+drawings, and every one is recognisably
 a pelican on a bicycle. The dearest cost `{python} f"{dearest:.2f}"` cents, about
 `{python} f"{ratio:.0f}"` times as much as the cheapest that was good enough, at
 `{python} f"{cheapest_ok:.2f}"` cents (@fig-pelicans).
@@ -38,6 +40,17 @@ request: you write the *Prompt*, it does the typing, and you *Check* whether the
 right. It can produce in a minute what would take an hour by hand, and it can produce
 plausible, confident, wrong work just as quickly. How do you get the first kind of work
 without being fooled by the second?
+
+::: opener
+- Explain how a model and a harness divide the work, and which half to change when an
+  assistant disappoints.
+- Choose a model and effort level for a task, and keep a session's cost down with `/model`,
+  `/clear` and `/exit`.
+- Decide where to start an assistant, which of its commands to approve and which rules belong
+  in `AGENTS.md`.
+- Write a prompt that names its files, asks for one step and ends in a check, and disclose an
+  assistant's use in research.
+:::
 
 ::: tryit
 No installation needed. Paste Simon Willison's prompt,
@@ -83,8 +96,7 @@ review files after they change.
 
 ## Choosing an assistant and a model {#sec-choose}
 
-Three assistants are used and tested in this book. Each comes from the same company as its
-default models:
+This book covers three assistants. Each comes from the same company as its default models:
 
 | Assistant | You type | Made by | Default models |
 |---|---|---|---|
@@ -92,10 +104,14 @@ default models:
 | Codex | `codex` | OpenAI | GPT |
 | Antigravity | `agy` | Google | Gemini |
 
-: The assistants this book was tested with. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked 2026-11-12). {#tbl-assistants}
+: The assistants this book covers. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked 2026-11-12). {#tbl-assistants}
 
-Other assistants exist; this book does not test them, so it does not list them. Every prompt
-in the book is written to work in any of the three. A vendor's own pairing of harness and
+What "covers" means differs between them. For all three, the install command, the account it
+needs and how it reads project rules were checked against the vendor's documentation (dated in
+@sec-setup and @sec-agents-md). The first screens of Claude Code and Codex were captured for
+the workshop on 2026-11-07; Antigravity's were not. Other assistants exist; this book does not
+check them, so it does not list them. Every prompt in the book is written to work in any of
+the three. A vendor's own pairing of harness and
 model is the easiest to set up, but it is not automatically the best fit for a task: the
 assistant and the model are separate choices.
 
@@ -108,17 +124,24 @@ models are faster and cheaper, and often good enough for short, well-specified e
 fixing a typo or reformatting a table. Joining two datasets or debugging a failed render
 rewards the stronger model.
 
-The prompts in this book are short and specific, so a mid-sized model at a moderate *effort*
-setting (how long the model reasons before answering) is enough: Claude's Sonnet on medium
+The prompts in this book are short and specific, so a mid-sized model at a moderate effort
+setting is enough: Claude's Sonnet on medium
 effort, or Haiku for small edits, or OpenAI's Sol on low. For unfamiliar, hard work, the
 vendors' own advice starts higher: Anthropic suggests starting with Opus 5.5 for most
 workloads, and OpenAI with GPT-6 Astra for complex reasoning and coding. Start small, and move
 up only when a task keeps failing.
 
+Models are priced by the *token*, a fragment of text of a few characters, with one rate for
+the text sent to the model (input) and another for the text it writes (output). The prices
+below are *API* prices: what a program pays per token when it sends requests to the model
+directly, through the vendor's programming interface (the API), rather than through a
+monthly subscription.
+
 ::: practice
-**Prices change monthly; the principle does not.** The list prices below were correct on
-2026-11-12 and will not be for long. Read them as a snapshot of the spread, not as numbers to
+**Prices change monthly; the principle does not.** The list prices in @tbl-prices were correct
+on 2026-11-12 and will not be for long. Read them as a snapshot of the spread, not as numbers to
 plan with.
+:::
 
 | Model | What the vendor says it is for | Input / output, \$ per million tokens |
 |---|---|---|
@@ -131,12 +154,13 @@ plan with.
 | GPT-6.1 Sol | "near-Astra performance for complex work at a lower cost" | 2 / 10 |
 | GPT-6 Astra | "the most demanding work" | 10 / 50 |
 
+: List prices of eight models, in dollars per million tokens of input and output, checked 2026-11-12. {#tbl-prices}
+
 Haiku's price is for prompts up to 100,000 tokens; longer ones cost five times as much. The
 pelican runs below used Fable 5.2's predecessor, Fable 5.1, listed at 10 / 50.
 Subscriptions count usage differently from API prices, and which models you can choose
 depends on your plan and the assistant's version. Sources: Anthropic's models overview and
 pricing pages and OpenAI's models pages (checked 2026-11-12).
-:::
 
 The cost of a fixed level of capability has been falling fast. Measuring the cheapest model
 that reaches a given benchmark score, the venture firm a16z found the price falling about
@@ -188,18 +212,20 @@ price is worth paying depends entirely on the task.
 
 ## What a conversation costs {#sec-cost}
 
-Models are paid for by the *token*, a fragment of text of a few characters. Three things
-raise the cost of a session:
+Whether you pay by subscription or by API, use is counted in tokens. Three things raise the
+cost of a session:
 
 1. **A bigger model** costs more per token.
 2. **A higher effort setting** makes the model write more reasoning tokens per reply.
 3. **A longer conversation** costs more with every turn, because the model keeps no memory
-   between requests: the harness sends the whole conversation again each time. Prompt caching
-   makes the repeated part cheaper, not free, and caches expire.
+   between requests: the harness sends the whole conversation again each time. Everything
+   sent with a request (the conversation so far, the files read, the project's rules) is the
+   model's *context*. Prompt caching makes the repeated part cheaper, not free, and caches
+   expire.
 
 The habits that follow are simple: a mid-sized model at moderate effort, one task per
-conversation, and a fresh conversation as soon as a task is done. Three commands, typed at the
-assistant's prompt rather than in the shell, cover them:
+conversation, and a fresh conversation as soon as a task is done. Three commands, typed into
+the assistant itself rather than run in the terminal (@sec-two-places), cover them:
 
 | Command | Claude Code | Codex | Use it when |
 |---|---|---|---|
@@ -213,11 +239,12 @@ assistant's prompt rather than in the shell, cover them:
 steering the model while they remain in the conversation; a fresh conversation drops them.
 Nothing on disk changes, and the project's rules file is read again.
 
-::: practice
-**Pause and think.** One task is finished and an unrelated one starts. Which command first?
+::: think
+One task is finished and an unrelated one starts. Which command first, and what does it keep?
 
 `/clear`. The new task needs none of the old conversation, and carrying it along costs
-tokens on every turn and can mislead the model.
+tokens on every turn and can mislead the model. Your files stay as they are, and the
+project's rules file is read again.
 :::
 
 ## The root folder is the assistant's world {#sec-root-folder}
@@ -267,6 +294,15 @@ repository behind this book works exactly that way: its `CLAUDE.md` imports its 
 `AGENTS.md` is context, not enforcement. The assistant reads the rules and usually follows
 them, but it can still slip. Write rules that are concrete enough to check ("call ALVA counts
 'ALVA member attractions'"), and check them.
+:::
+
+::: think
+Yesterday you told the assistant, in conversation, to say "ALVA member attractions". Today it
+writes "top attractions". Why, and what is the lasting fix?
+
+The instruction ended with yesterday's conversation: the model keeps no memory between
+sessions. Put the rule in `AGENTS.md`, which is read at the start of every session, and still
+check for it, because rules are context, not enforcement.
 :::
 
 Part II writes the London guide's rules in @sec-markdown, and Part III writes the water
@@ -320,8 +356,8 @@ the vendor: no passwords, keys, unpublished data or personal information.
 
 ## How to read the assistant boxes {#sec-boxes}
 
-Every hands-on step in this book uses the same three-part box. Here is the first one you will
-meet in Part II:
+Every hands-on step in this book uses the same three-part box. Here is a simpler version of
+the first one you will meet in Part II:
 
 ::: {.prompt}
 ```default
@@ -342,13 +378,20 @@ edition, with a copy button). **Expect it to run** lists what the assistant will
 so you recognise it when it asks for approval; you do not type these yourself. **You do** lists
 the few things only you can do: start the assistant, sign in to accounts, approve commands, run
 a live preview, open results. The assistant occupies the terminal tab it runs in, so commands
-in a **You do** box go in a second terminal tab opened in the same folder.
+in a **You do** box go in a second terminal tab opened in the same folder (@sec-two-places).
 
 Together the boxes are one turn of the loop in the book's title. **Ask your coding
 assistant** is the *Prompt*. **Expect it to run** and **You do** are where you *Check*,
 recognising each command before you approve it and opening the result yourself. The render
 is the *Publish*. Each exercise closes the loop with **You're done when**: the check, stated
 so that you can see whether it passed.
+
+::: pitfall
+Approving a command without reading it. Most commands in this book run a tool the prompt named
+(`quarto`, `uv`, `git`, `gh`) on files in the project folder. Stop and ask the assistant what a
+command does before you approve one that deletes files (`rm`), runs as the administrator
+(`sudo`), or touches a folder outside the project that the prompt did not name.
+:::
 
 The prompts are examples, not transcripts. Assistants vary from version to version and run to
 run, so the files they write will differ in detail from the ones shown. What should not vary
@@ -383,8 +426,8 @@ made. The statement for this book, on its copyright page, is written that way. W
 depends on the use: code and analysis belong in the Methods, with enough detail to reproduce
 them, which in a Quarto project means the code itself and the project's `AGENTS.md`.
 
-::: practice
-**Pause and think.** Which needs a statement: fixing a typo, or computing a table?
+::: think
+Which needs a statement: fixing a typo, or computing a table?
 
 Computing a table is analysis: describe it in the Methods, in enough detail to reproduce.
 Venues differ on whether language editing needs a statement; ICMJE's recommendations make no
@@ -393,14 +436,20 @@ exception for it, so when in doubt, disclose.
 
 ## Summary {.unnumbered}
 
-A coding assistant is a model that decides and a harness that acts, with you directing and
-checking in between. Choose the model by the task: as the pelicans showed, a cheaper model at
-medium effort is often enough for a small, well-specified step. Cost grows with model size,
-effort and conversation length, so keep one task per conversation. Start the assistant only
-in a folder you created for the work, and put durable rules in `AGENTS.md`, remembering that
-rules are context, not enforcement. Good prompts are specific, single-step and end in a
-check, and every change they cause is yours to review. In research, the assistant is never an
-author, and its use is disclosed.
+::: keyideas
+- The model decides, the harness does, and you direct and check; when an assistant
+  disappoints, either half can be the cause.
+- Choose a model by the task, not by rank: as the pelicans showed, a cheaper model at medium
+  effort is often enough for a small, well-specified step.
+- Cost grows with model size, effort and conversation length, because the whole conversation
+  is sent again each turn, so start a fresh conversation for each unrelated task.
+- Start an assistant only in a folder you created for the work, and read each command before
+  you approve it.
+- Rules that must last go in `AGENTS.md`, which is context, not enforcement, so write them
+  concretely enough to check.
+- Good prompts are specific, ask for one step and end in a check; in research the assistant is
+  never an author, and its use is disclosed.
+:::
 
 All of this assumes a computer on which an assistant, Quarto and Python are installed and
 working together. Is yours? @sec-setup gets it there in six checked steps.

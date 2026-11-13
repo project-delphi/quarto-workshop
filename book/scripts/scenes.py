@@ -19,6 +19,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+# The cluster cloud's check of how well clusters separate: the share of each zone-year's
+# nearest neighbours (this many) in its own cluster. Chapter 11 quotes it.
+NEIGHBOURS = 15
+
 LONDON = Path("../examples/london/data")
 
 
@@ -349,7 +353,7 @@ def cloud(res: dict, A) -> dict:
     lab = clusters["cluster"].to_numpy()
 
     def same(d):
-        _, idx = NearestNeighbors(n_neighbors=15).fit(xyz[:, :d]).kneighbors()
+        _, idx = NearestNeighbors(n_neighbors=NEIGHBOURS).fit(xyz[:, :d]).kneighbors()
         return pd.Series((lab[idx] == lab[:, None]).mean(axis=1))
 
     same2, same3 = same(2), same(3)

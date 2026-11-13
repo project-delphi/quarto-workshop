@@ -22,7 +22,7 @@ interactive elements with each one's EPUB replacement, and the decisions taken.
 | Google Chrome | 157 | `make media` and the screenshot scripts (Playwright drives the installed Chrome) |
 | [VHS](https://github.com/charmbracelet/vhs) (with ttyd and ffmpeg) | 0.12.1 | re-recording terminal animations |
 | ffmpeg, gifsicle | 9.0.2, 1.95 | assembling and shrinking GIFs |
-| `sips` (macOS) | | the PDF page images in `media/figures/` (`media/capture/*_outputs.py`) |
+| Quick Look, `qlmanage` (macOS) | | the PDF page images in `media/figures/` (`media/capture/_pdf.py`) |
 
 Building the book needs only the first four. Playwright and segno come in through
 `uv run --with` in the `make` targets, so they are not project dependencies.
@@ -52,10 +52,16 @@ empties the output folder.
 under their parts in the table of contents and groups the appendices, puts the copyright page
 before the Contents page (the navigation document, in the spine because of `toc: true`) and
 the preface, keeps sections off the Contents page (the reader's menu still lists them), sets
-appendix headings as "Appendix A" above the title, gives the appendices, afterword and front
-matter their `epub:type`, adds the subtitle and guide references to the package file, adds
-landmarks, removes the `alt` attribute that Quarto puts on figure wrappers (invalid in XHTML),
-and flattens figures shown on a light panel onto the panel's colour. It stops with an error,
+chapter and appendix headings as "Chapter 1" or "Appendix A" above the title and splits a
+part's heading into its label and name, gives the appendices, afterword and front matter their
+`epub:type` (and the glossary its glossary semantics), adds the subtitle and guide references
+to the package file, adds landmarks, and removes the `alt` attribute that Quarto puts on figure
+wrappers (invalid in XHTML). For the stylesheet it marks each chapter's opening paragraph
+(`hook`), sets caption labels ("Figure 1.1") and exercise labels apart, replaces the
+no-break spaces outside code (drawn double-wide by macOS's Charter), lets identifiers in table
+cells break after an underscore, puts each live link's QR
+code at the front of its card, and flattens figures shown on a light panel onto the panel's
+colour. It stops with an error,
 as `make book-html` does for the HTML edition, if a line beginning "@label." has turned a
 cross-reference into a numbered example list. The EPUBCheck report is
 saved as `_book/epubcheck.txt`.
@@ -75,6 +81,8 @@ does not notice changes outside the chapter, so run `make book-fresh` after chan
 - `examples/london/data/` or `examples/water/data/`
 - `examples/water/scripts/analysis.py` (Part III imports it and calls `analysis.run()`)
 - `scripts/water.py`, `scripts/scenes.py`, `scripts/figures.py` or `scripts/roadmaps.py`
+- `media/examples/` (the toy files Chapters 4 and 5 print; rerun
+  `media/capture/toy_examples.py` first, so their pictures match)
 
 ## Conventions
 
@@ -93,9 +101,28 @@ does not notice changes outside the chapter, so run `make book-fresh` after chan
   matches EPUB) and `when-format="epub"` for its EPUB stand-in.
 - Asides are divs with the classes `why`, `pitfall`, `practice` and `tryit`, turned into
   callouts by `filters/book.lua`; prompts use the deck's `prompt`, `agent` and `you` boxes.
+- Every numbered chapter has the same frame, which `filters/book.lua` labels:
+  - `::: opener` after the opening paragraphs: three or four objectives as a bullet list, each
+    starting with a verb the reader could be checked on ("Explain", "Render", "Decide"),
+    then, in a hands-on chapter, a definition list with the terms `Start from`, `You build`
+    and `Checkpoint`.
+  - `::: think` for retrieval practice: the first paragraph is the question, the rest the
+    answer, which the filter sets apart under "Answer". Use it where a reader should stop and
+    predict, not for advice (that is `::: practice`).
+  - `## Summary {.unnumbered}` holds a `::: keyideas` list of four to six takeaways, then a
+    short paragraph that leads into the next chapter.
+  - Terms a novice may not know are defined where they first appear and listed in the
+    glossary appendix (`appendices/j-glossary.qmd`) with a cross-reference to that section.
 - Images are referenced without an extension. The HTML edition picks the SVG and the EPUB the
   PNG (`default-image-extension`). Diagrams are drawn portrait, 700 px wide, with text of at
   least 19 px so they stay legible on a phone.
+- Charts use `scripts/figures.py`: `style()`, and `figsize()` and `grid()` for their size and
+  panels. A cell runs once per edition, so in the EPUB `figsize()` draws a chart 4.6 inches
+  wide (its 11 pt labels stay legible on a phone) and `grid()` stacks panels that sit side by
+  side in the HTML edition.
+- A picture given a width above 40% (a screenshot or a page of a PDF) gets the class `scaled`,
+  which widens it to the column on a phone. Tables, figures and boxes ask readers not to split
+  them across pages, so each is kept to about one phone screen.
 - Figures drawn in dark ink on a transparent background carry the class `on-light`, which puts
   them on a light panel in both editions, so they stay visible in night themes.
 - Prose has no emoji; the deck's emoji survive only inside quoted prompts.
@@ -113,7 +140,7 @@ All images and animations are made by `media/build.py`, which `make media` runs.
 | `diagrams` | a PNG at twice the size beside every SVG in `media/diagrams/` and `media/roadmaps/` |
 | `qr` | the QR codes for the EPUB's links to the live scenes, `media/qr/` |
 | `tapes` | terminal animations from `media/tapes/*.tape`, recorded with VHS |
-| `capture` | 3-D scene and preview animations from `media/capture/*.py` (build the HTML edition first) |
+| `capture` | 3-D scene and preview animations, and pictures of the projects' outputs and the toy files, from `media/capture/*.py` (build the HTML edition first) |
 | `posters` | the book versions of the deck's illustrated GIFs |
 | `stills` | the first frame of every GIF, `media/stills/*.png` |
 | `check` | fails unless every GIF is at most 2 MB and 800 px wide, and has a still |
@@ -143,16 +170,16 @@ The animations are:
 | GIF | Made by | Size |
 |---|---|--:|
 | `agent-session.gif` | `tapes/agent-session.tape` (scripted illustration) | 103 KB |
-| `catch-up.gif` | `tapes/catch-up.tape` | 344 KB |
+| `catch-up.gif` | `tapes/catch-up.tape` | 159 KB |
 | `chat-prompt.gif` | the deck's illustration, `posters` step | 265 KB |
 | `cluster-cloud-orbit.gif` | `capture/cluster_cloud.py` | 1.98 MB |
 | `colombia-relief-orbit.gif` | `capture/colombia_relief.py` | 1.27 MB |
 | `kmeans-steps.gif` | `capture/kmeans.py` | 1.92 MB |
 | `london-map-orbit.gif` | `capture/london_map.py` | 1.94 MB |
 | `quarto-preview-reload.gif` | `capture/preview_reload.py` | 135 KB |
-| `render-many-formats.gif` | `tapes/render-many-formats.tape` | 161 KB |
+| `render-many-formats.gif` | `tapes/render-many-formats.tape` | 128 KB |
 | `terminal-basics.gif` | `tapes/terminal-basics.tape` | 129 KB |
-| `uv-environment.gif` | `tapes/uv-environment.tape` | 265 KB |
+| `uv-environment.gif` | `tapes/uv-environment.tape` | 235 KB |
 | `windows-session.gif` | the deck's illustration, `posters` step | 200 KB |
 
 Sizes in decimal units, as built on 2026-11-12.

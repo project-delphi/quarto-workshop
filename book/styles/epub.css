@@ -3,7 +3,13 @@
    - Never set the page's background or text colour: the reader's themes (day, sepia,
      night) stay in control. Tints use rgba so they work on any background.
    - Code wraps (no horizontal scrolling on phones).
-   - Transparent figures with dark ink (diagrams, charts) get a light panel; photos do not. */
+   - Transparent figures with dark ink (diagrams, charts) get a light panel; photos do not.
+   - Tables, figures and boxes ask not to be split across two pages (page-break-inside and
+     break-inside); the chapters keep each short enough to fit one phone screen.
+   - Quarto writes some rules inline after this stylesheet (callouts, captions): rules here
+     that must win use a more specific selector or !important.
+   Sans-serif stack used throughout: "Avenir Next", Avenir, "Helvetica Neue", Helvetica,
+   Arial, sans-serif (no custom properties: older reading systems ignore them). */
 
 /* ---- Body text ---------------------------------------------------------------- */
 body {
@@ -18,6 +24,7 @@ body {
 p { margin: 0 0 0.75em; }
 h1, h2, h3, h4 {
   font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 600;
   line-height: 1.2;
   hyphens: none;
   -webkit-hyphens: none;
@@ -25,28 +32,35 @@ h1, h2, h3, h4 {
   break-after: avoid;
 }
 h1 { font-size: 1.7em; margin: 0.5em 0 1em; }
-h2 { font-size: 1.3em; margin: 1.6em 0 0.6em; }
-h3 { font-size: 1.1em; margin: 1.3em 0 0.5em; }
-h1 .header-section-number { display: block; font-size: 0.55em; letter-spacing: 0.08em;
-  text-transform: uppercase; opacity: 0.7; margin-bottom: 0.3em; }
-h2 .header-section-number, h3 .header-section-number { opacity: 0.7; margin-right: 0.3em; }
+h2 { font-size: 1.3em; margin: 2em 0 0.7em; padding-top: 0.6em; border-top: 1px solid rgba(128, 128, 128, 0.25); }
+h3 { font-size: 1.08em; margin: 1.6em 0 0.45em; }
+h4 { font-size: 1em; margin: 1.3em 0 0.4em; }
+h2 .header-section-number, h3 .header-section-number { font-weight: 500; opacity: 0.55; margin-right: 0.45em; }
 a { color: inherit; text-decoration: underline; text-decoration-color: rgba(64, 128, 191, 0.7);
   text-underline-offset: 0.15em; overflow-wrap: anywhere; }
 /* A hyphen added to a printed URL ("ht-tps://") gets copied or typed: break URLs without one. */
 a.uri { hyphens: manual; -webkit-hyphens: manual; }
-/* Dates such as 2026-11-12 stay on one line (filters/book.lua marks them). */
-.nowrap { white-space: nowrap; }
+/* "Chapter 3", "Figure 1.1" and dates such as 2026-11-12 stay on one line (the post-processor
+   and filters/book.lua mark them). */
+.nowrap, a.quarto-xref, .caption-label { white-space: nowrap; }
 blockquote { margin: 1em 0 1em 1em; padding-left: 0.8em; border-left: 3px solid rgba(128, 128, 128, 0.5); }
 ul, ol { margin: 0 0 0.75em; padding-left: 1.4em; }
 li { margin: 0.2em 0; }
 hr { border: none; border-top: 1px solid rgba(128, 128, 128, 0.4); margin: 1.5em 0; }
-
-/* Part pages and front matter */
-h1.part { margin-top: 2em; font-size: 2em; }
-/* A numbered chapter's opening paragraph is its hook: set it a little larger (not on the
-   unnumbered front matter, part pages and exercises, whose first paragraph is no hook). */
-section.level1:not(.unnumbered) > h1 + p { font-size: 1.08em; }
 .copyright p { font-size: 0.85em; }
+
+/* ---- Chapter and appendix openers (the post-processor adds h1.chapter and p.hook) ---- */
+h1.chapter { font-size: 1.9em; line-height: 1.12; margin: 0 0 1.1em; padding: 2.5em 0 0.5em;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.4); }
+h1 .header-section-number { display: block; margin-bottom: 0.8em; font-size: 0.4em; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.7; }
+p.hook { font-size: 1.12em; line-height: 1.45; margin-bottom: 1.1em; }
+
+/* ---- Part openers (the post-processor splits "Part I: Foundations") ------------------ */
+h1.part { font-size: 2.1em; line-height: 1.1; text-align: center; margin: 0 0 1.8em; padding-top: 3.5em; }
+h1.part .part-label { display: block; margin-bottom: 0.8em; font-size: 0.38em; letter-spacing: 0.22em;
+  text-transform: uppercase; opacity: 0.7; }
+section.part figure > figcaption.quarto-float-caption, section.part figcaption { text-align: center; }
 
 /* ---- Code --------------------------------------------------------------------- */
 code, pre, kbd, samp {
@@ -65,6 +79,8 @@ pre {
   border-left: 3px solid rgba(128, 128, 128, 0.5);
   background-color: rgba(128, 128, 128, 0.09);
   line-height: 1.35;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 pre code { font-size: 1em; }
 /* Pandoc's inline highlighting CSS fixes a light background and dark token colours, which
@@ -89,58 +105,142 @@ div.sourceCode + dl dd { margin: 0 0 0.4em 1.2em; }
 /* Terminal transcripts */
 .transcript pre { border-left-color: rgba(47, 158, 119, 0.8); }
 
-/* ---- Assistant boxes ------------------------------------------------------------ */
-.agent-box { margin: 1.2em 0; }
-.agent-box > div { margin: 0 0 0.5em; padding: 0.5em 0.7em; border-left: 4px solid; border-radius: 0 0.3em 0.3em 0; }
-.agent-box .prompt { border-color: #7c5cdb; background-color: rgba(124, 92, 219, 0.09); }
-.agent-box .agent { border-color: #c58a1e; background-color: rgba(197, 138, 30, 0.09); }
-.agent-box .you { border-color: #2f9e77; background-color: rgba(47, 158, 119, 0.09); }
+/* ---- Assistant boxes: one card in up to three parts ------------------------------- */
+.agent-box { margin: 1.3em 0; border: 1px solid rgba(128, 128, 128, 0.35); border-radius: 0.4em; overflow: hidden; }
+.agent-box > div { margin: 0; padding: 0.6em 0.8em 0.65em; border-left: 4px solid;
+  page-break-inside: avoid; break-inside: avoid; }
+.agent-box > div + div { border-top: 1px solid rgba(128, 128, 128, 0.25); }
+.agent-box .prompt { border-left-color: #7c5cdb; background-color: rgba(124, 92, 219, 0.09); }
+.agent-box .agent { border-left-color: #c58a1e; background-color: rgba(197, 138, 30, 0.09); font-size: 0.95em; }
+.agent-box .you { border-left-color: #2f9e77; background-color: rgba(47, 158, 119, 0.09); font-size: 0.95em; }
 .agent-box .box-label { font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 0.75em; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.3em; }
+  font-size: 0.72em; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 0.35em; }
 .agent-box > div > p:last-child { margin-bottom: 0; }
 .agent-box pre { border-left: none; background-color: rgba(128, 128, 128, 0.08); margin: 0.3em 0 0.1em; }
+.agent-box .prompt pre { font-size: 0.95em; line-height: 1.4; }
 
 /* ---- Callouts (asides) ------------------------------------------------------------ */
-.callout { margin: 1.2em 0; padding: 0.5em 0.8em; border: 1px solid rgba(128, 128, 128, 0.35);
-  border-left: 4px solid rgba(128, 128, 128, 0.7); border-radius: 0 0.3em 0.3em 0; }
-.callout-title p { margin: 0 0 0.3em; font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 0.8em; letter-spacing: 0.05em; text-transform: uppercase; }
-.callout-icon-container { display: none; }
-/* Quarto's inline callout CSS gives titles a fixed pale strip; keep them on the page colour. */
-.callout .callout-title { background-color: transparent !important; padding: 0 !important; }
-.callout .callout-body, .callout .callout-content { padding: 0 !important; margin: 0 !important; }
-.callout-content > :last-child { margin-bottom: 0; }
+div.callout { margin: 1.4em 0; padding: 0.7em 0.9em 0.75em !important; border: none !important;
+  border-left: 4px solid rgba(128, 128, 128, 0.7) !important; border-radius: 0 0.35em 0.35em 0;
+  page-break-inside: avoid; break-inside: avoid; }
+div.callout .callout-icon-container { display: none; }
+/* Quarto's inline callout CSS gives titles a pale strip and the body a rem size: keep both
+   on the page colour and in step with the reader's text size. */
+div.callout .callout-title, div.callout .callout-header { display: block !important; background-color: transparent !important;
+  padding: 0 !important; margin: 0 0 0.35em !important; opacity: 1 !important; font-size: 1em !important; border: none !important; }
+div.callout .callout-title p { margin: 0 !important; font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.74em; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; }
+div.callout .callout-body, div.callout .callout-content { padding: 0 !important; margin: 0 !important; font-size: 0.97em !important; }
+div.callout .callout-content p { margin: 0 0 0.6em !important; }
+div.callout .callout-content > :last-child, div.callout .callout-body > :last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
 /* Quarto's inline CSS sets these borders with !important (and "important" is red, which
    reads as a warning): the book's colours win by specificity. */
 div.callout.callout-note { border-left-color: #3f7fbf !important; background-color: rgba(63, 127, 191, 0.07); }
-div.callout.callout-warning { border-left-color: #d0752b !important; background-color: rgba(208, 117, 43, 0.08); }
+div.callout.callout-warning { border-left-color: #c9483a !important; background-color: rgba(201, 72, 58, 0.07); }
 div.callout.callout-tip { border-left-color: #2f9e77 !important; background-color: rgba(47, 158, 119, 0.07); }
 div.callout.callout-important { border-left-color: #7c5cdb !important; background-color: rgba(124, 92, 219, 0.07); }
-.done, .catchup { margin: 0.6em 0; }
-.catchup pre { margin-top: 0.2em; }
+div.done { margin: 0.8em 0; padding: 0.5em 0.8em; border-left: 4px solid #2f9e77; background-color: rgba(47, 158, 119, 0.08);
+  page-break-inside: avoid; break-inside: avoid; }
+div.done p:last-child { margin-bottom: 0; }
+div.catchup { margin: 0.8em 0; font-size: 0.9em; page-break-inside: avoid; break-inside: avoid; }
+div.catchup pre { margin-top: 0.2em; }
+
+/* ---- Teaching components (filters/book.lua) ------------------------------------------- */
+/* Labels shared by the opener and Pause and think. */
+.opener > .box-label, .think > .box-label, .think-answer-label {
+  font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.74em; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 0.4em; }
+/* In this chapter: bookended by two rules, so it reads as the chapter's map, not an aside. */
+.opener { margin: 1.4em 0 1.8em; padding: 0.8em 0 0.7em; border-top: 2px solid rgba(63, 127, 191, 0.75);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.4); page-break-inside: avoid; break-inside: avoid; }
+.opener > ul { margin: 0 0 0.6em; padding-left: 1.2em; }
+/* The opener's bottom rule already separates it from the first section. */
+.opener + section > h2 { border-top: none; padding-top: 0; margin-top: 1.2em; }
+.opener > ul > li { margin: 0.3em 0; }
+.opener-meta { font-size: 0.9em; margin-top: 0.6em; padding-top: 0.5em;
+  border-top: 1px dotted rgba(128, 128, 128, 0.45); }
+.opener-meta p { margin: 0.25em 0; padding-left: 6.6em; text-indent: -6.6em; }
+.opener-meta .meta-label { display: inline-block; width: 8.25em; text-indent: 0;
+  font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.8em; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+/* Pause and think: a question, then the answer set apart under a dashed rule. */
+.think { margin: 1.4em 0; padding: 0.7em 0.9em; border: 1px solid rgba(91, 107, 123, 0.4);
+  border-left: 4px solid #5b6b7b; border-radius: 0 0.35em 0.35em 0; background-color: rgba(91, 107, 123, 0.07);
+  page-break-inside: avoid; break-inside: avoid; }
+.think-question p { margin-bottom: 0.4em; }
+.think-question p:last-child { margin-bottom: 0; }
+.think-answer { margin-top: 0.7em; padding-top: 0.5em; border-top: 1px dashed rgba(128, 128, 128, 0.55);
+  font-size: 0.95em; }
+.think-answer > :last-child { margin-bottom: 0; }
+/* Key ideas: the summary's takeaways, numbered so the text can refer back to them, and
+   bookended like the opener. */
+.keyideas { margin: 0.8em 0 1.4em; padding: 0.8em 0 0.4em; border-top: 2px solid rgba(63, 127, 191, 0.75);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.4); page-break-inside: avoid; break-inside: avoid; }
+.keyideas > ul { list-style-type: decimal; padding-left: 1.6em; }
+.keyideas > ul > li { margin: 0 0 0.5em; }
+
+/* ---- Exercises (the post-processor splits "Exercise II.1: Title") ---------------- */
+h2.exercise { border-top-width: 2px; }
+h2.exercise .exercise-label { display: block; margin-bottom: 0.35em; font-size: 0.58em; letter-spacing: 0.14em;
+  text-transform: uppercase; opacity: 0.7; }
 
 /* ---- Figures and tables -------------------------------------------------------------- */
-figure { margin: 1.2em 0; page-break-inside: avoid; break-inside: avoid; }
+figure { margin: 1.3em 0; page-break-inside: avoid; break-inside: avoid; }
 figure img, img { max-width: 100%; height: auto; }
-figcaption { font-size: 0.85em; margin-top: 0.4em; line-height: 1.35; }
-.quarto-figure-center, .quarto-figure-center figcaption { text-align: center; }
-/* Transparent images drawn with dark ink: a light panel in every reader theme. */
-img.on-light, .on-light img { background-color: #fbfbf8; padding: 0.4em; border-radius: 0.3em;
+/* Beats Quarto's inline figcaption rule (a smaller, centred caption). */
+figure > figcaption, figure > figcaption.quarto-float-caption { font-size: 0.86em; line-height: 1.4; text-align: left;
+  margin: 0.6em 0 0; }
+figcaption.quarto-float-caption-top { margin: 0 0 0.45em; page-break-after: avoid; break-after: avoid; }
+figcaption .caption-label { font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 600; font-size: 0.9em; letter-spacing: 0.03em; margin-right: 0.3em; }
+/* Transparent images drawn with dark ink: a light panel in every reader theme (the
+   post-processor flattens their PNGs onto the same colour). */
+img.on-light, .on-light img { background-color: #f1f0eb; padding: 0.4em; border-radius: 0.3em;
   box-sizing: border-box; }
+/* Screenshots and page images set at a width (filters/book.lua: "scaled") fill a phone's
+   column, where a percentage of it would leave their text too small to read. */
+@media (max-width: 40em) {
+  img.scaled { width: auto !important; max-width: 100%; max-height: 40em; }
+}
+/* Pictures of rendered pages (filters/book.lua: "screenshot") get a thin frame, so they do not
+   read as the book's own text. */
+img.screenshot { border: 1px solid rgba(128, 128, 128, 0.45); border-radius: 0.25em; box-sizing: border-box; }
 /* Quarto's inline CSS gives cell outputs a horizontal scroll bar; e-readers should wrap instead. */
 .cell-output-display { overflow-x: visible !important; }
-table { border-collapse: collapse; margin: 1em 0; font-size: 0.85em; width: 100%; }
-th, td { border-bottom: 1px solid rgba(128, 128, 128, 0.4); padding: 0.3em 0.4em; text-align: left;
+/* Tables: booktabs rules, a light zebra (Pandoc writes tr.even), kept on one page. */
+table { border-collapse: collapse; margin: 1em 0; font-size: 0.86em; line-height: 1.35; width: 100%;
+  border-top: 2px solid rgba(128, 128, 128, 0.6); border-bottom: 2px solid rgba(128, 128, 128, 0.6);
+  page-break-inside: avoid; break-inside: avoid; }
+tr { page-break-inside: avoid; break-inside: avoid; }
+th, td { border-bottom: 1px solid rgba(128, 128, 128, 0.18); padding: 0.35em 0.45em; text-align: left;
   vertical-align: top; overflow-wrap: break-word; }
-thead th { border-bottom-width: 2px; hyphens: manual; -webkit-hyphens: manual; }
+thead th { font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 0.88em;
+  font-weight: 600; vertical-align: bottom; border-bottom: 1px solid rgba(128, 128, 128, 0.6);
+  hyphens: manual; -webkit-hyphens: manual; }
+tr.even td { background-color: rgba(128, 128, 128, 0.06); }
 caption { font-size: 0.9em; margin-bottom: 0.4em; text-align: left; }
-.live-link { font-size: 0.85em; }
-/* Pandoc puts the class on the img itself. */
-img.qr, .qr img { width: 7em; }
 
-/* ---- Title page (Pandoc's title_page.xhtml) ------------------------------------------ */
+/* ---- Live versions: a card with the link and a QR code (the post-processor puts the code
+   first, in its own paragraph, so it floats to the right of the text) ------------------- */
+div.live-link { margin: 1em 0 1.4em; padding: 0.65em 0.8em; border: 1px dashed rgba(128, 128, 128, 0.6);
+  border-radius: 0.4em; font-size: 0.9em; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
+div.live-link p { margin: 0; }
+div.live-link p.qr { float: right; margin: 0 0 0.2em 0.9em; }
+img.qr, .qr img { display: block; width: 6.5em; }
+
+/* ---- Glossary (appendices/j-glossary.qmd) ------------------------------------------- */
+.glossary-letter p { margin: 1.6em 0 0.3em; padding-bottom: 0.15em; border-bottom: 1px solid rgba(128, 128, 128, 0.4);
+  font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 1.25em; font-weight: 700;
+  page-break-after: avoid; break-after: avoid; }
+.glossary dl dt { margin-top: 0.9em; font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 600; page-break-after: avoid; break-after: avoid; }
+.glossary dl dd { margin: 0.15em 0 0 1.2em; }
+.glossary dl dd > p { margin: 0 0 0.3em; }
+
+/* ---- Title page (Pandoc's title_page.xhtml): the cover's serif title ----------------- */
 section.titlepage { text-align: center; margin-top: 18%; }
-section.titlepage h1.title { font-size: 2.4em; line-height: 1.1; margin: 0 0 0.5em; }
+section.titlepage h1.title { font-family: Charter, "Bitstream Charter", "Iowan Old Style", Georgia, serif;
+  font-size: 2.6em; font-weight: 700; line-height: 1.08; margin: 0 0 0.5em; }
 section.titlepage .subtitle { font-size: 1.15em; font-style: italic; margin: 0 0 3em; }
 section.titlepage .author { font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 1em; letter-spacing: 0.12em; text-transform: uppercase; }
@@ -169,21 +269,22 @@ nav#toc li.toc-part > a, nav#toc li.toc-group > span {
   font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 0.8em; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
 nav#toc li.toc-part > ol, nav#toc li.toc-group > ol { margin-top: 0.5em; padding-left: 0.9em; }
-nav#toc a { text-decoration-color: rgba(64, 128, 191, 0.35); }
+nav#toc a { text-decoration: none; }
 nav#toc .header-section-number { opacity: 0.7; }
-nav#toc li.toc-group .header-section-number { opacity: 1; }
-nav#toc li.toc-group > ol > li { padding-left: 1.4em; text-indent: -1.4em; }
-/* Chapter numbers hang in the margin; floated, they are not underlined, and the space after
-   them starts the line, so it collapses. */
-nav#toc li.toc-part > ol > li { padding-left: 2em; }
-nav#toc li.toc-part > ol > li > a > .header-section-number { float: left; width: 2em; margin-left: -2em; }
+/* Chapter numbers and appendix letters hang in the margin; floated, the space after them
+   starts the line, so it collapses. */
+nav#toc li.toc-part > ol > li, nav#toc li.toc-group > ol > li { padding-left: 2em; }
+nav#toc li.toc-part > ol > li > a > .header-section-number,
+nav#toc li.toc-group > ol > li > a > .header-section-number { float: left; width: 2em; margin-left: -2em; }
 
 @media (prefers-color-scheme: dark) {
-  .agent-box .prompt { border-color: #b9a0ed; }
-  .agent-box .agent { border-color: #e9b86e; }
-  .agent-box .you { border-color: #79d4b2; }
+  .agent-box .prompt { border-left-color: #b9a0ed; }
+  .agent-box .agent { border-left-color: #e9b86e; }
+  .agent-box .you { border-left-color: #79d4b2; }
   div.callout.callout-note { border-left-color: #86cce8 !important; }
   div.callout.callout-tip { border-left-color: #79d4b2 !important; }
   div.callout.callout-important { border-left-color: #b9a0ed !important; }
-  div.callout.callout-warning { border-left-color: #efa578 !important; }
+  div.callout.callout-warning { border-left-color: #f08a7e !important; }
+  div.done { border-left-color: #79d4b2; }
+  .think { border-left-color: #aab6c2; }
 }
