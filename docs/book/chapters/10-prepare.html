@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-e85dad9e1173e1d97bd702522a9286d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-0d82a697912dd7ccea7f4202bcb5d8f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -571,6 +571,12 @@ window.Quarto = {
  <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Running This as a Workshop</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glossary</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -621,15 +627,31 @@ window.Quarto = {
 </header>
 
 
-<p>A clustering algorithm does not read a table the way a person does. It sees numbers, measures distances between rows, and groups rows that are close. Everything about the result depends on which rows it sees, which numbers, on what scale, and what it is given where a number is missing. <em>Preparation</em> is the name for those decisions, and they shape the clusters as much as the algorithm does. Four of them stand between the water table and the clustering. Each has a price, counted here in rows and in guesses, before the assistant writes all four into <code>scripts/analysis.py</code>, the one script that every later page reads.</p>
+<p>A clustering algorithm does not read a table the way a person does. It sees numbers, measures distances between rows, and groups rows that are close. Everything about the result depends on which rows it sees, which numbers, on what scale, and what it is given where a number is missing. <em>Preparation</em> is the name for those decisions, and they shape the clusters as much as the algorithm does. Four of them stand between the water table and the clustering, and each has a price, counted in rows and in guesses.</p>
+<div class="opener">
+<div class="box-label">
+<strong>In this chapter</strong>
+</div>
+<ul>
+<li>Explain the four preparation steps and what each one costs.</li>
+<li>Compute a within-year z-score and say what +1 means.</li>
+<li>Explain why scaling decides what the clusters can see, and why equal weight is a choice.</li>
+<li>Check <code>prepare()</code>’s counts, and follow one municipality through every step.</li>
+</ul>
+<div class="opener-meta">
+<p><span class="meta-label"><strong>Start from</strong></span>The project as <a href="09-explore.html" class="quarto-xref"><span>Chapter 9</span></a> left it.</p>
+<p><span class="meta-label"><strong>You build</strong></span><code>prepare()</code> in <code>scripts/analysis.py</code>, which writes <code>outputs/prepared.parquet</code>.</p>
+<p><span class="meta-label"><strong>Checkpoint</strong></span><code>checkpoints/06-water-prepare/</code>.</p>
+</div>
+</div>
 <section id="sec-prepare-steps" class="level2" data-number="10.1">
 <h2 data-number="10.1" class="anchored" data-anchor-id="sec-prepare-steps"><span class="header-section-number">10.1</span> Four steps from table to features</h2>
-<p><strong>1. Select.</strong> Keep the years 2016 to 2023, because the municipal performance index (MDM), one of the features, starts in 2016. Keep municipalities only: San Andrés has none of DNP’s values and the non-municipalised areas are nearly empty. Keep only rows with an IRCA value, since water safety is the point of the analysis.</p>
-<p><strong>2. Transform.</strong> Transfers for water per person (SGP) are heavily skewed, with a few very large values, so the analysis uses their logarithm. Department capitals have no urban and rural split for coverage, so their urban rows use the municipality’s total coverage instead, and a flag column records that they did.</p>
-<p><strong>3. Impute, with flags.</strong> Drop rows missing more than two of the nine features. Fill the remaining gaps with the median of the same year and zone, and add a flag column, such as <code>water_coverage_imputed</code>, that marks every filled value.</p>
+<p><strong>1. Select.</strong> Keep the years 2016 to 2023, because the municipal performance index (MDM), one of the features, starts in 2016. Keep municipalities only: San Andrés has none of DNP’s values and the non-municipalised areas are nearly empty. Keep only rows with an IRCA value, since water safety is the point of the analysis. IRCA is the one feature never filled: its gaps may depend on the risk itself (<a href="09-explore.html#sec-water-bands" class="quarto-xref"><span>Section 9.2</span></a>), so a filled score would be a guess at exactly what the analysis is about.</p>
+<p><strong>2. Transform.</strong> Transfers for water per person (SGP) are heavily <em>skewed</em>: most are moderate and a few are very large. So the analysis uses their logarithm, which measures ratios rather than differences: every doubling of a transfer adds the same amount, and the few very large transfers no longer sit far from all the rest. Department capitals have no urban and rural split for coverage, so their urban rows use the municipality’s total coverage instead, and a flag column records that they did. The total suits the urban row because most of a capital’s people live in its head town (88% in the median capital in 2023). It would not suit the rural row: in other municipalities the total exceeds the rural figure in 86% of rural zone-years, so the capitals’ rural rows are filled in the next step instead.</p>
+<p><strong>3. Impute, with flags.</strong> To <em>impute</em> is to fill a missing value with an estimate. Drop rows missing more than two of the nine features. Fill the remaining gaps with the median of the same year and zone, and add a flag column, such as <code>water_coverage_imputed</code>, that marks every filled value. The median, because a few extreme values cannot pull it; the same year and zone, because rural and urban zones differ (<a href="09-explore.html#sec-water-bands" class="quarto-xref"><span>Section 9.2</span></a>) and years shift.</p>
 <p><strong>4. Standardise within each year.</strong> Replace each feature by its <em>z-score</em> within its year:</p>
 <p><span class="math display">\[z = \frac{x - \bar{x}_{\text{year}}}{s_{\text{year}}}\]</span></p>
-<p>where <span class="math inline">\(\bar{x}_{\text{year}}\)</span> and <span class="math inline">\(s_{\text{year}}\)</span> are the feature’s mean and standard deviation over that year’s kept rows. A z-score of +1 means one standard deviation above that year’s average.</p>
+<p>where <span class="math inline">\(x\)</span> is a row’s value of the feature, and <span class="math inline">\(\bar{x}_{\text{year}}\)</span> and <span class="math inline">\(s_{\text{year}}\)</span> are the feature’s mean and <em>standard deviation</em> over that year’s kept rows. The standard deviation is, roughly, the typical distance of a value from the mean, in the feature’s own unit. A z-score of +1 means one standard deviation above that year’s average; a z-score has no unit.</p>
 <div class="why callout callout-style-default callout-note callout-titled" title="Why this works">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -640,7 +662,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Why within each year rather than over all years? Two reasons. SGP is in nominal pesos, not adjusted for inflation, so its values drift upwards over time for reasons unrelated to any municipality. And other features shift as a whole from year to year. Standardising within each year removes both shifts, so a single clustering over all years gives labels that mean the same relative position in every year: a zone is compared with that year’s other zones, so a nationwide shift, real or an artefact of sampling, does not move it between clusters.</p>
+<p>Why within each year rather than over all years? Two reasons. SGP is in nominal pesos, not adjusted for inflation, so its values drift upwards over time for reasons unrelated to any municipality. And other features shift as a whole from year to year, as rural IRCA does in <a href="09-explore.html#fig-wat-years" class="quarto-xref">Figure&nbsp;<span>9.2</span></a>. Standardising within each year removes both shifts. A zone is compared only with that year’s other zones, so a nationwide shift, real or an artefact of sampling, does not move it between clusters, and one clustering over all years gives labels that mean the same relative position in every year. The price is that a real improvement shared by every zone is invisible to the clusters too.</p>
 </div>
 </div>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
@@ -653,7 +675,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Every fill is a guess, and an unflagged guess becomes indistinguishable from data. The flags make the guesses countable and checkable later: a cluster made mostly of imputed values would be a cluster of medians, not of places. The rule of the project, from its <code>AGENTS.md</code>: nothing is filled silently.</p>
+<p>Every fill is a guess, and an unflagged guess becomes indistinguishable from data. The flags make the guesses countable and checkable later: a cluster made mostly of imputed values would be a cluster of medians, not of places. The data’s README says it of the capitals’ coverage (“Do not do it silently”), and the project’s <code>AGENTS.md</code>, written from that README, carries its caveats to the assistant: nothing is filled silently.</p>
 </div>
 </div>
 </section>
@@ -698,10 +720,24 @@ Table&nbsp;10.1: What each preparation step keeps, computed by the finished proj
 <p>The kept rows cover 1,090 municipalities. 653 rows have at least one imputed value, and 214 urban rows of department capitals took the municipal total for coverage.</p>
 <p>Almost all the loss is the first drop: rows without an IRCA value, most of them rural zones that are never sampled or have no utility (<a href="09-explore.html#sec-water-bands" class="quarto-xref"><span>Section 9.2</span></a>). So the rural cluster that appears in the next chapter describes <em>sampled</em> rural systems only. The imputed values are coverage values: the rural rows of capitals, and municipalities whose split is missing in some years.</p>
 <p>Tunja shows both treatments of a capital, and loses none of its 16 zone-years from 2016 to 2023. Its 8 urban rows took the municipal total for coverage, flagged in <code>water_coverage_from_total</code>, and its 8 rural rows took the rural median of their year, flagged in <code>water_coverage_imputed</code>. The check also turns up something the flags do not mark: the total that the urban row for 2021 took is the 0 that the Tunja section (<a href="09-explore.html#sec-tunja" class="quarto-xref"><span>Section 9.3</span></a>) flagged as probably “not reported”. The analysis keeps it as published, as the data’s README does. Treating such zeros as missing would be a defensible change, but one to make in <code>prepare()</code> and report, never silently.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>Suppose <code>prepare()</code> treated Tunja’s reported 0 as missing. What would happen to that row, and to its coverage z-score?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>With no total to take, the urban row for 2021 would go to step 3 and be filled with that year’s urban median, flagged in <code>water_coverage_imputed</code>. Its coverage z-score would move from −1.9, far below the year’s average, to about +0.8, an ordinary head town’s: an unflagged error would become a flagged guess.</p>
+</div>
+</div>
 </section>
 <section id="sec-scaling" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="sec-scaling"><span class="header-section-number">10.3</span> Why scale?</h2>
-<p>k-means groups rows by straight-line, or <em>Euclidean</em>, distance: the square root of the sum of squared differences across the features. A feature’s share of the expected squared distance, between two rows picked at random, is proportional to its variance. In raw units, the features measured in thousands, such as millimetres of rain and metres of altitude, dwarf those measured from 0 to 100 (<a href="#fig-wat-scale" class="quarto-xref">Figure&nbsp;<span>10.1</span></a>).</p>
+<p>k-means groups rows by straight-line, or <em>Euclidean</em>, distance: the square root of the sum of squared differences across the features. A feature’s share of the expected squared distance, between two rows picked at random, is proportional to its <em>variance</em>, the square of its standard deviation. In raw units, the features measured in thousands, such as millimetres of rain and metres of altitude, dwarf those measured from 0 to 100 (<a href="#fig-wat-scale" class="quarto-xref">Figure&nbsp;<span>10.1</span></a>).</p>
 <div id="cell-fig-wat-scale" class="cell on-light" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div id="fig-wat-scale" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Horizontal bar chart with nine features. In raw units, rainfall and altitude together make up almost all of the distance and the other seven bars are too small to see. After z-scores every feature contributes the same share, about 11 percent.">
@@ -710,13 +746,103 @@ Table&nbsp;10.1: What each preparation step keeps, computed by the finished proj
 <img src="10-prepare_files/figure-html/fig-wat-scale-output-1.svg" class="img-fluid figure-img" alt="Horizontal bar chart with nine features. In raw units, rainfall and altitude together make up almost all of the distance and the other seven bars are too small to see. After z-scores every feature contributes the same share, about 11 percent.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wat-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, in raw units and after z-scores. Kept rows, 2016–2023.
+Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, in raw units (SGP as its logarithm) and after z-scores. Kept rows, 2016–2023.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>Unscaled, rainfall and altitude together would make up 99.8% of the distance, so the clusters would be climate zones and the water variables would hardly count. After z-scores, every feature has variance 1 and contributes the same share, about 11%. The log of SGP matters too. In raw pesos, its variance would be about 3,100 times rainfall’s, so it would dominate even rainfall; after z-scores, the log keeps a few very large transfers from sitting far from every other row, cutting the largest z-score from 7.3 to 4.3.</p>
+<p>Two real rows show what scaling changes (<a href="#tbl-two-rows" class="quarto-xref">Table&nbsp;<span>10.2</span></a>): the urban zones of Tunja, high in the Andes, and Cartagena, on the Caribbean coast, in 2023. Both are capitals, so their coverage is each municipality’s total. In raw units, their difference in altitude makes up 98% of their squared distance, and a 43-point gap in piped-water coverage makes up less than 1%. In z-scores, coverage counts for 16%, and altitude still leads, at 68%, because height is where the two towns really differ most. Scaling does not make every difference count the same; it stops the units from deciding.</p>
+<div id="tbl-two-rows" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-two-rows-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;10.2: The urban zones of Tunja and Cartagena in the last year of the analysis: how far apart they are on each feature, in raw units (coverage, poverty, IRCA and MDM in points), and each feature’s share of their squared distance, in raw units and in z-scores. Computed from the prepared rows.
+</figcaption>
+<div aria-describedby="tbl-two-rows-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th style="text-align: right;">Difference</th>
+<th style="text-align: right;">Share, raw</th>
+<th style="text-align: right;">Share, z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>IRCA</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0%</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr class="even">
+<td>Water cov.</td>
+<td style="text-align: right;">43.4</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">16%</td>
+</tr>
+<tr class="odd">
+<td>Sewer cov.</td>
+<td style="text-align: right;">41.7</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">8%</td>
+</tr>
+<tr class="even">
+<td>Poverty</td>
+<td style="text-align: right;">7.9</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">2%</td>
+</tr>
+<tr class="odd">
+<td>Rural share</td>
+<td style="text-align: right;">0.06</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">1%</td>
+</tr>
+<tr class="even">
+<td>Altitude (derived)</td>
+<td style="text-align: right;">2,679 m</td>
+<td style="text-align: right;">98%</td>
+<td style="text-align: right;">68%</td>
+</tr>
+<tr class="odd">
+<td>Rainfall</td>
+<td style="text-align: right;">416 mm</td>
+<td style="text-align: right;">2%</td>
+<td style="text-align: right;">2%</td>
+</tr>
+<tr class="even">
+<td>MDM</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">&lt;1%</td>
+</tr>
+<tr class="odd">
+<td>log SGP/person</td>
+<td style="text-align: right;">0.39</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">3%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>Suppose rainfall were recorded in metres instead of millimetres. What would happen to its share of the distance, unscaled and after z-scores?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>Unscaled, its values would shrink a thousandfold and its variance a millionfold, so its share would all but vanish and altitude would dominate alone. After z-scores nothing would change: the unit cancels, because a z-score divides a distance from the mean by the standard deviation, both in the same unit.</p>
+</div>
+</div>
 <div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -727,7 +853,7 @@ Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, i
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Equal weight is itself a choice, not a neutral default. Nine z-scored features count equally, so the three safety-and-coverage variables count for 33% of the distance and context for the rest. Equal weight per feature is not equal weight per idea, either: water and sewer coverage are strongly correlated (r = 0.77 over the kept rows), so what they share counts twice. If water safety should weigh more, that is a decision to make explicitly and report, not to leave to the units the data happened to come in.</p>
+<p>Equal weight is itself a choice, not a neutral default. Nine z-scored features count equally, so the three safety-and-coverage variables count for 33% of the distance and context for the rest. Equal weight per feature is not equal weight per idea, either: water and sewer coverage are strongly correlated (r = 0.77 over the kept rows, where the correlation coefficient r runs from −1 to 1 and 1 would mean they rise together along a straight line), so what they share counts twice. If water safety should weigh more, that is a decision to make explicitly and report, not to leave to the units the data happened to come in.</p>
 </div>
 </div>
 </section>
@@ -741,7 +867,14 @@ Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, i
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Read data/README.md. Create scripts/analysis.py with prepare(df): rows with entity_type "municipality", 2016–2023, with irca; features irca, water_coverage, sewer_coverage, ipm, rural_share, altitude_m, rainfall_mm, mdm, log(sgp_water_pc); fill missing coverage of "urban" rows with department_capital == 1 from *_total, flagged in &lt;col&gt;_from_total. Run it.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Expect it to run</strong>
 </div>
+<p>writes <code>scripts/analysis.py</code> · <code>uv run python scripts/analysis.py</code></p>
+</div>
+</div>
+<p>You should see it run without errors and, if it reports a count, 11,237 rows: the municipality rows for 2016–2023 that have an IRCA value, before any are dropped for missing features. <code>department_capital</code>, which this prompt relies on, marks the 32 department capitals. The build script writes it from the DIVIPOLA codes, where each capital is numbered <code>001</code>, except that Cundinamarca’s capital is Bogotá, so <code>25001</code> (Agua de Dios) is not one: a detail the assistant can only get right by reading the data’s README.</p>
 <p>The second imputes and standardises, and saves the result:</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
@@ -754,20 +887,22 @@ Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, i
 <div class="box-label">
 <strong>Expect it to run</strong>
 </div>
-<p>writes and edits <code>scripts/analysis.py</code> · <code>uv run python scripts/analysis.py</code></p>
+<p>edits <code>prepare()</code> · <code>uv run python scripts/analysis.py</code></p>
 </div>
 </div>
 <p>The finished project’s version of the imputation and scaling, slightly trimmed, shows how little code each decision takes once it is clear:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-1"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a>n_missing <span class="op">=</span> d[FEATURES].isna().<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>)</span>
 <a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="1" onclick="event.preventDefault();">1</a><span id="annotated-cell-1-2" class="code-annotation-target"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> d[n_missing <span class="op">&lt;=</span> MAX_MISSING].copy()</span>
 <span id="annotated-cell-1-3"><a href="#annotated-cell-1-3" aria-hidden="true" tabindex="-1"></a></span>
-<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="2" onclick="event.preventDefault();">2</a><span id="annotated-cell-1-4" class="code-annotation-target"><a href="#annotated-cell-1-4" aria-hidden="true" tabindex="-1"></a>medians <span class="op">=</span> d.groupby([<span class="st">"year"</span>, <span class="st">"zone"</span>])[FEATURES].transform(<span class="st">"median"</span>)</span>
-<span id="annotated-cell-1-5"><a href="#annotated-cell-1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> FEATURES:</span>
-<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="3" onclick="event.preventDefault();">3</a><span id="annotated-cell-1-6" class="code-annotation-target"><a href="#annotated-cell-1-6" aria-hidden="true" tabindex="-1"></a>    d[<span class="ss">f"</span><span class="sc">{</span>col<span class="sc">}</span><span class="ss">_imputed"</span>] <span class="op">=</span> d[col].isna().astype(<span class="bu">int</span>)</span>
-<span id="annotated-cell-1-7"><a href="#annotated-cell-1-7" aria-hidden="true" tabindex="-1"></a>    d[col] <span class="op">=</span> d[col].fillna(medians[col])</span>
-<span id="annotated-cell-1-8"><a href="#annotated-cell-1-8" aria-hidden="true" tabindex="-1"></a></span>
-<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="4" onclick="event.preventDefault();">4</a><span id="annotated-cell-1-9" class="code-annotation-target"><a href="#annotated-cell-1-9" aria-hidden="true" tabindex="-1"></a>grp <span class="op">=</span> d.groupby(<span class="st">"year"</span>)[FEATURES]</span>
-<span id="annotated-cell-1-10"><a href="#annotated-cell-1-10" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> (d[FEATURES] <span class="op">-</span> grp.transform(<span class="st">"mean"</span>)) <span class="op">/</span> grp.transform(<span class="kw">lambda</span> s: s.std(ddof<span class="op">=</span><span class="dv">0</span>))</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="2" onclick="event.preventDefault();">2</a><span id="annotated-cell-1-4" class="code-annotation-target"><a href="#annotated-cell-1-4" aria-hidden="true" tabindex="-1"></a>medians <span class="op">=</span> (d.groupby([<span class="st">"year"</span>, <span class="st">"zone"</span>])[FEATURES]</span>
+<span id="annotated-cell-1-5"><a href="#annotated-cell-1-5" aria-hidden="true" tabindex="-1"></a>           .transform(<span class="st">"median"</span>))</span>
+<span id="annotated-cell-1-6"><a href="#annotated-cell-1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> FEATURES:</span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="3" onclick="event.preventDefault();">3</a><span id="annotated-cell-1-7" class="code-annotation-target"><a href="#annotated-cell-1-7" aria-hidden="true" tabindex="-1"></a>    d[<span class="ss">f"</span><span class="sc">{</span>col<span class="sc">}</span><span class="ss">_imputed"</span>] <span class="op">=</span> d[col].isna().astype(<span class="bu">int</span>)</span>
+<span id="annotated-cell-1-8"><a href="#annotated-cell-1-8" aria-hidden="true" tabindex="-1"></a>    d[col] <span class="op">=</span> d[col].fillna(medians[col])</span>
+<span id="annotated-cell-1-9"><a href="#annotated-cell-1-9" aria-hidden="true" tabindex="-1"></a></span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="4" onclick="event.preventDefault();">4</a><span id="annotated-cell-1-10" class="code-annotation-target"><a href="#annotated-cell-1-10" aria-hidden="true" tabindex="-1"></a>grp <span class="op">=</span> d.groupby(<span class="st">"year"</span>)[FEATURES]</span>
+<span id="annotated-cell-1-11"><a href="#annotated-cell-1-11" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> ((d[FEATURES] <span class="op">-</span> grp.transform(<span class="st">"mean"</span>))</span>
+<span id="annotated-cell-1-12"><a href="#annotated-cell-1-12" aria-hidden="true" tabindex="-1"></a>     <span class="op">/</span> grp.transform(<span class="kw">lambda</span> s: s.std(ddof<span class="op">=</span><span class="dv">0</span>)))</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <dl class="code-annotation-container-grid">
 <dt data-target-cell="annotated-cell-1" data-target-annotation="1">1</dt>
 <dd>
@@ -779,14 +914,13 @@ Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, i
 </dd>
 <dt data-target-cell="annotated-cell-1" data-target-annotation="3">3</dt>
 <dd>
-<span data-code-cell="annotated-cell-1" data-code-lines="6" data-code-annotation="3">The flag is written before the fill, so it records exactly which values were missing.</span>
+<span data-code-cell="annotated-cell-1" data-code-lines="7" data-code-annotation="3">The flag is written before the fill, so it records exactly which values were missing.</span>
 </dd>
 <dt data-target-cell="annotated-cell-1" data-target-annotation="4">4</dt>
 <dd>
-<span data-code-cell="annotated-cell-1" data-code-lines="9" data-code-annotation="4">Means and standard deviations by year: the within-year z-scores of the formula above.</span>
+<span data-code-cell="annotated-cell-1" data-code-lines="10" data-code-annotation="4">Means and standard deviations by year: the within-year z-scores of the formula above.</span>
 </dd>
 </dl>
-<p><code>department_capital</code>, which the first prompt relies on, marks the 32 department capitals. The build script writes it from the DIVIPOLA codes, where each capital is numbered <code>001</code>, except that Cundinamarca’s capital is Bogotá, so <code>25001</code> (Agua de Dios) is not one: a detail the assistant can only get right by reading the data’s README.</p>
 <div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -799,10 +933,10 @@ Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, i
 <div class="callout-body-container callout-body">
 <p>Run both prompts.</p>
 <div class="done">
-<p><strong>You're done when</strong> the printed counts match <a href="#tbl-prepare-counts" class="quarto-xref">Table&nbsp;<span>10.1</span></a>: 11,235 rows kept.</p>
+<p><strong>You’re done when</strong> the printed counts match <a href="#tbl-prepare-counts" class="quarto-xref">Table&nbsp;<span>10.1</span></a>: 11,235 rows kept.</p>
 </div>
 <div class="catchup">
-<p><strong>Stuck for two minutes?</strong> Paste this into your assistant, then rejoin at the next exercise:</p>
+<p><strong>Stuck for two minutes?</strong> Paste this into your assistant. It backs up your work and brings the project to this point; then carry on from here.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
@@ -810,7 +944,16 @@ Figure&nbsp;10.1: Each feature’s share of the squared distance between rows, i
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>Preparation decides what a clustering sees: which rows (2016–2023, municipalities, with IRCA), which transformations (log SGP, capitals’ totals for coverage, flagged), how gaps are filled (year-by-zone medians, flagged, after dropping rows missing more than two features), and on what scale (z-scores within each year). Each decision costs rows, and the biggest cost, unsampled rural zones, limits what the rural results can claim. Scaling is not cosmetic: unscaled, rainfall and altitude would decide the clusters on their own. Equal weights are a choice, flags keep every fill visible, and Tunja shows that a check can still find a value no flag marks. What is left is 11,235 rows of nine z-scores each, too many for anyone to read: the next chapter asks an algorithm to summarise them in a few kinds.</p>
+<div class="keyideas">
+<ul>
+<li>Which rows, which numbers, how gaps are filled and on what scale shape the clusters as much as the algorithm.</li>
+<li>The largest price is the rows without IRCA, so rural results describe sampled systems only.</li>
+<li>Every fill carries a flag, yet a check can still find a value no flag marks.</li>
+<li>Within-year z-scores put the features on one scale and remove nationwide shifts.</li>
+<li>Unscaled, rainfall and altitude would decide the clusters; equal weight is itself a choice.</li>
+</ul>
+</div>
+<p>What is left is 11,235 rows of nine z-scores each, too many for anyone to read: the next chapter asks an algorithm to summarise them in a few kinds.</p>
 </section>
 <section id="further-reading" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>

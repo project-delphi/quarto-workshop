@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-e85dad9e1173e1d97bd702522a9286d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-0d82a697912dd7ccea7f4202bcb5d8f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -571,6 +571,12 @@ window.Quarto = {
  <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Running This as a Workshop</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glossary</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -623,11 +629,93 @@ window.Quarto = {
 
 <p>The analysis was built to ask whether places with worse water have worse outcomes, and the temptation, once there is a chart, is to read the answer as an effect: worse water causes more infant deaths. The data cannot support that sentence, and this chapter shows why, with the analysis’s own numbers.</p>
 <p>One more comparison, the association between water safety and infant mortality <em>within</em> each kind of place, comes out weak in every kind, and in one as large as across all of them. But neither a strong association nor a weak one could settle the causal question here, and the reasons decide how the results must be written. That last part is not a formality: the sentence a reader quotes is the one you publish.</p>
+<div class="opener">
+<div class="box-label">
+<strong>In this chapter</strong>
+</div>
+<ul>
+<li>Explain what Spearman’s ρ measures, and read it across all places and within each kind.</li>
+<li>Explain why comparing within a cluster holds poverty, rurality and coverage only partly fixed, and why the four values cannot be ranked.</li>
+<li>Name the paths that can create or hide an association here, and say which way each could push.</li>
+<li>Write a result with verbs of association, the rows compared, its limits and what it does not show.</li>
+</ul>
+<div class="opener-meta">
+<p><span class="meta-label"><strong>Start from</strong></span>your <code>water-quality</code> folder at checkpoint 08, with named clusters on the clusters page.</p>
+<p><span class="meta-label"><strong>You build</strong></span>the within-cluster check in <code>scripts/analysis.py</code>, and a section of <code>clusters.html</code> with ρ and n per cluster and a sentence saying the check is descriptive.</p>
+<p><span class="meta-label"><strong>Checkpoint</strong></span><code>checkpoints/09-water-causation/</code></p>
+</div>
+</div>
 <section id="sec-water-within" class="level2" data-number="13.1">
 <h2 data-number="13.1" class="anchored" data-anchor-id="sec-water-within"><span class="header-section-number">13.1</span> Worse water, more infant deaths?</h2>
-<p>Across all municipality-years with both values in 2017–2019 and 2021–2023, the rank correlation between utility-supplied IRCA and infant mortality is +0.10 (n = 4,016). <em>Spearman’s</em> <span class="math inline">\(\rho\)</span> (rho) measures whether two variables rise and fall together in rank order, from −1 (perfectly opposite) through 0 (no monotonic relation) to +1 (perfectly together), and it is not thrown by extreme values, which matters with small municipalities’ noisy rates.</p>
-<p>A small positive association across all places could come from water, or from everything that differs between places with safe and unsafe water. The clusters offer a partial control: within a cluster, places are more alike in poverty, rurality, coverage and altitude than across the country, though far from equal (the silhouette in <a href="11-cluster.html#sec-choose-k" class="quarto-xref"><span>Section 11.2</span></a> was 0.19). So the check repeats the comparison inside each cluster (<a href="#fig-wat-within" class="quarto-xref">Figure&nbsp;<span>13.1</span></a>).</p>
-<div id="cell-fig-wat-within" class="cell on-light" data-execution_count="3">
+<p>The measure is <em>Spearman’s</em> <span class="math inline">\(\rho\)</span> (rho), which asks whether two variables rise and fall together in rank order: sort the places by each variable, and see whether the two orders agree. It runs from −1 (perfectly opposite) through 0 to +1 (perfectly together), where 0 means no <em>monotonic</em> relation, one in which a variable tends to rise as the other rises, though not necessarily along a straight line. Because it uses ranks, it is not thrown by extreme values, which matters with small municipalities’ noisy rates.</p>
+<p>Across all municipality-years with both values in 2017–2019 and 2021–2023, <span class="math inline">\(\rho\)</span> between utility-supplied IRCA and infant mortality is +0.10 (n = 4,016, the number of municipality-years compared). <a href="#fig-wat-pooled" class="quarto-xref">Figure&nbsp;<span>13.1</span></a> shows what so weak an association looks like: a cloud with no visible slope.</p>
+<div id="cell-fig-wat-pooled" class="cell on-light" data-execution_count="3">
+<div class="cell-output cell-output-display">
+<div id="fig-wat-pooled" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A dense cloud of about four thousand points, one per municipality-year, with utility-supplied IRCA from 0 to 100 across and infant mortality on a log scale up. Most points sit at low IRCA, the cloud shows no clear slope, and a handful of rates rise above 100 per 1,000. The printed Spearman correlation is weak and positive.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-wat-pooled-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="13-causation_files/figure-html/fig-wat-pooled-output-1.svg" class="img-fluid figure-img" alt="A dense cloud of about four thousand points, one per municipality-year, with utility-supplied IRCA from 0 to 100 across and infant mortality on a log scale up. Most points sit at low IRCA, the cloud shows no clear slope, and a handful of rates rise above 100 per 1,000. The printed Spearman correlation is weak and positive.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wat-pooled-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13.1: Every municipality-year with both values, 2017–2019 and 2021–2023: utility-supplied IRCA, the mean of its scored zones, against infant mortality (log scale). Descriptive only.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>A small positive association across all places could come from water, or from everything that differs between places with safe and unsafe water. The clusters offer a partial <em>control</em>, a way of comparing like with like: within a cluster, places are more alike in poverty, rurality, coverage and altitude than across the country, though far from equal (<a href="#tbl-within-spread" class="quarto-xref">Table&nbsp;<span>13.1</span></a>).</p>
+<div id="tbl-within-spread" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="4">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-within-spread-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;13.1: How much four features still vary inside each cluster: the standard deviation of their z-scores, against 1 across all kept zone-years.
+</figcaption>
+<div aria-describedby="tbl-within-spread-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th style="text-align: right;">1</th>
+<th style="text-align: right;">2</th>
+<th style="text-align: right;">3</th>
+<th style="text-align: right;">4</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Poverty</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">0.47</td>
+<td style="text-align: right;">0.75</td>
+<td style="text-align: right;">0.87</td>
+</tr>
+<tr class="even">
+<td>Rural share</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">0.58</td>
+<td style="text-align: right;">0.89</td>
+<td style="text-align: right;">0.85</td>
+</tr>
+<tr class="odd">
+<td>Piped-water coverage</td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">0.35</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: right;">0.88</td>
+</tr>
+<tr class="even">
+<td>Altitude</td>
+<td style="text-align: right;">0.93</td>
+<td style="text-align: right;">0.69</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">0.96</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Every value is below 1, but some only just: inside cluster 4, altitude varies almost as much as across all kept zone-years. So the check repeats the comparison inside each cluster (<a href="#fig-wat-within" class="quarto-xref">Figure&nbsp;<span>13.2</span></a>), where some of the differences between places are smaller.</p>
+<div id="cell-fig-wat-within" class="cell on-light" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div id="fig-wat-within" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four small panels, one per cluster, each titled with the cluster's number and kind. Each shows median infant mortality across the IRCA risk bands, labelled N, L, M, H and U for no risk, low, medium, high and unfit. Within any cluster the medians differ across the bands by at most 3.1 per 1,000, and the Spearman correlations printed on the panels lie between −0.04 and +0.10.">
 <figure class="quarto-float quarto-float-fig figure">
@@ -635,48 +723,174 @@ window.Quarto = {
 <img src="13-causation_files/figure-html/fig-wat-within-output-1.svg" class="img-fluid figure-img" alt="Four small panels, one per cluster, each titled with the cluster's number and kind. Each shows median infant mortality across the IRCA risk bands, labelled N, L, M, H and U for no risk, low, medium, high and unfit. Within any cluster the medians differ across the bands by at most 3.1 per 1,000, and the Spearman correlations printed on the panels lie between −0.04 and +0.10.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wat-within-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;13.1: Median infant mortality by utility-supplied IRCA band, within each cluster; 2017–2019 and 2021–2023 pooled. Bands with fewer than 20 municipality-years are not drawn. Descriptive only: not a causal effect of water safety.
+Figure&nbsp;13.2: Median infant mortality by utility-supplied IRCA band, within each cluster; 2017–2019 and 2021–2023 pooled. Bands with fewer than 20 municipality-years are not drawn. Descriptive only.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Within the clusters, <span class="math inline">\(\rho\)</span> runs from −0.04 in cluster 1 to +0.10 in cluster 2, where it is as large as across all places. Two things make these figures hard to set beside the pooled one. The clusters were formed partly on IRCA, so inside clusters 1 and 2 it varies less: standard deviations of 8.5 and 11.9 against 20.1 across all places, and a narrower range weakens a rank correlation by construction. (In clusters 3 and 4 it varies more, 22.9 and 31.1, and <span class="math inline">\(\rho\)</span> is weaker there too.) And the units differ, because the unit follows the outcome. Infant mortality is measured for a whole municipality, so each municipality-year counts once, with the mean IRCA of its zones: all of them for the pooled figure, only those in the cluster for a cluster’s.</p>
-<p>That mean is unweighted, and it covers only the zones with a score: in 54% of the pooled municipality-years only one zone has one. So the IRCA beside a rate is one zone’s score or the plain mean of two, not what the average resident drinks.</p>
+<p>Within the clusters, <span class="math inline">\(\rho\)</span> runs from −0.04 in cluster 1 to +0.10 in cluster 2, where it is as large as across all places (<a href="#tbl-rho" class="quarto-xref">Table&nbsp;<span>13.2</span></a>). These figures cannot be ranked against each other, or set beside the pooled one, at face value, for three reasons.</p>
+<div id="tbl-rho" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="6">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-rho-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;13.2: Spearman’s ρ between utility-supplied IRCA and infant mortality, with its 95% interval and the spread of IRCA, over all places and within each cluster. One row: a municipality-year.
+</figcaption>
+<div aria-describedby="tbl-rho-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">ρ</th>
+<th style="text-align: center;">95% interval</th>
+<th style="text-align: right;">SD of IRCA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>All places</td>
+<td style="text-align: right;">4,016</td>
+<td style="text-align: right;">+0.10</td>
+<td style="text-align: center;">+0.06 to +0.14</td>
+<td style="text-align: right;">20.1</td>
+</tr>
+<tr class="even">
+<td>Cluster 1</td>
+<td style="text-align: right;">1,035</td>
+<td style="text-align: right;">−0.04</td>
+<td style="text-align: center;">−0.11 to +0.05</td>
+<td style="text-align: right;">8.5</td>
+</tr>
+<tr class="odd">
+<td>Cluster 2</td>
+<td style="text-align: right;">1,355</td>
+<td style="text-align: right;">+0.10</td>
+<td style="text-align: center;">+0.03 to +0.16</td>
+<td style="text-align: right;">11.9</td>
+</tr>
+<tr class="even">
+<td>Cluster 3</td>
+<td style="text-align: right;">1,482</td>
+<td style="text-align: right;">+0.05</td>
+<td style="text-align: center;">−0.01 to +0.12</td>
+<td style="text-align: right;">22.9</td>
+</tr>
+<tr class="odd">
+<td>Cluster 4</td>
+<td style="text-align: right;">1,290</td>
+<td style="text-align: right;">+0.01</td>
+<td style="text-align: center;">−0.06 to +0.07</td>
+<td style="text-align: right;">31.1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The first is range. The clusters were formed partly on IRCA, so inside clusters 1 and 2 it varies far less than across all places, and inside clusters 3 and 4 more. A narrower range tends to weaken a rank correlation, but that does not explain these four: <span class="math inline">\(\rho\)</span> is largest in cluster 2, where IRCA varies little, and closest to zero in cluster 4, where it varies most.</p>
+<p>The second is chance. To see how far <span class="math inline">\(\rho\)</span> could move with another draw of places, the book redraws each set’s municipalities 1,000 times, with replacement and keeping each municipality’s years together, and recomputes <span class="math inline">\(\rho\)</span> every time; the middle 95% of those values is the interval in <a href="#tbl-rho" class="quarto-xref">Table&nbsp;<span>13.2</span></a>. Each cluster’s interval reaches 0.06 to 0.08 either side of its <span class="math inline">\(\rho\)</span>, more than the gaps between neighbouring values, so these data cannot rank the four. The intervals for clusters 1, 3 and 4 include zero; the pooled one does not.</p>
+<p>The third is the unit, because the unit follows the outcome. Infant mortality is measured for a whole municipality, so each municipality-year counts once, with the mean IRCA of its zones: all of them for the pooled figure, only those in the cluster for a cluster’s. That mean is unweighted, and it covers only the zones with a score: in 54% of the pooled municipality-years only one zone has one. So the IRCA beside a rate is one zone’s score or the plain mean of two, not what the average resident drinks.</p>
 <p>It would be easy to read this as “water does not matter”. That reading is as unsupported as the first one.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>Within cluster 4, <span class="math inline">\(\rho\)</span> is close to zero. Write the sentence a councillor might wrongly take from it, and an honest one.</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>Wrong: “In rural, low-coverage places, water quality makes no difference to infant deaths.” Honest: “Within the rural, low-coverage kind, municipality-years with higher utility-supplied IRCA did not have markedly higher recorded infant mortality (2017–2019 and 2021–2023). This does not show that water has no effect: under-reporting, blank rates and the mismatch between zone and municipality could hide one.”</p>
+</div>
+</div>
 </section>
 <section id="sec-confounders" class="level2" data-number="13.2">
 <h2 data-number="13.2" class="anchored" data-anchor-id="sec-confounders"><span class="header-section-number">13.2</span> What else could explain it</h2>
-<p><a href="#fig-confounders" class="quarto-xref">Figure&nbsp;<span>13.2</span></a> draws the paths between water and infant mortality that the data cannot separate.</p>
-<div id="fig-confounders" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="The question is whether unsafe water raises infant mortality, a dashed arrow from water safety to infant deaths. Other paths connect the two. Poverty and rurality make water less safe and also make infant deaths more likely, a confounder. Poverty also limits health-service access, which affects infant deaths. Reporting quality stands between real and recorded deaths: weak registration hides deaths. And IRCA is measured per zone while infant deaths are per municipality.">
+<p><a href="#fig-confounders" class="quarto-xref">Figure&nbsp;<span>13.3</span></a> draws the paths between water and infant mortality that the data cannot separate.</p>
+<div id="fig-confounders" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="The question is whether unsafe water raises infant mortality, a dashed arrow from water safety to infant deaths. Other paths connect the two. Poverty and rurality make water less safe and also make infant deaths more likely, a confounder. Poverty also limits health-service access, which affects infant deaths, and weakens reporting quality, which stands between real and recorded deaths: weak registration hides deaths, and blank rates are left out of the data. And IRCA is measured per zone while infant deaths are per municipality, so a pattern across places need not hold for the people in them.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-confounders-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="../media/diagrams/confounders.svg" class="on-light img-fluid figure-img" alt="The question is whether unsafe water raises infant mortality, a dashed arrow from water safety to infant deaths. Other paths connect the two. Poverty and rurality make water less safe and also make infant deaths more likely, a confounder. Poverty also limits health-service access, which affects infant deaths. Reporting quality stands between real and recorded deaths: weak registration hides deaths. And IRCA is measured per zone while infant deaths are per municipality.">
+<img src="../media/diagrams/confounders.svg" class="on-light img-fluid figure-img" alt="The question is whether unsafe water raises infant mortality, a dashed arrow from water safety to infant deaths. Other paths connect the two. Poverty and rurality make water less safe and also make infant deaths more likely, a confounder. Poverty also limits health-service access, which affects infant deaths, and weakens reporting quality, which stands between real and recorded deaths: weak registration hides deaths, and blank rates are left out of the data. And IRCA is measured per zone while infant deaths are per municipality, so a pattern across places need not hold for the people in them.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-confounders-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;13.2: What else could explain it. The dashed arrow is the question; every other path can create an association without an effect, or hide an effect that exists.
+Figure&nbsp;13.3: What else could explain it. The dashed arrow is the question; every other path can create an association without an effect, or hide an effect that exists.
 </figcaption>
 </figure>
 </div>
-<p><strong>Poverty and rurality</strong> are likely <em>confounders</em>: poorer, more rural places tend to have less safe water and, for other reasons, more infant deaths. They can produce an association between water and mortality with no effect of water at all. <strong>Health-service access</strong>, worse in poor and remote places, lies on another path to infant deaths. <strong>Reporting quality</strong> works the other way: places with weak birth and death registration record fewer infant deaths than occur, and if those are also the places with unsafe water, under-recording can <em>hide</em> a real effect. Blanks add a second problem. The series holds no zeros, so a blank rate may mean no deaths were recorded, and 32% of the clustered municipality-years in these years are blank. Leaving them out drops what may be recorded zeros, which raises small places’ averages most: a selection on the outcome itself.</p>
+<p><strong>Poverty and rurality</strong> are likely <em>confounders</em>. A confounder is a third variable that affects both the exposure, here water safety, and the outcome, here infant deaths, so the two move together even if one has no effect on the other. Poorer, more rural places tend to have less safe water and, for other reasons, more infant deaths, so they can produce an association between water and mortality with no effect of water at all. <strong>Health-service access</strong> carries part of that path: poorer and remoter places have less of it, and less access means more infant deaths.</p>
+<p><strong>Reporting quality</strong> is a problem of measurement, and it works the other way: places with weak birth and death registration record fewer infant deaths than occur, and if those are also the places with unsafe water, under-recording can <em>hide</em> a real effect. Blanks add a second problem. The series holds no zeros, so a blank rate may mean no deaths were recorded, and 32% of the clustered municipality-years in these years are blank. Leaving them out drops what may be recorded zeros, which raises small places’ averages most: a selection on the outcome itself (<a href="12-interpret.html#sec-outcomes" class="quarto-xref"><span>Section 12.4</span></a>).</p>
 <p>Then there is the <strong>ecological level</strong>. IRCA is measured for an urban or rural zone, infant mortality for the whole municipality. A pattern across places need not hold for the people in them: the infants who died need not be the ones drinking the worst water. Drawing individual conclusions from aggregate data is known as the <em>ecological fallacy</em>.</p>
 <p>Tunja shows the mismatch in one place. In this check each of its six municipality-years counts once in cluster 1, with the mean IRCA of its two zones: in 2018, for example, 9.15, halfway between its urban water’s 0.5 and its rural water’s 17.8, a value neither zone had. The mean weighs the two zones equally, though at most 5% of Tunja’s people live in the rural one, and the infant mortality beside it is the whole municipality’s.</p>
-<p>The clusters narrow some of these differences without removing them: within a cluster, places still differ in poverty and access. And small municipalities produce extreme rates, which add noise that flattens any line.</p>
-<div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<p>The clusters narrow some of these differences without removing them: within a cluster, places still differ in poverty and access (<a href="#tbl-within-spread" class="quarto-xref">Table&nbsp;<span>13.1</span></a>). And small municipalities produce extreme rates, which add noise that flattens any line.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
 </div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>In practice
+<div class="think-question">
+<p>Pick one of these paths. Could it hide a real effect, or create a fake one?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>Poverty can create a fake one: if poorer places tend to have both less safe water and, for other reasons, more infant deaths, the two move together without water doing anything. Reporting quality can hide a real one: if unsafe-water places under-record deaths, their measured rates are too low, and a real effect looks smaller than it is. Only the first is a confounder; the second is a problem of measurement. Each path pushes one way, but several act at once and their sizes are unknown, so the net bias could go either way, which is why a correlation cannot settle the question.</p>
 </div>
 </div>
-<div class="callout-body-container callout-body">
-<p><strong>Pause and think.</strong> Pick one of these. Could it hide a real effect, or create a fake one?</p>
-<p>Poverty can create a fake one: if poorer places tend to have both less safe water and, for other reasons, more infant deaths, the two move together without water doing anything. Reporting quality can hide a real one: if unsafe-water places under-record deaths, their measured rates are too low, and a real effect looks smaller than it is. Most confounders can push either way, which is exactly why a correlation cannot settle the question.</p>
+<p><a href="#tbl-problems" class="quarto-xref">Table&nbsp;<span>13.3</span></a> sorts the paths by the kind of problem each one is.</p>
+<div id="tbl-problems" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-problems-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;13.3: What could explain the association, or hide one, by kind of problem. Which way each pushes depends on how it is linked to water safety. Comparing within clusters narrows only the first, and only in part.
+</figcaption>
+<div aria-describedby="tbl-problems-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Problem</th>
+<th>Here</th>
+<th>Can create a false link?</th>
+<th>Can hide a real one?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Confounding</td>
+<td>poverty, rurality, health-service access</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="even">
+<td>Measurement</td>
+<td>weak registration of deaths</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="odd">
+<td>Selection</td>
+<td>blank rates left out</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="even">
+<td>Level</td>
+<td>IRCA per zone, deaths per municipality</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="odd">
+<td>Noise</td>
+<td>small places’ extreme rates</td>
+<td>no</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table>
 </div>
+</figure>
 </div>
-<p>A causal claim needs a design that handles these paths, not a better chart: for example, comparing places before and after a change in water treatment, against comparable places without the change. That is a different study, with different data.</p>
+<p>A causal claim needs a design that handles these paths, not a better chart: for example, comparing places before and after a change in water treatment, against comparable places without the change, a design known as <em>difference-in-differences</em>. That is a different study, with different data; Hernán and Robins, in Further reading, cover such designs.</p>
 </section>
 <section id="sec-honest-writing" class="level2" data-number="13.3">
 <h2 data-number="13.3" class="anchored" data-anchor-id="sec-honest-writing"><span class="header-section-number">13.3</span> Writing it honestly</h2>
@@ -718,6 +932,7 @@ Figure&nbsp;13.2: What else could explain it. The dashed arrow is the question; 
 <p>copies · runs · writes <code>outputs/irca_infant.csv</code> and <code>outputs/irca_infant_bins.csv</code></p>
 </div>
 </div>
+<p>It should print four rows, one per cluster, with <span class="math inline">\(\rho\)</span> from −0.04 to +0.10 and n from 1,035 to 1,482, as in <a href="#tbl-rho" class="quarto-xref">Table&nbsp;<span>13.2</span></a>.</p>
 <p>To build it instead (optional):</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
@@ -748,10 +963,10 @@ Figure&nbsp;13.2: What else could explain it. The dashed arrow is the question; 
 <div class="callout-body-container callout-body">
 <p>Run the check and add it to the page.</p>
 <div class="done">
-<p><strong>You're done when</strong> <code>clusters.html</code> shows <span class="math inline">\(\rho\)</span> and n per cluster, and you can say how one confounder could bias it.</p>
+<p><strong>You’re done when</strong> <code>clusters.html</code> shows <span class="math inline">\(\rho\)</span> and n per cluster, and you can say how one confounder could bias it.</p>
 </div>
 <div class="catchup">
-<p><strong>Stuck for two minutes?</strong> Paste this into your assistant, then rejoin at the next exercise:</p>
+<p><strong>Stuck for two minutes?</strong> Paste this into your assistant. It backs up your work and brings the project to this point; then carry on from here.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/09-water-causation/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
@@ -759,12 +974,23 @@ Figure&nbsp;13.2: What else could explain it. The dashed arrow is the question; 
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>Across all places, IRCA and infant mortality are weakly associated (Spearman’s <span class="math inline">\(\rho\)</span> = +0.10); within the clusters it runs from −0.04 to +0.10, as large as the pooled figure in one, and narrowed partly by design, since the clusters were formed partly on IRCA. Neither number shows an effect, or its absence. Poverty and rurality can create an association, health-service access lies on another path, weak reporting can hide deaths, blanks may be recorded zeros, and the data meet at different levels, as Tunja’s averaged zones show. A causal claim needs a design that deals with these, such as before-and-after comparisons with comparable places. Until then, write about association, over named rows, with the limits beside the result, and check every title and summary against that rule before it goes out. <a href="14-publish-many.html" class="quarto-xref"><span>Chapter 14</span></a> takes the results, and those sentences, to the officials and the council, in every format they need.</p>
+<div class="keyideas">
+<ul>
+<li>Spearman’s <span class="math inline">\(\rho\)</span> measures whether two variables rise and fall together in rank order; across all places, utility-supplied IRCA and infant mortality are only weakly associated (<span class="math inline">\(\rho\)</span> = +0.10).</li>
+<li>Within the clusters, where places are more alike but far from equal, <span class="math inline">\(\rho\)</span> runs from −0.04 to +0.10; range, chance and a different unit mean these values cannot be ranked or set beside the pooled one at face value.</li>
+<li>Poverty and rurality are likely confounders that can create an association with no effect, while weak reporting and blank rates can hide a real one.</li>
+<li>IRCA is measured per zone and infant mortality per municipality, and reading a pattern across places as one about the people in them is the ecological fallacy, as Tunja’s averaged zones show.</li>
+<li>Neither a strong nor a weak association settles the causal question; that needs a design, such as before-and-after comparisons with comparable places.</li>
+<li>Write about association: name the rows compared, use verbs of association, put the limits beside the result and say what it does not show.</li>
+</ul>
+</div>
+<p>Check every title and summary against that rule before it goes out. <a href="14-publish-many.html" class="quarto-xref"><span>Chapter 14</span></a> takes the results, and those sentences, to the officials and the council, in every format they need.</p>
 </section>
 <section id="further-reading" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>
 <ul>
-<li>W. S. Robinson, “Ecological correlations and the behavior of individuals”, <em>American Sociological Review</em> 15(3), 351–357 (1950), doi:<a href="https://doi.org/10.2307/2087176">10.2307/2087176</a>, the classic account of the ecological fallacy; cited, with the Spearman paper, in <code>examples/water/references.bib</code>, checked against their publishers’ pages (<span class="nowrap">2026-11-01</span>; pages from the paper’s 2009 reprint in the <em>International Journal of Epidemiology</em>, checked <span class="nowrap">2026-11-12</span>).</li>
+<li>C. Spearman, “The proof and measurement of association between two things”, <em>The American Journal of Psychology</em> 15(1) (1904), doi:<a href="https://doi.org/10.2307/1412159">10.2307/1412159</a>, where the rank correlation was introduced; cited in <code>examples/water/references.bib</code> and checked against its publisher’s page (<span class="nowrap">2026-11-01</span>).</li>
+<li>W. S. Robinson, “Ecological correlations and the behavior of individuals”, <em>American Sociological Review</em> 15(3), 351–357 (1950), doi:<a href="https://doi.org/10.2307/2087176">10.2307/2087176</a>, the classic account of the ecological fallacy; cited in <code>examples/water/references.bib</code> and checked against its publisher’s page (<span class="nowrap">2026-11-01</span>; pages from the paper’s 2009 reprint in the <em>International Journal of Epidemiology</em>, checked <span class="nowrap">2026-11-12</span>).</li>
 <li>Miguel A. Hernán and James M. Robins, <a href="https://miguelhernan.org/whatifbook"><em>Causal Inference: What If</em></a> (Boca Raton: Chapman &amp; Hall/CRC, 2020; free online), on confounding and designs for causal questions (checked <span class="nowrap">2026-11-12</span>).</li>
 <li>SciPy, <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html"><code>spearmanr</code></a>, the rank correlation and its assumptions (checked <span class="nowrap">2026-11-12</span>).</li>
 </ul>

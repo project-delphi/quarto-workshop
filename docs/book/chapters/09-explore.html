@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-e85dad9e1173e1d97bd702522a9286d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-0d82a697912dd7ccea7f4202bcb5d8f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -542,6 +542,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Running This as a Workshop</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glossary</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -593,7 +599,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p>Before any model, look at the data. Exploring tells you what a model will and will not be able to see: which columns are sparse, which zones are never measured, and whether a series changes level for reasons that have nothing to do with the thing it measures. None of that shows up as an error. A clustering algorithm will happily group rows that have been made comparable only by filling their gaps, and a chart of a series whose method changed will draw a trend that is not there.</p>
-<p>The water data hold two such surprises that a chart can show, and several more that show only up close, in one place. For those, this chapter meets Tunja, the municipality the rest of the part follows. Then the assistant builds the project’s first page, <code>explore.qmd</code>, and you check it against what you have already seen.</p>
+<p>The water data hold two such surprises that a chart can show, and several more that show only up close, in one place. For those, this chapter meets Tunja, the municipality the rest of the part follows.</p>
+<div class="opener">
+<div class="box-label">
+<strong>In this chapter</strong>
+</div>
+<ul>
+<li>Ask four questions of any table before modelling it.</li>
+<li>Interpret where IRCA is missing, and decide what dropping those rows lets the analysis claim.</li>
+<li>Decide whether a jump in a series is progress or a change of method.</li>
+<li>Check the assistant’s first page against results you already know.</li>
+</ul>
+<div class="opener-meta">
+<p><span class="meta-label"><strong>Start from</strong></span><code>~/water-quality/</code> as <a href="08-water-question.html" class="quarto-xref"><span>Chapter 8</span></a> left it.</p>
+<p><span class="meta-label"><strong>You build</strong></span><code>explore.qmd</code>, rendered to <code>explore.html</code>.</p>
+<p><span class="meta-label"><strong>Checkpoint</strong></span><code>checkpoints/05-water-explore/</code>, which also holds <a href="08-water-question.html" class="quarto-xref"><span>Chapter 8</span></a>’s work.</p>
+</div>
+</div>
 <section id="sec-explore-what" class="level2" data-number="9.1">
 <h2 data-number="9.1" class="anchored" data-anchor-id="sec-explore-what"><span class="header-section-number">9.1</span> What exploring is for</h2>
 <p>Four questions are worth answering before modelling any table, and this chapter asks each of them of the water data:</p>
@@ -601,7 +623,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong>How big is it?</strong> Rows and columns, and what one row is.</li>
 <li><strong>What is missing, and where?</strong> Missingness by column and by group (here, by zone).</li>
 <li><strong>How are the key values distributed?</strong> For IRCA, the count of rows in each risk band.</li>
-<li><strong>How do they move over time?</strong> For IRCA, its median by year and zone.</li>
+<li><strong>How do they move over time?</strong> For IRCA, its median (the middle value, with half the rows below it) by year and zone.</li>
 </ol>
 <p>The answers decide what the analysis can claim. If one group is mostly missing, conclusions about it rest on the minority that was measured, and that minority may not be typical.</p>
 </section>
@@ -615,14 +637,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <img src="09-explore_files/figure-html/fig-wat-bands-output-1.svg" class="img-fluid figure-img" alt="Two horizontal stacked bars, urban and rural. The urban bar is mostly no-risk and low-risk IRCA with a small hatched no-data share. The rural bar is more than half hatched no-data, and the largest share of the rest is in the high-risk band.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wat-bands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.1: All rows, 2010–2023, by zone: no IRCA reported (hatched) and the Resolución 2115 risk band of the rest. Utility-supplied IRCA, INS open data (datos.gov.co nxt2-39c3).
+Figure&nbsp;9.1: All rows, 2010–2023, San Andrés and the non-municipalised areas included, by zone: no IRCA reported (hatched) and the Resolución 2115 risk band of the rest. Utility-supplied IRCA, INS open data (datos.gov.co nxt2-39c3).
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Side by side, <a href="#fig-wat-bands" class="quarto-xref">Figure&nbsp;<span>9.1</span></a> shows all 31,416 rows. 53% of rural rows have no IRCA at all, against 14% of urban rows, because many rural systems are never sampled, or are not run by a utility and so fall outside the utility-supplied table. Among the rural rows that do have a value, 51% fall in the high or unfit bands, against 12% of urban rows.</p>
-<p>The two facts compound, in the worst direction: the zones whose scores are worse are also the ones least often scored. The gaps are not missing at random: they depend on zone, and perhaps on the risk itself. Any analysis that drops the rows without IRCA, as Part III’s must, describes <em>sampled</em> rural systems only, and should say so.</p>
+<p>Side by side, <a href="#fig-wat-bands" class="quarto-xref">Figure&nbsp;<span>9.1</span></a> shows all 31,416 rows. 53% of rural rows have no IRCA at all, against 14% of urban rows, because many rural systems are never sampled, or are not run by a utility and so fall outside the utility-supplied table. Among the rural rows that do have a value, 51% fall in the high or unfit bands, against 12% of urban rows. Those shares pool all fourteen years. In 2023 alone they were 28% and 6%, the figures that open Part III, after the falls in rural IRCA that <a href="#fig-wat-years" class="quarto-xref">Figure&nbsp;<span>9.2</span></a> shows below.</p>
+<p>The two facts compound, in the worst direction: the zones whose scores are worse are also the ones least often scored. The gaps are not random. They depend on zone, which the data record, and perhaps on the risk itself, which they do not: statisticians call the second kind <em>missing not at random</em>, and no fill can repair it. Any analysis that drops the rows without IRCA, as Part III’s must, describes <em>sampled</em> rural systems only, and should say so.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>Suppose every missing rural IRCA were filled with the median of the scored rural rows. Would rural water then look safer or riskier than it really is?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>Probably safer, though nobody can check. Many unscored systems are ones no utility runs, and self-supplied systems score far worse nationally (<a href="08-water-question.html#tbl-irca-bands" class="quarto-xref">Table&nbsp;<span>8.1</span></a>), so the fill would turn “unknown, and likely worse” into “typical”. That is why the analysis drops these rows instead (<a href="10-prepare.html#sec-prepare-steps" class="quarto-xref"><span>Section 10.1</span></a>).</p>
+</div>
+</div>
 <div id="cell-fig-wat-years" class="cell on-light" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div id="fig-wat-years" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two lines over the years 2010 to 2023. The urban median is low and falls gently, from the low-risk band in the early years to under 5 from the middle of the decade. The rural median is far higher and nearly flat until 2015, then falls sharply in 2016 and again in 2020, ending in the low-risk band.">
@@ -638,11 +674,12 @@ Figure&nbsp;9.2: Median utility-supplied IRCA by year and zone, 2010–2023, ove
 </div>
 </div>
 <p>The fourth question matters, as <a href="#fig-wat-years" class="quarto-xref">Figure&nbsp;<span>9.2</span></a> shows. The rural median drops sharply in 2016 and again in 2020. That could be an improvement in rural water, or a change in which systems were sampled; the data’s README warns that the 2020 drop may reflect sampling, and the open data cannot tell the two apart. An analysis that compares years should not read the drop as progress without evidence from outside the table.</p>
+<p>The rural median also ends far below the national rural figure in <a href="08-water-question.html#tbl-irca-bands" class="quarto-xref">Table&nbsp;<span>8.1</span></a>: 13.4 in 2023, in the low band, against INCA’s 36.5. Two things explain the gap. The table holds only utility-run systems (<a href="08-water-question.html#sec-water-why" class="quarto-xref"><span>Section 8.2</span></a>), and a median of zones is the middle zone, which the worst zones do not pull up, and which is not weighted by how many people drink the water.</p>
 </section>
 <section id="sec-tunja" class="level2" data-number="9.3">
 <h2 data-number="9.3" class="anchored" data-anchor-id="sec-tunja"><span class="header-section-number">9.3</span> One municipality to follow: Tunja</h2>
 <p>Aggregates hide the details that make a variable trustworthy or not, so from here on this part follows one municipality through every step. Tunja, the capital of Boyacá department, is a good case for three reasons in its rows. As a department capital, it carries the coverage caveat that every capital does. Unlike most municipalities, it has an IRCA for both zones in every year: only 117 of the 1,103 municipalities have one for their rural zone in all fourteen years, so the analysis will never lose Tunja for want of a score. And its two zones differ: its rural water scored in the high-risk band every year from 2010 to 2014, while its urban water never scored above 11.9.</p>
-<p>Tunja has 28 rows, two zones over fourteen years. Looking at them one variable at a time shows several of the README’s caveats in a single place (<a href="#fig-tunja" class="quarto-xref">Figure&nbsp;<span>9.3</span></a>).</p>
+<p>Tunja has 28 rows, two zones over fourteen years. Zone variables, such as IRCA, differ between its two rows in a year; municipal ones, such as rainfall and infant mortality, repeat on both (<a href="08-water-question.html#tbl-water-features" class="quarto-xref">Table&nbsp;<span>8.2</span></a>), so the explorer and every summary count them once. Looking at the rows one variable at a time shows several of the README’s caveats in a single place (<a href="#fig-tunja" class="quarto-xref">Figure&nbsp;<span>9.3</span></a>).</p>
 <div id="fig-tunja" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-tunja-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -654,7 +691,71 @@ Figure&nbsp;9.3: Tunja’s 28 rows, from <code>water_municipal.csv</code>. Pick 
 </figcaption>
 </figure>
 </div>
-<p>Five things are worth finding. Because Tunja is a department capital, its coverage has no urban and rural split, so the explorer uses the municipality’s total. That total is reported as exactly 0 in 2021, which beside its neighbouring years probably means “not reported” rather than “no service”; such points are drawn hollow. The fiscal index <code>idf</code> ends in 2020 and <code>idf_new</code> starts there, on a different scale, so the two must never be joined into one line. Infant mortality changes method in 2017, so its apparent drop that year cannot be read as an improvement. And Saber 11 exists only for 2014–2017, 2019, 2020 and 2022.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>Tunja’s infant mortality drops in 2017. Is that progress?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>Not on this evidence. The series changes method that year, from what look like modelled estimates to observed rates (the data’s README, caveat 8), so the drop may be the change itself, and the table cannot tell. A series like this is compared only within one method.</p>
+</div>
+</div>
+<p>Five things are worth finding (<a href="#tbl-tunja-caveats" class="quarto-xref">Table&nbsp;<span>9.1</span></a>). Because Tunja is a department capital, its coverage has no urban and rural split, so the explorer uses the municipality’s total. That total is reported as exactly 0 in 2021, which beside its neighbouring years probably means “not reported” rather than “no service”; such points are drawn hollow. The fiscal index <code>idf</code> ends in 2020 and <code>idf_new</code> starts there, on a different scale, so the two must never be joined into one line.</p>
+<div id="tbl-tunja-caveats" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-tunja-caveats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;9.1: Five caveats from <code>data/README.md</code>, as they show in Tunja’s rows, and what the analysis does about each.
+</figcaption>
+<div aria-describedby="tbl-tunja-caveats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Caveat</th>
+<th>In Tunja’s rows</th>
+<th>The analysis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>No zone split for capitals’ coverage</td>
+<td>the municipal total only</td>
+<td>fills it, flagged (<a href="10-prepare.html#sec-prepare-steps" class="quarto-xref"><span>Section 10.1</span></a>)</td>
+</tr>
+<tr class="even">
+<td>A 0 may mean “not reported”</td>
+<td>coverage 0 in 2021</td>
+<td>keeps it (<a href="10-prepare.html#sec-prepare-counts" class="quarto-xref"><span>Section 10.2</span></a>)</td>
+</tr>
+<tr class="odd">
+<td>Two fiscal indices</td>
+<td><code>idf</code> ends in 2020, <code>idf_new</code> starts</td>
+<td>uses neither (<a href="08-water-question.html#sec-water-features" class="quarto-xref"><span>Section 8.5</span></a>)</td>
+</tr>
+<tr class="even">
+<td>Infant mortality’s new method</td>
+<td>a drop in 2017</td>
+<td>2017–2019 and 2021–2023 only (<a href="12-interpret.html#sec-outcomes" class="quarto-xref"><span>Section 12.4</span></a>)</td>
+</tr>
+<tr class="odd">
+<td>Saber 11 in some years</td>
+<td>2014–2017, 2019, 2020 and 2022</td>
+<td>published years only (<a href="12-interpret.html#sec-outcomes" class="quarto-xref"><span>Section 12.4</span></a>)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
 <div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -702,7 +803,7 @@ Figure&nbsp;9.3: Tunja’s 28 rows, from <code>water_municipal.csv</code>. Pick 
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Check the missingness table before trusting the page. If <code>irca</code> is not much sparser in rural rows than in urban ones, the assistant probably counted the wrong column, or counted rows rather than values. You now know the answer the table should give (<a href="#fig-wat-bands" class="quarto-xref">Figure&nbsp;<span>9.1</span></a>), which is exactly what makes the check possible.</p>
+<p>Check the missingness table before trusting the page. <code>irca</code> should be missing in about 53% of rural rows and 14% of urban ones. If it is not much sparser in rural rows than in urban ones, the assistant probably counted the wrong column, or counted rows rather than values. You now know the answer the table should give (<a href="#fig-wat-bands" class="quarto-xref">Figure&nbsp;<span>9.1</span></a>), which is exactly what makes the check possible.</p>
 </div>
 </div>
 <div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
@@ -717,19 +818,28 @@ Figure&nbsp;9.3: Tunja’s 28 rows, from <code>water_municipal.csv</code>. Pick 
 <div class="callout-body-container callout-body">
 <p>Run the prompt and read the page.</p>
 <div class="done">
-<p><strong>You're done when</strong> <code>explore.html</code> shows rows and columns, missing values by zone, and IRCA by band, zone and year for 2010–2023.</p>
+<p><strong>You’re done when</strong> <code>explore.html</code> shows rows and columns, missing values by zone, and IRCA by band, zone and year for 2010–2023.</p>
 </div>
 <div class="catchup">
-<p><strong>Stuck for two minutes?</strong> Paste this into your assistant, then rejoin at the next exercise:</p>
+<p><strong>Stuck for two minutes?</strong> Paste this into your assistant. It backs up your work and brings the project to this point; then carry on from here.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
-<p>The catch-up also copies <code>data/</code> if it is missing: the water checkpoints hold sources only.</p>
+<p>This catch-up covers <a href="08-water-question.html" class="quarto-xref"><span>Chapter 8</span></a> too: it restores the rules and the environment as well as <code>explore.qmd</code>, and copies <code>data/</code> if it is missing, because the water checkpoints hold sources only.</p>
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>Explore before you model: size, missingness by group, distributions and trends over time. In the water data, rural rows are mostly unmeasured and, where measured, far riskier, so any analysis of measured rows describes sampled systems only. The rural median IRCA falls sharply in 2016 and 2020, which the data alone cannot distinguish from a change in sampling. Tunja, the department capital this part follows, shows the README’s caveats in practice: no zone split for capitals, a zero that probably means “not reported”, two fiscal indices on different scales, and a method change in infant mortality. Read codes as text, and check each summary against what you already know it should say. Seeing the gaps is not the same as deciding what to do about them: the next chapter decides which rows and numbers the clustering will see, and counts what each decision costs.</p>
+<div class="keyideas">
+<ul>
+<li>Before modelling, ask a table’s size, what is missing and where, how key values are distributed and how they move over time.</li>
+<li>Rural rows are mostly without IRCA and, where scored, riskier, so results describe sampled systems only.</li>
+<li>The gaps may depend on the risk itself, so filling them would invent water quality nobody measured.</li>
+<li>A jump in a series can be a change of method or sampling, which the table cannot tell from a real change.</li>
+<li>Keep the zones apart, count municipal variables once, and read codes as text.</li>
+</ul>
+</div>
+<p>Seeing the gaps is not the same as deciding what to do about them: the next chapter decides which rows and numbers the clustering will see, and counts what each decision costs.</p>
 </section>
 <section id="further-reading" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>

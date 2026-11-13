@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-e85dad9e1173e1d97bd702522a9286d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-0d82a697912dd7ccea7f4202bcb5d8f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -542,6 +542,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Running This as a Workshop</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glossary</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -556,7 +562,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#sec-water-the-question" id="toc-sec-water-the-question" class="nav-link active" data-scroll-target="#sec-water-the-question"><span class="header-section-number">8.1</span> The question and its readers</a></li>
   <li><a href="#sec-water-why" id="toc-sec-water-why" class="nav-link" data-scroll-target="#sec-water-why"><span class="header-section-number">8.2</span> Scoring water risk: the IRCA</a></li>
-  <li><a href="#sec-water-measures" id="toc-sec-water-measures" class="nav-link" data-scroll-target="#sec-water-measures"><span class="header-section-number">8.3</span> Two measures: IRCA and Saber 11</a></li>
+  <li><a href="#sec-water-measures" id="toc-sec-water-measures" class="nav-link" data-scroll-target="#sec-water-measures"><span class="header-section-number">8.3</span> Saber 11, and what an average covers</a></li>
   <li><a href="#sec-water-data" id="toc-sec-water-data" class="nav-link" data-scroll-target="#sec-water-data"><span class="header-section-number">8.4</span> Where the data come from</a></li>
   <li><a href="#sec-water-features" id="toc-sec-water-features" class="nav-link" data-scroll-target="#sec-water-features"><span class="header-section-number">8.5</span> Features and outcomes</a></li>
   <li><a href="#sec-compute-once" id="toc-sec-compute-once" class="nav-link" data-scroll-target="#sec-compute-once"><span class="header-section-number">8.6</span> Compute once, publish many</a></li>
@@ -596,7 +602,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p>In 2023, Colombia’s national report on drinking water scored the water of its urban areas at 5.7, in the low-risk band, and the water of its rural areas at 36.5, in the high-risk band (<a href="#tbl-irca-bands" class="quarto-xref">Table&nbsp;<span>8.1</span></a>). DANE’s projections put 12.6 million people, 24% of the population, in rural zones in 2023. People drink and cook with this water, so where the risk sits, and what goes with it, is worth knowing.</p>
-<p>The question for this part is therefore: <strong>which kinds of municipal zone exist in Colombia, judged by water safety, services and context, and how do health and education outcomes differ between them?</strong> Part II’s numbers were simple counts; these are not. Every step has a way to go wrong that a clean render will not reveal: a variable that means something narrower than its name, a gap that is not random, a comparison that looks causal and is not. This chapter deals with all three before any code is written, and ends with the rules that hold the assistant to them.</p>
+<p>The question for this part is therefore: <strong>which kinds of municipal zone exist in Colombia, judged by water safety, services and context, and how do health and education outcomes differ between them?</strong> Part II’s numbers were simple counts; these are not. Every step has a way to go wrong that a clean render will not reveal: a variable that means something narrower than its name, a gap that is not random, a comparison that looks causal and is not.</p>
+<div class="opener">
+<div class="box-label">
+<strong>In this chapter</strong>
+</div>
+<ul>
+<li>Explain what the IRCA scores, and why this part’s IRCA understates risk.</li>
+<li>Identify the unit of analysis, and say what an empty cell means.</li>
+<li>Distinguish features from outcomes, and explain why clustering on an outcome is circular.</li>
+<li>Set up the water project’s data, rules and environment.</li>
+</ul>
+<div class="opener-meta">
+<p><span class="meta-label"><strong>Start from</strong></span><code>~/quarto-workshop/</code>, cloned in Chapter 3. The London guide is not needed.</p>
+<p><span class="meta-label"><strong>You build</strong></span><code>~/water-quality/</code>, with <code>data/</code>, <code>AGENTS.md</code> and a uv environment.</p>
+<p><span class="meta-label"><strong>Checkpoint</strong></span>None here: the catch-up at the end of <a href="09-explore.html" class="quarto-xref"><span>Chapter 9</span></a> covers both chapters.</p>
+</div>
+</div>
 <section id="sec-water-the-question" class="level2" data-number="8.1">
 <h2 data-number="8.1" class="anchored" data-anchor-id="sec-water-the-question"><span class="header-section-number">8.1</span> The question and its readers</h2>
 <p>The question splits in two, and the order matters:</p>
@@ -604,7 +626,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong>Which kinds of municipal zone exist</strong>, judged by water safety, services and context?</li>
 <li><strong>How do health and education outcomes differ</strong> between those kinds?</li>
 </ol>
-<p>“Kinds” will be <em>clusters</em>: groups of zone-years that are similar to each other on the chosen variables, found by an algorithm called k-means (<a href="11-cluster.html" class="quarto-xref"><span>Chapter 11</span></a>). Because the unit is a zone in a year, a municipality’s two zones can belong to different kinds, and a zone can move between kinds over the years.</p>
+<p>“Kinds” will be <em>clusters</em>: groups of <em>zone-years</em>, each one municipality’s urban or rural zone in one year (<a href="#sec-water-data" class="quarto-xref"><span>Section 8.4</span></a>), that are similar to each other on the chosen variables, found by an algorithm called k-means (<a href="11-cluster.html" class="quarto-xref"><span>Chapter 11</span></a>). Because the unit is a zone in a year, a municipality’s two zones can belong to different kinds, and a zone can move between kinds over the years.</p>
 <p>The answer has two readers. Officials will read it as a report, in Word or as a PDF, and a municipal council will see it as a short deck of slides (<a href="14-publish-many.html" class="quarto-xref"><span>Chapter 14</span></a>). Both will look for where to act, and both will be tempted to read a difference between kinds as an effect of the water. So the limits are stated now, each with its reason. The water score covers only systems run by a utility (<a href="#sec-water-why" class="quarto-xref"><span>Section 8.2</span></a>). Many rural zones have no score at all, so the results describe sampled systems (<a href="09-explore.html#sec-water-bands" class="quarto-xref"><span>Section 9.2</span></a>). And the comparisons describe; they cannot establish that water causes any outcome (<a href="13-causation.html" class="quarto-xref"><span>Chapter 13</span></a>).</p>
 </section>
 <section id="sec-water-why" class="level2" data-number="8.2">
@@ -679,18 +701,18 @@ Table&nbsp;8.1: The IRCA risk bands (Resolución 2115 de 2007, art. 15) and wher
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The IRCA in this part’s data is not the national figure. The open table it comes from (INS, datos.gov.co <code>nxt2-39c3</code>) holds the <em>utility-supplied</em> (“prestadores”) IRCA: samples from systems run by a water utility. A check on <span class="nowrap">2026-10-30</span> found that its 2023 department totals match INCA’s utility column in 30 of 30 departments and the overall figure in only 5. Self-supplied systems, which have no utility, score far worse (43.7 against 7.4 in 2023), so the data understate the risk wherever people rely on self-supply, and say nothing where no utility exists. Label the variable “utility-supplied IRCA” everywhere it appears.</p>
+<p>The IRCA in this part’s data is not the national figure. The open table it comes from (INS, datos.gov.co <code>nxt2-39c3</code>) holds the <em>utility-supplied</em> (“prestadores”) IRCA: samples from systems run by a water utility. A check on <span class="nowrap">2026-10-30</span>, recorded in the data’s README (caveat 1), found that its 2023 department totals match INCA’s utility column in 30 of 30 departments and the overall figure in only 5. Self-supplied systems, which have no utility, score far worse (43.7 against 7.4 in 2023), so the data understate the risk wherever people rely on self-supply, and say nothing where no utility exists. Label the variable “utility-supplied IRCA” everywhere it appears.</p>
 </div>
 </div>
 </section>
 <section id="sec-water-measures" class="level2" data-number="8.3">
-<h2 data-number="8.3" class="anchored" data-anchor-id="sec-water-measures"><span class="header-section-number">8.3</span> Two measures: IRCA and Saber 11</h2>
-<p>The outcomes the analysis compares include an education measure, <strong>Saber 11</strong>, the national exam taken by students finishing upper secondary school, set by ICFES. It has five tests: critical reading, mathematics, social studies and citizenship, natural sciences, and English. The global score is five times the weighted mean of the five test scores (each 0 to 100; English counts once, the others three times), from 0 to 500, and its mean was fixed at 250 in the first sitting in 2014, so that years can be compared (ICFES, <em>Guía de orientación Saber 11.° 2017-1</em>, pp.&nbsp;101 and 104, checked <span class="nowrap">2026-10-30</span>).</p>
+<h2 data-number="8.3" class="anchored" data-anchor-id="sec-water-measures"><span class="header-section-number">8.3</span> Saber 11, and what an average covers</h2>
+<p>One of the outcomes the analysis compares (<a href="#sec-water-features" class="quarto-xref"><span>Section 8.5</span></a>) is an education measure, <strong>Saber 11</strong>, the national exam taken by students finishing upper secondary school, set by ICFES. It has five tests: critical reading, mathematics, social studies and citizenship, natural sciences, and English. The global score is five times the weighted mean of the five test scores (each 0 to 100; English counts once, the others three times), from 0 to 500, and its mean was fixed at 250 in the first sitting in 2014, so that years can be compared (ICFES, <em>Guía de orientación Saber 11.° 2017-1</em>, pp.&nbsp;101 and 104, checked <span class="nowrap">2026-10-30</span>).</p>
 <p>Both measures are averages, and an average describes only what it averaged over. IRCA is an average over the water samples taken, so a system that is never sampled has no IRCA at all. The Saber 11 mean in the data is an average over the students who sat the exam at schools in that municipality and zone, so it says nothing about students who had left school. Keep both facts in mind in every comparison that follows.</p>
 </section>
 <section id="sec-water-data" class="level2" data-number="8.4">
 <h2 data-number="8.4" class="anchored" data-anchor-id="sec-water-data"><span class="header-section-number">8.4</span> Where the data come from</h2>
-<p>Most of the data are Colombian open data from five public bodies; rainfall and altitude come from two scientific datasets. All are joined on DANE’s DIVIPOLA municipality codes:</p>
+<p>Most of the data are Colombian open data from five public bodies; rainfall and altitude come from two scientific datasets. All are <em>joined</em> on one code: joining two tables matches their rows by a column they share, here the code that DANE’s list of municipalities, <strong>DIVIPOLA</strong> (<em>División Político-Administrativa</em>), gives each municipality. It has five digits, two for the department and three for the municipality, so <code>05001</code> is Medellín, in Antioquia (<code>05</code>). The sources are:</p>
 <ul>
 <li><strong>INS</strong> (Instituto Nacional de Salud): the IRCA surveillance results.</li>
 <li><strong>DANE</strong> (the national statistics office): the list of municipalities and their codes, population projections and municipal boundaries.</li>
@@ -699,7 +721,21 @@ Table&nbsp;8.1: The IRCA risk bands (Resolución 2115 de 2007, art. 15) and wher
 <li><strong>CHIRPS</strong> (the Climate Hazards Center’s rainfall data) and <strong>NASA SRTM</strong> (elevation data): rainfall, and a derived altitude for each head town.</li>
 </ul>
 <p>They arrive as three files, in <code>examples/water/data/</code> in the workshop repository: <code>water_municipal.csv</code> (the analysis table), <code>municipios.geojson</code> (municipal boundaries for maps) and <code>README.md</code>, which documents every column, source, licence and caveat (<a href="../appendices/g-sources.html" class="quarto-xref"><span>Appendix G</span></a> lists them all).</p>
-<p><strong>One row is one municipality’s urban or rural zone in one year.</strong> The urban zone is the head town (<em>cabecera municipal</em>); the rural zone is the smaller settlements and the dispersed countryside. The table covers every one of DANE’s 1,122 DIVIPOLA entries, both zones and every year from 2010 to 2023: 31,416 rows and 29 columns. Of those entries, 1,103 are municipalities; the rest are the island of San Andrés and areas that are not municipalities, whose rows are mostly empty. Because every municipality has all its rows, a gap is an empty cell, never a missing row.</p>
+<p><strong>One row is one municipality’s urban or rural zone in one year</strong>, a <em>zone-year</em>: this is the analysis’s unit. The urban zone is the head town (<em>cabecera municipal</em>); the rural zone is the smaller settlements and the dispersed countryside. The table covers every one of DANE’s 1,122 DIVIPOLA entries, both zones and every year from 2010 to 2023: 31,416 rows and 29 columns. Of those entries, 1,103 are municipalities; the rest are the island of San Andrés and areas that are not municipalities, whose rows are mostly empty. Because every municipality has all its rows, a gap is an empty cell, never a missing row.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>A municipality’s rural zone has no IRCA in one year. Was its water safe that year?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>The data cannot say. IRCA averages the samples taken from utility-run systems, so an empty cell means no utility-supplied score was published: the zone may not have been sampled, or its water may be self-supplied, which nationally scores far worse (<a href="#tbl-irca-bands" class="quarto-xref">Table&nbsp;<span>8.1</span></a>). An empty IRCA is unknown, never safe and never zero.</p>
+</div>
+</div>
 <div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -717,8 +753,134 @@ Table&nbsp;8.1: The IRCA risk bands (Resolución 2115 de 2007, art. 15) and wher
 <section id="sec-water-features" class="level2" data-number="8.5">
 <h2 data-number="8.5" class="anchored" data-anchor-id="sec-water-features"><span class="header-section-number">8.5</span> Features and outcomes</h2>
 <p>The most important design decision in Part III is which variables define the kinds and which only describe them.</p>
-<p>The <strong>features</strong>, which the clustering sees, are 9 variables about water, people and place, and government: the utility-supplied IRCA, piped water and sewer coverage, the 2018 census’s multidimensional poverty index, the rural share of the population, the head town’s altitude, rainfall, a municipal performance index (MDM), and transfers for water per person (SGP, on a log scale). The <strong>outcomes</strong>, which the analysis only compares, are infant mortality, the Saber 11 score and school dropout.</p>
+<p>The <strong>features</strong>, which the clustering sees, are nine variables about water, people and place, and government. The <strong>outcomes</strong>, which the analysis only compares, are infant mortality, the Saber 11 score and school dropout (<a href="#tbl-water-features" class="quarto-xref">Table&nbsp;<span>8.2</span></a>, <a href="#tbl-water-outcomes" class="quarto-xref">Table&nbsp;<span>8.3</span></a>). Three features need a word. The multidimensional poverty index (IPM, <em>Índice de Pobreza Multidimensional</em>) is the share of a zone’s people who are poor in several respects at once, from the 2018 census. MDM (<em>Medición de Desempeño Municipal</em>) is DNP’s score of a municipality’s management and results. And SGP (<em>Sistema General de Participaciones</em>) is the system of national transfers to municipalities: the feature is its allocation for drinking water and basic sanitation, per person.</p>
+<p>Both tables give each variable’s level and years, computed from the municipalities’ rows. A <em>zone</em> variable differs between a municipality’s urban and rural rows; a <em>municipal</em> one is the same on both; “one value” is repeated every year. Meanings, units and sources come from <code>data/README.md</code> (TerriData is DNP’s data portal).</p>
+<div id="tbl-water-features" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-water-features-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;8.2: The nine features the clustering sees: three about water, four about people and place, two about government.
+</figcaption>
+<div aria-describedby="tbl-water-features-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Measures (unit); source</th>
+<th>Level; years</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>IRCA (<code>irca</code>)</td>
+<td>water-risk index, utility-supplied (0–100); INS</td>
+<td>zone; 2010–2023</td>
+</tr>
+<tr class="even">
+<td>Piped water (<code>water_coverage</code>)</td>
+<td>aqueduct coverage (%); TerriData</td>
+<td>zone; 2010–2023</td>
+</tr>
+<tr class="odd">
+<td>Sewer (<code>sewer_coverage</code>)</td>
+<td>sewerage coverage (%); TerriData</td>
+<td>zone; 2010–2023</td>
+</tr>
+<tr class="even">
+<td>Poverty (<code>ipm</code>)</td>
+<td>people multidimensionally poor (%); 2018 census</td>
+<td>zone; one value</td>
+</tr>
+<tr class="odd">
+<td>Rural share (<code>rural_share</code>)</td>
+<td>rural share of the population (0–1); DANE</td>
+<td>municipality; 2010–2023</td>
+</tr>
+<tr class="even">
+<td>Altitude (<code>altitude_m</code>)</td>
+<td>the head town’s height (m); SRTM</td>
+<td>municipality; one value</td>
+</tr>
+<tr class="odd">
+<td>Rainfall (<code>rainfall_mm</code>)</td>
+<td>rain over the municipality (mm a year); CHIRPS</td>
+<td>municipality; 2010–2023</td>
+</tr>
+<tr class="even">
+<td>MDM (<code>mdm</code>)</td>
+<td>municipal performance score (0–100); TerriData</td>
+<td>municipality; 2016–2023</td>
+</tr>
+<tr class="odd">
+<td>SGP (<code>sgp_water_pc</code>)</td>
+<td>water transfers (nominal pesos per person, logged); TerriData, DANE</td>
+<td>municipality; 2010–2023</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="tbl-water-outcomes" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-water-outcomes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;8.3: The three outcomes, compared between the kinds but never clustered on. Level and years as in <a href="#tbl-water-features" class="quarto-xref">Table&nbsp;<span>8.2</span></a>.
+</figcaption>
+<div aria-describedby="tbl-water-outcomes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Measures (unit); source</th>
+<th>Level; years</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Infant mortality (<code>infant_mortality</code>)</td>
+<td>deaths under one year per 1,000 live births; TerriData</td>
+<td>municipality; 2010–2023</td>
+</tr>
+<tr class="even">
+<td>Saber 11 (<code>saber11_mean</code>)</td>
+<td>mean exam score of the zone’s schools (0–500); ICFES</td>
+<td>zone; 2014–2017, 2019, 2020 and 2022</td>
+</tr>
+<tr class="odd">
+<td>School dropout (<code>dropout_rate</code>)</td>
+<td>public-school pupils who leave during the year (%); MEN</td>
+<td>municipality; 2011–2023</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The last column matters in every chapter that follows. A <em>zone</em> variable is measured separately for a municipality’s urban and rural zones; a <em>municipal</em> one is a single value for the whole municipality, repeated on both of its rows. Five of the nine features are municipal, so a municipality’s two rows in a year differ only in the other four. And a municipal outcome, such as infant mortality, must be counted once per municipality, not once per row.</p>
 <p><strong>Never cluster on an outcome.</strong> If infant mortality helped define the kinds, the kinds would differ in infant mortality by construction, and the comparison in the second question would be circular: it would find exactly what was put in. Keeping outcomes out of the clustering is what lets the comparison say anything at all.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>A colleague wants infant mortality added to the features, “since it is what we care about”. What would the comparison of outcomes between the kinds then show?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>That the kinds differ in infant mortality, which would be true by construction: the algorithm would have grouped zones partly by that very number. The comparison would find what was put in. Infant mortality stays an outcome, compared only after the kinds are found.</p>
+</div>
+</div>
 <div class="why callout callout-style-default callout-note callout-titled" title="Why this works">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -752,18 +914,21 @@ Figure&nbsp;8.1: Compute once, publish many. One script turns the data into resu
 <section id="sec-water-rules" class="level2" data-number="8.7">
 <h2 data-number="8.7" class="anchored" data-anchor-id="sec-water-rules"><span class="header-section-number">8.7</span> Setting up the project: data, rules and environment</h2>
 <p>The project lives beside the London one, so that the workshop repository’s checkpoints are always at <code>../quarto-workshop/checkpoints/</code>:</p>
-<pre class="text"><code>~                      your home folder
-├── quarto-workshop/   the clone from Chapter 3
-├── london-guide/      Part II
-└── water-quality/     this part's project</code></pre>
-<p>Make the folder, start the assistant in it, and copy the data:</p>
+<pre class="text"><code>~
+├── quarto-workshop/
+├── london-guide/
+└── water-quality/</code></pre>
+<p>In your home folder (<code>~</code>), <code>quarto-workshop/</code> is the clone from Chapter 3, <code>london-guide/</code> is Part II’s project and <code>water-quality/</code> is this part’s.</p>
+<p>Quit the London guide’s assistant first (<code>/exit</code>), so that the new one starts in the new folder and takes it as its world (<a href="02-assistant.html#sec-root-folder" class="quarto-xref"><span>Section 2.4</span></a>). Then make the folder, start the assistant in it, and copy the data:</p>
 <div class="agent-box">
 <div class="you" data-boxed="true">
 <div class="box-label">
 <strong>You do</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~ <span class="kw">&amp;&amp;</span> <span class="fu">mkdir</span> <span class="at">-p</span> water-quality <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> water-quality</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">claude</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> water-quality</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> water-quality</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">claude</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="prompt" data-boxed="true">
 <div class="box-label">
@@ -771,7 +936,14 @@ Figure&nbsp;8.1: Compute once, publish many. One script turns the data into resu
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Copy ../quarto-workshop/examples/water/data into this folder as data/, then list the files in data/ with their sizes.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Expect it to run</strong>
 </div>
+<p>copies the folder · lists <code>README.md</code>, <code>municipios.geojson</code> and <code>water_municipal.csv</code> with their sizes</p>
+</div>
+</div>
+<p>The data sit outside the new folder, in <code>../quarto-workshop/</code>, so the assistant asks before it reads there: approve it, as for the London guide (<a href="04-markdown.html#sec-brief" class="quarto-xref"><span>Section 4.2</span></a>).</p>
 <p>Then write the rules. If you have never clustered anything, the worry is fair: the assistant can write an analysis that runs, renders and is wrong. You do not guard against that by writing the code yourself. You guard against it by checking, and a check needs something to check against.</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
@@ -786,6 +958,12 @@ Figure&nbsp;8.1: Compute once, publish many. One script turns the data into resu
 </div>
 <p>reads <code>data/README.md</code> · writes <code>AGENTS.md</code>: scope, rules, the data’s caveats</p>
 </div>
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>You do</strong>
+</div>
+<p>approve · check that <code>AGENTS.md</code> holds all four rules</p>
+</div>
 </div>
 <p>The four rules are this chapter in miniature: the inputs are evidence and stay unchanged; the IRCA is labelled for what it is; outcomes describe the clusters but never define them; and comparisons between clusters do not establish causal effects of water safety. Asking the assistant to read the README first lets it add the data’s caveats to the rules itself.</p>
 <div class="agent-box">
@@ -795,8 +973,14 @@ Figure&nbsp;8.1: Compute once, publish many. One script turns the data into resu
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Give this project its own Python environment with `uv`: run `uv init --bare`, then `uv add ipykernel nbclient nbformat pyyaml pandas numpy matplotlib plotly scikit-learn pyarrow itables tabulate`. Run `quarto` and `python` through `uv run`, and add that rule to AGENTS.md. Show me the Python line of `uv run quarto check jupyter`.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Expect it to run</strong>
 </div>
-<p>The recipe is the London guide’s, with the analysis’s packages added: <code>scikit-learn</code> for k-means, <code>pyarrow</code> for Parquet, <code>itables</code> for the dashboard’s searchable table and <code>tabulate</code> for tables written as Markdown. Packages shared with Part II come from uv’s cache.</p>
+<p><code>uv init --bare</code> · <code>uv add …</code> · writes <code>pyproject.toml</code>, <code>uv.lock</code> and <code>.venv/</code> · adds the <code>uv run</code> rule to <code>AGENTS.md</code> · <code>uv run quarto check jupyter</code></p>
+</div>
+</div>
+<p>You should see a Python whose path runs through this folder’s <code>.venv</code>, as for the London guide (<a href="04-markdown.html#sec-environments" class="quarto-xref"><span>Section 4.10</span></a>). The recipe is the London guide’s, with the analysis’s packages added: <code>scikit-learn</code> for k-means, <code>pyarrow</code> for Parquet, <code>itables</code> for the dashboard’s searchable table and <code>tabulate</code> for tables written as Markdown. Packages shared with Part II come from uv’s cache.</p>
 <div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -809,18 +993,25 @@ Figure&nbsp;8.1: Compute once, publish many. One script turns the data into resu
 <div class="callout-body-container callout-body">
 <p>Copy the data, write the rules and create the environment.</p>
 <div class="done">
-<p><strong>You're done when</strong> <code>AGENTS.md</code> states the analysis’s scope and its rules, and <code>uv run quarto check jupyter</code> shows this project’s <code>.venv</code> Python.</p>
+<p><strong>You’re done when</strong> <code>AGENTS.md</code> states the analysis’s scope and its rules, and <code>uv run quarto check jupyter</code> shows this project’s <code>.venv</code> Python.</p>
 </div>
-<div class="catchup">
-<p><strong>Stuck for two minutes?</strong> Paste this into your assistant, then rejoin at the next exercise:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
+<p>There is no catch-up here. If you get stuck, the one at the end of <a href="09-explore.html" class="quarto-xref"><span>Chapter 9</span></a> restores this chapter’s work and the next chapter’s together.</p>
 </div>
 </div>
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>The question is which kinds of municipal zone exist in Colombia, by water safety, services and context, and how outcomes differ between them; its readers, officials and a municipal council, need the limits stated as plainly as the results. IRCA scores tap-water samples from 0 (no risk) to 100 (unfit), in five official bands; the data’s IRCA is the utility-supplied figure, which understates risk wherever people rely on self-supply; and both IRCA and Saber 11 average only over what was measured. One row is a municipality’s urban or rural zone in one year, every row exists, and gaps are empty cells. Nine features define the kinds and three outcomes only describe them, because clustering on an outcome makes the comparison circular. One script computes everything once, and the project’s rules write these decisions down for the assistant. What the rules cannot say is what the table holds: where it is empty, and where a series moves for reasons unrelated to water. That is the next chapter’s question.</p>
+<div class="keyideas">
+<ul>
+<li>First find kinds of municipal zone from water, services and context; then compare outcomes between them.</li>
+<li>The data’s IRCA is utility-supplied, so it understates risk wherever people rely on self-supply.</li>
+<li>One row is a zone-year and every row exists, so an empty cell means unmeasured, never safe.</li>
+<li>Zone variables differ between a municipality’s two rows; municipal ones are counted once.</li>
+<li>Features define the kinds and outcomes only describe them: clustering on an outcome is circular.</li>
+<li>One script computes every result once, and <code>AGENTS.md</code> holds the limits for the assistant.</li>
+</ul>
+</div>
+<p>What the rules cannot say is what the table holds: where it is empty, and where a series moves for reasons unrelated to water. That is the next chapter’s question.</p>
 </section>
 <section id="further-reading" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>

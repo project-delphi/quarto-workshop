@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-e85dad9e1173e1d97bd702522a9286d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-0d82a697912dd7ccea7f4202bcb5d8f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -571,6 +571,12 @@ window.Quarto = {
  <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Running This as a Workshop</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glossary</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -583,7 +589,7 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#sec-kmeans-steps" id="toc-sec-kmeans-steps" class="nav-link active" data-scroll-target="#sec-kmeans-steps"><span class="header-section-number">11.1</span> k-means in four steps</a></li>
+  <li><a href="#sec-kmeans-steps" id="toc-sec-kmeans-steps" class="nav-link active" data-scroll-target="#sec-kmeans-steps"><span class="header-section-number">11.1</span> <span class="nowrap">k-means</span> in four steps</a></li>
   <li><a href="#sec-choose-k" id="toc-sec-choose-k" class="nav-link" data-scroll-target="#sec-choose-k"><span class="header-section-number">11.2</span> Choosing k</a></li>
   <li><a href="#sec-water-pca" id="toc-sec-water-pca" class="nav-link" data-scroll-target="#sec-water-pca"><span class="header-section-number">11.3</span> A picture of the clusters</a></li>
   <li><a href="#sec-relief" id="toc-sec-relief" class="nav-link" data-scroll-target="#sec-relief"><span class="header-section-number">11.4</span> Where the clusters stand</a></li>
@@ -625,8 +631,24 @@ window.Quarto = {
 
 <p>The water data now have 11,235 prepared rows, each described by nine z-scores. Nobody can read that many rows. Clustering turns them into a few <em>kinds</em> that a person can name, compare and act on: these municipal zones are like each other, and unlike those. An official can ask which kinds need which help; a council can see which kind its own zones belong to. Clustering needs no labels, so it is a first look at data nobody has categorised, and an odd cluster can point to a data error or a special case. What it cannot do is explain: clusters describe, they do not show causes.</p>
 <p>If the mathematics sounds daunting, it need not be. The algorithm is simple enough to watch step by step, and the judgement it needs, how many kinds to look for, is a decision you can write down and check before seeing the answer.</p>
+<div class="opener">
+<div class="box-label">
+<strong>In this chapter</strong>
+</div>
+<ul>
+<li>Describe the k-means loop, and why it needs many starts and a fixed seed.</li>
+<li>Apply the written rule for k, and say how close the call was.</li>
+<li>Interpret a low silhouette, a stability check and a PCA picture without over-reading them.</li>
+<li>Run the clustering step and check the assistant’s account of k.</li>
+</ul>
+<div class="opener-meta">
+<p><span class="meta-label"><strong>Start from</strong></span>The project as <a href="10-prepare.html" class="quarto-xref"><span>Chapter 10</span></a> left it.</p>
+<p><span class="meta-label"><strong>You build</strong></span>The clustering step, <code>outputs/clusters.parquet</code> and <code>clusters.qmd</code>.</p>
+<p><span class="meta-label"><strong>Checkpoint</strong></span><code>checkpoints/07-water-cluster/</code>.</p>
+</div>
+</div>
 <section id="sec-kmeans-steps" class="level2" data-number="11.1">
-<h2 data-number="11.1" class="anchored" data-anchor-id="sec-kmeans-steps"><span class="header-section-number">11.1</span> k-means in four steps</h2>
+<h2 data-number="11.1" class="anchored" data-anchor-id="sec-kmeans-steps"><span class="header-section-number">11.1</span> <span class="nowrap">k-means</span> in four steps</h2>
 <p>k-means needs one number up front: <span class="math inline">\(k\)</span>, how many clusters to find. It makes one start, then repeats two moves until they change nothing:</p>
 <ol type="1">
 <li><strong>Drop</strong> <span class="math inline">\(k\)</span> centres at <span class="math inline">\(k\)</span> randomly chosen data points.</li>
@@ -636,7 +658,7 @@ window.Quarto = {
 </ol>
 <p>Neither move ever raises the <em>inertia</em>, the sum of squared distances from each point to its centre,</p>
 <p><span class="math display">\[\text{inertia} = \sum_{i} \lVert x_i - c_{\ell(i)} \rVert^2 ,\]</span></p>
-<p>where <span class="math inline">\(c_{\ell(i)}\)</span> is the centre point <span class="math inline">\(i\)</span> is assigned to, and there are only finitely many ways to group the points, so the algorithm always stops. It does not always stop at the best answer: a bad start can trap it in a worse grouping. <a href="#fig-kmeans-steps" class="quarto-xref">Figure&nbsp;<span>11.1</span></a> shows the algorithm on 560 synthetic points in three groups, which are toy data made up for the illustration, not the water data.</p>
+<p>where <span class="math inline">\(x_i\)</span> is point <span class="math inline">\(i\)</span> (for the water data, a row’s nine z-scores), <span class="math inline">\(c_{\ell(i)}\)</span> is the centre it is assigned to, and <span class="math inline">\(\lVert x_i - c_{\ell(i)} \rVert\)</span> is the straight-line distance between them (<a href="10-prepare.html#sec-scaling" class="quarto-xref"><span>Section 10.3</span></a>). On z-scores, inertia is in squared standard deviations, a unit with no everyday meaning, so only its changes matter. There are only finitely many ways to group the points, so the algorithm always stops. It does not always stop at the best answer: a bad start can trap it in a worse grouping. <a href="#fig-kmeans-steps" class="quarto-xref">Figure&nbsp;<span>11.1</span></a> shows the algorithm on 560 synthetic points in three groups, which are toy data made up for the illustration, not the water data.</p>
 <div id="fig-kmeans-steps" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-kmeans-steps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -664,11 +686,24 @@ Figure&nbsp;11.2: The same algorithm on the toy points, flattened to two of thei
 </div>
 </div>
 </div>
-<p>Different starts can end in different groupings, so the real analysis runs k-means from 20 starts (scikit-learn’s <code>n_init</code>) and keeps the one with the lowest inertia. Its starts are not dropped at random, as in the toy. scikit-learn’s default, <em>k-means++</em> (Arthur and Vassilvitskii, 2007), picks the first centre at random from the data and each next one with probability proportional to its squared distance from the nearest centre already chosen, which spreads them out and makes a stuck start less likely; scikit-learn uses a greedy variant that draws several candidates at each step and keeps the best. A fixed random seed makes the result the same on every render.</p>
+<p>Different starts can end in different groupings, so the real analysis runs k-means from 20 starts (scikit-learn’s <code>n_init</code>) and keeps the one with the lowest inertia. The starts are random, but repeatable: a fixed <em>random seed</em>, the number that starts the computer’s random-number generator, makes them the same on every run, so your project, the deck and this book all get the same clusters.</p>
+<div class="why callout callout-style-default callout-note callout-titled" title="Why this works">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Why this works
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The real starts are not dropped at random, as in the toy. scikit-learn’s default, <em>k-means++</em> (Arthur and Vassilvitskii, 2007), picks the first centre at random from the data and each next one with probability proportional to its squared distance from the nearest centre already chosen. That spreads the centres out and makes a stuck start less likely; scikit-learn uses a greedy variant that draws several candidates at each step and keeps the best.</p>
+</div>
+</div>
 </section>
 <section id="sec-choose-k" class="level2" data-number="11.2">
 <h2 data-number="11.2" class="anchored" data-anchor-id="sec-choose-k"><span class="header-section-number">11.2</span> Choosing k</h2>
-<p>k is a <em>hyperparameter</em>: a setting the algorithm cannot learn from its own objective, since inertia always falls as k grows. The analysis fits k-means for k from 2 to 8 and reads two measures (<a href="#fig-k-selection" class="quarto-xref">Figure&nbsp;<span>11.3</span></a>). Inertia always falls as k grows, so the question is where it stops falling much, the <em>elbow</em>. The <em>silhouette</em> scores, from −1 to 1, how much closer each point is to its own cluster than to the next one, on a fixed sample of 5,000 rows.</p>
+<p>k is a <em>hyperparameter</em>: a setting the algorithm cannot learn from its own objective, because inertia always falls as k grows, down to zero when every point is its own cluster. So the analysis fits k-means for k from 2 to 8 and reads two measures (<a href="#fig-k-selection" class="quarto-xref">Figure&nbsp;<span>11.3</span></a>). The first is where inertia stops falling much, the <em>elbow</em>. The second, the <em>silhouette</em>, scores from −1 to 1 how much closer each point is to its own cluster than to the next one, averaged over the points. It needs every distance between points, so it is computed on a fixed sample of 5,000 rows, which keeps it fast.</p>
 <div id="cell-fig-k-selection" class="cell on-light" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div id="fig-k-selection" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two line charts over k from 2 to 8. Inertia falls steadily, steeply at first and more gently after k equals 4. The silhouette is highest at k equals 2, then flat near 0.19 to 0.20 from k equals 3 to 7, and lower at 8. The chosen k, 4, is marked on both.">
@@ -677,20 +712,83 @@ Figure&nbsp;11.2: The same algorithm on the toy points, flattened to two of thei
 <img src="11-cluster_files/figure-html/fig-k-selection-output-1.svg" class="img-fluid figure-img" alt="Two line charts over k from 2 to 8. Inertia falls steadily, steeply at first and more gently after k equals 4. The silhouette is highest at k equals 2, then flat near 0.19 to 0.20 from k equals 3 to 7, and lower at 8. The chosen k, 4, is marked on both.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-k-selection-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;11.3: Choosing k: inertia (left) and silhouette (right) for k = 2 to 8, fitted on all kept rows. The chosen k is marked.
+Figure&nbsp;11.3: Choosing k: inertia and silhouette for k = 2 to 8, fitted on all kept rows. The chosen k is marked.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>The rule, written into <code>choose_k()</code> in the analysis script, has three parts:</p>
+<p>The rule, written into <code>choose_k()</code> in the analysis script, has three parts, and <a href="#tbl-k-selection" class="quarto-xref">Table&nbsp;<span>11.1</span></a> applies it row by row:</p>
 <ul>
-<li><strong>k = 2 is excluded.</strong> Two clusters mostly split urban from rural rows (their adjusted Rand index with the zone is 0.50, where 1 would mean identical), which we knew already.</li>
+<li><strong>k = 2 is excluded.</strong> Two clusters mostly split urban from rural rows, which we knew already: they match the zone for 86% of rows. The script measures this with the <em>adjusted Rand index</em> (ARI), which scores how far two groupings agree beyond what chance would give: 1 means identical, 0 no better than chance. Here it is 0.50.</li>
 <li><strong>The elbow:</strong> take the smallest k from 3 up after which one more cluster cuts inertia by less than 10%. Here that is k = 4: a fifth cluster cuts inertia by only 7%.</li>
 <li><strong>The silhouette check:</strong> k’s silhouette must be within 0.01 of the best for k ≥ 3. At k = 4 it is 0.195. The check rules out only k = 8 here.</li>
 </ul>
-<p>The elbow is marginal. The fourth cluster itself cuts inertia by 10.8%, only just above the 10% threshold, so a threshold of 11% would pick k = 3 instead.</p>
-<p>Two more checks follow the fit. <strong>Stability</strong>: refits from 5 other seeds agree, with an adjusted Rand index of at least 0.998, so the result does not depend on the start. That says nothing about other data, features or k; a bootstrap or leave-one-year-out refit would test that. <strong>Ordering</strong>: clusters are numbered by their centre’s IRCA, from lowest to highest, so a re-run keeps the same numbers and colours.</p>
+<div id="tbl-k-selection" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="5">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-k-selection-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;11.1: <code>choose_k()</code>’s rule, row by row, on the kept rows: how much one more cluster would cut inertia, the silhouette (on the fixed sample) and the verdict. Computed by the finished project’s <code>analysis.py</code>.
+</figcaption>
+<div aria-describedby="tbl-k-selection-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">k</th>
+<th style="text-align: right;">One more cluster cuts</th>
+<th style="text-align: right;">Silhouette</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">14.9%</td>
+<td style="text-align: right;">0.237</td>
+<td>excluded: the urban–rural split</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">10.8%</td>
+<td style="text-align: right;">0.194</td>
+<td>one more still cuts 10% or more</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">6.7%</td>
+<td style="text-align: right;">0.195</td>
+<td><strong>chosen: the smallest that passes</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6.3%</td>
+<td style="text-align: right;">0.189</td>
+<td>passes, but larger</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5.4%</td>
+<td style="text-align: right;">0.196</td>
+<td>passes, but larger</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">4.7%</td>
+<td style="text-align: right;">0.191</td>
+<td>passes, but larger</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">0.166</td>
+<td>silhouette too far below the best</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The elbow is marginal. The fourth cluster itself cuts inertia by 10.8% (the row for k = 3), only just above the 10% threshold, so a threshold of 11% would pick k = 3 instead. And the four clusters account for 41% of the spread in the data, one minus the ratio of their inertia to that of a single cluster; the rest is difference within the kinds.</p>
+<p>Two more checks follow the fit. <strong>Stability</strong>: refits from 5 other seeds agree, with an adjusted Rand index of at least 0.998, so the result does not depend on the start. That says nothing about other data, features or k; refitting on rows drawn again at random (a <em>bootstrap</em>), or leaving out one year at a time, would test that. <strong>Ordering</strong>: clusters are numbered by their centre’s IRCA, from lowest to highest, so a re-run keeps the same numbers and colours.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -704,11 +802,25 @@ Figure&nbsp;11.3: Choosing k: inertia (left) and silhouette (right) for k = 2 to
 <p>A silhouette near 0.2 is low. In the subjective reading Rousseeuw and colleagues propose, a best average silhouette of 0.25 or less means that “no substantial structure has been found” (Struyf, Hubert and Rousseeuw, 1997, Table 2), and the best here, at any k, is 0.24. The kinds overlap: they summarise a continuum rather than separate islands of data. So treat k as a judgement call, and do not force a number of clusters to make a nicer story. Writing the rule down before seeing the result is what keeps such a choice honest; <code>choose_k()</code> at least makes the rule explicit, so anyone can check it and see how close the call was.</p>
 </div>
 </div>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>An official reads the report and asks: “So Colombia has four kinds of municipal zone?” What do you answer?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>That four is a useful summary, not a discovery. A written rule chose it by a narrow margin, and a threshold one percentage point higher picks three; the low silhouette says the kinds overlap. The clusters describe typical combinations of water, services and context, and a zone near the edge of one could as well sit in the next.</p>
+</div>
+</div>
 </section>
 <section id="sec-water-pca" class="level2" data-number="11.3">
 <h2 data-number="11.3" class="anchored" data-anchor-id="sec-water-pca"><span class="header-section-number">11.3</span> A picture of the clusters</h2>
-<p>Nine dimensions cannot be drawn. <em>Principal component analysis</em> (PCA) finds the directions in which the data vary most and projects the rows onto them. <a href="#fig-wat-pca" class="quarto-xref">Figure&nbsp;<span>11.4</span></a> uses the first two, which keep 30% and 21% of the variance.</p>
-<div id="cell-fig-wat-pca" class="cell on-light" data-execution_count="5">
+<p>Nine dimensions cannot be drawn. <em>Principal component analysis</em> (PCA) finds the directions in which the data vary most and projects the rows onto them. Each direction, a <em>principal component</em>, is a weighted sum of the nine z-scores, and its weights, called <em>loadings</em>, say what it measures. <a href="#fig-wat-pca" class="quarto-xref">Figure&nbsp;<span>11.4</span></a> uses the first two components, which keep 30% and 21% of the variance.</p>
+<div id="cell-fig-wat-pca" class="cell on-light" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div id="fig-wat-pca" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Scatter plot of about eleven thousand dots in four coloured groups that overlap at their edges. Cluster 4 spreads to one side, clusters 1 and 2 to others, and cluster 3 sits in the middle, drawn on top.">
 <figure class="quarto-float quarto-float-fig figure">
@@ -722,7 +834,7 @@ Figure&nbsp;11.4: Each dot is a zone-year on the first two principal components 
 </div>
 </div>
 </div>
-<p>Overlaps in the picture can be separations in the dimensions it leaves out. Adding a third component, which keeps another 16% of the variance, shows how much (<a href="#fig-cloud-3d" class="quarto-xref">Figure&nbsp;<span>11.5</span></a>). On two components, on average 78% of a zone-year’s 15 nearest neighbours are in its own cluster; on three, 94%. Cluster 3, the most mixed in two dimensions, sits below the others along the third, which is mostly altitude (derived) − rainfall.</p>
+<p>Overlaps in the picture can be separations in the dimensions it leaves out. Adding a third component, which keeps another 16% of the variance, shows how much (<a href="#fig-cloud-3d" class="quarto-xref">Figure&nbsp;<span>11.5</span></a>). On two components, on average 78% of a zone-year’s 15 nearest neighbours are in its own cluster; on three, 94%. The third component rises with altitude and falls with rainfall, its two largest loadings. Cluster 3, the most mixed in two dimensions, sits below the others along it: it is the lowest and wettest of the kinds.</p>
 <div id="fig-cloud-3d" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-cloud-3d-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -737,7 +849,7 @@ Figure&nbsp;11.5: The zone-years on the first three principal components, colour
 </section>
 <section id="sec-relief" class="level2" data-number="11.4">
 <h2 data-number="11.4" class="anchored" data-anchor-id="sec-relief"><span class="header-section-number">11.4</span> Where the clusters stand</h2>
-<p>The third component is mostly altitude (derived) − rainfall. A map shows the altitude directly (<a href="#fig-relief" class="quarto-xref">Figure&nbsp;<span>11.6</span></a>): one column for each of the 966 clustered urban zones in 2023, at its municipality’s centroid, as tall as its head town’s altitude (one derived SRTM point, exaggerated 50 times) and coloured by cluster.</p>
+<p>Altitude carries the third component’s largest loading. A map shows altitude directly (<a href="#fig-relief" class="quarto-xref">Figure&nbsp;<span>11.6</span></a>): one column for each of the 966 clustered urban zones in 2023, at its municipality’s centroid, as tall as its head town’s altitude (one derived SRTM point, exaggerated 50 times) and coloured by cluster.</p>
 <div id="fig-relief" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-relief-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -749,14 +861,15 @@ Figure&nbsp;11.6: Clustered urban zones as columns at their head towns’ altitu
 </figcaption>
 </figure>
 </div>
-<p>Cluster 2’s urban zones stand highest, with a median altitude of 1,766 m, and 56% of them are in the DNP region Centro Oriente. Cluster 3’s stand lowest, at 130 m, and 53% of them are in Caribe. This shows where the kinds are, not why they differ. Tunja’s head town stands at 2,695 m, and all 16 of its zone-years, urban and rural, fall in cluster 1.</p>
+<p>Cluster 2’s urban zones stand highest, with a median altitude of 1,766 m, and 56% of them are in the region Centro Oriente (DANE’s regional grouping). Cluster 3’s stand lowest, at 130 m, and 53% of them are in Caribe. This shows where the kinds are, not why they differ. Tunja’s head town stands at 2,695 m, and all 16 of its zone-years, urban and rural, fall in cluster 1.</p>
+<p>The map draws urban zones only, one column per municipality, because the altitude is the head town’s. So it shows little of cluster 4, whose zone-years are 91% rural. Its few urban columns stand low, at a median of 159 m, but the median head-town altitude of its rural zone-years is 1,475 m, so the map says little about where that kind is found.</p>
 </section>
 <section id="sec-routes" class="level2" data-number="11.5">
 <h2 data-number="11.5" class="anchored" data-anchor-id="sec-routes"><span class="header-section-number">11.5</span> Use the model, or build it</h2>
 <p>There are two routes through the modelling, and both end with the same <code>outputs/</code> and the same pages:</p>
 <ul>
 <li><strong>Use it</strong> (the normal route): copy the finished <code>analysis.py</code> from this step’s checkpoint, run it, and spend your effort on checking what it chose and on the publications.</li>
-<li><strong>Build it</strong> (a challenge): prompt the assistant to write each step of the analysis yourself.</li>
+<li><strong>Build it</strong> (a challenge): give the assistant the prompt below and have it write the clustering step itself.</li>
 </ul>
 <p>This is a book about publishing, so using the finished model is the normal route, not a fallback. But a copied script is only as trustworthy as your reading of it, so the route has two prompts: one runs the script, the other makes the assistant explain what it printed.</p>
 <div class="agent-box">
@@ -792,7 +905,20 @@ Figure&nbsp;11.6: Clustered urban zones as columns at their head towns’ altitu
 <p>reads the printed table and <code>choose_k()</code> · explains each column and the rule, quoting the code</p>
 </div>
 </div>
-<p>Check the explanation against <a href="#sec-choose-k" class="quarto-xref"><span>Section 11.2</span></a>. Here the elbow picks k and the silhouette only has a veto, so an answer that says the silhouette chose k has misread the rule; and k = 2 is never a candidate.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>While it explains: which test in <code>choose_k()</code> chose k, and which could only have ruled one out?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>The elbow chose it: k = 4 is the smallest k from 3 up after which one more cluster cuts inertia by less than 10%. k = 2 is excluded before any test, and the silhouette check only vetoes: it rules out only k = 8 here. Check the assistant’s explanation against this and <a href="#tbl-k-selection" class="quarto-xref">Table&nbsp;<span>11.1</span></a>: one that says the silhouette chose k has misread the rule.</p>
+</div>
+</div>
 <p>To build it instead (optional):</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
@@ -812,7 +938,7 @@ Figure&nbsp;11.6: Clustered urban zones as columns at their head towns’ altitu
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>If you build it, your k may differ from 4 when your preparation differs, and that is fine if the reason is sound. What matters is that the rule for choosing k is written down before you see the answer, and that the clusters are numbered by a fixed rule (here, centre IRCA), so a re-run keeps the same numbers and colours.</p>
+<p>If you build it, your k may differ from 4 when your preparation differs, and that is fine if the reason is sound. What matters is that the rule for choosing k is written down before you see the answer, and that the clusters are numbered by a fixed rule (here, centre IRCA, which the prompt calls centroid IRCA), so a re-run keeps the same numbers and colours.</p>
 </div>
 </div>
 </section>
@@ -851,10 +977,10 @@ Figure&nbsp;11.6: Clustered urban zones as columns at their head towns’ altitu
 <div class="callout-body-container callout-body">
 <p>Take one route through the model, then build the clusters page.</p>
 <div class="done">
-<p><strong>You're done when</strong> <code>outputs/clusters.parquet</code> exists, you can say what k is and why, and <code>clusters.html</code> shows the elbow, the silhouette and the PCA picture.</p>
+<p><strong>You’re done when</strong> <code>outputs/clusters.parquet</code> exists, you can say what k is and why, and <code>clusters.html</code> shows the elbow, the silhouette and the PCA picture.</p>
 </div>
 <div class="catchup">
-<p><strong>Stuck for two minutes?</strong> Paste this into your assistant, then rejoin at the next exercise:</p>
+<p><strong>Stuck for two minutes?</strong> Paste this into your assistant. It backs up your work and brings the project to this point; then carry on from here.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
@@ -862,7 +988,17 @@ Figure&nbsp;11.6: Clustered urban zones as columns at their head towns’ altitu
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>Clustering turns thousands of rows into a few kinds that people can name and compare, but it describes and does not explain. k-means makes one start, then repeats two moves, assign each point to its nearest centre and move each centre to its points’ mean, until nothing changes; it never raises inertia but can stall in a worse grouping, so the analysis uses 20 starts and a fixed seed. k is chosen by a written rule: k = 2 is excluded as the urban-rural split, the elbow picks k = 4 by a narrow margin, and the silhouette, 0.19, says the kinds overlap. Refits from other seeds agree, so the result does not depend on the start, though that does not test other data, features or k. PCA gives a picture, not the model; a third component and a relief map show that altitude, one of the features, separates two of the kinds, clusters 2 and 3. Using the finished model is a legitimate route, provided you can explain what it chose. The kinds so far are only numbers, from cluster 1, lowest centre IRCA, to cluster 4: the next chapter works out what sets each one apart, names it by a rule, and compares the outcomes the clustering never saw.</p>
+<div class="keyideas">
+<ul>
+<li>k-means assigns points to the nearest centre and moves centres to their points’ mean; it can stall, so it keeps the best of many seeded starts.</li>
+<li>k is chosen by a rule written beforehand: exclude k = 2, take the elbow, let the silhouette veto.</li>
+<li>The elbow is marginal and the silhouette low: the kinds summarise a continuum.</li>
+<li>Agreement across seeds shows independence from the start, not from the data or features.</li>
+<li>PCA and the map show where the kinds stand, not why, and the map leaves rural zone-years out.</li>
+<li>Using the finished model is legitimate if you can explain what it chose.</li>
+</ul>
+</div>
+<p>The kinds so far are only numbers, from cluster 1, lowest centre IRCA, to cluster 4: the next chapter works out what sets each one apart, names it by a rule, and compares the outcomes the clustering never saw.</p>
 </section>
 <section id="further-reading" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>
