@@ -10,7 +10,8 @@ EPUBCHECK_JAR := $(EPUBCHECK_DIR)/epubcheck-$(EPUBCHECK_VERSION)/epubcheck.jar
 # A user-level python3 kernelspec can shadow the book's environment; point Jupyter at it.
 QUARTO_BOOK := cd $(BOOK) && JUPYTER_PATH="$$PWD/.venv/share/jupyter" uv run quarto
 
-.PHONY: book book-sync book-html book-epub book-fresh epubcheck media book-shots book-publish deck site
+.PHONY: book book-sync book-html book-epub book-fresh epubcheck media book-shots book-publish deck site \
+	ebook-media ebook-check book-release
 
 ## book: render the HTML and EPUB editions, post-process the EPUB, run epubcheck, check the
 ## EPUB's links into the website edition, and check the live scenes' data against the deck's
@@ -48,7 +49,7 @@ $(EPUBCHECK_JAR):
 	  https://github.com/w3c/epubcheck/releases/download/v$(EPUBCHECK_VERSION)/epubcheck-$(EPUBCHECK_VERSION).zip
 	cd $(EPUBCHECK_DIR) && unzip -q -o epubcheck-$(EPUBCHECK_VERSION).zip
 
-## media: re-record GIFs and stills, rasterise diagrams, cover and QR codes (only when asked).
+## media: re-record GIFs and stills, rasterise diagrams, cover and the QR code (only when asked).
 ## STEPS picks steps of book/media/build.py; ONLY="name" limits the tapes and capture steps.
 STEPS ?=
 media:
@@ -80,3 +81,28 @@ site:
 	$(MAKE) deck
 	$(MAKE) book
 	$(MAKE) book-publish
+
+## ebook-media: remake the landing page's media and <head> (ebook/media/, ebook/_head.html).
+## STEPS picks steps of scripts/ebook_media.py: fonts cover og icons clips inside head
+ebook-media:
+	uv run --no-project --python 3.12 --with fonttools --with brotli --with pillow --with pyyaml \
+	  --with playwright python scripts/ebook_media.py $(STEPS)
+
+## ebook-check: check the rendered landing page (render it first with `make deck`): screenshots,
+## the first screen on a phone, links, contents numbers, share card and JSON-LD, into _ebook-check/
+ebook-check:
+	uv run --no-project --python 3.12 --with playwright --with pillow python scripts/ebook_check.py
+
+## book-release: attach the committed EPUB in docs/book/ to a new GitHub release, which the
+## landing page's download buttons link to (releases/latest/download/). Run by the author, after
+## the book is published and pushed: make book-release TAG=book-2026-11-13
+book-release:
+	@test -n "$(TAG)" || { echo "book-release: name the release, e.g. TAG=book-2026-11-13" >&2; exit 1; }
+	git ls-files --error-unmatch docs/book/prompt-check-publish.epub >/dev/null \
+	  && git diff --quiet HEAD -- docs/book/prompt-check-publish.epub \
+	  || { echo "book-release: commit docs/book/prompt-check-publish.epub first" >&2; exit 1; }
+	git fetch --quiet origin main && git merge-base --is-ancestor HEAD origin/main \
+	  || { echo "book-release: merge this commit into main first" >&2; exit 1; }
+	gh release create $(TAG) docs/book/prompt-check-publish.epub --latest \
+	  --title "Prompt, Check, Publish ($(TAG))" \
+	  --notes "The EPUB edition of Prompt, Check, Publish. Read online: https://project-delphi.github.io/quarto-workshop/book/"

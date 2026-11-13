@@ -37,14 +37,10 @@ from pathlib import Path
 MEDIA = Path(__file__).resolve().parent
 BOOK = MEDIA.parent
 LIVE = "https://project-delphi.github.io/quarto-workshop/book/"
-# QR codes for the EPUB's "live version" links: name -> URL.
+# QR codes for the EPUB's "live version" cards: name -> URL. Only the first card a reader
+# meets, Chapter 6's London map, has one; the other cards give only the link.
 QR_TARGETS = {
     "london-map": LIVE + "chapters/06-audiences.html#sec-london-3d",
-    "kmeans": LIVE + "chapters/11-cluster.html#sec-kmeans-steps",
-    "cluster-cloud": LIVE + "chapters/11-cluster.html#fig-cloud-3d",
-    "colombia-relief": LIVE + "chapters/11-cluster.html#sec-relief",
-    "tunja": LIVE + "chapters/09-explore.html#sec-tunja",
-    "explorations": "https://project-delphi.github.io/quarto-workshop/#/water-meta-terrain",
 }
 # Deck assets the book reuses, copied so both editions resolve them inside book/.
 DECK_ASSETS = ["chat-prompt.gif", "windows-session.gif", "threejs-visits.png",

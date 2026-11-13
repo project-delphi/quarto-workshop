@@ -59,9 +59,9 @@ to the package file, adds landmarks, and removes the `alt` attribute that Quarto
 wrappers (invalid in XHTML). For the stylesheet it marks each chapter's opening paragraph
 (`hook`), sets caption labels ("Figure 1.1") and exercise labels apart, replaces the
 no-break spaces outside code (drawn double-wide by macOS's Charter), lets identifiers in table
-cells break after an underscore, puts each live link's QR
-code at the front of its card, and flattens figures shown on a light panel onto the panel's
-colour. It stops with an error,
+cells break after an underscore, puts the QR code of Chapter 6's live-link card (the only
+card with one) at the front of the card, and flattens figures shown on a light panel onto the
+panel's colour. It stops with an error,
 as `make book-html` does for the HTML edition, if a line beginning "@label." has turned a
 cross-reference into a numbered example list. The EPUBCheck report is
 saved as `_book/epubcheck.txt`.
@@ -138,9 +138,9 @@ All images and animations are made by `media/build.py`, which `make media` runs.
 | `cover` | `media/cover.png`, 1600 × 2560, from `media/cover.svg` |
 | `roadmaps` | the "Where we are" roadmaps, `media/roadmaps/part-N.svg`, from `_chapters.yml` |
 | `diagrams` | a PNG at twice the size beside every SVG in `media/diagrams/` and `media/roadmaps/` |
-| `qr` | the QR codes for the EPUB's links to the live scenes, `media/qr/` |
+| `qr` | the QR code for the EPUB's link to the live London map, the only live-link card with one (Chapter 6), `media/qr/` |
 | `tapes` | terminal animations from `media/tapes/*.tape`, recorded with VHS |
-| `capture` | 3-D scene and preview animations, and pictures of the projects' outputs and the toy files, from `media/capture/*.py` (build the HTML edition first) |
+| `capture` | 3-D scene and preview animations, the Markdown animations of Chapter 4, and pictures of the projects' outputs and the toy files, from `media/capture/*.py` (build the HTML edition first for the scenes) |
 | `posters` | the book versions of the deck's illustrated GIFs |
 | `stills` | the first frame of every GIF, `media/stills/*.png` |
 | `check` | fails unless every GIF is at most 2 MB and 800 px wide, and has a still |
@@ -150,6 +150,7 @@ To redo part of it, name the steps and limit the tapes or capture scripts with `
 ```bash
 make media STEPS="tapes stills check" ONLY=terminal-basics
 make book-html && make media STEPS="capture stills check" ONLY=kmeans
+make media STEPS="capture stills check" ONLY=md_side_by_side
 make media STEPS="diagrams"
 ```
 
@@ -164,6 +165,12 @@ Rules every animation follows:
 - **Illustrations say so.** The chat, agent-session and Windows animations are scripted
   illustrations (the repository's rules rule out paid assistant sessions for teaching
   material), and their captions say so.
+- **Rendered output is real.** The Markdown animations (`capture/md_side_by_side.py`) render
+  every step of their snippet with `quarto render` and show a screenshot of that page beside the
+  source as it is typed. The page is laid out at a narrow width and drawn at 1.7 times the
+  pixel density, so its text (about 29 px), the source (28 px) and the notes (26 px) stay
+  legible when the 800 px GIF is shown at a phone's width. Edit a snippet in `DEMOS` and rerun
+  the script; it fails if a note does not fit on one line or a page is wider than its pane.
 
 The animations are:
 
@@ -176,19 +183,28 @@ The animations are:
 | `colombia-relief-orbit.gif` | `capture/colombia_relief.py` | 1.27 MB |
 | `kmeans-steps.gif` | `capture/kmeans.py` | 1.92 MB |
 | `london-map-orbit.gif` | `capture/london_map.py` | 1.94 MB |
+| `md-emphasis.gif` | `capture/md_side_by_side.py` | 71 KB |
+| `md-headings.gif` | `capture/md_side_by_side.py` | 63 KB |
+| `md-image.gif` | `capture/md_side_by_side.py` | 137 KB |
+| `md-image-link.gif` | `capture/md_side_by_side.py` | 103 KB |
+| `md-link.gif` | `capture/md_side_by_side.py` | 55 KB |
+| `md-lists.gif` | `capture/md_side_by_side.py` | 47 KB |
+| `md-paragraphs.gif` | `capture/md_side_by_side.py` | 42 KB |
+| `md-quote.gif` | `capture/md_side_by_side.py` | 41 KB |
+| `md-rule.gif` | `capture/md_side_by_side.py` | 41 KB |
 | `quarto-preview-reload.gif` | `capture/preview_reload.py` | 135 KB |
 | `render-many-formats.gif` | `tapes/render-many-formats.tape` | 128 KB |
 | `terminal-basics.gif` | `tapes/terminal-basics.tape` | 129 KB |
 | `uv-environment.gif` | `tapes/uv-environment.tape` | 235 KB |
 | `windows-session.gif` | the deck's illustration, `posters` step | 200 KB |
 
-Sizes in decimal units, as built on 2026-11-12.
+Sizes in decimal units, as built on 2026-11-12 (the `md-` animations on 2026-11-13).
 
 ## Checking a build
 
 1. `make book` ends with EPUBCheck's summary, where anything but
    `0 fatals / 0 errors / 0 warnings / 0 infos` is a failure to fix, and with
-   `scripts/check_live_links.py`, which fails if a link or QR code from the EPUB names a page
+   `scripts/check_live_links.py`, which fails if a link or the QR code from the EPUB names a page
    or anchor that the website edition (or the deck) does not have, and with
    `scripts/check_scenes.py`, which fails if a live scene's data differ from the deck's.
    EPUBCheck runs with `--failonwarnings`, so a warning stops the build.
@@ -229,7 +245,7 @@ untested; the Kindle column quotes Amazon's publishing guidelines, not a test.
 | Feature | HTML edition | EPUB, as checked in Chrome | Kindle (Amazon's guidelines) | Apple Books, Kobo, Google Play Books, Thorium |
 |---|---|---|---|---|
 | Animated GIFs | play; the still is shown when reduced motion is on | play | "do not support … multi-frame GIFs"[^kdp-img]: the first frame, a finished still, should show | untested |
-| Live 3-D scenes and data explorers | run (WebGL) | replaced by an animation, a link and a QR code | the same as the EPUB | the same as the EPUB |
+| Live 3-D scenes and data explorers | run (WebGL) | replaced by an animation and a link; the first, Chapter 6's London map, also has a QR code | the same as the EPUB | the same as the EPUB |
 | Night and sepia themes | dark theme via the switch | text takes the reader's colours; figures sit on light panels | the guidelines do not support "images with transparent areas"[^kdp-img]: panel figures are flattened to opaque PNGs | untested |
 | Diagrams | SVG | PNG at twice the size | PNG, as the guidelines recommend over SVG[^kdp-img] | untested |
 | Mathematics | MathJax | MathML (four chapters) | not documented in the pages read[^kdp-tags] | untested |

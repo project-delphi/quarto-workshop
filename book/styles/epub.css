@@ -91,6 +91,11 @@ code span { color: inherit !important; }
    stops long lines wrapping on a phone. Let them wrap. */
 pre > code.sourceCode { white-space: pre-wrap !important; }
 pre > code.sourceCode > span { display: inline !important; }
+/* Pandoc's highlighting CSS also makes the code relatively positioned (for line numbers, which
+   the book does not use). Apple Books (WebKit) does not draw positioned content on the second
+   page of a box with overflow: hidden that splits across pages, so a prompt there showed its
+   label and an empty panel. Keep code in the normal flow. */
+pre > code.sourceCode { position: static !important; }
 div.sourceCode { overflow: visible !important; }
 div.sourceCode pre { margin: 0; }
 /* Pandoc's line anchors are empty; keep them out of the flow. */
@@ -106,7 +111,10 @@ div.sourceCode + dl dd { margin: 0 0 0.4em 1.2em; }
 .transcript pre { border-left-color: rgba(47, 158, 119, 0.8); }
 
 /* ---- Assistant boxes: one card in up to three parts ------------------------------- */
-.agent-box { margin: 1.3em 0; border: 1px solid rgba(128, 128, 128, 0.35); border-radius: 0.4em; overflow: hidden; }
+/* No overflow: hidden (see pre > code.sourceCode above): the parts round their own corners. */
+.agent-box { margin: 1.3em 0; border: 1px solid rgba(128, 128, 128, 0.35); border-radius: 0.4em; }
+.agent-box > div:first-child { border-top-left-radius: 0.35em; border-top-right-radius: 0.35em; }
+.agent-box > div:last-child { border-bottom-left-radius: 0.35em; border-bottom-right-radius: 0.35em; }
 .agent-box > div { margin: 0; padding: 0.6em 0.8em 0.65em; border-left: 4px solid;
   page-break-inside: avoid; break-inside: avoid; }
 .agent-box > div + div { border-top: 1px solid rgba(128, 128, 128, 0.25); }
@@ -220,8 +228,8 @@ thead th { font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Aria
 tr.even td { background-color: rgba(128, 128, 128, 0.06); }
 caption { font-size: 0.9em; margin-bottom: 0.4em; text-align: left; }
 
-/* ---- Live versions: a card with the link and a QR code (the post-processor puts the code
-   first, in its own paragraph, so it floats to the right of the text) ------------------- */
+/* ---- Live versions: a card with the link. Chapter 6's also has a QR code, which the
+   post-processor puts first, in its own paragraph, so it floats to the right of the text --- */
 div.live-link { margin: 1em 0 1.4em; padding: 0.65em 0.8em; border: 1px dashed rgba(128, 128, 128, 0.6);
   border-radius: 0.4em; font-size: 0.9em; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
 div.live-link p { margin: 0; }

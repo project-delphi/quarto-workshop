@@ -66,28 +66,96 @@ Checkpoint
 
 ## Markdown at a glance {#sec-md-basics}
 
-Before the first prompt, here are the marks themselves, all at once, as a reference to come
-back to. The sections after this one use each of them in the guide, one prompt at a time.
+Markdown is plain text in which a few symbols mean formatting. A `#` at the start of a line
+makes a heading; two stars on each side of a word make it bold. You type the symbols; when
+Quarto renders the file, turning it into a page, they become the formatting they stand for. A
+Markdown file is an ordinary text file whose name ends in `.md`: any plain-text editor opens it,
+and it reads well even before it is rendered.
 
-Markdown comes in dialects. *GitHub Flavored Markdown* (GFM) is the one GitHub uses for what
-people write there, such as README files and issues. It is "a strict superset of CommonMark",
-a precise specification of Markdown, with five extensions: tables, task lists, strikethrough,
-automatic links and a ban on some raw HTML (GFM specification, version 0.29-gfm, checked
-2026-11-12).
+This section shows the marks one at a time, before the first prompt; the sections after it use
+each of them in the guide. Each animation pairs what you type, on the left, with what you get,
+on the right. The right-hand side is not drawn: each step on the left was saved in a file and
+rendered by Quarto 1.10.20, and the right shows that page, enlarged. Each animation opens on its
+finished pair, which is all that a reader without animations shows, then types the source from
+the beginning.
 
-Quarto "is based on Pandoc and uses its variation of markdown as its underlying document
-syntax" (Quarto, *Markdown Basics*, checked 2026-11-12). Pandoc's Markdown reads the same
-core marks as GFM, takes its task lists from it, and adds more: attributes in braces,
-footnotes, definition lists, citations and mathematics among them (Pandoc User's Guide,
-checked 2026-11-12). Three differences catch people who learnt Markdown on GitHub:
+Two things make Markdown safe to learn by trying:
 
-- A list needs a blank line above it; without one, it runs on as part of the paragraph.
-- Strikethrough needs two tildes, `~~Car~~`, because a single pair, `~2~`, makes a subscript.
-- An image's text in square brackets is its caption in Quarto, where GitHub uses it as alt
-  text; Quarto's alt text goes in `fig-alt` (@sec-md-link-image).
+- **Nothing breaks.** A mark that is mistyped, or opened and never closed, usually shows on the
+  page as an ordinary character, and at worst formats the wrong words. Either way the page still
+  renders, the slip is easy to spot, and you fix it by editing the text.
+- **Trying costs nothing.** Type a few lines into a new file named `try.md`, then run
+  `quarto preview try.md` in the terminal, in that file's folder (@sec-md-commands). It opens
+  the page in your browser, or prints an address to open, and updates the page every time you
+  save the file; Ctrl+C in the terminal stops it.
 
-@tbl-md-text and @tbl-md-blocks list the marks this book uses, each with the section where
-the guide first needs it.
+### Headings, paragraphs and emphasis
+
+A line that starts with `#` and a space is a *heading*, the title of a part of the page. One `#`
+gives the largest heading, for the page's title. Each extra `#` makes a heading one level
+smaller (@fig-md-headings), down to six.
+
+![Headings: one `#` for the largest, then `##` and `###` for each level down. The page is shown at a laptop's width, where the three sizes differ most.](../media/gifs/md-headings.gif){#fig-md-headings .anim fig-alt="Two panes, You type on the left and You get on the right, above a note. Finished, the source has three lines with blank lines between them: # London, ## Museums and ### Tate Modern, the # signs in yellow. The page shows London as a large heading, Museums smaller with a thin rule under it, and Tate Modern smaller again. The note reads: More # signs, a smaller heading. The animation types the lines one at a time, and each heading appears on the page once its line is complete."}
+
+Ordinary text needs no mark. Lines that follow one another join into one paragraph, wherever you
+break them, and a *blank line*, a line with nothing on it, starts a new paragraph
+(@fig-md-paragraphs). So you can break a long sentence over several lines of the file without
+changing the page.
+
+![Paragraphs: lines next to each other join into one paragraph, and a blank line starts the next.](../media/gifs/md-paragraphs.gif){#fig-md-paragraphs .anim fig-alt="Two panes, You type and You get, above a note. Finished, the source reads Welcome to on one line and London. on the next, then a blank line and See the sights. The page shows two paragraphs: Welcome to London. on one line, and See the sights. The animation types the first two lines, which the page joins into one, then the blank line and the last line, which the page starts as a new paragraph. The note reads: A blank line starts a new paragraph."}
+
+Stars round words emphasise them: two on each side for **bold**, one on each side for *italic*.
+Two tildes (`~`) on each side ~~strike text through~~, for something no longer true. These
+marks come in pairs. Until the closing pair is typed, the opening one shows as typed, as at the
+start of @fig-md-emphasis.
+
+![Emphasis: `**bold**`, `*italic*` and `~~struck through~~`. Until its closing `**` is typed, the opening pair shows as two stars.](../media/gifs/md-emphasis.gif){#fig-md-emphasis .anim fig-alt="Two panes, You type and You get, above a note. Finished, the source reads Walk by the **river** at *sunset*. over two lines, then a blank line and Go by ~~car~~ Tube., with the stars and tildes in yellow. The page shows river in bold, sunset in italics and car struck through. The animation first types Walk by the **river with no closing stars, and the page shows the two stars as typed. Once the closing pair is typed, river turns bold; then sunset turns italic and car is struck through. The note names each mark as it is typed."}
+
+### Lists, quotations and lines
+
+A line that starts with `-` and a space is an item in a bulleted list. A number and a full
+stop, such as `1.`, then a space, start an item in a numbered list (@fig-md-lists). Leave a
+blank line above a list: without one, its items run on as part of the paragraph before it.
+
+![Lists: `-` and a space for a bulleted item, `1.` and a space for a numbered one, with a blank line between the two lists.](../media/gifs/md-lists.gif){#fig-md-lists .anim fig-alt="Two panes, You type and You get, above a note. Finished, the source has - Tube and - Bus, a blank line, then 1. British Museum and 2. Tate Modern. The page shows a bulleted list of Tube and Bus and, below it, a numbered list of British Museum and Tate Modern. The animation types the bulleted items first, then the numbered ones, and each list appears on the page once it is typed. The note reads: Leave a blank line above a list."}
+
+A `>` at the start of a line makes a *block quote*: a quotation, set off from the text beside a
+bar (@fig-md-quote). Start each of its lines with `>`.
+
+![A block quote: `>` at the start of each line sets the lines off as a quotation.](../media/gifs/md-quote.gif){#fig-md-quote .anim fig-alt="Two panes, You type and You get, above a note. Finished, the source reads Tip from a local:, a blank line, then two lines starting with a yellow >: Many big museums, and are free. The page shows the first line as plain text and, below it, the quotation in grey beside a vertical bar. The animation starts from the plain line and types the two quoted lines, then the quotation appears on the page. The note reads: > at the start of a line: a quotation."}
+
+Three dashes on a line of their own, with a blank line above and below, draw a *horizontal
+rule*: a line across the page that separates two parts of it (@fig-md-rule).
+
+![A horizontal rule: `---` on a line of its own, between blank lines.](../media/gifs/md-rule.gif){#fig-md-rule .anim fig-alt="Two panes, You type and You get, above a note. Finished, the source reads Day one: museums., a blank line, three yellow dashes, a blank line and Day two: parks. The page shows the two sentences with a thin grey line across the page between them. The animation starts from the first sentence, types the dashes, after which the line appears on the page, then types the second sentence below it. The note reads: --- between blank lines: a line across."}
+
+### Links and pictures
+
+A link has two parts: the words to click, in square brackets, then the address they open, in
+round brackets, with no space between the two (@fig-md-link). Square brackets on their own show
+as typed. An address is often too long for one row of the screen, so the editor *wraps* it,
+showing the rest on the next row, as on the left of @fig-md-link. It is still one line, typed
+without pressing Enter.
+
+![A link: the words in square brackets, then the address in round brackets. With the square brackets alone, the words show as typed.](../media/gifs/md-link.gif){#fig-md-link .anim fig-alt="Two panes, You type and You get, above a note. Finished, the source reads Plan with on one line, then Visit London in square brackets followed by https://www.visitlondon.com/ in round brackets, wrapped onto a third row. The page shows Plan with Visit London., with Visit London in blue and underlined. The animation starts from the plain text, adds the square brackets, which the page shows as typed, then types the address in round brackets, and the words become a link. The note reads: Click it to open https://www.visitlondon.com/."}
+
+A picture is written like a link with a `!` in front: its caption in square brackets, then its
+file in round brackets (@fig-md-image). Here the file, `hall.jpg`, is in the same folder as the
+Markdown file. @sec-md-link-image adds what a published picture also needs: a size, and alt
+text, a description for readers who cannot see it.
+
+![A picture: `!`, the caption in square brackets, the file in round brackets. Photo of the Natural History Museum's Central Hall: Julian Herzog, CC BY 4.0, via Wikimedia Commons.](../media/gifs/md-image.gif){#fig-md-image .anim fig-alt="Two panes, You type and You get, above a note. Finished, the source reads ![Central Hall](hall.jpg). The page shows a photograph of the Natural History Museum's Central Hall, a vaulted hall seen from the top of a staircase, captioned Central Hall. The animation types the line, and the photograph appears once it is complete. The note reads: A picture, with its caption below."}
+
+A picture can be a link too. Put the whole picture where a link's words go, inside its square
+brackets: `[![caption](file)](address)` (@fig-md-image-link). The page looks the same, but a
+click on the photo opens the address, here the museum's own page for visitors.
+
+![A picture that is a link: the picture takes the place of a link's words. The page looks the same, and a click on the photo opens the museum's page. Photo: Julian Herzog, CC BY 4.0, via Wikimedia Commons.](../media/gifs/md-image-link.gif){#fig-md-image-link .anim fig-alt="Two panes, You type and You get, above a note. Finished, the source reads ![Central Hall](hall.jpg) inside square brackets, followed by https://www.nhm.ac.uk/visit.html in round brackets, wrapped over three rows. The page shows the same captioned photograph of the Central Hall as the picture without a link. The animation starts from the picture alone, types an opening square bracket in front of it and the closing bracket and address after it, and the page stays the same. The note reads: Click the picture to open https://www.nhm.ac.uk/visit.html."}
+
+### All the marks together
+
+@tbl-md-text and @tbl-md-blocks gather the marks this book uses, those above and a few more,
+each with the section where the guide first needs it. Come back to them as you write.
 
 | You type | You get |
 |:-----------|:-----------|
@@ -102,10 +170,9 @@ the guide first needs it.
 
 : Markdown for text and lists. {#tbl-md-text}
 
-Lines with no blank line between them join into one paragraph. To break a line without
-starting a paragraph, end it with `\`. Two spaces at the end work too, but "the backslash is
-easier to see, and editors that strip trailing whitespace on save won't remove it" (Quarto,
-*Markdown Basics*).
+To break a line without starting a new paragraph, end it with `\`. Two spaces at the end work
+too, but "the backslash is easier to see, and editors that strip trailing whitespace on save
+won't remove it" (Quarto, *Markdown Basics*).
 
 | You type | You get |
 |:-----------|:-----------|
@@ -155,11 +222,30 @@ A line of text, and straight under it, with no blank line between, a line of thr
 Does the page show a horizontal rule?
 
 No: the line of text becomes a level-2 heading. A line underlined with dashes is another way
-of writing one, in GFM and in Pandoc's Markdown alike, which is why the rule in
+of writing one, in GitHub's Markdown and Quarto's alike, which is why the rule in
 @tbl-md-blocks needs a blank line above it.
 :::
 
-### Two commands: render and preview
+### GitHub's Markdown and Quarto's
+
+Markdown comes in dialects. *GitHub Flavored Markdown* (GFM) is the one GitHub uses for what
+people write there, such as README files and issues. It is "a strict superset of CommonMark",
+a precise specification of Markdown, with five extensions: tables, task lists, strikethrough,
+automatic links and a ban on some raw HTML (GFM specification, version 0.29-gfm, checked
+2026-11-12).
+
+Quarto "is based on Pandoc and uses its variation of markdown as its underlying document
+syntax" (Quarto, *Markdown Basics*, checked 2026-11-12). Pandoc's Markdown reads the same
+core marks as GFM, takes its task lists from it, and adds more: attributes in braces,
+footnotes, definition lists, citations and mathematics among them (Pandoc User's Guide,
+checked 2026-11-12). Three differences catch people who learnt Markdown on GitHub:
+
+- A list needs a blank line above it; without one, it runs on as part of the paragraph.
+- Strikethrough needs two tildes, `~~Car~~`, because a single pair, `~2~`, makes a subscript.
+- An image's text in square brackets is its caption in Quarto, where GitHub uses it as alt
+  text; Quarto's alt text goes in `fig-alt` (@sec-md-link-image).
+
+### Two commands: render and preview {#sec-md-commands}
 
 Quarto turns a file into a page with either of two commands, typed in the terminal in the
 file's folder (`quarto render --help` and `quarto preview --help`, Quarto 1.10.20, checked
@@ -601,6 +687,8 @@ The backup leaves out `.venv/` because it can hold hundreds of megabytes and is 
 ## Summary {.unnumbered}
 
 ::: keyideas
+- Markdown is plain text in which a few marks mean formatting; a mistyped mark breaks nothing
+  and shows on the page, where you can see it and fix it.
 - Markdown is the layer you read and check; Quarto reads Pandoc's, which accepts GitHub's
   marks and adds more.
 - Plain Markdown renders with no settings; while a preview runs, let it render.
