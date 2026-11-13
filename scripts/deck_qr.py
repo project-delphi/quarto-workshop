@@ -1,10 +1,11 @@
-"""Write assets/deck-qr.svg, the QR code on the workshop deck's title slide.
+"""Write the workshop deck's QR codes: assets/deck-qr.svg and assets/ebook-qr.svg.
 
-It opens the published deck, so participants can follow the slides on their own screens; the
-URL is read from `title-qr: url:` in index.qmd, which the slide also links to.
-Dark modules in the deck's background colour on a warm off-white, with the standard
-four-module quiet zone; the viewBox lets theme.scss size it. Run from the repository root
-after changing that URL:
+The title slide's code opens the published deck, so participants can follow the slides on their
+own screens; the 📖 Get the Book slide's code opens the e-book's landing page. Each URL and
+image path is read from index.qmd's header (`title-qr:` and `ebook-qr:`), which the slides
+also link to, so a code and its link always agree. Dark modules in the deck's background colour
+on a warm off-white, with the standard four-module quiet zone; the viewBox lets theme.scss size
+them. Run from the repository root after changing either URL:
 
     uv run --with segno python scripts/deck_qr.py
 """
@@ -15,20 +16,27 @@ from pathlib import Path
 import segno
 
 DECK = Path("index.qmd")
-OUT = Path("assets/deck-qr.svg")
-# The URL comes from the deck's own `title-qr: url:`, so the code and the slide's link agree.
-m = re.search(r'^title-qr:\n(?:  .*\n)*?  url: "([^"]+)"', DECK.read_text(), re.M)
-if not m:
-    raise SystemExit(f"{DECK} has no title-qr url")
-URL = m.group(1)
+KEYS = ("title-qr", "ebook-qr")
 
-qr = segno.make(URL, error="m", micro=False)
-size = qr.symbol_size(scale=1, border=4)[0]
-buf = io.BytesIO()
-qr.save(buf, kind="svg", scale=1, border=4, dark="#191919", light="#f4f1ea", xmldecl=False,
-        svgns=True, omitsize=True, title="QR code: " + URL)
-svg = buf.getvalue().decode()
-if "viewBox" not in svg:
-    svg = svg.replace("<svg ", f'<svg viewBox="0 0 {size} {size}" ', 1)
-OUT.write_text(svg + "\n")
-print(f"{OUT}: version {qr.version}, error level {qr.error}, {size} modules with the quiet zone")
+
+def field(key: str, name: str) -> str:
+    """A field of one of the header's QR blocks, such as title-qr: url:."""
+    m = re.search(rf'^{key}:\n(?:  .*\n)*?  {name}: "([^"]+)"', DECK.read_text(), re.M)
+    if not m:
+        raise SystemExit(f"{DECK} has no {key}: {name}:")
+    return m.group(1)
+
+
+for key in KEYS:
+    url, out = field(key, "url"), Path(field(key, "image"))
+    qr = segno.make(url, error="m", micro=False)
+    size = qr.symbol_size(scale=1, border=4)[0]
+    buf = io.BytesIO()
+    qr.save(buf, kind="svg", scale=1, border=4, dark="#191919", light="#f4f1ea", xmldecl=False,
+            svgns=True, omitsize=True, title="QR code: " + url)
+    svg = buf.getvalue().decode()
+    if "viewBox" not in svg:
+        svg = svg.replace("<svg ", f'<svg viewBox="0 0 {size} {size}" ', 1)
+    out.write_text(svg + "\n")
+    print(f"{out}: {url}, version {qr.version}, error level {qr.error}, "
+          f"{size} modules with the quiet zone")
