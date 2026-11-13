@@ -140,7 +140,7 @@ All images and animations are made by `media/build.py`, which `make media` runs.
 | `diagrams` | a PNG at twice the size beside every SVG in `media/diagrams/` and `media/roadmaps/` |
 | `qr` | the QR code for the EPUB's link to the live London map, the only live-link card with one (Chapter 6), `media/qr/` |
 | `tapes` | terminal animations from `media/tapes/*.tape`, recorded with VHS |
-| `capture` | 3-D scene and preview animations, and pictures of the projects' outputs and the toy files, from `media/capture/*.py` (build the HTML edition first) |
+| `capture` | 3-D scene and preview animations, the Markdown animations of Chapter 4, and pictures of the projects' outputs and the toy files, from `media/capture/*.py` (build the HTML edition first for the scenes) |
 | `posters` | the book versions of the deck's illustrated GIFs |
 | `stills` | the first frame of every GIF, `media/stills/*.png` |
 | `check` | fails unless every GIF is at most 2 MB and 800 px wide, and has a still |
@@ -150,6 +150,7 @@ To redo part of it, name the steps and limit the tapes or capture scripts with `
 ```bash
 make media STEPS="tapes stills check" ONLY=terminal-basics
 make book-html && make media STEPS="capture stills check" ONLY=kmeans
+make media STEPS="capture stills check" ONLY=md_side_by_side
 make media STEPS="diagrams"
 ```
 
@@ -164,6 +165,12 @@ Rules every animation follows:
 - **Illustrations say so.** The chat, agent-session and Windows animations are scripted
   illustrations (the repository's rules rule out paid assistant sessions for teaching
   material), and their captions say so.
+- **Rendered output is real.** The Markdown animations (`capture/md_side_by_side.py`) render
+  every step of their snippet with `quarto render` and show a screenshot of that page beside the
+  source as it is typed. The page is laid out at a narrow width and drawn at 1.7 times the
+  pixel density, so its text (about 29 px), the source (28 px) and the notes (26 px) stay
+  legible when the 800 px GIF is shown at a phone's width. Edit a snippet in `DEMOS` and rerun
+  the script; it fails if a note does not fit on one line or a page is wider than its pane.
 
 The animations are:
 
@@ -176,13 +183,22 @@ The animations are:
 | `colombia-relief-orbit.gif` | `capture/colombia_relief.py` | 1.27 MB |
 | `kmeans-steps.gif` | `capture/kmeans.py` | 1.92 MB |
 | `london-map-orbit.gif` | `capture/london_map.py` | 1.94 MB |
+| `md-emphasis.gif` | `capture/md_side_by_side.py` | 71 KB |
+| `md-headings.gif` | `capture/md_side_by_side.py` | 63 KB |
+| `md-image.gif` | `capture/md_side_by_side.py` | 137 KB |
+| `md-image-link.gif` | `capture/md_side_by_side.py` | 103 KB |
+| `md-link.gif` | `capture/md_side_by_side.py` | 55 KB |
+| `md-lists.gif` | `capture/md_side_by_side.py` | 47 KB |
+| `md-paragraphs.gif` | `capture/md_side_by_side.py` | 42 KB |
+| `md-quote.gif` | `capture/md_side_by_side.py` | 41 KB |
+| `md-rule.gif` | `capture/md_side_by_side.py` | 41 KB |
 | `quarto-preview-reload.gif` | `capture/preview_reload.py` | 135 KB |
 | `render-many-formats.gif` | `tapes/render-many-formats.tape` | 128 KB |
 | `terminal-basics.gif` | `tapes/terminal-basics.tape` | 129 KB |
 | `uv-environment.gif` | `tapes/uv-environment.tape` | 235 KB |
 | `windows-session.gif` | the deck's illustration, `posters` step | 200 KB |
 
-Sizes in decimal units, as built on 2026-11-12.
+Sizes in decimal units, as built on 2026-11-12 (the `md-` animations on 2026-11-13).
 
 ## Checking a build
 
