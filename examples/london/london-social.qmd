@@ -7,15 +7,15 @@ execute:
 ---
 
 ```{=typst}
-// Quarto has no square papersize: set a 12 cm square page in raw Typst.
-#set page(width: 12cm, height: 12cm, margin: 0.9cm, numbering: none,
-          fill: rgb("#0b2545"))
+// Quarto has no square papersize: set a 12 cm square page in raw Typst. The photo runs to the
+// edges, so the page has no margin; the layout below keeps its own insets.
+#set page(width: 12cm, height: 12cm, margin: 0cm, numbering: none, fill: rgb("#0b2545"))
 #set text(fill: white)
 #set par(justify: false)
-#block(below: 0.8em, text(size: 32pt, weight: "bold")[Visit London])
 ```
 
 ```{python}
+#| output: asis
 import pandas as pd
 
 attractions = pd.read_csv("data/attractions.csv")
@@ -23,20 +23,57 @@ top = attractions.loc[attractions["visits_2025"].idxmax()]
 top_name = top["attraction"].split(" (")[0]
 top_visits = f"{top['visits_2025']:,}"
 entry = "Free to enter" if top["admission"].startswith("Free") else "Tickets needed"
+
+
+def typst_string(text: str) -> str:
+    """A Python string as a Typst string literal."""
+    return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+# Hand the computed facts to the Typst layout below, as Typst variables.
+print("```{=typst}")
+print(f"#let top-name = {typst_string(top_name)}")
+print(f"#let top-visits = {typst_string(top_visits)}")
+print(f"#let entry = {typst_string(entry)}")
+print("```")
 ```
 
-:::: {layout="[42,58]" layout-valign="center"}
+```{=typst}
+#let navy = rgb("#0b2545")
+#let gold = rgb("#f2c14e")
+#let inset = 0.95cm
 
-![](images/big-ben.jpg){fig-alt="Big Ben's clock tower against a blue sky."}
+// The photo fills the square: fit "cover" crops the portrait photo to its middle, the tower
+// from the spire down.
+#place(top + left, image("images/big-ben.jpg", width: 12cm, height: 12cm, fit: "cover"))
+// A light navy wash over the photo, then a navy gradient over its lower part, keep white text
+// legible on sky and stone.
+#place(top + left, rect(width: 12cm, height: 12cm, stroke: none, fill: navy.transparentize(82%)))
+#place(top + left, dy: 5.2cm, rect(width: 12cm, height: 6.8cm, stroke: none,
+  fill: gradient.linear((navy.transparentize(100%), 0%), (navy.transparentize(50%), 30%),
+                        (navy.transparentize(5%), 100%), angle: 90deg)))
+// The frame: a thin border inset from the edge, like a printed card.
+#place(top + left, dx: 0.42cm, dy: 0.42cm,
+  rect(width: 11.16cm, height: 11.16cm, radius: 0.3cm, stroke: 1.2pt + white.transparentize(15%)))
 
-::: {}
-**`{python} top_name`**
+// A badge beside the attraction: the call to action.
+#place(bottom + right, dx: -inset, dy: -1.3cm,
+  box(fill: gold, radius: 1cm, inset: (x: 0.38cm, y: 0.2cm),
+    text(fill: navy, size: 9pt, weight: "bold", entry)))
 
-`{python} top_visits` visits in 2025
+// The message, bottom left.
+#place(bottom + left, dx: inset, dy: -1.25cm, block(width: 10cm)[
+  #text(size: 30pt, weight: "bold")[Visit London]
+  #v(-0.55em)
+  #line(length: 2.2cm, stroke: 2pt + gold)
+  #v(-0.25em)
+  #text(size: 7.5pt, weight: "bold", tracking: 0.14em, fill: gold)[TOP ALVA MEMBER ATTRACTION · 2025]
+  #v(-0.6em)
+  #text(size: 14pt, weight: "bold", top-name) \
+  #text(size: 10.5pt)[#top-visits visits in 2025]
+])
 
-`{python} entry`
-:::
-
-::::
-
-`#text(size: 8pt)[Visits: ALVA 2025 (members only) · Photo: John Dillenbeck, CC0, via Wikimedia Commons]`{=typst}
+// The credits, inside the frame.
+#place(bottom + left, dx: inset, dy: -0.62cm,
+  text(size: 5.5pt, fill: white.transparentize(20%))[Visits: ALVA 2025, member attractions only · Photo: John Dillenbeck, CC0, via Wikimedia Commons])
+```
