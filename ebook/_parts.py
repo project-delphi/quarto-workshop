@@ -293,7 +293,7 @@ def footer() -> str:
         "@sec-sources", f'<a href="{e(g["href"])}">Appendix G, {e(g["title"])}</a>')
     return f"""<footer class="foot">
 <div class="wrap">
-  <p>{e(m["rights"])} · <a href="{S.REPO}">Source on GitHub</a> · <a href="{S.REPO}/blob/main/ebook/index.qmd">This page’s source</a></p>
+  <p>{e(m["rights"])} · <a href="{S.REPO}">Source on GitHub</a> · <a href="{S.REPO}/blob/main/ebook/index.qmd">This page’s source</a> · <a href="{e(S.author_linkedin())}">{e(m["author"])} on LinkedIn</a></p>
   <p><b>Data and images.</b> {credits}</p>
 </div>
 </footer>"""

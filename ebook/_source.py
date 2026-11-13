@@ -280,6 +280,11 @@ def paragraph_after(rel: str, marker: str) -> str:
     return " ".join(text[i:].split("\n\n", 1)[0].split())
 
 
+def author_linkedin() -> str:
+    """The author's LinkedIn profile, from the workshop deck's header (index.qmd)."""
+    return re.search(r'^author-linkedin: "([^"]+)"$', read("index.qmd"), re.M).group(1)
+
+
 def about_author() -> str:
     """The About the Author page's paragraphs, as Markdown."""
     body = read("book/about-author.qmd").split("\n", 1)[1].strip()
