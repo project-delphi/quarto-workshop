@@ -12,7 +12,8 @@ _ebook-check/, ignored by git):
 - the bytes a phone downloads on first load, and any sideways scrolling;
 - every link on the page, on the deck's title and Get the Book slides, and in the website
   edition's sidebar tools: local targets and #anchors must exist in docs/, external ones must
-  answer (the EPUB's release link is reported as pending until the release exists);
+  answer (the EPUB's release link is reported as pending only while no release exists, and
+  the release's EPUB is compared with the committed one, whose size the page shows);
 - the contents' numbers against the website edition's sidebar;
 - the share card, drawn as LinkedIn lays it out from the page's Open Graph tags, and the
   JSON-LD, parsed and checked for the fields a Book needs.
@@ -26,6 +27,7 @@ import html
 import http.server
 import json
 import re
+import subprocess
 import sys
 import tempfile
 import threading
@@ -46,6 +48,7 @@ REPO_FILES = ("https://github.com/project-delphi/quarto-workshop/blob/main/",
               "https://github.com/project-delphi/quarto-workshop/tree/main/")
 # Sites that refuse automated requests (403 or LinkedIn's 999): reported, not failed.
 NO_BOTS = ("https://github.com/signup", "https://www.linkedin.com/")
+LATEST_API = "https://api.github.com/repos/project-delphi/quarto-workshop/releases/latest"
 FAILS: list[str] = []
 
 
@@ -99,6 +102,46 @@ def external_status(url: str) -> int:
         return 0
 
 
+@functools.cache
+def latest_release() -> dict | None:
+    """The latest GitHub release, or None if there is none yet; fails if GitHub cannot say."""
+    req = urllib.request.Request(LATEST_API, headers={"User-Agent": "link-check",
+                                                      "Accept": "application/vnd.github+json"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return None
+        fail(f"cannot read the latest release ({e.code}): {LATEST_API}")
+    except Exception as e:  # noqa: BLE001
+        fail(f"cannot read the latest release ({e}): {LATEST_API}")
+    return {}
+
+
+def release_link(url: str) -> None:
+    """A releases/latest/download/ link: pending while no release exists, else it must answer
+    and its EPUB should be the committed one, whose size the page shows."""
+    release = latest_release()
+    if release is None:
+        print(f"  PENDING (no release yet) {url}")
+        return
+    code = external_status(url)
+    if code != 200:
+        fail(f"{url} answered {code}, though release {release.get('tag_name', '?')} exists")
+        return
+    name = url.rsplit("/", 1)[1]
+    asset = next((a for a in release.get("assets", []) if a["name"] == name), None)
+    committed = subprocess.run(["git", "cat-file", "-s", f":docs/book/{name}"], cwd=ROOT,
+                               capture_output=True, text=True)
+    if asset and committed.returncode == 0 and asset["size"] != int(committed.stdout):
+        print(f"  STALE: release {release['tag_name']}'s {name} is {asset['size']:,} bytes, the "
+              f"committed one {int(committed.stdout):,}, whose size the page shows; "
+              "run make book-release once this is on main")
+    else:
+        print(f"  ok 200 {url}")
+
+
 def check_links(where: str, base: str, hrefs: list[str]) -> None:
     seen = set()
     for h in hrefs:
@@ -107,8 +150,7 @@ def check_links(where: str, base: str, hrefs: list[str]) -> None:
         seen.add(h)
         url = urljoin(base, html.unescape(h))
         if url.startswith(RELEASE):
-            code = external_status(url)
-            print(f"  {'ok' if code == 200 else 'PENDING (no release yet)'} {code} {url}")
+            release_link(url)
             continue
         if url.startswith(PUBLIC):
             target = local_target(url)
@@ -142,8 +184,8 @@ def page_links() -> None:
     hrefs = re.findall(r'<a [^>]*href="([^"]+)"', s)
     print(f"landing page: {len(hrefs)} links")
     check_links("ebook/index.html", PUBLIC + PAGE, hrefs)
-    srcs = re.findall(r'(?:src|data-src|srcset|href)="((?:media/|ebook\.)[^" ,]+)', s)
-    srcs += re.findall(r'srcset="([^"]+)"', s) and re.findall(r'(media/[^ ,"]+) \d+w', s)
+    srcs = re.findall(r'(?:src|srcset|href)="((?:media/|ebook\.)[^" ,]+)', s)  # src= matches data-src=
+    srcs += re.findall(r'(media/[^ ,"]+) \d+w', s)  # every candidate in a srcset
     for p in set(srcs):
         if not (DOCS / "ebook" / p).exists():
             fail(f"ebook/index.html: {p} is missing from docs/ebook/")
@@ -189,7 +231,12 @@ def contents_numbers() -> None:
     page = (DOCS / "ebook/index.html").read_text()
     mine = dict(re.findall(r'<a href="\.\./book/((?:chapters|appendices)/[^"]+)"><span class="n">([^<]*)</span>', page))
     diff = {k: (v, book.get(k, "")) for k, v in mine.items() if v != book.get(k, "")}
-    if diff:
+    if not book or not mine:
+        fail(f"contents: matched {len(mine)} page and {len(book)} sidebar entries: "
+             "the markup changed, so update contents_numbers()")
+    elif missing := set(book) - set(mine):
+        fail(f"contents: the page lists no {sorted(missing)}")
+    elif diff:
         fail(f"contents numbers differ from the website edition (page, book): {diff}")
     else:
         print(f"contents: {len(mine)} chapter and appendix numbers match the website edition")

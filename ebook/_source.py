@@ -105,7 +105,8 @@ def cover() -> dict:
     dots = re.findall(r'<circle cx="(\d+)" cy="(\d+)" r="(\d+)" fill="(#[0-9a-f]{6})"', svg)
     labels = re.findall(r'<text x="(\d+)" y="(\d+)" fill="(#[0-9a-f]{6})">([a-z]+)</text>', svg)
     box = re.search(r'<rect x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)" rx="(\d+)"', svg)
-    if not (len(paths) == len(dots) == len(labels) > 0 and box):
+    src = re.search(r'<text x="(\d+)" y="(\d+)"[^>]*>\.qmd</text>', svg)
+    if not (len(paths) == len(dots) == len(labels) > 0 and box and src):
         raise ValueError("book/media/cover.svg changed shape: update ebook/_source.py's parser")
     fan = []
     for (d, colour), (cx, cy, r, _), (lx, ly, _, name) in zip(paths, dots, labels):
@@ -119,20 +120,22 @@ def cover() -> dict:
         "label": fill(r'letter-spacing="10" fill="(#[0-9a-f]{6})"'),
         "fan": fan,
         "box": tuple(int(v) for v in box.groups()),
+        "src": (int(src.group(1)), int(src.group(2))),
     }
 
 
 # Where each format can be seen: a live example where one exists, else the book's section
 # that shows it. Keys are the cover's labels; the page stops if the cover's formats change.
+# {stem} in a note becomes that chapter's "Chapter N", numbered from _chapters.yml.
 FORMAT_LINKS = {
     "html": ("This page", "Quarto HTML, built from ebook/index.qmd", f"{REPO}/blob/main/ebook/index.qmd"),
-    "pdf": ("The water report", "Chapter 14, in Word and PDF", "chapters/14-publish-many.html#sec-water-report"),
-    "docx": ("The London guide", "Chapter 5, as a Word file", "chapters/05-compute.html#sec-formats"),
+    "pdf": ("The water report", "{14-publish-many}, in Word and PDF", "chapters/14-publish-many.html#sec-water-report"),
+    "docx": ("The London guide", "{05-compute}, as a Word file", "chapters/05-compute.html#sec-formats"),
     "epub": ("This book", "the EPUB you can download", EPUB_URL),
     "slides": ("The workshop slides", "Reveal.js, live", DECK_URL),
     "website": ("The website edition", "this book, live", BOOK_URL),
-    "blog": ("The water blog", "Chapter 14, a website with posts", "chapters/14-publish-many.html#sec-water-website"),
-    "dashboard": ("The water dashboard", "Chapter 14", "chapters/14-publish-many.html#sec-water-dashboard"),
+    "blog": ("The water blog", "{14-publish-many}, a website with posts", "chapters/14-publish-many.html#sec-water-website"),
+    "dashboard": ("The water dashboard", "{14-publish-many}", "chapters/14-publish-many.html#sec-water-dashboard"),
 }
 
 
@@ -143,6 +146,7 @@ def format_links() -> list[dict]:
     out = []
     for f in fan:
         title, note, href = FORMAT_LINKS[f["name"]]
+        note = re.sub(r"\{([^}]+)\}", lambda m: chapter(m.group(1))["name"], note)
         if not href.startswith(("http", "../")):
             href = BOOK_URL + href
         out.append({**f, "title": title, "note": note, "href": href})
@@ -178,7 +182,8 @@ def contents() -> dict:
         title, numbered = heading(rel)
         if numbered:
             n += 1
-        return {"label": str(n) if numbered else "", "title": title, "href": href(rel)}
+        return {"label": str(n) if numbered else "", "title": title, "href": href(rel),
+                "file": rel}
 
     front = [entry(r) for r in ch["front"]]
     parts = []
@@ -194,6 +199,16 @@ def contents() -> dict:
         appendices.append({"label": chr(ord("A") + i), "title": title, "href": href(rel)})
     return {"front": front, "parts": parts, "back": back, "appendices": appendices,
             "chapters": n}
+
+
+def chapter(stem: str) -> dict:
+    """A numbered chapter found by its file name (such as 05-compute), with "name": "Chapter N"."""
+    toc = contents()
+    found = [c for p in toc["parts"] for c in p["chapters"]
+             if Path(c["file"]).stem == stem and c["label"]]
+    if len(found) != 1:
+        raise ValueError(f"book/_chapters.yml has no numbered chapter {stem}")
+    return {**found[0], "name": f"Chapter {found[0]['label']}"}
 
 
 # ---- the two projects --------------------------------------------------------------------

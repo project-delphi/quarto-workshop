@@ -98,8 +98,11 @@ ebook-check:
 ## the book is published and pushed: make book-release TAG=book-2026-11-13
 book-release:
 	@test -n "$(TAG)" || { echo "book-release: name the release, e.g. TAG=book-2026-11-13" >&2; exit 1; }
-	git diff --quiet HEAD -- docs/book/prompt-check-publish.epub \
+	git ls-files --error-unmatch docs/book/prompt-check-publish.epub >/dev/null \
+	  && git diff --quiet HEAD -- docs/book/prompt-check-publish.epub \
 	  || { echo "book-release: commit docs/book/prompt-check-publish.epub first" >&2; exit 1; }
+	git fetch --quiet origin main && git merge-base --is-ancestor HEAD origin/main \
+	  || { echo "book-release: merge this commit into main first" >&2; exit 1; }
 	gh release create $(TAG) docs/book/prompt-check-publish.epub --latest \
 	  --title "Prompt, Check, Publish ($(TAG))" \
 	  --notes "The EPUB edition of Prompt, Check, Publish. Read online: https://project-delphi.github.io/quarto-workshop/book/"

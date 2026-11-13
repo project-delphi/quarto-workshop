@@ -121,7 +121,8 @@ def _numbers(d: str) -> list[float]:
 
 def fan_wide(formats: list[dict], squash: float = 0.5) -> str:
     """The cover's fan, as drawn there, squashed vertically to suit a wide screen."""
-    y0 = 1402
+    x, y, w, h, rx = S.cover()["box"]
+    y0 = y + h  # the lines leave the source box's bottom edge
     sy = lambda y: y0 + (y - y0) * squash  # noqa: E731
     out = []
     for i, f in enumerate(formats):
@@ -132,13 +133,16 @@ def fan_wide(formats: list[dict], squash: float = 0.5) -> str:
         cx, cy, rr = f["dot"]
         out.append(f'<path d="{d}" stroke="{f["colour"]}" pathLength="1" style="--i:{i}"/>'
                    f'<circle cx="{cx}" cy="{sy(cy):.1f}" r="{rr}" fill="{f["colour"]}" style="--i:{i}"/>')
-    x, y, w, h, rx = S.cover()["box"]
     cream, navy = S.cover()["cream"], S.cover()["navy"]
+    sx, sy_ = S.cover()["src"]
+    left = min(f["dot"][0] for f in formats) - 80
+    right = max(f["dot"][0] for f in formats) + 80
+    top = y - 12
     bottom = sy(formats[0]["dot"][1]) + 24
-    return (f'<svg class="fan fan-wide" data-draw viewBox="150 1280 1300 {bottom - 1280:.0f}" '
+    return (f'<svg class="fan fan-wide" data-draw viewBox="{left} {top} {right - left} {bottom - top:.0f}" '
             f'aria-hidden="true" focusable="false"><g class="lines">{"".join(out)}</g>'
             f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" fill="{navy}" stroke="{cream}" stroke-width="5"/>'
-            f'<text x="800" y="1366" class="src">.qmd</text></svg>')
+            f'<text x="{sx}" y="{sy_}" class="src">.qmd</text></svg>')
 
 
 def fan_tall(formats: list[dict]) -> str:
@@ -146,18 +150,20 @@ def fan_tall(formats: list[dict]) -> str:
     The cover's dots are 163 units apart, so each row is 163 units tall."""
     gap = formats[1]["dot"][0] - formats[0]["dot"][0]
     x_first = formats[0]["dot"][0] - gap / 2
+    x, y, w, h, _ = S.cover()["box"]
+    y0, centre = y + h, x + w / 2  # where the lines leave the source box
     k = 0.145  # how far the cover's 524 units of fan reach across the narrow strip
     out = []
     for i, f in enumerate(formats):
         n = _numbers(f["d"])
-        pts = [(110 + (n[j + 1] - 1402) * k, n[j] - x_first) for j in range(0, len(n), 2)]
+        pts = [(110 + (n[j + 1] - y0) * k, n[j] - x_first) for j in range(0, len(n), 2)]
         d = "M{:.1f},{:.1f} C{:.1f},{:.1f} {:.1f},{:.1f} {:.1f},{:.1f}".format(
             *[v for p in pts for v in p])
         end = pts[-1]
         out.append(f'<path d="{d}" stroke="{f["colour"]}" pathLength="1" style="--i:{i}"/>'
                    f'<circle cx="{end[0] + 4:.1f}" cy="{end[1]:.1f}" r="13" fill="{f["colour"]}" style="--i:{i}"/>')
     h = gap * len(formats)
-    mid = 800 - x_first
+    mid = centre - x_first
     cream, navy = S.cover()["cream"], S.cover()["navy"]
     return (f'<svg class="fan fan-tall" data-draw viewBox="0 0 210 {h:.0f}" aria-hidden="true" '
             f'focusable="false"><g class="lines">{"".join(out)}</g>'

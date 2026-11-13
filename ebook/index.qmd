@@ -52,7 +52,7 @@ accounts, accounts_checked = S.assistant_accounts()
 chart = S.cell_figure("book/chapters/05-compute.qmd", "fig-ldn-top10")
 appx = {a["label"]: a for a in toc["appendices"]}
 parts = toc["parts"]
-ch2, ch3 = parts[0]["chapters"][1]["href"], parts[0]["chapters"][2]["href"]
+ch2, ch3 = S.chapter("02-assistant"), S.chapter("03-setup")
 
 # The page's <head> and its <title> must agree with the book (scripts/ebook_media.py writes it).
 S.check_head()
@@ -73,18 +73,26 @@ LOOP = [
               "fluent, fast and wrong, so this step is never skipped, and it is always yours."),
     ("Publish", "Quarto rebuilds every output from the checked source, the same way every time."),
 ]
+# What you need: the preface's list, one item per phrase it joins with commas and "and".
+NEEDS = ["A computer on which you can install software: Windows, Mac or Linux.",
+         "A free [GitHub](https://github.com/signup) account.",
+         "An account with one coding assistant."]
+NEEDS_QUOTED = ("a computer on which you can install software (Windows, Mac or Linux), "
+                "a free GitHub account, and an account with one coding assistant")
+if len(re.split(r", (?:and )?(?![^()]*\))", NEEDS_QUOTED)) != len(NEEDS):
+    raise ValueError("the preface's list of what you need no longer matches NEEDS")
 S.quote(PREFACE, "one small piece of work with its files and columns named",
         "read what changed, look at the result, compare it with the data",
         "An assistant can be fluent, fast and wrong, so this step is never skipped, and it is always yours",
         "every output from the checked source the same way every time",
         "No programming is assumed",
-        "a computer on which you can install software (Windows, Mac or Linux), a free GitHub account, "
-        "and an account with one coding assistant",
+        NEEDS_QUOTED,
         "the exact prompt to give your assistant, what it will probably run, and the few things only you can do",
         "a web page, a Word brief for partners, a printed flyer, a dashboard for managers and a published website",
         "publish the analysis as a report, slides, a blog post and a website, all from one analysis script")
 S.quote("book/about-author.qmd", "PhD", "University of Oxford", "written edition")
-S.quote("book/appendices/i-workshop.qmd", "six-hour, hands-on workshop")
+HOURS = "six-hour"  # the workshop's length, as Appendix I words it
+S.quote("book/appendices/i-workshop.qmd", f"{HOURS}, hands-on workshop")
 S.quote("book/copyright.qmd", "were checked on the dates given in the text and will change")
 # The contents' introduction names the first and last appendices.
 if not (appx["A"]["title"].startswith("Windows") and appx["J"]["title"] == "Glossary"):
@@ -141,8 +149,8 @@ Both run on real, cited data: no toy tables pretending to be research.
 ```{python}
 #| output: asis
 fan = {f["name"]: f["colour"] for f in formats}
-ch6 = parts[1]["chapters"][2]["href"]
-ch11 = parts[2]["chapters"][3]["href"]
+ch6 = S.chapter("06-audiences")["href"]
+ch11 = S.chapter("11-cluster")["href"]
 raw('<div class="cards">' + P.card(
     fan["html"], f"{parts[1]['label']} · London", "A visitor guide for London",
     f"{london['visits']:,}",
@@ -204,14 +212,15 @@ assumed: the book explains the Python the assistant writes, but you do not have 
 ::: {}
 [What you need]{.eyebrow}
 
-## Three things {#what-you-need}
+## `{python} S.words(len(NEEDS)).capitalize()` things {#what-you-need}
 
-1. A computer on which you can install software: Windows, Mac or Linux.
-2. A free [GitHub](https://github.com/signup) account.
-3. An account with one coding assistant.
+```{python}
+#| output: asis
+print("\n".join(f"{i}. {item}" for i, item in enumerate(NEEDS, 1)))
+```
 
 [An honest note on cost: `{python} cost` (checked `{python} cost_checked`).
-`{python} link("Chapter 3", ch3 + "#sec-before-setup")` lists what each assistant needs.]{.note}
+`{python} link(ch3["name"], ch3["href"] + "#sec-before-setup")` lists what each assistant needs.]{.note}
 :::
 :::
 :::
@@ -240,22 +249,22 @@ raw(P.toc(toc))
 
 ```{python}
 #| output: asis
-ch4, ch5 = parts[1]["chapters"][0]["href"], parts[1]["chapters"][1]["href"]
+ch4, ch5 = S.chapter("04-markdown"), S.chapter("05-compute")
 raw(P.inside([
-    {"img": "inside-box.webp", "href": f"{ch5}#sec-yaml",
-     "alt": "A three-part box from Chapter 5: Ask your coding assistant, with the prompt; Expect it to run; You do.",
+    {"img": "inside-box.webp", "href": f"{ch5['href']}#sec-yaml",
+     "alt": f"A three-part box from {ch5['name']}: Ask your coding assistant, with the prompt; Expect it to run; You do.",
      "caption": "Every hands-on step is a three-part box: the exact prompt to give your "
                 "assistant, what it will probably run, and the few things only you can do."},
-    {"img": "inside-catch-up.webp", "href": f"{ch4}#sec-catch-up",
-     "alt": "A Try it box from Chapter 4 that ends with a one-line catch-up prompt naming a checkpoint's README.",
+    {"img": "inside-catch-up.webp", "href": f"{ch4['href']}#sec-catch-up",
+     "alt": f"A Try it box from {ch4['name']} that ends with a one-line catch-up prompt naming a checkpoint's README.",
      "caption": "Stuck for two minutes? One line to your assistant brings the project to the "
                 "chapter's checkpoint, and you carry on from there."},
-    {"img": "inside-chart.webp", "href": f"{ch5}#fig-ldn-top10", "alt": chart["alt"],
+    {"img": "inside-chart.webp", "href": f"{ch5['href']}#fig-ldn-top10", "alt": chart["alt"],
      "caption": f"{chart['caption']} Every chart has a caption and alt text, which say different things.",
      "alt_shown": chart["alt"]},
     {"img": "inside-epub.webp", "href": S.EPUB_URL, "cls": "phone",
-     "alt": f"The EPUB on a phone in night mode, opening Chapter 5, which quotes {london['visits']:,} visits.",
-     "caption": f"The EPUB at night on a phone. Chapter 5 opens with the same {london['visits']:,} "
+     "alt": f"The EPUB on a phone in night mode, opening {ch5['name']}, which quotes {london['visits']:,} visits.",
+     "caption": f"The EPUB at night on a phone. {ch5['name']} opens with the same {london['visits']:,} "
                 "visits, computed from the same file."},
 ]))
 ```
@@ -266,9 +275,9 @@ raw(P.inside([
 ::: {.wrap .narrow}
 [The workshop]{.eyebrow}
 
-## Run it as a six-hour workshop {#the-workshop}
+## Run it as a `{python} HOURS` workshop {#the-workshop}
 
-The book is the written edition of a six-hour, hands-on workshop. Its slides are online, and
+The book is the written edition of a `{python} HOURS`, hands-on workshop. Its slides are online, and
 its worked examples and catch-up checkpoints are in the repository, so you can follow along
 alone or teach it.
 
@@ -313,8 +322,8 @@ Yes. Download the EPUB or read the website edition: there is no sign-up and no e
 <summary>Which assistant do I need?</summary>
 
 One coding assistant. `{python} accounts` (checked `{python} accounts_checked`).
-`{python} link("Chapter 2", ch2 + "#sec-choose")` explains how to choose, and
-`{python} link("what a conversation costs", ch2 + "#sec-cost")`.
+`{python} link(ch2["name"], ch2["href"] + "#sec-choose")` explains how to choose, and
+`{python} link("what a conversation costs", ch2["href"] + "#sec-cost")`.
 
 </details>
 
