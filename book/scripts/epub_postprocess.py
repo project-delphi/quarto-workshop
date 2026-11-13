@@ -254,7 +254,8 @@ QR_IMG = re.compile(r'<img [^>]*class="qr"[^>]*/>')
 def live_links(text: str) -> str:
     """A live-link card ("Turn the map yourself in the website edition, or scan: [QR]") gets
     its QR code first, in a paragraph of its own that the stylesheet floats right, and the
-    sentence ends "or scan the code." instead of running into the image."""
+    sentence ends "or scan the code." instead of running into the image. Only Chapter 6's
+    card has a code; a card without one ("... in the website edition.") is left as it is."""
     def card(m: re.Match) -> str:
         body = m.group(1)
         img = QR_IMG.search(body)

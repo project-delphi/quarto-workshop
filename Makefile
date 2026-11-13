@@ -49,7 +49,7 @@ $(EPUBCHECK_JAR):
 	  https://github.com/w3c/epubcheck/releases/download/v$(EPUBCHECK_VERSION)/epubcheck-$(EPUBCHECK_VERSION).zip
 	cd $(EPUBCHECK_DIR) && unzip -q -o epubcheck-$(EPUBCHECK_VERSION).zip
 
-## media: re-record GIFs and stills, rasterise diagrams, cover and QR codes (only when asked).
+## media: re-record GIFs and stills, rasterise diagrams, cover and the QR code (only when asked).
 ## STEPS picks steps of book/media/build.py; ONLY="name" limits the tapes and capture steps.
 STEPS ?=
 media:

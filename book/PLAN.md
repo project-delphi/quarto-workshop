@@ -168,7 +168,7 @@ or animated version e-readers support.** Each live element in HTML is wrapped in
 | **London 3-D map**, three.js relief scene (`#london-map`) | Live scene. Its JSON is computed by a book cell (`scripts/scenes.py`, adapted from the deck cell); the bundle runs through `assets/deck-host.js`; buttons ("tilt", "up close") replace fragments | GIF of a camera orbit with tilt (6–10 s, ≤ 800 px, ≤ 2 MB), caption, still PNG, link and QR code to the live version |
 | **k-means toy**, 3-D with step, play and seed buttons (`#water-kmeans`) | Live scene with its own buttons | GIF stepping through assign/update iterations; static four-panel small multiple computed in Python (better on e-ink) |
 | **PCA cloud**, 3-D (`#water-pca-3d`) | Live | Orbit GIF + still; the 2-D PCA figure (`#water-pca`) is an ordinary executed figure in both |
-| **Colombia relief**, 3-D (`#water-relief`) | Live | Orbit GIF + still + QR |
+| **Colombia relief**, 3-D (`#water-relief`) | Live | Orbit GIF + still + link |
 | **Five optional 3-D outcome scenes** (`#water-meta-terrain`, `-hulls`, `-stack`, `-orbits`, `-voronoi`) | Live, in an optional section of Chapter 12 | One contact sheet of five stills (no GIFs, to save size) + link |
 | **Tunja explorer**, menus for table, summary and charts (`#water-tunja`, `tunja-explorer.js`) | Live | Static panels computed in Python: IRCA by year (urban vs rural) and one method-change series; link |
 | **Variable explorer**, a menu of box-plot images (`#water-compare`) | Live menu | The three or four panels the text discusses, inline; the rest via link |
@@ -211,10 +211,11 @@ text that describes the motion. Tapes (`media/tapes/*.tape`) and capture scripts
 (`media/capture/*.py`) are committed, so each GIF can be re-recorded. No tape runs a
 network, publishing or paid-assistant command.
 
-**QR codes and "live version" links:** EPUB stand-ins link to the HTML edition if it is
+**"Live version" links and the QR code:** EPUB stand-ins link to the HTML edition if it is
 published (open question 2). Otherwise they link to the deck's already-published slides
 (for example `project-delphi.github.io/quarto-workshop/#/london-map`), which show the same
-scenes now. QR codes are made with `segno` (pure Python, via `uv run --with segno`).
+scenes now. Only the first card, Chapter 6's London map, also has a QR code (§13), made with
+`segno` (pure Python, via `uv run --with segno`).
 
 ## 5. Conventions
 
@@ -347,7 +348,7 @@ book/
 | `make book` | Sync chapter lists → render HTML (`--profile html`) → render EPUB (`--profile epub`) → post-process EPUB → epubcheck |
 | `make book-html`, `make book-epub` | One edition |
 | `make book-fresh` | Delete `book/_freeze/`, then `make book` |
-| `make media` | Re-record GIFs, stills, diagrams' PNGs, roadmaps, cover and QR codes (only when asked; never part of `make book`) |
+| `make media` | Re-record GIFs, stills, diagrams' PNGs, roadmaps, cover and the QR code (only when asked; never part of `make book`) |
 | `make epubcheck` | Run epubcheck on the built EPUB(s) |
 | `make book-shots` | Screenshot sample chapters at phone and tablet widths, light and night |
 
@@ -498,7 +499,7 @@ preface.
 What the finished book does differently from this plan, and why:
 
 1. **The five optional 3-D outcome scenes are linked, not reproduced.** Section 12.6 describes
-   them and links (and QR-codes) the workshop slides at `#/water-meta-terrain`, in both editions,
+   them and links the workshop slides at `#/water-meta-terrain`, in both editions,
    instead of a contact sheet in the EPUB and live scenes in HTML. Porting five more scene
    computations was a large share of the work for an optional section.
 2. **Playwright drives the installed Google Chrome** (`channel="chrome"`), not Playwright's own
@@ -508,7 +509,7 @@ What the finished book does differently from this plan, and why:
    transparent PNGs shown on a light panel onto the panel's colour, because Amazon's guidelines
    list images with transparent areas as unsupported and a reader that drops CSS backgrounds
    would show dark ink on a night page.
-4. **Extra checks:** `make book` also checks every EPUB link and QR code into the website
+4. **Extra checks:** `make book` also checks every EPUB link and the QR code into the website
    edition (`scripts/check_live_links.py`); matplotlib's SVGs are made reproducible so the
    committed `_freeze/` changes only when results do.
 5. **No e-reader was tested.** The EPUB was validated with EPUBCheck and checked as rendered in
@@ -542,10 +543,19 @@ sizes, light and night, preceded the changes; the reviewers then edited their ow
    and preview, and a toy `.md` (Chapter 4); the anatomy of a `.qmd` with a toy file (Chapter 5).
    The toy files live in `media/examples/` and are printed from the files themselves.
 6. **Design:** chapter and part openers, caption labels, booktabs tables, callouts and assistant
-   boxes as cards, live-link cards with the QR code beside the text, ordinary spaces in "Chapter
-   3"; EPUB charts drawn 4.6 inches wide with stacked panels (`scripts/figures.py`); tables, figures
-   and boxes kept to one page (the author's request); new diagrams of the loop and of drift, a
-   redrawn confounders diagram, roadmaps that say what each chapter builds, diagram text of at
-   least 19 px; terminal GIFs whose first frame shows the whole story (and no personal path); the
-   k-means GIF without its buttons; sharper PDF page images; a redesigned square advert
-   (`examples/london/london-social.qmd`, the author's request).
+   boxes as cards, live-link cards with the QR code beside the text (one card since §13),
+   ordinary spaces in "Chapter 3"; EPUB charts drawn 4.6 inches wide with stacked panels
+   (`scripts/figures.py`); tables, figures and boxes kept to one page (the author's request); new
+   diagrams of the loop and of drift, a redrawn confounders diagram, roadmaps that say what each
+   chapter builds, diagram text of at least 19 px; terminal GIFs whose first frame shows the
+   whole story (and no personal path); the k-means GIF without its buttons; sharper PDF page
+   images; a redesigned square advert (`examples/london/london-social.qmd`, the author's
+   request).
+
+## 13. One QR code (2026-11-13)
+
+The author's request: of the six live-version cards in the EPUB, only the first a reader meets,
+Chapter 6's London map, keeps its QR code. The other five (the Tunja explorer in Chapter 9; the
+k-means steps, the cluster cloud and the relief map in Chapter 11; the 3-D explorations in
+Chapter 12) give only their link. `media/build.py` makes that one code, and
+`scripts/check_live_links.py` still checks every link the EPUB contains.
