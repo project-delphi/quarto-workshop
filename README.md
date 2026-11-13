@@ -1,5 +1,10 @@
 # Quarto Workshop
 
+<a href="https://project-delphi.github.io/quarto-workshop/ebook/"><img src="ebook/media/cover-240.webp" width="120" align="right" alt="The cover of Prompt, Check, Publish, by Ravi Kalia"></a>
+
+📖 **Free e-book: [*Prompt, Check, Publish*](https://project-delphi.github.io/quarto-workshop/ebook/)**, the
+workshop as a book. Download the EPUB, or read it online with the live 3-D scenes.
+
 AI-assisted reproducible publishing with Quarto. In a hands-on
 6-hour day (including two 15-minute breaks and a 30-minute meal), participants direct a coding assistant (Claude Code, Codex or Antigravity)
 that writes the computations, check its work, and turn plain-text Markdown into **docx, pdf,
@@ -9,15 +14,16 @@ on them.
 - **[Quarto workshop](https://project-delphi.github.io/quarto-workshop/)**: Part 1 builds a
   London tourist guide from Markdown to a published dashboard. Part 2 clusters Colombian
   municipalities by drinking-water risk and context, then publishes one analysis many ways.
-- **The book**, *Prompt, Check, Publish*, is the workshop as a book: an
-  [EPUB](https://project-delphi.github.io/quarto-workshop/book/prompt-check-publish.epub) e-book, or [HTML](https://project-delphi.github.io/quarto-workshop/book/) online with the live 3-D scenes.
+- **The book**, *Prompt, Check, Publish*, is the workshop as a free book: its
+  [page](https://project-delphi.github.io/quarto-workshop/ebook/) has the EPUB e-book, and the
+  [website edition](https://project-delphi.github.io/quarto-workshop/book/) runs the live 3-D scenes.
 - **[AI workflows](https://project-delphi.github.io/quarto-workshop/ai-workflows.html)**: an
   optional 90-minute graduate lab built on a real randomized email-marketing experiment, with a
   report in PDF (Typst), DOCX and IPYNB, eight slides, and verified revisions.
 
 ## For attendees
 
-Quick links: 📖 Book ([EPUB](https://project-delphi.github.io/quarto-workshop/book/prompt-check-publish.epub) · [HTML](https://project-delphi.github.io/quarto-workshop/book/)) · [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLESHOOTING.md)
+Quick links: 📖 Book ([free e-book](https://project-delphi.github.io/quarto-workshop/ebook/) · [HTML](https://project-delphi.github.io/quarto-workshop/book/)) · [Cheatsheet](CHEATSHEET.md) · [Troubleshooting & Gotchas](TROUBLESHOOTING.md)
 
 ### Pre-work (before the workshop)
 
@@ -143,9 +149,11 @@ Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [T
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, ⭐ white paper, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
-| `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `threejs-visits.png` is the ✨ slide's dry run; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides); `deck-qr.svg` is the title slide's QR code to the published deck, written by `uv run --with segno python scripts/deck_qr.py` |
+| `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `threejs-visits.png` is the ✨ slide's dry run; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides); `deck-qr.svg` and `ebook-qr.svg` are the title slide's QR code to the published deck and the 📖 Get the Book slide's to the e-book's page, written by `uv run --with segno python scripts/deck_qr.py`; `ebook-cover.webp` is that slide's cover, written by `make ebook-media` |
 | `book/` | The book edition (EPUB and HTML) of the workshop, built with `make book`; see `book/README.md` |
-| `Makefile`, `scripts/keep-book.ts`, `scripts/deck_qr.py` | `make deck`, `make book`, `make site` and the other book targets; the deck's post-render step that restores `docs/book/`; the title slide's QR code |
+| `ebook/` | The book's landing page, `/quarto-workshop/ebook/`, built by the root project from the book's source; see "The e-book landing page" below |
+| `Makefile`, `scripts/keep-book.ts`, `scripts/deck_qr.py` | `make deck`, `make book`, `make site` and the other book targets; the deck's post-render step that restores `docs/book/`; the deck's QR codes |
+| `scripts/ebook_media.py`, `scripts/ebook_check.py` | The landing page's media and `<head>` (`make ebook-media`), and its checks (`make ebook-check`) |
 | `theme.scss` | Dark theme additions: agent boxes, clocks, cards, previews, progress bar |
 | `section-progress.html` | Coloured section progress bar and navigation |
 | `_quarto.yml` | Explicit render list, execution defaults, shared Reveal.js settings |
@@ -189,6 +197,38 @@ The bottom bar divides the deck into coloured sections that match the agenda. Th
 segment has a white marker, and a label shows the current section and its slide count. Click a
 segment to jump to its start. Level-one headings start segments; `data-progress-label` on a
 slide heading starts a task segment (used for the eight marketing turns).
+
+### The e-book landing page
+
+`ebook/index.qmd` is the book's landing page, served at
+<https://project-delphi.github.io/quarto-workshop/ebook/> and rendered with the decks by
+`quarto render` or `make deck`. It is a `minimal: true` HTML page with its own `ebook.css` and
+`ebook.js` (no Bootstrap), dark in every OS setting, in the cover's colours. It is built with
+the book's own method: its cells read every number, title, chapter, quotation and credit from
+the book's source and data through `ebook/_source.py`, and the render stops if wording it
+quotes is no longer in the book.
+
+- `make ebook-media` remakes `ebook/media/` and `ebook/_head.html` with
+  `scripts/ebook_media.py` (fonts, cover, the 1200 × 627 share image, icons, clips, pictures
+  of the book's pages, and the page's `<head>`). Name steps with `STEPS="head inside"`: `head`
+  after changing the book's title, description or date in `book/_quarto.yml`, `inside` after
+  republishing the book, `cover` after changing its cover. It needs Google Chrome and ffmpeg.
+- `make ebook-check` serves `docs/` at `/quarto-workshop/` and checks the rendered page:
+  screenshots at 375 × 812 and 1440 × 900, light and dark, and with reduced motion; the download
+  button on a phone's first screen; first-load weight; every link on the page, on the deck's
+  title and 📖 Get the Book slides and in the website edition's sidebar; the contents' numbers;
+  the share card and the JSON-LD. Run Lighthouse (mobile) against the same local server too.
+- The **Download the EPUB** buttons link to
+  `https://github.com/project-delphi/quarto-workshop/releases/latest/download/prompt-check-publish.epub`,
+  which GitHub counts. It answers 404 until a release carries the file. After
+  `make book-publish` of a new edition, and once it is committed, the author attaches the
+  published EPUB to a new release with `make book-release TAG=book-YYYY-MM-DD` (it runs
+  `gh release create`). A new release per edition keeps each edition's download count;
+  replacing the file in an old release resets it. `latest` is the newest release in the
+  repository, so any other release must carry the EPUB too.
+- After publishing, check the share card with LinkedIn's
+  [Post Inspector](https://www.linkedin.com/post-inspector/), which also refreshes LinkedIn's
+  cached copy.
 
 ### Editing and verification
 

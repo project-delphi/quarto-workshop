@@ -7,7 +7,8 @@ This repository is a Quarto website containing Reveal.js teaching decks. Read `_
 hands-on workshop (including two 15-minute breaks and a 30-minute meal): Part 0 (intro, setup),
 Part 1 (London guide, included from `slides/_london.qmd`) and Part 2 (Colombian water quality,
 included from `slides/_water.qmd`).
-`ai-workflows.qmd` teaches graduate-level agent-assisted authoring. `windows-setup.qmd` is a
+`ai-workflows.qmd` teaches graduate-level agent-assisted authoring. `ebook/index.qmd` is the book's
+landing page (see "E-book landing page" below). `windows-setup.qmd` is a
 long-form HTML page, not a deck (its header sets the format): step 1 of setup for Windows, linked from
 `index.qmd`, with one action per step, "you should see" after each, and a stuck-table.
 Preserve the dark theme
@@ -257,6 +258,26 @@ explorers run. `book/README.md` has the tools, build targets, media pipeline and
   sources. A full deck render empties `docs/`: render the deck with `make deck`, which keeps
   `docs/book/` exactly; a plain `quarto render` restores only its committed or staged version
   (`scripts/keep-book.ts`). `make site` renders the deck, then the book.
+
+## E-book landing page
+
+`ebook/index.qmd` is the book's landing page, served at `/quarto-workshop/ebook/` and rendered by
+the root project with the decks (`make deck`). Most visitors arrive on a phone from a LinkedIn
+post, so, unlike the decks, check it at 375 × 812 as well as 1440 × 900. Keep these rules:
+
+- It is built with the book's method. Every number, title, chapter, quotation and credit is read
+  from the book's source or data by `ebook/_source.py`; wording the page quotes is checked with
+  `quote()`, so the render stops when the book changes. Never type a number into the page.
+- It is a `minimal: true` page with its own `ebook.css` and `ebook.js` (no Bootstrap or other
+  framework). It stays dark, in the cover's colours, with WCAG AA contrast, works without
+  JavaScript, and draws everything still under `prefers-reduced-motion`. First load stays
+  under 1.5 MB; clips load only when on screen.
+- `make ebook-media` (`scripts/ebook_media.py`) makes `ebook/media/` and `ebook/_head.html`;
+  rerun `head` after changing the book's title, description or date, `inside` after
+  republishing the book, and `cover` after changing the cover. Do not edit their outputs.
+- The download buttons link to the EPUB in the latest GitHub release. Only the author creates
+  releases (`make book-release TAG=…`); never run it, or `gh release`, to test.
+- Check with `make ebook-check` and Lighthouse (mobile) after a render, and report the results.
 
 ## Git and handoff
 
