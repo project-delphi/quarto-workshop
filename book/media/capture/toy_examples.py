@@ -58,8 +58,11 @@ def main() -> None:
             top, bottom = page.evaluate("""() => {
                 const r = [...document.querySelectorAll("main *")].filter(e => !e.children.length)
                     .map(e => e.getBoundingClientRect()).filter(b => b.height > 0);
+                if (!r.length) return null;
                 return [Math.min(...r.map(b => b.top)) + scrollY, Math.max(...r.map(b => b.bottom)) + scrollY];
-            }""")
+            }""") or (None, None)
+            if top is None:
+                raise SystemExit(f"{html.name}: the rendered page shows nothing to picture")
             top = max(0, top - PAD)
             clip = {"x": 0, "y": top, "width": WIDTH, "height": bottom + PAD - top}
             page.screenshot(path=str(png), full_page=True, clip=clip)

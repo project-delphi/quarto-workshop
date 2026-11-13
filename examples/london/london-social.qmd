@@ -45,7 +45,8 @@ print("```")
 
 // The photo fills the square: fit "cover" crops the portrait photo to its middle, the tower
 // from the spire down.
-#place(top + left, image("images/big-ben.jpg", width: 12cm, height: 12cm, fit: "cover"))
+#place(top + left, image("images/big-ben.jpg", width: 12cm, height: 12cm, fit: "cover",
+  alt: "Big Ben's clock tower against a blue sky."))
 // A light navy wash over the photo, then a navy gradient over its lower part, keep white text
 // legible on sky and stone.
 #place(top + left, rect(width: 12cm, height: 12cm, stroke: none, fill: navy.transparentize(82%)))
@@ -56,21 +57,20 @@ print("```")
 #place(top + left, dx: 0.42cm, dy: 0.42cm,
   rect(width: 11.16cm, height: 11.16cm, radius: 0.3cm, stroke: 1.2pt + white.transparentize(15%)))
 
-// A badge beside the attraction: the call to action.
-#place(bottom + right, dx: -inset, dy: -1.3cm,
-  box(fill: gold, radius: 1cm, inset: (x: 0.38cm, y: 0.2cm),
-    text(fill: navy, size: 9pt, weight: "bold", entry)))
-
-// The message, bottom left.
-#place(bottom + left, dx: inset, dy: -1.25cm, block(width: 10cm)[
+// The message, bottom left. The attraction and the badge (the call to action) share a grid
+// row, so a longer name wraps beside the badge instead of running under it.
+#place(bottom + left, dx: inset, dy: -1.25cm, block(width: 12cm - 2 * inset)[
   #text(size: 30pt, weight: "bold")[Visit London]
   #v(-0.55em)
   #line(length: 2.2cm, stroke: 2pt + gold)
   #v(-0.25em)
   #text(size: 7.5pt, weight: "bold", tracking: 0.14em, fill: gold)[TOP ALVA MEMBER ATTRACTION · 2025]
   #v(-0.6em)
-  #text(size: 14pt, weight: "bold", top-name) \
-  #text(size: 10.5pt)[#top-visits visits in 2025]
+  #grid(columns: (1fr, auto), column-gutter: 0.4cm, align: (left + bottom, right + bottom),
+    [#text(size: 14pt, weight: "bold", top-name) \
+     #text(size: 10.5pt)[#top-visits visits in 2025]],
+    box(fill: gold, radius: 1cm, inset: (x: 0.38cm, y: 0.2cm),
+      text(fill: navy, size: 9pt, weight: "bold", entry)))
 ])
 
 // The credits, inside the frame.

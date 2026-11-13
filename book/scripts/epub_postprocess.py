@@ -25,7 +25,8 @@
    with "@label." and Pandoc took a cross-reference for a list item: stop with an error.
 5c. Typography: a caption's "Figure 1.1:" or "Table 1.1:" becomes a caption-label span; the
    no-break space Quarto puts in "Chapter 3" or "Figure 1.1" becomes a space; numbered
-   chapters' and appendices' h1 get the class "chapter" and their first paragraph "hook";
+   chapters' and appendices' h1 get the class "chapter", and a chapter's first paragraph
+   "hook" (an appendix opens on reference matter, so it keeps a plain first paragraph);
    every other no-break space outside code becomes a space too; an identifier in a table cell
    may break after an underscore (<wbr/>);
    "Exercise II.1:" headings become an exercise-label span and the title; and on the

@@ -159,13 +159,19 @@ local function aside(div)
 end
 
 -- 8. Headings: a hyphenated word ("k-Means") is kept on one line, so a narrow screen never
---    breaks a title at its hyphen.
+--    breaks a title at its hyphen. A date the first pass wrapped is already whole: the walk
+--    is top-down so it can stop at that span instead of wrapping its text a second time, and
+--    it never enters a span it has just made (false), which would wrap the word forever.
 local function heading_words(header)
-  header.content = header.content:walk({ Str = function(str)
-    if str.text:find("%w%-%w") then
-      return pandoc.Span({ pandoc.Str(str.text) }, pandoc.Attr("", { "nowrap" }))
-    end
-  end })
+  header.content = header.content:walk({ traverse = "topdown",
+    Span = function(span)
+      if span.classes:includes("nowrap") then return span, false end
+    end,
+    Str = function(str)
+      if str.text:find("%w%-%w") then
+        return pandoc.Span({ pandoc.Str(str.text) }, pandoc.Attr("", { "nowrap" })), false
+      end
+    end })
   return header
 end
 
@@ -216,7 +222,19 @@ return {
     end },
   { Div = function(div)
       if div.classes:includes("agent-box") then return label_children(div) end
-      return aside(div)
+      -- A picture on a light panel is not framed as a screenshot (9), whether the class is
+      -- on the image or on a div around it. Images are seen before the div that holds them.
+      local walked = nil
+      if div.classes:includes("on-light") then
+        div = div:walk({ Image = function(img)
+          if img.classes:includes("screenshot") then
+            img.classes = img.classes:filter(function(c) return c ~= "screenshot" end)
+            return img
+          end
+        end })
+        walked = div
+      end
+      return aside(div) or walked
     end,
     Header = heading_words,
     Image = scaled },

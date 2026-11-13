@@ -12,8 +12,14 @@ from pathlib import Path
 
 
 def first_page_png(pdf: Path, out: Path, long_side: int) -> None:
-    """Write pdf's first page to out, with its longer side long_side pixels."""
+    """Write pdf's first page to out, with its longer side long_side pixels. An out ending in
+    .jpg is saved as a JPEG: a page that is mostly photograph is a tenth of the PNG's size."""
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run(["qlmanage", "-t", "-s", str(long_side), "-o", tmp, str(pdf)],
                        check=True, capture_output=True)
-        shutil.move(Path(tmp) / f"{pdf.name}.png", out)
+        png = Path(tmp) / f"{pdf.name}.png"
+        if out.suffix == ".jpg":
+            from PIL import Image
+            Image.open(png).convert("RGB").save(out, quality=88, optimize=True, progressive=True)
+        else:
+            shutil.move(png, out)
