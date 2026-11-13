@@ -67,9 +67,27 @@ def hero(promise: str, size_text: str) -> str:
     {cta_buttons(size_text, "hero")}
     {INAPP}
     <ul class="badges" aria-label="Editions"><li>EPUB</li><li>Web</li><li class="plain">no sign-up</li></ul>
+    {hero_qr()}
   </div>
 </div>
 </header>"""
+
+
+def hero_qr() -> str:
+    """A QR code to this page, for a room watching it on a projector (wide screens only).
+
+    It is the deck's 📖 Get the Book code, assets/ebook-qr.svg (scripts/deck_qr.py), inlined;
+    the render stops if that code no longer opens this page."""
+    svg = S.read("assets/ebook-qr.svg").strip()
+    if f"<title>QR code: {S.PAGE_URL}</title>" not in svg:
+        raise ValueError(f"assets/ebook-qr.svg does not open {S.PAGE_URL}: run scripts/deck_qr.py")
+    svg = svg.replace("<title>", '<title id="qr-title">', 1).replace(
+        "<svg ", '<svg role="img" aria-labelledby="qr-title" ', 1)
+    short = S.PAGE_URL.split("://", 1)[1].rstrip("/")
+    return f"""<figure class="hero-qr">
+      {svg}
+      <figcaption><strong>Scan to open this page</strong><span>{e(short)}</span></figcaption>
+    </figure>"""
 
 
 # ---- 2. the loop -----------------------------------------------------------------------------
