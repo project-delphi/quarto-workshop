@@ -203,6 +203,7 @@ or animated version e-readers support.** Each live element in HTML is wrapped in
 | `terminal-basics.gif` | 3 | VHS tape: the `pwd` … `rmdir` session from `#terminal-basics` |
 | `uv-environment.gif` | 4 | VHS tape: `uv init --bare`, `uv add …`, `uv run quarto check jupyter` |
 | `catch-up.gif` | 4 | VHS tape: the checkpoint 01 catch-up steps by hand (backup, copy, render, check) |
+| `md-*.gif` (nine: headings, paragraphs, emphasis, lists, quote, rule, link, image, image link) | 4 | Playwright: each step of a short snippet rendered with `quarto render`, the page's screenshot beside the source as it is typed (§13) |
 | `agent-session.gif` | 2 | Open question 4 |
 
 Every GIF is designed so that **its first frame is the best still**, because readers that
@@ -559,3 +560,18 @@ Chapter 6's London map, keeps its QR code. The other five (the Tunja explorer in
 k-means steps, the cluster cloud and the relief map in Chapter 11; the 3-D explorations in
 Chapter 12) give only their link. `media/build.py` makes that one code, and
 `scripts/check_live_links.py` still checks every link the EPUB contains.
+
+## 14. Markdown, mark by mark (2026-11-13)
+
+The author asked for Chapter 4's Markdown at a glance to be friendlier to complete beginners,
+with animations showing the Markdown and its rendered output side by side. The section now opens
+with what Markdown is, that a mistyped mark only shows as typed, and where to try it, then gives
+one animation per mark (`media/capture/md_side_by_side.py`): headings, paragraphs, emphasis
+(with an unclosed `**` shown as typed), lists, a block quote, a horizontal rule, a link, a
+picture and a picture that is a link. Each step's right-hand pane is the page Quarto renders
+from that step, never a drawing, enlarged so its text is about 29 px in the 800 px frame (source
+28 px, notes 26 px), legible at a phone's width. The headings are rendered at a laptop's width,
+because at a phone's the theme shrinks the three levels to nearly one size. The pictures use the
+guide's credited photo of the Natural History Museum's Central Hall; the links go to Visit London
+and to the museum's page in `data/sights.csv`. The reference tables, the toy file and the
+dialect notes follow the animations.
