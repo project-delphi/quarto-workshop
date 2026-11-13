@@ -2,11 +2,12 @@
 # run for real under the demo account in _demo-env.sh. The middle of the render is cut
 # (Hide/Show); the listing at the end is the real result.
 # poster: media/build.py puts the finished screen first, as a still for readers that don't animate.
+# The frame is tall enough to keep the format block, the render and the listing on one screen.
 Output ../gifs/render-many-formats.gif
 Set Shell "bash"
 Set FontSize 16
 Set Width 800
-Set Height 520
+Set Height 760
 Set Padding 16
 Set Framerate 12
 Set Theme "Builtin Dark"

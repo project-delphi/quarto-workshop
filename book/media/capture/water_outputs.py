@@ -2,7 +2,7 @@
 
 Renders a temporary copy of examples/water (the example itself is not touched) with its own uv
 environment, including its pre-render analysis, then saves the first page of the report PDF and
-of the white paper (macOS's sips rasterises a PDF's first page) and screenshots the dashboard,
+of the white paper (macOS Quick Look draws a PDF's first page, _pdf.py) and screenshots the dashboard,
 the council slides and the blog post in Chrome. Run from book/media/capture:
     uv run --with playwright python water_outputs.py
 """
@@ -14,6 +14,8 @@ import tempfile
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
+
+from _pdf import first_page_png
 
 BOOK = Path(__file__).resolve().parents[2]
 EXAMPLE = BOOK.parent / "examples" / "water"
@@ -28,8 +30,7 @@ def main() -> None:
     subprocess.run(["uv", "run", "quarto", "render"], cwd=work, check=True)
     site = work / "_site"
     for pdf, name in [("report.pdf", "water-report-p1.png"), ("whitepaper.pdf", "water-whitepaper-p1.png")]:
-        subprocess.run(["sips", "-s", "format", "png", "--resampleWidth", "1000", str(site / pdf),
-                        "--out", str(OUT / name)], check=True, capture_output=True)
+        first_page_png(site / pdf, OUT / name, 1400)
         print("figure", (OUT / name).relative_to(BOOK))
     post = next(site.glob("posts/*/index.html"))
     with sync_playwright() as p:

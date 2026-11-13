@@ -3,7 +3,7 @@
 ```{python}
 #| label: ch8-setup
 from scripts import water as w
-from scripts.prose import number_words
+from scripts.prose import number_words, spans, text_holds
 
 raw = w.raw()
 n_rows, n_cols = raw.shape
@@ -18,6 +18,57 @@ pop = raw[raw["year"] == last].groupby("zone")["population"].sum()
 rural_pop, rural_share = pop["rural"] / 1e6, pop["rural"] / pop.sum()
 idf_last = int(raw.loc[raw["idf"].notna(), "year"].max())
 idf_new_first = int(raw.loc[raw["idf_new"].notna(), "year"].min())
+
+# The variables of Part III (@tbl-water-features, @tbl-water-outcomes). Meanings, units and
+# sources are from data/README.md; each variable's level and years are computed from the
+# municipalities' rows.
+munis = raw[raw["entity_type"] == "municipality"]
+
+
+def level(col: str) -> str:
+    """"zone" if a municipality's urban and rural rows ever differ, else "municipality"."""
+    p = munis.pivot_table(index=["divipola", "year"], columns="zone", values=col, aggfunc="first")
+    p = p.dropna()
+    return "zone" if (p["urban"] != p["rural"]).any() else "municipality"
+
+
+def static(col: str) -> bool:
+    """One value for each municipality and zone, repeated in every year."""
+    return bool(munis.groupby(["divipola", "zone"])[col].nunique().le(1).all())
+
+
+FEATURE_ROWS = [  # name, column, what it measures (unit); source
+    ("IRCA", "irca", "water-risk index, utility-supplied (0–100); INS"),
+    ("Piped water", "water_coverage", "aqueduct coverage (%); TerriData"),
+    ("Sewer", "sewer_coverage", "sewerage coverage (%); TerriData"),
+    ("Poverty", "ipm", "people multidimensionally poor (%); 2018 census"),
+    ("Rural share", "rural_share", "rural share of the population (0–1); DANE"),
+    ("Altitude", "altitude_m", "the head town's height (m); SRTM"),
+    ("Rainfall", "rainfall_mm", "rain over the municipality (mm a year); CHIRPS"),
+    ("MDM", "mdm", "municipal performance score (0–100); TerriData"),
+    ("SGP", "sgp_water_pc", "water transfers (nominal pesos per person, logged); TerriData, DANE"),
+]
+OUTCOME_ROWS = [
+    ("Infant mortality", "infant_mortality", "deaths under one year per 1,000 live births; TerriData"),
+    ("Saber 11", "saber11_mean", "mean exam score of the zone's schools (0–500); ICFES"),
+    ("School dropout", "dropout_rate", "public-school pupils who leave during the year (%); MEN"),
+]
+VAR_LEVEL = {c: level(c) for _, c, _ in FEATURE_ROWS + OUTCOME_ROWS}
+features_raw = [c for _, c, _ in FEATURE_ROWS]
+if features_raw != w.A.RAW_FEATURES or [c for _, c, _ in OUTCOME_ROWS] != list(w.A.OUTCOMES):
+    raise ValueError("the analysis's features or outcomes changed: rewrite @tbl-water-features")
+n_mun_feat = sum(VAR_LEVEL[c] == "municipality" for c in features_raw)
+# The prose names IRCA and coverage as zone variables, rainfall and infant mortality as municipal.
+text_holds(all(VAR_LEVEL[c] == "zone" for c in ("irca", "water_coverage", "sewer_coverage"))
+           and VAR_LEVEL["rainfall_mm"] == VAR_LEVEL["infant_mortality"] == "municipality",
+           "zone and municipal variables")
+
+
+def level_years(col: str) -> str:
+    lvl = VAR_LEVEL[col]
+    if static(col):
+        return f"{lvl}; one value"
+    return f"{lvl}; {spans(munis.loc[munis[col].notna(), 'year'].unique())}"
 ```
 
 In 2023, Colombia's national report on drinking water scored the water of its urban areas at 5.7,
@@ -30,8 +81,23 @@ The question for this part is therefore: **which kinds of municipal zone exist i
 by water safety, services and context, and how do health and education outcomes differ between
 them?** Part II's numbers were simple counts; these are not. Every step has a way to go wrong that
 a clean render will not reveal: a variable that means something narrower than its name, a gap that
-is not random, a comparison that looks causal and is not. This chapter deals with all three before
-any code is written, and ends with the rules that hold the assistant to them.
+is not random, a comparison that looks causal and is not.
+
+::: opener
+- Explain what the IRCA scores, and why this part's IRCA understates risk.
+- Identify the unit of analysis, and say what an empty cell means.
+- Distinguish features from outcomes, and explain why clustering on an outcome is circular.
+- Set up the water project's data, rules and environment.
+
+Start from
+: `~/quarto-workshop/`, cloned in Chapter 3. The London guide is not needed.
+
+You build
+: `~/water-quality/`, with `data/`, `AGENTS.md` and a uv environment.
+
+Checkpoint
+: None here: the catch-up at the end of @sec-explore covers both chapters.
+:::
 
 ## The question and its readers {#sec-water-the-question}
 
@@ -40,10 +106,10 @@ The question splits in two, and the order matters:
 1. **Which kinds of municipal zone exist**, judged by water safety, services and context?
 2. **How do health and education outcomes differ** between those kinds?
 
-"Kinds" will be *clusters*: groups of zone-years that are similar to each other on the chosen
-variables, found by an algorithm called k-means (@sec-cluster). Because the unit is a zone in a
-year, a municipality's two zones can belong to different kinds, and a zone can move between kinds
-over the years.
+"Kinds" will be *clusters*: groups of *zone-years*, each one municipality's urban or rural zone in
+one year (@sec-water-data), that are similar to each other on the chosen variables, found by an
+algorithm called k-means (@sec-cluster). Because the unit is a zone in a year, a municipality's
+two zones can belong to different kinds, and a zone can move between kinds over the years.
 
 The answer has two readers. Officials will read it as a report, in Word or as a PDF, and a municipal
 council will see it as a short deck of slides (@sec-publish-many). Both will look for where to act,
@@ -85,21 +151,22 @@ passed and 100 means every test failed.
 ::: pitfall
 The IRCA in this part's data is not the national figure. The open table it comes from (INS,
 datos.gov.co `nxt2-39c3`) holds the *utility-supplied* ("prestadores") IRCA: samples from systems
-run by a water utility. A check on 2026-10-30 found that its 2023 department totals match INCA's
-utility column in 30 of 30 departments and the overall figure in only 5. Self-supplied systems,
-which have no utility, score far worse (43.7 against 7.4 in 2023), so the data understate the risk
-wherever people rely on self-supply, and say nothing where no utility exists. Label the variable "utility-supplied IRCA" everywhere it appears.
+run by a water utility. A check on 2026-10-30, recorded in the data's README (caveat 1), found
+that its 2023 department totals match INCA's utility column in 30 of 30 departments and the overall
+figure in only 5. Self-supplied systems, which have no utility, score far worse (43.7 against 7.4
+in 2023), so the data understate the risk wherever people rely on self-supply, and say nothing
+where no utility exists. Label the variable "utility-supplied IRCA" everywhere it appears.
 :::
 
-## Two measures: IRCA and Saber 11 {#sec-water-measures}
+## Saber 11, and what an average covers {#sec-water-measures}
 
-The outcomes the analysis compares include an education measure, **Saber 11**, the national exam
-taken by students finishing upper secondary school, set by ICFES. It has five tests: critical
-reading, mathematics, social studies and citizenship, natural sciences, and English. The global
-score is five times the weighted mean of the five test scores (each 0 to 100; English counts once,
-the others three times), from 0 to 500, and its mean was fixed at 250 in the first sitting in 2014,
-so that years can be compared (ICFES, *Guía de orientación Saber 11.° 2017-1*, pp. 101 and 104,
-checked 2026-10-30).
+One of the outcomes the analysis compares (@sec-water-features) is an education measure,
+**Saber 11**, the national exam taken by students finishing upper secondary school, set by ICFES. It
+has five tests: critical reading, mathematics, social studies and citizenship, natural sciences, and
+English. The global score is five times the weighted mean of the five test scores (each 0 to 100;
+English counts once, the others three times), from 0 to 500, and its mean was fixed at 250 in the
+first sitting in 2014, so that years can be compared (ICFES, *Guía de orientación Saber 11.°
+2017-1*, pp. 101 and 104, checked 2026-10-30).
 
 Both measures are averages, and an average describes only what it averaged over. IRCA is an average
 over the water samples taken, so a system that is never sampled has no IRCA at all. The Saber 11
@@ -110,7 +177,10 @@ follows.
 ## Where the data come from {#sec-water-data}
 
 Most of the data are Colombian open data from five public bodies; rainfall and altitude come from
-two scientific datasets. All are joined on DANE's DIVIPOLA municipality codes:
+two scientific datasets. All are *joined* on one code: joining two tables matches their rows by a
+column they share, here the code that DANE's list of municipalities, **DIVIPOLA** (*División
+Político-Administrativa*), gives each municipality. It has five digits, two for the department and
+three for the municipality, so `05001` is Medellín, in Antioquia (`05`). The sources are:
 
 - **INS** (Instituto Nacional de Salud): the IRCA surveillance results.
 - **DANE** (the national statistics office): the list of municipalities and their codes, population
@@ -125,13 +195,23 @@ They arrive as three files, in `examples/water/data/` in the workshop repository
 `water_municipal.csv` (the analysis table), `municipios.geojson` (municipal boundaries for maps) and
 `README.md`, which documents every column, source, licence and caveat (@sec-sources lists them all).
 
-**One row is one municipality's urban or rural zone in one year.** The urban zone is the head town
-(*cabecera municipal*); the rural zone is the smaller settlements and the dispersed countryside. The
-table covers every one of DANE's `{python} w.fmt(n_codes)` DIVIPOLA entries, both zones and every
-year from `{python} first` to `{python} last`: `{python} w.fmt(n_rows)` rows and `{python} n_cols`
-columns. Of those entries, `{python} w.fmt(n_munis)` are municipalities; the rest are the island of
-San Andrés and areas that are not municipalities, whose rows are mostly empty. Because every
-municipality has all its rows, a gap is an empty cell, never a missing row.
+**One row is one municipality's urban or rural zone in one year**, a *zone-year*: this is the
+analysis's unit. The urban zone is the head town (*cabecera municipal*); the rural zone is the
+smaller settlements and the dispersed countryside. The table covers every one of DANE's
+`{python} w.fmt(n_codes)` DIVIPOLA entries, both zones and every year from `{python} first` to
+`{python} last`: `{python} w.fmt(n_rows)` rows and `{python} n_cols` columns. Of those entries,
+`{python} w.fmt(n_munis)` are municipalities; the rest are the island of San Andrés and areas that
+are not municipalities, whose rows are mostly empty. Because every municipality has all its rows,
+a gap is an empty cell, never a missing row.
+
+::: think
+A municipality's rural zone has no IRCA in one year. Was its water safe that year?
+
+The data cannot say. IRCA averages the samples taken from utility-run systems, so an empty cell
+means no utility-supplied score was published: the zone may not have been sampled, or its water may
+be self-supplied, which nationally scores far worse (@tbl-irca-bands). An empty IRCA is unknown,
+never safe and never zero.
+:::
 
 ::: practice
 Read `data/README.md` before you analyse anything, and ask the assistant to read it first too. Its
@@ -146,17 +226,61 @@ pesos that are not adjusted for inflation. Each one turns up in the chapters tha
 The most important design decision in Part III is which variables define the kinds and which
 only describe them.
 
-The **features**, which the clustering sees, are `{python} n_feat` variables about water, people
-and place, and government: the utility-supplied IRCA, piped water and sewer coverage, the 2018
-census's multidimensional poverty index, the rural share of the population, the head town's
-altitude, rainfall, a municipal performance index (MDM), and transfers for water per person (SGP,
-on a log scale). The **outcomes**, which the analysis only compares, are infant mortality, the
-Saber 11 score and school dropout.
+The **features**, which the clustering sees, are `{python} WORD[n_feat]` variables about water,
+people and place, and government. The **outcomes**, which the analysis only compares, are infant
+mortality, the Saber 11 score and school dropout (@tbl-water-features, @tbl-water-outcomes). Three
+features need a word. The multidimensional poverty index (IPM, *Índice de Pobreza
+Multidimensional*) is the share of a zone's people who are poor in several respects at once, from
+the 2018 census. MDM (*Medición de Desempeño Municipal*) is DNP's score of a municipality's
+management and results. And SGP (*Sistema General de Participaciones*) is the system of national
+transfers to municipalities: the feature is its allocation for drinking water and basic
+sanitation, per person.
+
+Both tables give each variable's level and years, computed from the municipalities' rows. A
+*zone* variable differs between a municipality's urban and rural rows; a *municipal* one is the
+same on both; "one value" is repeated every year. Meanings, units and sources come from
+`data/README.md` (TerriData is DNP's data portal).
+
+```{python}
+#| label: tbl-water-features
+#| tbl-cap: "The nine features the clustering sees: three about water, four about people and place, two about government."
+#| output: asis
+def var_table(rows: list) -> None:
+    lines = ["| Variable | Measures (unit); source | Level; years |", "|---|---|---|"]
+    lines += [f"| {name} (`{col}`) | {what} | {level_years(col)} |" for name, col, what in rows]
+    print("\n".join(lines))
+
+
+var_table(FEATURE_ROWS)
+```
+
+```{python}
+#| label: tbl-water-outcomes
+#| tbl-cap: "The three outcomes, compared between the kinds but never clustered on. Level and years as in @tbl-water-features."
+#| output: asis
+var_table(OUTCOME_ROWS)
+```
+
+The last column matters in every chapter that follows. A *zone* variable is measured separately for
+a municipality's urban and rural zones; a *municipal* one is a single value for the whole
+municipality, repeated on both of its rows. `{python} WORD[n_mun_feat].capitalize()` of the
+`{python} WORD[n_feat]` features are municipal, so a municipality's two rows in a year differ only
+in the other `{python} WORD[n_feat - n_mun_feat]`. And a municipal outcome, such as infant mortality,
+must be counted once per municipality, not once per row.
 
 **Never cluster on an outcome.** If infant mortality helped define the kinds, the kinds would differ
 in infant mortality by construction, and the comparison in the second question would be circular:
 it would find exactly what was put in. Keeping outcomes out of the clustering is what lets the
 comparison say anything at all.
+
+::: think
+A colleague wants infant mortality added to the features, "since it is what we care about". What
+would the comparison of outcomes between the kinds then show?
+
+That the kinds differ in infant mortality, which would be true by construction: the algorithm
+would have grouped zones partly by that very number. The comparison would find what was put in.
+Infant mortality stays an outcome, compared only after the kinds are found.
+:::
 
 ::: why
 The same care is why the fiscal index `idf` is not a feature, although it describes municipal
@@ -189,17 +313,24 @@ The project lives beside the London one, so that the workshop repository's check
 `../quarto-workshop/checkpoints/`:
 
 ```text
-~                      your home folder
-├── quarto-workshop/   the clone from Chapter 3
-├── london-guide/      Part II
-└── water-quality/     this part's project
+~
+├── quarto-workshop/
+├── london-guide/
+└── water-quality/
 ```
 
-Make the folder, start the assistant in it, and copy the data:
+In your home folder (`~`), `quarto-workshop/` is the clone from Chapter 3, `london-guide/` is
+Part II's project and `water-quality/` is this part's.
+
+Quit the London guide's assistant first (`/exit`), so that the new one starts in the new folder and
+takes it as its world (@sec-root-folder). Then make the folder, start the assistant in it, and copy
+the data:
 
 ::: {.you}
 ```bash
-cd ~ && mkdir -p water-quality && cd water-quality
+cd ~
+mkdir -p water-quality
+cd water-quality
 claude
 ```
 :::
@@ -209,6 +340,14 @@ claude
 Copy ../quarto-workshop/examples/water/data into this folder as data/, then list the files in data/ with their sizes.
 ```
 :::
+
+::: {.agent}
+copies the folder · lists `README.md`, `municipios.geojson` and `water_municipal.csv` with their
+sizes
+:::
+
+The data sit outside the new folder, in `../quarto-workshop/`, so the assistant asks before it reads
+there: approve it, as for the London guide (@sec-brief).
 
 Then write the rules. If you have never clustered anything, the worry is fair: the assistant can
 write an analysis that runs, renders and is wrong. You do not guard against that by writing the code
@@ -224,6 +363,10 @@ Read data/README.md, then create AGENTS.md for this project. Scope: describe Col
 reads `data/README.md` · writes `AGENTS.md`: scope, rules, the data's caveats
 :::
 
+::: {.you}
+approve · check that `AGENTS.md` holds all four rules
+:::
+
 The four rules are this chapter in miniature: the inputs are evidence and stay unchanged; the IRCA is
 labelled for what it is; outcomes describe the clusters but never define them; and comparisons between
 clusters do not establish causal effects of water safety. Asking the assistant to read the README
@@ -235,9 +378,15 @@ Give this project its own Python environment with `uv`: run `uv init --bare`, th
 ```
 :::
 
-The recipe is the London guide's, with the analysis's packages added: `scikit-learn` for k-means,
-`pyarrow` for Parquet, `itables` for the dashboard's searchable table and `tabulate` for tables
-written as Markdown. Packages shared with Part II come from uv's cache.
+::: {.agent}
+`uv init --bare` · `uv add …` · writes `pyproject.toml`, `uv.lock` and `.venv/` · adds the
+`uv run` rule to `AGENTS.md` · `uv run quarto check jupyter`
+:::
+
+You should see a Python whose path runs through this folder's `.venv`, as for the London guide
+(@sec-environments). The recipe is the London guide's, with the analysis's packages added:
+`scikit-learn` for k-means, `pyarrow` for Parquet, `itables` for the dashboard's searchable table
+and `tabulate` for tables written as Markdown. Packages shared with Part II come from uv's cache.
 
 ::: tryit
 Copy the data, write the rules and create the environment.
@@ -247,27 +396,24 @@ Copy the data, write the rules and create the environment.
 this project's `.venv` Python.
 :::
 
-::: catchup
-```default
-Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md
-```
-:::
+There is no catch-up here. If you get stuck, the one at the end of @sec-explore restores this
+chapter's work and the next chapter's together.
 :::
 
 ## Summary {.unnumbered}
 
-The question is which kinds of municipal zone exist in Colombia, by water safety, services and
-context, and how outcomes differ between them; its readers, officials and a municipal council, need
-the limits stated as plainly as the results. IRCA scores tap-water samples from 0 (no risk) to 100
-(unfit), in five official bands; the data's IRCA is the utility-supplied figure, which understates
-risk wherever people rely on self-supply; and both IRCA and Saber 11 average only over what was
-measured. One row is a municipality's urban or rural zone
-in one year, every row exists, and gaps are empty cells. `{python} WORD[n_feat].capitalize()` features
-define the kinds and `{python} WORD[n_out]` outcomes only describe them, because clustering on an
-outcome makes the comparison circular. One script computes everything once, and the project's rules
-write these decisions down for the assistant. What the rules cannot say is what the table holds:
-where it is empty, and where a series moves for reasons unrelated to water. That is the next
-chapter's question.
+::: keyideas
+- First find kinds of municipal zone from water, services and context; then compare outcomes
+  between them.
+- The data's IRCA is utility-supplied, so it understates risk wherever people rely on self-supply.
+- One row is a zone-year and every row exists, so an empty cell means unmeasured, never safe.
+- Zone variables differ between a municipality's two rows; municipal ones are counted once.
+- Features define the kinds and outcomes only describe them: clustering on an outcome is circular.
+- One script computes every result once, and `AGENTS.md` holds the limits for the assistant.
+:::
+
+What the rules cannot say is what the table holds: where it is empty, and where a series moves for
+reasons unrelated to water. That is the next chapter's question.
 
 ## Further reading {.unnumbered}
 

@@ -4,10 +4,11 @@
 #| label: ch11-setup
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.cluster import KMeans
 
 from scripts import scenes as sc
 from scripts import water as w
-from scripts.figures import ACCENT, INK, MUTED, style
+from scripts.figures import ACCENT, INK, MUTED, figsize, grid, is_epub, style
 from scripts.prose import alt_text_holds, number_words, text_holds
 
 A = w.A
@@ -61,7 +62,53 @@ else:
     tj_text = (f"its urban zone-years fall in {clusters_text(tj_in['urban'])} and its rural ones in "
                f"{clusters_text(tj_in['rural'])}")
 
+# k = 2 against the urban-rural split, as plain agreement: the share of rows whose cluster matches
+# their zone under the better of the two ways to pair clusters with zones.
+X = A.zmatrix(res["prepared"])
+lab2 = KMeans(n_clusters=2, random_state=A.SEED, n_init=A.N_INIT).fit(X).labels_
+urban = (res["prepared"]["zone"] == "urban").to_numpy()
+agree2 = max(np.mean(lab2 == urban), np.mean(lab2 != urban))
+# The share of the spread that k clusters account for: with z-scores, the inertia of one cluster
+# is the number of rows times the number of features.
+explained = 1 - ktab.loc[k, "inertia"] / (len(X) * n_feat)
+text_holds(np.isclose((X ** 2).sum(), len(X) * n_feat), "inertia of one cluster")
 
+# @tbl-k-selection: choose_k()'s rule, row by row.
+def verdict(j: int) -> str:
+    if j < 3:
+        return "excluded: the urban–rural split"
+    if not sil_ok[j]:
+        return "silhouette too far below the best"
+    if nxt[j] >= A.ELBOW_DROP:
+        return f"one more still cuts {A.ELBOW_DROP:.0%} or more"
+    return "chosen: the smallest that passes" if j == k else "passes, but larger"
+
+
+if (verdict(k) != "chosen: the smallest that passes"
+        or any(verdict(j).startswith("chosen") for j in ktab.index if j != k)):
+    raise ValueError("choose_k()'s rule and @tbl-k-selection disagree: rewrite the verdicts")
+
+
+# The third principal component in words, from the signs of its two largest weights.
+WORDS = {"irca": "IRCA", "water_coverage": "piped-water coverage", "sewer_coverage": "sewer coverage",
+         "ipm": "poverty", "rural_share": "rural share", "altitude_m": "altitude",
+         "rainfall_mm": "rainfall", "mdm": "MDM", "log_sgp_water_pc": "SGP"}
+pc3 = cl["pc3"]
+pc3_words = " and ".join(f"{'rises' if pc3[f] > 0 else 'falls'} with {WORDS[f]}"
+                         for f in cl["pc3_top"])
+prof = res["profiles"]
+focus = cl["focus"]
+text_holds(list(cl["pc3_top"]) == ["altitude_m", "rainfall_mm"]
+           and pc3["altitude_m"] > 0 > pc3["rainfall_mm"] and cl["side"] == "sits below the others"
+           and prof["z_altitude_m"].idxmin() == focus and prof["z_rainfall_mm"].idxmax() == focus,
+           "the third component and the lowest, wettest kind")
+
+# The relief map draws urban zones only; the mostly rural cluster is barely on it.
+rural_c = int(prof["urban_row_share"].idxmin())
+rural_c_share = 1 - prof.loc[rural_c, "urban_row_share"]
+rc = clusters[(clusters["cluster"] == rural_c) & (clusters["zone"] == "rural")]
+rural_c_alt = rc["altitude_m"].median()
+text_holds(rural_c_share > 0.5 and rural_c_alt > rl["alt_med"][rural_c], "the rural cluster's altitude")
 ```
 
 The water data now have `{python} w.fmt(s["kept"])` prepared rows, each described by
@@ -75,6 +122,22 @@ clusters describe, they do not show causes.
 If the mathematics sounds daunting, it need not be. The algorithm is simple enough to watch step by
 step, and the judgement it needs, how many kinds to look for, is a decision you can write down and
 check before seeing the answer.
+
+::: opener
+- Describe the k-means loop, and why it needs many starts and a fixed seed.
+- Apply the written rule for k, and say how close the call was.
+- Interpret a low silhouette, a stability check and a PCA picture without over-reading them.
+- Run the clustering step and check the assistant's account of k.
+
+Start from
+: The project as @sec-prepare left it.
+
+You build
+: The clustering step, `outputs/clusters.parquet` and `clusters.qmd`.
+
+Checkpoint
+: `checkpoints/07-water-cluster/`.
+:::
 
 ## k-means in four steps {#sec-kmeans-steps}
 
@@ -91,8 +154,11 @@ centre,
 
 $$\text{inertia} = \sum_{i} \lVert x_i - c_{\ell(i)} \rVert^2 ,$$
 
-where $c_{\ell(i)}$ is the centre point $i$ is assigned to, and there are only finitely many ways to
-group the points, so the algorithm always stops. It does not
+where $x_i$ is point $i$ (for the water data, a row's nine z-scores), $c_{\ell(i)}$ is the centre it
+is assigned to, and $\lVert x_i - c_{\ell(i)} \rVert$ is the straight-line distance between them
+(@sec-scaling). On z-scores, inertia is in squared standard deviations, a unit with no everyday
+meaning, so only its changes matter. There are only finitely many ways to group the points, so the
+algorithm always stops. It does not
 always stop at the best answer: a bad start can trap it in a worse grouping. @fig-kmeans-steps shows
 the algorithm on `{python} len(km["toy"])` synthetic points in three groups, which are toy data made up
 for the illustration, not the water data.
@@ -128,42 +194,51 @@ Step through it yourself, and try the start that gets stuck,
 run = km["runs"][0]
 assigns = [i for i, st in enumerate(run) if st[1] is not None]
 picks = [0, assigns[0], assigns[len(assigns) // 2], len(run) - 1]
-titles = ["1. random start", "2. first assignment", "halfway", "4. stable"]
+titles = ["random start", "first assignment", "halfway", "stable"]
 toy = km["toy"]
 with style():
-    fig, axes = plt.subplots(1, 4, figsize=(7.2, 2.1), sharex=True, sharey=True)
-    for ax, i, t in zip(axes, picks, titles):
+    rows, cols = grid(4)
+    fig, axes = plt.subplots(rows, cols, figsize=figsize(7.2, 2.1, rows=rows), sharex=True, sharey=True)
+    for ax, i, t in zip(axes.flat, picks, titles):
         c, lab, _ = run[i]
         if lab is None:
             ax.scatter(toy[:, 0], toy[:, 1], s=3, color="#b8c2cc")
         else:
             ax.scatter(toy[:, 0], toy[:, 1], s=3, c=[A.CLUSTER_COLORS[j] for j in lab])
         ax.scatter(c[:, 0], c[:, 1], s=60, marker="X", color=INK, edgecolors="white", linewidths=1)
-        ax.set_title(t, fontsize=9)
+        ax.set_title(t, fontsize=11)
         ax.set_xticks([]); ax.set_yticks([])
     fig.tight_layout()
     plt.show()
 ```
 
 Different starts can end in different groupings, so the real analysis runs k-means from
-`{python} A.N_INIT` starts (scikit-learn's `n_init`) and keeps the one with the lowest inertia. Its starts
-are not dropped at random, as in the toy. scikit-learn's default, *k-means++* (Arthur and
-Vassilvitskii, 2007), picks the first centre at random from the data and each next one with
-probability proportional to its squared distance from the nearest centre already chosen, which
-spreads them out and makes a stuck start less likely; scikit-learn uses a greedy variant that draws
-several candidates at each step and keeps the best. A fixed random seed makes the result the same
-on every render.
+`{python} A.N_INIT` starts (scikit-learn's `n_init`) and keeps the one with the lowest inertia. The
+starts are random, but repeatable: a fixed *random seed*, the number that starts the computer's
+random-number generator, makes them the same on every run, so your project, the deck and this book
+all get the same clusters.
+
+::: why
+The real starts are not dropped at random, as in the toy. scikit-learn's default, *k-means++*
+(Arthur and Vassilvitskii, 2007), picks the first centre at random from the data and each next one
+with probability proportional to its squared distance from the nearest centre already chosen. That
+spreads the centres out and makes a stuck start less likely; scikit-learn uses a greedy variant that
+draws several candidates at each step and keeps the best.
+:::
 
 ## Choosing k {#sec-choose-k}
 
-k is a *hyperparameter*: a setting the algorithm cannot learn from its own objective, since inertia
-always falls as k grows. The analysis fits k-means for k from `{python} min(A.K_RANGE)` to `{python} max(A.K_RANGE)` and reads two measures (@fig-k-selection). Inertia always falls as k grows, so the
-question is where it stops falling much, the *elbow*. The *silhouette* scores, from −1 to 1, how much
-closer each point is to its own cluster than to the next one, on a fixed sample of `{python} w.fmt(A.SILHOUETTE_N)` rows.
+k is a *hyperparameter*: a setting the algorithm cannot learn from its own objective, because
+inertia always falls as k grows, down to zero when every point is its own cluster. So the analysis
+fits k-means for k from `{python} min(A.K_RANGE)` to `{python} max(A.K_RANGE)` and reads two
+measures (@fig-k-selection). The first is where inertia stops falling much, the *elbow*. The second,
+the *silhouette*, scores from −1 to 1 how much closer each point is to its own cluster than to the
+next one, averaged over the points. It needs every distance between points, so it is computed on a
+fixed sample of `{python} w.fmt(A.SILHOUETTE_N)` rows, which keeps it fast.
 
 ```{python}
 #| label: fig-k-selection
-#| fig-cap: "Choosing k: inertia (left) and silhouette (right) for k = 2 to 8, fitted on all kept rows. The chosen k is marked."
+#| fig-cap: "Choosing k: inertia and silhouette for k = 2 to 8, fitted on all kept rows. The chosen k is marked."
 #| fig-alt: "Two line charts over k from 2 to 8. Inertia falls steadily, steeply at first and more gently after k equals 4. The silhouette is highest at k equals 2, then flat near 0.19 to 0.20 from k equals 3 to 7, and lower at 8. The chosen k, 4, is marked on both."
 #| classes: on-light
 sil = ktab["silhouette"]
@@ -171,7 +246,8 @@ alt_text_holds(k == 4 and list(ktab.index) == list(range(2, 9)) and sil.idxmax()
                and sil.loc[3:7].round(2).between(0.19, 0.20).all() and sil.loc[8] < sil.loc[3:7].min(),
                "fig-k-selection")
 with style():
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.0, 2.7))
+    rows, cols = grid(2)
+    fig, (a1, a2) = plt.subplots(rows, cols, figsize=figsize(7.0, 2.7, rows=rows))
     a1.plot(ktab.index, ktab["inertia"] / 1000, marker="o", color=ACCENT)
     a1.set_ylabel("Inertia (thousands)")
     a2.plot(ktab.index, ktab["silhouette"], marker="o", color=ACCENT)
@@ -184,11 +260,14 @@ with style():
     plt.show()
 ```
 
-The rule, written into `choose_k()` in the analysis script, has three parts:
+The rule, written into `choose_k()` in the analysis script, has three parts, and @tbl-k-selection
+applies it row by row:
 
-- **k = 2 is excluded.** Two clusters mostly split urban from rural rows (their adjusted Rand index with
-  the zone is `{python} f"{ktab.loc[2, 'ari_vs_zone']:.2f}"`, where 1 would mean identical), which we
-  knew already.
+- **k = 2 is excluded.** Two clusters mostly split urban from rural rows, which we knew already:
+  they match the zone for `{python} f"{agree2:.0%}"` of rows. The script measures this with the
+  *adjusted Rand index* (ARI), which scores how far two groupings agree beyond what chance would
+  give: 1 means identical, 0 no better than chance. Here it is
+  `{python} f"{ktab.loc[2, 'ari_vs_zone']:.2f}"`.
 - **The elbow:** take the smallest k from 3 up after which one more cluster cuts inertia by less than
   `{python} f"{A.ELBOW_DROP:.0%}"`. Here that is k = `{python} k`: a `{python} ORDINAL[k + 1]` cluster cuts
   inertia by only `{python} f"{next_drop:.0%}"`.
@@ -196,14 +275,29 @@ The rule, written into `choose_k()` in the analysis script, has three parts:
   k ≥ 3. At k = `{python} k` it is `{python} f"{ktab.loc[k, 'silhouette']:.3f}"`. The check
   `{python} sil_out_text`.
 
+```{python}
+#| label: tbl-k-selection
+#| tbl-cap: "`choose_k()`'s rule, row by row, on the kept rows: how much one more cluster would cut inertia, the silhouette (on the fixed sample) and the verdict. Computed by the finished project's `analysis.py`."
+#| output: asis
+lines = ["| k | One more cluster cuts | Silhouette | Verdict |", "|--:|--:|--:|---|"]
+for j in ktab.index:
+    cut = f"{nxt[j]:.1%}" if j + 1 in ktab.index else "–"
+    row = f"| {j} | {cut} | {ktab.loc[j, 'silhouette']:.3f} | {verdict(j)} |"
+    lines.append(row.replace("| " + verdict(j), "| **" + verdict(j) + "**") if j == k else row)
+print("\n".join(lines))
+```
+
 The elbow is marginal. The `{python} ORDINAL[k]` cluster itself cuts inertia by
-`{python} f"{drop_at_k:.1%}"`, only just above the `{python} f"{A.ELBOW_DROP:.0%}"` threshold, so a
-threshold of `{python} f"{t_alt:.0%}"` would pick k = `{python} k_alt` instead.
+`{python} f"{drop_at_k:.1%}"` (the row for k = `{python} k - 1`), only just above the
+`{python} f"{A.ELBOW_DROP:.0%}"` threshold, so a threshold of `{python} f"{t_alt:.0%}"` would pick
+k = `{python} k_alt` instead. And the `{python} WORD[k]` clusters account for
+`{python} f"{explained:.0%}"` of the spread in the data, one minus the ratio of their inertia to
+that of a single cluster; the rest is difference within the kinds.
 
 Two more checks follow the fit. **Stability**: refits from `{python} len(A.STABILITY_SEEDS)` other
 seeds agree, with an adjusted Rand index of at least `{python} A.floor_to(s["ari_min"])`, so the result
-does not depend on the start. That says nothing about other data, features or k; a bootstrap or
-leave-one-year-out refit would test that.
+does not depend on the start. That says nothing about other data, features or k; refitting on rows
+drawn again at random (a *bootstrap*), or leaving out one year at a time, would test that.
 **Ordering**: clusters are numbered by their centre's IRCA, from lowest to highest, so a re-run keeps the
 same numbers and colours.
 
@@ -217,11 +311,24 @@ is what keeps such a choice honest; `choose_k()` at least makes the rule explici
 check it and see how close the call was.
 :::
 
+::: think
+An official reads the report and asks: "So Colombia has `{python} WORD[k]` kinds of municipal zone?"
+What do you answer?
+
+That `{python} WORD[k]` is a useful summary, not a discovery. A written rule chose it by a narrow
+margin, and a threshold one percentage point higher picks `{python} WORD[k_alt]`; the low silhouette
+says the kinds overlap. The clusters describe typical combinations of water, services and context,
+and a zone near the edge of one could as well sit in the next.
+:::
+
 ## A picture of the clusters {#sec-water-pca}
 
-`{python} WORD[n_feat].capitalize()` dimensions cannot be drawn. *Principal component analysis* (PCA) finds the directions in which the
-data vary most and projects the rows onto them. @fig-wat-pca uses the first two, which keep
-`{python} f"{s['pca_variance_pc1']:.0%}"` and `{python} f"{s['pca_variance_pc2']:.0%}"` of the variance.
+`{python} WORD[n_feat].capitalize()` dimensions cannot be drawn. *Principal component analysis*
+(PCA) finds the directions in which the data vary most and projects the rows onto them. Each
+direction, a *principal component*, is a weighted sum of the `{python} WORD[n_feat]` z-scores, and
+its weights, called *loadings*, say what it measures. @fig-wat-pca uses the first two components,
+which keep `{python} f"{s['pca_variance_pc1']:.0%}"` and `{python} f"{s['pca_variance_pc2']:.0%}"` of
+the variance.
 
 ```{python}
 #| label: fig-wat-pca
@@ -231,7 +338,7 @@ data vary most and projects the rows onto them. @fig-wat-pca uses the first two,
 alt_text_holds(k == 4 and round(s["kept"], -3) == 11_000, "fig-wat-pca")
 alt_text_holds(n_feat == 9, "fig-wat-pca (its caption says nine features)")
 with style():
-    fig, ax = plt.subplots(figsize=(6.6, 4.0))
+    fig, ax = plt.subplots(figsize=figsize(6.6, 4.0, epub=(4.6, 4.6)))
     centres = clusters.groupby("cluster")[["pc1", "pc2"]].mean()
     order = (centres ** 2).sum(axis=1).sort_values(ascending=False).index
     handles = {}
@@ -241,8 +348,10 @@ with style():
                                 marker=A.CLUSTER_MARKERS[c - 1], rasterized=True, linewidths=0)
     ax.set_xlabel(f"PC1 ({s['pca_variance_pc1']:.0%} of variance)")
     ax.set_ylabel(f"PC2 ({s['pca_variance_pc2']:.0%} of variance)")
+    place = (dict(loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=2, fontsize=11) if is_epub()
+             else dict(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=9))
     leg = ax.legend([handles[c] for c in sorted(handles)], [f"Cluster {c}" for c in sorted(handles)],
-                    markerscale=4, loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=9)
+                    markerscale=4, **place)
     for h in leg.legend_handles:
         h.set_alpha(1)
     fig.tight_layout()
@@ -251,10 +360,10 @@ with style():
 
 Overlaps in the picture can be separations in the dimensions it leaves out. Adding a third component,
 which keeps another `{python} f"{cl['var3'][2]:.0%}"` of the variance, shows how much (@fig-cloud-3d). On
-two components, on average `{python} f"{cl['same2'].mean():.0%}"` of a zone-year's 15 nearest
-neighbours are in its own cluster; on three, `{python} f"{cl['same3'].mean():.0%}"`. Cluster `{python} cl["focus"]`, the most
-mixed in two dimensions, `{python} cl["side"]` along the third, which is mostly
-`{python} cl["pc3_text"]`.
+two components, on average `{python} f"{cl['same2'].mean():.0%}"` of a zone-year's `{python} sc.NEIGHBOURS` nearest
+neighbours are in its own cluster; on three, `{python} f"{cl['same3'].mean():.0%}"`. The third
+component `{python} pc3_words`, its two largest loadings. Cluster `{python} focus`, the most mixed in
+two dimensions, `{python} cl["side"]` along it: it is the lowest and wettest of the kinds.
 
 ::: {.content-visible when-format="html:js"}
 ::: {#fig-cloud-3d}
@@ -281,7 +390,7 @@ Turn the cloud yourself
 
 ## Where the clusters stand {#sec-relief}
 
-The third component is mostly `{python} cl["pc3_text"]`. A map shows the altitude directly
+Altitude carries the third component's largest loading. A map shows altitude directly
 (@fig-relief): one column for each of
 the `{python} rl["n"]` clustered urban zones in `{python} rl["year"]`, at its municipality's centroid, as
 tall as its head town's altitude (one derived SRTM point, exaggerated `{python} rl["exag"]` times) and
@@ -310,12 +419,20 @@ Explore the map
 :::
 
 Cluster `{python} rl["high"]`'s urban zones stand highest, with a median altitude of
-`{python} f"{rl['alt_med'][rl['high']]:,.0f}"` m, and `{python} f"{rl['region_top'][rl['high']].iloc[0]:.0%}"`
-of them are in the DNP region `{python} rl["region_top"][rl["high"]].index[0]`. Cluster
+`{python} f"{rl['alt_med'][rl['high']]:,.0f}"` m, and
+`{python} f"{rl['region_top'][rl['high']].iloc[0]:.0%}"` of them are in the region
+`{python} rl["region_top"][rl["high"]].index[0]` (DANE's regional grouping). Cluster
 `{python} rl["low"]`'s stand lowest, at `{python} f"{rl['alt_med'][rl['low']]:,.0f}"` m, and
-`{python} f"{rl['region_top'][rl['low']].iloc[0]:.0%}"` of them are in `{python} rl["region_top"][rl["low"]].index[0]`.
-This shows where the kinds are, not why they differ. Tunja's head town stands at
-`{python} f"{rl['tunja_alt']:,.0f}"` m, and `{python} tj_text`.
+`{python} f"{rl['region_top'][rl['low']].iloc[0]:.0%}"` of them are in
+`{python} rl["region_top"][rl["low"]].index[0]`. This shows where the kinds are, not why they
+differ. Tunja's head town stands at `{python} f"{rl['tunja_alt']:,.0f}"` m, and `{python} tj_text`.
+
+The map draws urban zones only, one column per municipality, because the altitude is the head
+town's. So it shows little of cluster `{python} rural_c`, whose zone-years are
+`{python} f"{rural_c_share:.0%}"` rural. Its few urban columns stand low, at a median of
+`{python} f"{rl['alt_med'][rural_c]:,.0f}"` m, but the median head-town altitude of its rural
+zone-years is `{python} f"{rural_c_alt:,.0f}"` m, so the map says little about where that kind is
+found.
 
 ## Use the model, or build it {#sec-routes}
 
@@ -323,7 +440,8 @@ There are two routes through the modelling, and both end with the same `outputs/
 
 - **Use it** (the normal route): copy the finished `analysis.py` from this step's checkpoint, run it,
   and spend your effort on checking what it chose and on the publications.
-- **Build it** (a challenge): prompt the assistant to write each step of the analysis yourself.
+- **Build it** (a challenge): give the assistant the prompt below and have it write the clustering
+  step itself.
 
 This is a book about publishing, so using the finished model is the normal route, not a fallback. But
 a copied script is only as trustworthy as your reading of it, so the route has two prompts: one runs
@@ -356,8 +474,14 @@ Explain what scripts/analysis.py printed about k: what `inertia`, `silhouette`, 
 reads the printed table and `choose_k()` · explains each column and the rule, quoting the code
 :::
 
-Check the explanation against @sec-choose-k. Here the elbow picks k and the silhouette only has a veto, so
-an answer that says the silhouette chose k has misread the rule; and k = 2 is never a candidate.
+::: think
+While it explains: which test in `choose_k()` chose k, and which could only have ruled one out?
+
+The elbow chose it: k = `{python} k` is the smallest k from 3 up after which one more cluster cuts
+inertia by less than `{python} f"{A.ELBOW_DROP:.0%}"`. k = 2 is excluded before any test, and the
+silhouette check only vetoes: it `{python} sil_out_text`. Check the assistant's explanation
+against this and @tbl-k-selection: one that says the silhouette chose k has misread the rule.
+:::
 
 To build it instead (optional):
 
@@ -370,8 +494,8 @@ In scripts/analysis.py, run k-means on the z_ features for k=2–8 (random_state
 ::: practice
 If you build it, your k may differ from `{python} k` when your preparation differs, and that is fine if
 the reason is sound. What matters is that the rule for choosing k is written down before you see the
-answer, and that the clusters are numbered by a fixed rule (here, centre IRCA), so a re-run keeps the
-same numbers and colours.
+answer, and that the clusters are numbered by a fixed rule (here, centre IRCA, which the prompt calls
+centroid IRCA), so a re-run keeps the same numbers and colours.
 :::
 
 ## The clusters page {#sec-cluster-page}
@@ -409,19 +533,19 @@ Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
 
 ## Summary {.unnumbered}
 
-Clustering turns thousands of rows into a few kinds that people can name and compare, but it
-describes and does not explain. k-means makes one start, then repeats two moves, assign each point to
-its nearest centre and move each centre to its points' mean, until nothing changes; it never raises
-inertia but can stall in a worse grouping, so the analysis uses `{python} A.N_INIT` starts and a fixed
-seed. k is chosen by a written rule: k = 2 is excluded as the urban-rural split, the elbow picks
-k = `{python} k` by a narrow margin, and the silhouette, `{python} f"{ktab.loc[k, 'silhouette']:.2f}"`,
-says the kinds overlap. Refits from other seeds agree, so the result does not depend on the start,
-though that does not test other data, features or k. PCA gives a picture, not the model; a third
-component and a relief map show that altitude, one of the features, separates two of the kinds,
-clusters `{python} rl["high"]` and `{python} rl["low"]`. Using the finished model is a
-legitimate route, provided you can explain what it chose. The kinds so far are only numbers, from
-cluster 1, lowest centre IRCA, to cluster `{python} k`: the next chapter works out what sets each one
-apart, names it by a rule, and compares the outcomes the clustering never saw.
+::: keyideas
+- k-means assigns points to the nearest centre and moves centres to their points' mean; it can
+  stall, so it keeps the best of many seeded starts.
+- k is chosen by a rule written beforehand: exclude k = 2, take the elbow, let the silhouette veto.
+- The elbow is marginal and the silhouette low: the kinds summarise a continuum.
+- Agreement across seeds shows independence from the start, not from the data or features.
+- PCA and the map show where the kinds stand, not why, and the map leaves rural zone-years out.
+- Using the finished model is legitimate if you can explain what it chose.
+:::
+
+The kinds so far are only numbers, from cluster 1, lowest centre IRCA, to cluster `{python} k`: the
+next chapter works out what sets each one apart, names it by a rule, and compares the outcomes the
+clustering never saw.
 
 ## Further reading {.unnumbered}
 

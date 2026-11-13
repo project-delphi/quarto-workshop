@@ -1,8 +1,8 @@
-"""media/figures/london-*.png: pictures of the finished London project's outputs (Chapters 6, 7).
+"""media/figures/london-*: pictures of the finished London project's outputs (Chapters 6, 7).
 
 Renders a temporary copy of examples/london (the example itself is not touched) with its own
 uv environment, then saves the first page of the flyer, the square advert and the white paper
-as PNGs (macOS's sips rasterises a PDF's first page) and screenshots the dashboard and the guide
+(macOS Quick Look draws a PDF's first page, _pdf.py; the advert, a full-bleed photo, as a JPEG) and screenshots the dashboard and the guide
 in Chrome. Run from book/media/capture: uv run --with playwright python london_outputs.py
 """
 from __future__ import annotations
@@ -13,6 +13,8 @@ import tempfile
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
+
+from _pdf import first_page_png
 
 BOOK = Path(__file__).resolve().parents[2]
 EXAMPLE = BOOK.parent / "examples" / "london"
@@ -25,11 +27,10 @@ def main() -> None:
     shutil.copytree(EXAMPLE, work, ignore=shutil.ignore_patterns(".venv", "_site", ".quarto", "*_files"))
     subprocess.run(["uv", "run", "quarto", "render"], cwd=work, check=True)
     site = work / "_site"
-    for pdf, name, width in [("london-flyer.pdf", "london-flyer.png", 900),
-                             ("london-social.pdf", "london-social.png", 800),
-                             ("london-whitepaper.pdf", "london-whitepaper-p1.png", 1000)]:
-        subprocess.run(["sips", "-s", "format", "png", "--resampleWidth", str(width),
-                        str(site / pdf), "--out", str(OUT / name)], check=True, capture_output=True)
+    for pdf, name, size in [("london-flyer.pdf", "london-flyer.png", 1400),
+                            ("london-social.pdf", "london-social.jpg", 1200),
+                            ("london-whitepaper.pdf", "london-whitepaper-p1.png", 1400)]:
+        first_page_png(site / pdf, OUT / name, size)
         print("figure", (OUT / name).relative_to(BOOK))
     with sync_playwright() as p:
         b = p.chromium.launch(channel="chrome")

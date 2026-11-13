@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-e85dad9e1173e1d97bd702522a9286d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-92cbbcc77221ac39376f09d4af05d409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-0d82a697912dd7ccea7f4202bcb5d8f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-4fb9d738d96bfc2ce38496118ee5e0c3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -542,6 +542,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Running This as a Workshop</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glossary</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -603,8 +609,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Simon Willison, a developer, has asked most major new models the same question since 2024: “Generate an SVG of a pelican riding a bicycle”. Four Claude models, each at three effort levels, answered it with 12 drawings, and every one is recognisably a pelican on a bicycle. The dearest cost 13.09 cents, about 93 times as much as the cheapest that was good enough, at 0.14 cents (<a href="#fig-pelicans" class="quarto-xref">Figure&nbsp;<span>2.2</span></a>).</p>
+<p>Simon Willison, a developer, has asked most major new models the same question since 2024: “Generate an SVG of a pelican riding a bicycle” (an SVG is a drawing written as text, so a model writes one as it writes code). Four Claude models, each at three <em>effort</em> levels (how long the model reasons before answering), answered it with 12 drawings, and every one is recognisably a pelican on a bicycle. The dearest cost 13.09 cents, about 93 times as much as the cheapest that was good enough, at 0.14 cents (<a href="#fig-pelicans" class="quarto-xref">Figure&nbsp;<span>2.2</span></a>).</p>
 <p>Choosing between those drawings is the first of many judgements this chapter teaches. A <em>coding assistant</em> is a program that writes and edits files and runs commands at your request: you write the <em>Prompt</em>, it does the typing, and you <em>Check</em> whether the result is right. It can produce in a minute what would take an hour by hand, and it can produce plausible, confident, wrong work just as quickly. How do you get the first kind of work without being fooled by the second?</p>
+<div class="opener">
+<div class="box-label">
+<strong>In this chapter</strong>
+</div>
+<ul>
+<li>Explain how a model and a harness divide the work, and which half to change when an assistant disappoints.</li>
+<li>Choose a model and effort level for a task, and keep a session’s cost down with <code>/model</code>, <code>/clear</code> and <code>/exit</code>.</li>
+<li>Decide where to start an assistant, which of its commands to approve and which rules belong in <code>AGENTS.md</code>.</li>
+<li>Write a prompt that names its files, asks for one step and ends in a check, and disclose an assistant’s use in research.</li>
+</ul>
+</div>
 <div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -617,7 +634,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="callout-body-container callout-body">
 <p>No installation needed. Paste Simon Willison’s prompt, <code>Generate an SVG of a pelican riding a bicycle</code>, into a web chat in your browser (Claude, ChatGPT and Gemini each have a free plan, checked <span class="nowrap">2026-11-12</span>), then paste it again in a new conversation and compare the replies.</p>
 <div class="done">
-<p><strong>You're done when</strong> the two replies differ, although the prompt was the same. Quarto, given the same source, never does that (<a href="01-quarto.html#sec-not-ai" class="quarto-xref"><span>Section 1.3</span></a>).</p>
+<p><strong>You’re done when</strong> the two replies differ, although the prompt was the same. Quarto, given the same source, never does that (<a href="01-quarto.html#sec-not-ai" class="quarto-xref"><span>Section 1.3</span></a>).</p>
 </div>
 </div>
 </div>
@@ -653,11 +670,11 @@ Figure&nbsp;2.1: How a coding assistant works. The harness on your computer pass
 </section>
 <section id="sec-choose" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="sec-choose"><span class="header-section-number">2.2</span> Choosing an assistant and a model</h2>
-<p>Three assistants are used and tested in this book. Each comes from the same company as its default models:</p>
+<p>This book covers three assistants. Each comes from the same company as its default models:</p>
 <div id="tbl-assistants" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked <span class="nowrap">2026-11-12</span>).
+Table&nbsp;2.1: The assistants this book covers. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked <span class="nowrap">2026-11-12</span>).
 </figcaption>
 <div aria-describedby="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -693,11 +710,12 @@ Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced G
 </div>
 </figure>
 </div>
-<p>Other assistants exist; this book does not test them, so it does not list them. Every prompt in the book is written to work in any of the three. A vendor’s own pairing of harness and model is the easiest to set up, but it is not automatically the best fit for a task: the assistant and the model are separate choices.</p>
+<p>What “covers” means differs between them. For all three, the install command, the account it needs and how it reads project rules were checked against the vendor’s documentation (dated in <a href="03-setup.html" class="quarto-xref"><span>Chapter 3</span></a> and <a href="#sec-agents-md" class="quarto-xref"><span>Section 2.5</span></a>). The first screens of Claude Code and Codex were captured for the workshop on <span class="nowrap">2026-11-07</span>; Antigravity’s were not. Other assistants exist; this book does not check them, so it does not list them. Every prompt in the book is written to work in any of the three. A vendor’s own pairing of harness and model is the easiest to set up, but it is not automatically the best fit for a task: the assistant and the model are separate choices.</p>
 <section id="pick-a-model-by-task-not-by-rank" class="level3" data-number="2.2.1">
 <h3 data-number="2.2.1" class="anchored" data-anchor-id="pick-a-model-by-task-not-by-rank"><span class="header-section-number">2.2.1</span> Pick a model by task, not by rank</h3>
 <p>Each vendor offers a family of models, from small and cheap to large and capable. They are not simply better and worse versions of one thing. Larger, more recent models usually follow longer instructions, plan multi-step work and recover from their own errors better. Small models are faster and cheaper, and often good enough for short, well-specified edits such as fixing a typo or reformatting a table. Joining two datasets or debugging a failed render rewards the stronger model.</p>
-<p>The prompts in this book are short and specific, so a mid-sized model at a moderate <em>effort</em> setting (how long the model reasons before answering) is enough: Claude’s Sonnet on medium effort, or Haiku for small edits, or OpenAI’s Sol on low. For unfamiliar, hard work, the vendors’ own advice starts higher: Anthropic suggests starting with Opus 5.5 for most workloads, and OpenAI with GPT-6 Astra for complex reasoning and coding. Start small, and move up only when a task keeps failing.</p>
+<p>The prompts in this book are short and specific, so a mid-sized model at a moderate effort setting is enough: Claude’s Sonnet on medium effort, or Haiku for small edits, or OpenAI’s Sol on low. For unfamiliar, hard work, the vendors’ own advice starts higher: Anthropic suggests starting with Opus 5.5 for most workloads, and OpenAI with GPT-6 Astra for complex reasoning and coding. Start small, and move up only when a task keeps failing.</p>
+<p>Models are priced by the <em>token</em>, a fragment of text of a few characters, with one rate for the text sent to the model (input) and another for the text it writes (output). The prices below are <em>API</em> prices: what a program pays per token when it sends requests to the model directly, through the vendor’s programming interface (the API), rather than through a monthly subscription.</p>
 <div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -708,7 +726,15 @@ Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced G
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Prices change monthly; the principle does not.</strong> The list prices below were correct on <span class="nowrap">2026-11-12</span> and will not be for long. Read them as a snapshot of the spread, not as numbers to plan with.</p>
+<p><strong>Prices change monthly; the principle does not.</strong> The list prices in <a href="#tbl-prices" class="quarto-xref">Table&nbsp;<span>2.2</span></a> were correct on <span class="nowrap">2026-11-12</span> and will not be for long. Read them as a snapshot of the spread, not as numbers to plan with.</p>
+</div>
+</div>
+<div id="tbl-prices" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-prices-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2.2: List prices of eight models, in dollars per million tokens of input and output, checked <span class="nowrap">2026-11-12</span>.
+</figcaption>
+<div aria-describedby="tbl-prices-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
@@ -765,9 +791,10 @@ Table&nbsp;2.1: The assistants this book was tested with. Antigravity replaced G
 </tr>
 </tbody>
 </table>
+</div>
+</figure>
+</div>
 <p>Haiku’s price is for prompts up to 100,000 tokens; longer ones cost five times as much. The pelican runs below used Fable 5.2’s predecessor, Fable 5.1, listed at 10 / 50. Subscriptions count usage differently from API prices, and which models you can choose depends on your plan and the assistant’s version. Sources: Anthropic’s models overview and pricing pages and OpenAI’s models pages (checked <span class="nowrap">2026-11-12</span>).</p>
-</div>
-</div>
 <p>The cost of a fixed level of capability has been falling fast. Measuring the cheapest model that reaches a given benchmark score, the venture firm a16z found the price falling about tenfold a year, a thousandfold over the three years from November 2021, and Epoch AI found falls of between 9 and 900 times a year depending on the benchmark (both checked <span class="nowrap">2026-11-07</span>). Both warn that the pace may slow, and neither measures the frontier, where the price of the most capable work may fall more slowly. The practical lesson is the same either way: choose by what the task needs, not by today’s price.</p>
 </section>
 <section id="one-prompt-four-models-three-efforts" class="level3" data-number="2.2.2">
@@ -830,17 +857,17 @@ Figure&nbsp;2.2: One prompt, four models, three efforts: “Generate an SVG of a
 </section>
 <section id="sec-cost" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="sec-cost"><span class="header-section-number">2.3</span> What a conversation costs</h2>
-<p>Models are paid for by the <em>token</em>, a fragment of text of a few characters. Three things raise the cost of a session:</p>
+<p>Whether you pay by subscription or by API, use is counted in tokens. Three things raise the cost of a session:</p>
 <ol type="1">
 <li><strong>A bigger model</strong> costs more per token.</li>
 <li><strong>A higher effort setting</strong> makes the model write more reasoning tokens per reply.</li>
-<li><strong>A longer conversation</strong> costs more with every turn, because the model keeps no memory between requests: the harness sends the whole conversation again each time. Prompt caching makes the repeated part cheaper, not free, and caches expire.</li>
+<li><strong>A longer conversation</strong> costs more with every turn, because the model keeps no memory between requests: the harness sends the whole conversation again each time. Everything sent with a request (the conversation so far, the files read, the project’s rules) is the model’s <em>context</em>. Prompt caching makes the repeated part cheaper, not free, and caches expire.</li>
 </ol>
-<p>The habits that follow are simple: a mid-sized model at moderate effort, one task per conversation, and a fresh conversation as soon as a task is done. Three commands, typed at the assistant’s prompt rather than in the shell, cover them:</p>
+<p>The habits that follow are simple: a mid-sized model at moderate effort, one task per conversation, and a fresh conversation as soon as a task is done. Three commands, typed into the assistant itself rather than run in the terminal (<a href="03-setup.html#sec-two-places" class="quarto-xref"><span>Section 3.4.1</span></a>), cover them:</p>
 <div id="tbl-slash" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-slash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2.2: Three commands that control cost and context (Claude Code commands reference and Codex CLI reference, checked <span class="nowrap">2026-11-12</span>). Type <code>/</code> alone to list your assistant’s commands.
+Table&nbsp;2.3: Three commands that control cost and context (Claude Code commands reference and Codex CLI reference, checked <span class="nowrap">2026-11-12</span>). Type <code>/</code> alone to list your assistant’s commands.
 </figcaption>
 <div aria-describedby="tbl-slash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -883,18 +910,18 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 </figure>
 </div>
 <p><code>/clear</code> matters for quality as well as cost. Old instructions and files read earlier keep steering the model while they remain in the conversation; a fresh conversation drops them. Nothing on disk changes, and the project’s rules file is read again.</p>
-<div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
 </div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>In practice
+<div class="think-question">
+<p>One task is finished and an unrelated one starts. Which command first, and what does it keep?</p>
 </div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
 </div>
-<div class="callout-body-container callout-body">
-<p><strong>Pause and think.</strong> One task is finished and an unrelated one starts. Which command first?</p>
-<p><code>/clear</code>. The new task needs none of the old conversation, and carrying it along costs tokens on every turn and can mislead the model.</p>
+<p><code>/clear</code>. The new task needs none of the old conversation, and carrying it along costs tokens on every turn and can mislead the model. Your files stay as they are, and the project’s rules file is read again.</p>
 </div>
 </div>
 </section>
@@ -937,6 +964,20 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 </div>
 <div class="callout-body-container callout-body">
 <p><code>AGENTS.md</code> is context, not enforcement. The assistant reads the rules and usually follows them, but it can still slip. Write rules that are concrete enough to check (“call ALVA counts ‘ALVA member attractions’”), and check them.</p>
+</div>
+</div>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>Yesterday you told the assistant, in conversation, to say “ALVA member attractions”. Today it writes “top attractions”. Why, and what is the lasting fix?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>The instruction ended with yesterday’s conversation: the model keeps no memory between sessions. Put the rule in <code>AGENTS.md</code>, which is read at the start of every session, and still check for it, because rules are context, not enforcement.</p>
 </div>
 </div>
 <p>Part II writes the London guide’s rules in <a href="04-markdown.html" class="quarto-xref"><span>Chapter 4</span></a>, and Part III writes the water analysis’s in <a href="08-water-question.html" class="quarto-xref"><span>Chapter 8</span></a>.</p>
@@ -988,7 +1029,7 @@ Figure&nbsp;2.3: A web chat drafts a prompt, you read it, and the coding assista
 </section>
 <section id="sec-boxes" class="level2" data-number="2.7">
 <h2 data-number="2.7" class="anchored" data-anchor-id="sec-boxes"><span class="header-section-number">2.7</span> How to read the assistant boxes</h2>
-<p>Every hands-on step in this book uses the same three-part box. Here is the first one you will meet in Part II:</p>
+<p>Every hands-on step in this book uses the same three-part box. Here is a simpler version of the first one you will meet in Part II:</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
 <div class="box-label">
@@ -1009,8 +1050,21 @@ Figure&nbsp;2.3: A web chat drafts a prompt, you read it, and the coding assista
 <p>approve its commands · open <code>london.html</code> in your browser</p>
 </div>
 </div>
-<p><strong>Ask your coding assistant</strong> holds the exact prompt to paste into the assistant (in the HTML edition, with a copy button). <strong>Expect it to run</strong> lists what the assistant will probably do, so you recognise it when it asks for approval; you do not type these yourself. <strong>You do</strong> lists the few things only you can do: start the assistant, sign in to accounts, approve commands, run a live preview, open results. The assistant occupies the terminal tab it runs in, so commands in a <strong>You do</strong> box go in a second terminal tab opened in the same folder.</p>
+<p><strong>Ask your coding assistant</strong> holds the exact prompt to paste into the assistant (in the HTML edition, with a copy button). <strong>Expect it to run</strong> lists what the assistant will probably do, so you recognise it when it asks for approval; you do not type these yourself. <strong>You do</strong> lists the few things only you can do: start the assistant, sign in to accounts, approve commands, run a live preview, open results. The assistant occupies the terminal tab it runs in, so commands in a <strong>You do</strong> box go in a second terminal tab opened in the same folder (<a href="03-setup.html#sec-two-places" class="quarto-xref"><span>Section 3.4.1</span></a>).</p>
 <p>Together the boxes are one turn of the loop in the book’s title. <strong>Ask your coding assistant</strong> is the <em>Prompt</em>. <strong>Expect it to run</strong> and <strong>You do</strong> are where you <em>Check</em>, recognising each command before you approve it and opening the result yourself. The render is the <em>Publish</em>. Each exercise closes the loop with <strong>You’re done when</strong>: the check, stated so that you can see whether it passed.</p>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Common pitfall
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Approving a command without reading it. Most commands in this book run a tool the prompt named (<code>quarto</code>, <code>uv</code>, <code>git</code>, <code>gh</code>) on files in the project folder. Stop and ask the assistant what a command does before you approve one that deletes files (<code>rm</code>), runs as the administrator (<code>sudo</code>), or touches a folder outside the project that the prompt did not name.</p>
+</div>
+</div>
 <p>The prompts are examples, not transcripts. Assistants vary from version to version and run to run, so the files they write will differ in detail from the ones shown. What should not vary is the result you check. <a href="#fig-agent-session" class="quarto-xref">Figure&nbsp;<span>2.4</span></a> shows what a session looks like.</p>
 <div id="fig-agent-session" class="anim quarto-float quarto-figure quarto-figure-center anchored" alt="A terminal replay of a coding-assistant session, labelled as an illustration. The prompt asks for london.md with a level-1 heading Visit London and one welcome paragraph. The assistant says it will create the file and shows the lines it writes: the heading and a welcome sentence about free museums, royal history and riverside walks. It says it will render the file to check it, shows the command quarto render london.md, and asks Allow this command, with Yes selected. The output reads Output created: london.html, and the assistant reports that london.md has the heading and one welcome paragraph and that the render had no errors.">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1033,24 +1087,33 @@ Figure&nbsp;2.4: What running the first prompt looks like: the assistant writes 
 </ul>
 <p>Two further rules follow from ordinary research ethics rather than from any one policy. Keep unpublished manuscripts, participant data and other confidential material out of public AI tools. And never let a tool generate or alter primary data or images: presenting generated data as observed is fabrication.</p>
 <p>A useful disclosure names the tool and version, the tasks it performed and the checks you made. The statement for this book, on its copyright page, is written that way. Where it goes depends on the use: code and analysis belong in the Methods, with enough detail to reproduce them, which in a Quarto project means the code itself and the project’s <code>AGENTS.md</code>.</p>
-<div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
 </div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>In practice
+<div class="think-question">
+<p>Which needs a statement: fixing a typo, or computing a table?</p>
 </div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
 </div>
-<div class="callout-body-container callout-body">
-<p><strong>Pause and think.</strong> Which needs a statement: fixing a typo, or computing a table?</p>
 <p>Computing a table is analysis: describe it in the Methods, in enough detail to reproduce. Venues differ on whether language editing needs a statement; ICMJE’s recommendations make no exception for it, so when in doubt, disclose.</p>
 </div>
 </div>
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>A coding assistant is a model that decides and a harness that acts, with you directing and checking in between. Choose the model by the task: as the pelicans showed, a cheaper model at medium effort is often enough for a small, well-specified step. Cost grows with model size, effort and conversation length, so keep one task per conversation. Start the assistant only in a folder you created for the work, and put durable rules in <code>AGENTS.md</code>, remembering that rules are context, not enforcement. Good prompts are specific, single-step and end in a check, and every change they cause is yours to review. In research, the assistant is never an author, and its use is disclosed.</p>
+<div class="keyideas">
+<ul>
+<li>The model decides, the harness does, and you direct and check; when an assistant disappoints, either half can be the cause.</li>
+<li>Choose a model by the task, not by rank: as the pelicans showed, a cheaper model at medium effort is often enough for a small, well-specified step.</li>
+<li>Cost grows with model size, effort and conversation length, because the whole conversation is sent again each turn, so start a fresh conversation for each unrelated task.</li>
+<li>Start an assistant only in a folder you created for the work, and read each command before you approve it.</li>
+<li>Rules that must last go in <code>AGENTS.md</code>, which is context, not enforcement, so write them concretely enough to check.</li>
+<li>Good prompts are specific, ask for one step and end in a check; in research the assistant is never an author, and its use is disclosed.</li>
+</ul>
+</div>
 <p>All of this assumes a computer on which an assistant, Quarto and Python are installed and working together. Is yours? <a href="03-setup.html" class="quarto-xref"><span>Chapter 3</span></a> gets it there in six checked steps.</p>
 </section>
 <section id="further-reading" class="level2 unnumbered">

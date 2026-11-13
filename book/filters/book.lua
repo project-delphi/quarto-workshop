@@ -8,9 +8,19 @@
 --      .you     "You do"                     (the few steps only the reader can take)
 -- 2. Asides. ::: why, ::: pitfall, ::: practice and ::: tryit become Quarto callouts
 --    with fixed titles; the class stays for styling.
--- 3. Exercise lines. ::: done is prefixed "You're done when"; ::: catchup is labelled.
+-- 3. Exercise lines. ::: done is prefixed "You're done when"; ::: catchup is labelled. A
+--    catch-up box stands where its checkpoint's state is reached, so the reader carries on
+--    from the box (the checkpoint's README names the workshop slide at the same point).
 -- 4. Dates. An ISO date in prose (2026-11-12) is wrapped in a .nowrap span, so a narrow
 --    screen never breaks it at a hyphen.
+-- 5. Chapter openers. ::: opener holds the chapter's objectives (a bullet list, each item
+--    starting with a verb) and, for hands-on chapters, a definition list whose terms are
+--    "Start from", "You build" and "Checkpoint". It is labelled "In this chapter", and the
+--    definition list becomes labelled paragraphs, which every reader lays out the same way.
+-- 6. Pause and think. ::: think holds a question (its first block) and the answer (the rest).
+--    It is labelled "Pause and think"; the answer goes in a .think-answer div labelled
+--    "Answer", set apart so a reader can stop and answer first.
+-- 7. Key ideas. ::: keyideas holds a chapter summary's list of takeaways; it only styles them.
 
 local BOX = {
   prompt = "Ask your coding assistant",
@@ -74,7 +84,55 @@ local function group_boxes(blocks)
   return out
 end
 
+local function labelled(text, class)
+  return pandoc.Div({ pandoc.Plain({ pandoc.Strong(text) }) }, pandoc.Attr("", { class or "box-label" }))
+end
+
+-- ::: opener: "In this chapter", the objectives, then Start from / You build / Checkpoint.
+local function opener(div)
+  local out = pandoc.Blocks({ labelled("In this chapter") })
+  for _, block in ipairs(div.content) do
+    if block.t == "DefinitionList" then
+      local meta = pandoc.Blocks({})
+      for _, item in ipairs(block.content) do
+        local term, defs = item[1], item[2]
+        -- No space after the label: its fixed width is the gap, so wrapped lines align.
+        local para = pandoc.Inlines({ pandoc.Span({ pandoc.Strong(term) }, pandoc.Attr("", { "meta-label" })) })
+        for i, def in ipairs(defs) do
+          for _, b in ipairs(def) do
+            if b.t == "Para" or b.t == "Plain" then
+              if i > 1 then para:insert(pandoc.Space()) end
+              para:extend(b.content)
+            end
+          end
+        end
+        meta:insert(pandoc.Para(para))
+      end
+      out:insert(pandoc.Div(meta, pandoc.Attr("", { "opener-meta" })))
+    else
+      out:insert(block)
+    end
+  end
+  div.content = out
+  return div
+end
+
+-- ::: think: the question, then the answer under its own label.
+local function think(div)
+  local question, answer = pandoc.Blocks({}), pandoc.Blocks({ labelled("Answer", "think-answer-label") })
+  for i, block in ipairs(div.content) do
+    if i == 1 then question:insert(block) else answer:insert(block) end
+  end
+  local out = pandoc.Blocks({ labelled("Pause and think") })
+  out:insert(pandoc.Div(question, pandoc.Attr("", { "think-question" })))
+  if #answer > 1 then out:insert(pandoc.Div(answer, pandoc.Attr("", { "think-answer" }))) end
+  div.content = out
+  return div
+end
+
 local function aside(div)
+  if div.classes:includes("opener") then return opener(div) end
+  if div.classes:includes("think") then return think(div) end
   for name, spec in pairs(ASIDE) do
     if div.classes:includes(name) then
       div.classes:insert(1, spec[1])
@@ -87,16 +145,53 @@ local function aside(div)
     local first = div.content[1]
     if first and (first.t == "Para" or first.t == "Plain") then
       first.content:insert(1, pandoc.Space())
-      first.content:insert(1, pandoc.Strong("You're done when"))
+      first.content:insert(1, pandoc.Strong("You’re done when"))
     end
     return div
   end
   if div.classes:includes("catchup") then
     div.content:insert(1, pandoc.Para({ pandoc.Strong("Stuck for two minutes?"), pandoc.Space(),
-      pandoc.Str("Paste this into your assistant, then rejoin at the next exercise:") }))
+      pandoc.Str("Paste this into your assistant. It backs up your work and brings the project to "
+        .. "this point; then carry on from here.") }))
     return div
   end
   return nil
+end
+
+-- 8. Headings: a hyphenated word ("k-Means") is kept on one line, so a narrow screen never
+--    breaks a title at its hyphen. A date the first pass wrapped is already whole: the walk
+--    is top-down so it can stop at that span instead of wrapping its text a second time, and
+--    it never enters a span it has just made (false), which would wrap the word forever.
+local function heading_words(header)
+  header.content = header.content:walk({ traverse = "topdown",
+    Span = function(span)
+      if span.classes:includes("nowrap") then return span, false end
+    end,
+    Str = function(str)
+      if str.text:find("%w%-%w") then
+        return pandoc.Span({ pandoc.Str(str.text) }, pandoc.Attr("", { "nowrap" })), false
+      end
+    end })
+  return header
+end
+
+-- 9. Wide pictures. An image given a width above 40% (a screenshot, a page of a PDF, a
+--    drawing) gets the class "scaled", which the EPUB stylesheet widens on a phone; smaller
+--    ones (photos set beside the text) keep their width.
+--    A picture of a rendered output (media/figures/) not on a light panel is a screenshot:
+--    it gets a thin frame, so it does not read as the book's own page.
+local function scaled(img)
+  local changed = false
+  local pct = tonumber((img.attributes.width or ""):match("^(%d+%.?%d*)%%$"))
+  if pct and pct > 40 then
+    img.classes:insert("scaled")
+    changed = true
+  end
+  if img.src:find("/media/figures/") and not img.classes:includes("on-light") then
+    img.classes:insert("screenshot")
+    changed = true
+  end
+  if changed then return img end
 end
 
 local DATE = "%d%d%d%d%-%d%d%-%d%d"
@@ -127,7 +222,21 @@ return {
     end },
   { Div = function(div)
       if div.classes:includes("agent-box") then return label_children(div) end
-      return aside(div)
-    end },
+      -- A picture on a light panel is not framed as a screenshot (9), whether the class is
+      -- on the image or on a div around it. Images are seen before the div that holds them.
+      local walked = nil
+      if div.classes:includes("on-light") then
+        div = div:walk({ Image = function(img)
+          if img.classes:includes("screenshot") then
+            img.classes = img.classes:filter(function(c) return c ~= "screenshot" end)
+            return img
+          end
+        end })
+        walked = div
+      end
+      return aside(div) or walked
+    end,
+    Header = heading_words,
+    Image = scaled },
   { Blocks = group_boxes },
 }

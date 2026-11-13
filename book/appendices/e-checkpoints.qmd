@@ -3,33 +3,45 @@
 ```{python}
 #| label: appE-setup
 # The water rebuild's model answer, computed: run the finished analysis again with
-# MAX_MISSING = 1 instead of 2, in memory, and compare.
+# MAX_MISSING = 1 instead of its setting, in memory, and compare, following Tunja and the
+# department capitals' rural zones through the change.
 from scripts import water as w
+from scripts.prose import number_words, text_holds
 
+NUM = number_words(zero="no")
 A = w.A
-before = w.res()["summary"]
+full = w.res()
+before = full["summary"]
 original = A.MAX_MISSING
 A.MAX_MISSING = 1
 try:
-    after = A.run()["summary"]
+    stricter = A.run()
 finally:
     A.MAX_MISSING = original
-
-# Which rows the stricter setting drops: those missing exactly two features after the capitals'
-# fill (prepare()'s steps up to the missing-value rule, repeated here to inspect them).
-import numpy as np
-
-d = A.load()
-d = d[d["year"].between(A.FIRST_YEAR, A.LAST_YEAR) & (d["entity_type"] == "municipality")
-      & d["irca"].notna()].copy()
-cap_urban = (d["department_capital"] == 1) & (d["zone"] == "urban")
-for col in ["water_coverage", "sewer_coverage"]:
-    fill = cap_urban & d[col].isna() & d[f"{col}_total"].notna()
-    d.loc[fill, col] = d.loc[fill, f"{col}_total"]
-d["log_sgp_water_pc"] = np.log(d["sgp_water_pc"])
-two = d[d[A.FEATURES].isna().sum(axis=1) == 2]
-two_cov = int(two[["water_coverage", "sewer_coverage"]].isna().all(axis=1).sum())
-two_cap = int((two["department_capital"] == 1).sum())
+after = stricter["summary"]
+c0, c1 = full["clusters"], stricter["clusters"]
+keys = ["divipola", "zone", "year"]
+gone = c0.merge(c1[keys], on=keys, how="left", indicator=True)
+gone = gone[gone["_merge"] == "left_only"]             # the rows the stricter rule drops
+capital = gone["department_capital"] == 1
+n_cap_rural = int((capital & (gone["zone"] == "rural")).sum())
+n_cap_urban = int((capital & (gone["zone"] == "urban")).sum())
+n_other = len(gone) - n_cap_rural
+cap_rural0 = c0[(c0["department_capital"] == 1) & (c0["zone"] == "rural")]
+tj0, tj1 = c0[c0["divipola"] == "15001"], c1[c1["divipola"] == "15001"]
+tj_rural0 = int((tj0["zone"] == "rural").sum())
+tj_c = int(tj0["cluster"].iloc[0])
+kept = c0.merge(c1, on=keys, suffixes=("_0", "_1"))
+same = (kept["cluster_0"] == kept["cluster_1"]).mean()
+# The rows reach the rule before imputation, so the flags show which values they were missing.
+text_holds(original == 2 and gone[["water_coverage_imputed", "sewer_coverage_imputed"]].eq(1).all().all()
+           and n_cap_rural == len(cap_rural0) > 0 and len(gone) == len(c0) - len(c1)
+           and len(gone) == after["dropped_too_many_missing"] - before["dropped_too_many_missing"]
+           and set(tj1["zone"]) == {"urban"} and tj1["cluster"].eq(tj_c).all()
+           and len(tj1) == (tj0["zone"] == "urban").sum() and tj0["cluster"].eq(tj_c).all()
+           and after["k"] == before["k"] == 4                 # the post's `assert k == 4`
+           and list(stricter["profiles"]["name"]) == list(full["profiles"]["name"]),
+           "the MAX_MISSING rebuild")
 ```
 
 ## Every checkpoint {.unnumbered}
@@ -37,27 +49,33 @@ two_cap = int((two["department_capital"] == 1).sum())
 Each checkpoint is a folder in `quarto-workshop/checkpoints/` holding a project as it stands at the end of
 one hands-on block, with a README listing the steps to catch up: back up your folder (all but `.venv/`) to a
 new time-stamped folder beside it, copy the checkpoint in (and, for the water project, `data/` if it is
-missing), render, check a named output, and rejoin at the next block. Paste
-`Catch me up: follow ../quarto-workshop/<path>/README.md` into your assistant, or follow the README by hand.
+missing), render and check a named output. Paste `Catch me up: follow ../quarto-workshop/<path>/README.md`
+into your assistant, or follow the README by hand, then carry on from the section whose catch-up box you
+used. The README names the workshop slide at the same point. There is no checkpoint 03.
 
-| Path | End of | Holds |
+| Path | Catch-up box | Holds |
 |---|---|---|
-| `checkpoints/01-london-markdown` | @sec-markdown | `london.md` with every Markdown construct, the rules, the environment, `data/` and `images/` |
-| `checkpoints/02-london-qmd` | @sec-compute | `london.qmd` with front matter, a computed sentence and chart, and six formats |
-| `checkpoints/04-london-audiences` | @sec-audiences | the dashboard, the Word brief and its email, and the A5 flyer |
-| `examples/london` | @sec-publish | the finished London project: website, square advert and white paper |
-| `checkpoints/05-water-explore` | @sec-explore | the rules, the environment and `explore.qmd` |
-| `checkpoints/06-water-prepare` | @sec-prepare | `scripts/analysis.py` with `prepare()` |
-| `checkpoints/07-water-cluster` | @sec-cluster | k-means in the script and `clusters.qmd` |
-| `checkpoints/08-water-interpret` | @sec-interpret | outcome rules, named profiles, and the heatmap and outcomes on the page |
-| `checkpoints/09-water-causation` | @sec-causation | the within-cluster check on the page |
+| `checkpoints/01-london-markdown` | @sec-environments | `london.md` with every Markdown construct, the rules, the environment, `data/` and `images/` |
+| `checkpoints/02-london-qmd` | @sec-render-mechanics | `london.qmd` with front matter, a computed sentence and chart, and six formats |
+| `checkpoints/04-london-audiences` | @sec-audiences-do | the dashboard, the Word brief and its email, and the A5 flyer |
+| `examples/london` | @sec-london-social, @sec-london-publish | the finished London project: website, square advert and white paper |
+
+: The London checkpoints, the section whose catch-up box brings you to each, and what it holds. {#tbl-checkpoints}
+
+| Path | Catch-up box | Holds |
+|---|---|---|
+| `checkpoints/05-water-explore` | @sec-explore-do | the rules, the environment and `explore.qmd` |
+| `checkpoints/06-water-prepare` | @sec-prepare-do | `scripts/analysis.py` with `prepare()` |
+| `checkpoints/07-water-cluster` | @sec-cluster-page | k-means in the script and `clusters.qmd` |
+| `checkpoints/08-water-interpret` | @sec-interpret-do | outcome rules, named profiles, and the heatmap and outcomes on the page |
+| `checkpoints/09-water-causation` | @sec-causation-do | the within-cluster check on the page |
 | `checkpoints/10-water-report` | @sec-water-report | `report.qmd` in HTML, Word and Typst PDF |
 | `checkpoints/11-water-slides` | @sec-water-slides | `slides.qmd` in Reveal.js and PowerPoint |
 | `checkpoints/12-water-epub` | @sec-water-epub | the report's optional EPUB |
-| `checkpoints/13-water-website` | @sec-water-website | the website, its blog post and listing |
+| `checkpoints/13-water-website` | @sec-water-website, @sec-water-ship | the website, its blog post and listing |
 | `examples/water` | @sec-water-dashboard | the finished water project, with the dashboard and white paper |
 
-: Every checkpoint, the chapter it ends, and what it holds. There is no checkpoint 03. Water checkpoints hold sources only: their catch-up copies the data. {#tbl-checkpoints}
+: The water checkpoints, the section whose catch-up box brings you to each, and what it holds. They hold sources only: their catch-up copies the data. {#tbl-checkpoints-water}
 
 ## Answer: changing a London input {.unnumbered #sec-answer-london}
 
@@ -110,20 +128,28 @@ running the finished analysis both ways:
 
 : The water analysis with each setting. {#tbl-answer-water}
 
-The stricter setting drops `{python} w.fmt(len(two))` more rows, those missing exactly two features.
-`{python} w.fmt(two_cov)` of them are missing both coverage values: zones whose urban and rural coverage split
-is missing that year. `{python} w.fmt(two_cap)` belong to department capitals, mostly their rural zones (the
-urban ones take the municipal total). k stays `{python} after["k"]`, so the blog post's
-`assert k == 4` still passes; a setting that changed k would make the post fail its render, by design.
+**The prediction.** Every row missing more than one of the nine features goes. Department capitals have no
+zone-level coverage, so their rural zones reach that rule with both coverage values missing (imputation comes
+after the rule): every one of their rural zone-years goes, Tunja's `{python} NUM[tj_rural0]` among them,
+while Tunja's urban zone, which takes the municipal total, stays.
+
+**What the rebuild shows.** The stricter setting drops `{python} w.fmt(len(gone))` more rows, every one of them
+missing both coverage values: the capitals' `{python} w.fmt(n_cap_rural)` rural zone-years and
+`{python} w.fmt(n_other)` other zone-years whose coverage split is missing that year,
+`{python} NUM[n_cap_urban]` of them capitals' urban zones with no municipal total either. Nothing else goes.
+Tunja's urban zone stays in cluster `{python} tj_c` in every year. k stays `{python} after["k"]`, so the blog
+post's `assert k == 4` still passes (a setting that changed k would make the post fail its render, by design),
+the names stay, and `{python} f"{same:.0%}"` of the remaining rows keep their cluster.
 
 **What changes.** `pre-render` re-runs `scripts/analysis.py`, which rewrites every file in `outputs/`
 (`clusters.parquet`, `cluster_profiles.csv`, `k_selection.csv`, `stability.csv`, `outcomes_by_year.csv`,
 `irca_infant.csv`, `irca_infant_bins.csv` and `summary.json`), and `freeze: false` re-executes every page, so
-the explore and clusters pages, the report in every format, the slides, the blog post and the dashboard all
-change together.
+every page that reads `outputs/` changes (@tbl-water-deps): the clusters page, the report in every format,
+the slides, the blog post, the dashboard and the white paper, which also quotes the setting itself.
 
 **What does not.** `data/`, the page sources, the post's title (k is still `{python} after["k"]`) and, until it
-is published again, the live site.
+is published again, the live site. Nor does the explore page: it re-runs, but reads only
+`data/water_municipal.csv`.
 
 **Why.** Compute once, publish many: one setting in one script, read by every publication. Strong answers name
 the mechanism (`pre-render`, `outputs/`, `freeze: false`) and check at least two outputs against the new row

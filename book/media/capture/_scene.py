@@ -24,9 +24,12 @@ from build import optimise, poster_first  # noqa: E402
 W, H, FPS = 800, 460, 10
 
 
-def record(page_rel: str, out_name: str, steps: list[tuple], index: int = 0) -> Path:
+def record(page_rel: str, out_name: str, steps: list[tuple], index: int = 0,
+           hide: str = "") -> Path:
     """steps: ("hold", seconds) | ("view", name, seconds) | ("drag", dx, dy, seconds) |
-    ("click", css, seconds); index picks the scene when a page holds several."""
+    ("click", css, seconds); index picks the scene when a page holds several. hide: CSS
+    selectors inside the scene to leave out of the frames (made transparent, so the steps
+    can still click them), such as buttons that mean nothing in a GIF."""
     site = BOOK / "_book" / "html" / page_rel
     frames = Path(tempfile.mkdtemp(prefix="scene-"))
     n = 0
@@ -40,6 +43,8 @@ def record(page_rel: str, out_name: str, steps: list[tuple], index: int = 0) -> 
         # Pin the scene above the page (its sidebars and margin notes) at the GIF's size.
         scene.evaluate(f"el => Object.assign(el.style, {{ position: 'fixed', left: '0', top: '0', "
                        f"width: '{W}px', height: '{H}px', margin: '0', borderRadius: '0', zIndex: '9999' }})")
+        if hide:
+            page.add_style_tag(content=f".deck-3d :is({hide}) {{ opacity: 0 !important; }}")
         page.evaluate("dispatchEvent(new Event('resize'))")
         page.wait_for_function("el => el.classList.contains('is-drawn')", arg=scene.element_handle(),
                                timeout=30000)

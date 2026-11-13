@@ -24,7 +24,7 @@ in plain text, and a web page, a Word document, a PDF, slides, an e-book, a webs
 and a dashboard all rebuild from that one source with one command. The program that rebuilds
 them is Quarto.
 
-## Prompt, Check, Publish {.unnumbered}
+## Prompt, Check, Publish {.unnumbered #prompt-check-publish}
 
 The title names the method, a loop you run at every step of both projects. You **prompt** a
 *coding assistant*, a program that writes files and runs commands at your request, describing
@@ -34,14 +34,18 @@ and wrong, so this step is never skipped, and it is always yours. Then Quarto **
 rebuilding every output from the checked source the same way every time. Chapter 1 explains
 why the last step can be trusted, and Chapter 2 how to make the first two reliable.
 
+Every hands-on step in Parts II and III goes once round the loop in @fig-loop.
+
+![Prompt, Check, Publish: the loop this book teaches, with who acts at each step.](media/diagrams/loop){#fig-loop .on-light fig-alt="The loop. Prompt: you ask a coding assistant for one small step, naming the files and ending with a check; Chapter 2. The assistant does the work: it writes files and runs commands. Check: you read what changed, open the result and compare it with the data; Chapter 2. If it is not right, you fix the prompt and go round again. The checked source goes to Publish: Quarto's quarto render rebuilds every output, the same way every time; Chapter 1. Then the next step begins with a new prompt. Small steps, each one checked, every output rebuilt from one source."}
+
 ## Who this book is for {.unnumbered}
 
-I wrote this book for researchers, practitioners, lecturers and students: anyone who works with
-data and needs to share the results. It shows how to publish from one source of text, code and
-data, using Quarto, which is free and open source, so every report, slide deck and web page is
-reproducible, interactive and of publication quality. With a coding assistant, work that once
-took days now takes minutes. Along the way, I explain the concepts, arguments and decisions
-behind each step.
+I wrote this book for researchers, software practitioners, data experts and students: anyone who
+works with data/code and needs to share the results. It shows how to publish from one source of
+plain-text file (prose & code), using Quarto. Quarto is free and open source traditional
+software, so every report, slide deck and web page is reproducible, interactive and of
+publication quality. With a coding assistant, work that once took days now takes minutes. Along
+the way, I explain the concepts, arguments and decisions behind each step.
 
 You may be new to Quarto, to coding assistants or to both. No programming is assumed: I explain
 the Python the assistant writes, but you do not have to write it. If the terminal is
@@ -66,22 +70,36 @@ municipal zones into kinds by water safety, services and context, from `{python}
 to `{python} A.LAST_YEAR`, compare health and education outcomes between the kinds, and
 publish the analysis as a report, slides, a blog post and a website, all from one analysis
 script. Most of the data are Colombian open data, joined by official municipality codes;
-rainfall comes from CHIRPS and altitude from NASA's SRTM (@sec-sources).
+rainfall comes from the Climate Hazards Center's CHIRPS data and altitude from NASA's SRTM
+elevation data (@sec-sources).
 
 ## How the book is organised {.unnumbered}
 
 **Part I** covers what you need first: what Quarto does (@sec-quarto), how to work with a
-coding assistant safely (@sec-assistant) and how to set up your computer (@sec-setup).
-**Parts II and III** build the two projects, with the statistics explained on the way, and
-each ends by changing an input and explaining what the rebuild changed. The appendices hold
-the Windows setup, a cheatsheet, troubleshooting, every checkpoint, the data sources and how
-this book is built.
+coding assistant safely (@sec-assistant) and how to set up your computer (@sec-setup). The
+GitHub account it asks for is free; an assistant's account may not be. Claude Code, for one,
+needs a paid plan or pay-per-use billing (checked 2026-11-03; @sec-before-setup lists what
+each assistant needs). **Parts II and III** build the two projects, with the statistics
+explained on the way, and each ends by changing an input and explaining what the rebuild
+changed. The appendices hold the Windows setup, a cheatsheet, troubleshooting, every
+checkpoint, the data sources and how this book is built.
+
+By the end of the book you will be able to:
+
+- explain how Quarto turns one source into many formats, and why every rebuild gives the same
+  result;
+- direct a coding assistant safely: a folder of its own, written rules, and one step per
+  prompt, each ending in a check;
+- build and publish both projects, the London guide and the water-risk website, each in
+  several formats;
+- predict which outputs a changed input will update, and check that the rebuild did exactly
+  that.
 
 ## What a hands-on step looks like {.unnumbered #how-the-hands-on-parts-work}
 
 Each step is a three-part box, explained in @sec-boxes: the exact prompt to give your
 assistant, what it will probably run, and the few things only you can do. Prompts are
-examples, not transcripts: assistants vary, so check the result rather than the wording. Four
+examples, not transcripts: assistants vary, so check the result rather than the wording. Five
 kinds of aside step out of the main text; here is one of each.
 
 ::: why
@@ -95,10 +113,15 @@ like this one describe failures seen in practice, and how to avoid them.
 :::
 
 ::: practice
-**Pause and think.** The assistant reports a render with no errors. Is the work checked?
+Ask for one step per prompt: a small change is quick to check, and when something breaks you
+know which step broke it. Asides like this one hold judgement calls and habits.
+:::
+
+::: think
+The assistant reports a render with no errors. Is the work checked?
 
 Not yet: a clean render proves that the code ran, not that its numbers are right. Asides like
-this one hold judgement calls, habits and questions to pause on.
+this one ask a question to answer before you read on; the answer follows it.
 :::
 
 ::: tryit
@@ -115,35 +138,38 @@ Steps marked *optional* are for readers who are ahead; nothing later depends on 
 ## Two ways through {.unnumbered}
 
 **Self-paced.** Read in order. Chapters 2 and 3 can be read and done in one sitting before
-Part II; each later chapter ends at a checkpoint, where you can stop and resume later.
+Part II; each chapter of Parts II and III ends at a checkpoint or at the finished example,
+where you can stop and resume later.
 
 **Workshop-paced.** The book grew out of a six-hour workshop and keeps its shape, while
 explaining what the workshop only had time to show: why each step works, where it fails, and
 when not to take it. @sec-workshop has the day's agenda and the chapters each block covers
-(@tbl-agenda).
+(@tbl-agenda and @tbl-agenda-water).
 
 ## When you get stuck {.unnumbered #when-you-fall-behind}
 
 You will get stuck: an install fails, a prompt goes wrong, a render stops with an error you
 have never seen. That is expected, and the book is built for it. Every hands-on block ends at
-a *checkpoint*, a folder in the workshop repository (`checkpoints/`) holding the project as it
+a *checkpoint*, a folder in the workshop's repository (`checkpoints/`), the copy of the
+workshop's files you download during setup (@sec-step-check). It holds the project as it
 should be at that point, with a README listing the steps to catch up. The rule is simple:
-**stuck for two minutes, catch up**, and rejoin at the next block. Each exercise ends with
-its catch-up line, which you paste into your assistant (@fig-catch-up).
+**stuck for two minutes, catch up**. Where the book reaches a checkpoint, a catch-up box gives
+the one line to paste into your assistant (@fig-catch-up).
 
-![Catching up from a checkpoint. Your work is backed up first, so nothing is lost.](media/diagrams/catch-up){#fig-catch-up .on-light fig-alt="Stuck for two minutes, you paste the line Catch me up: follow ../quarto-workshop/checkpoints/NN/README.md into the assistant. It follows four steps. One, back up your project folder, all but its .venv environment, to a new time-stamped folder beside it. Two, copy the checkpoint in, and for the water project the data if they are missing. Three, render and check a named output. Four, rejoin at the next hands-on block, which the README names."}
+![Catching up from a checkpoint. Your work is backed up first, so nothing is lost.](media/diagrams/catch-up){#fig-catch-up .on-light fig-alt="Stuck for two minutes, you paste the line Catch me up: follow ../quarto-workshop/checkpoints/NN/README.md into the assistant. It follows four steps. One, back up your project folder, all but its .venv environment, to a new time-stamped folder beside it. Two, copy the checkpoint in, and for the water project the data if they are missing. Three, render and check a named output. Four, carry on reading from the catch-up box: the project now matches the book at that point."}
 
-A checkpoint holds the end of its block, so it can be ahead of the step you were on: after
-catching up, skip the block's remaining prompts and read on to the next exercise.
-@sec-checkpoints lists every checkpoint.
+The README's last step names the workshop slide to rejoin at. In the book, that place is the
+catch-up box itself, so after catching up you carry on reading from the box. If you were stuck
+partway through a block, go straight to its box: the checkpoint already holds the steps between
+where you stopped and the box. @sec-checkpoints lists every checkpoint.
 
-## Two editions {.unnumbered}
+## Two editions {.unnumbered #two-editions}
 
 This book comes as an e-book (EPUB) and as a website, built from the same source: it is its
 own first example of the method. The [website edition](https://project-delphi.github.io/quarto-workshop/book/)
-runs everything interactive: three
-3-D scenes and two data explorers. The e-book shows each as an animation or a still, with a
-link and a QR code to the live version. Readers that cannot play animations show the first
+runs everything interactive: the 3-D scenes of the London map, the k-means steps, the
+clusters and Colombia's relief, and two data explorers. The e-book shows each as an animation
+or a still, with a link and a QR code to the live version. Readers that cannot play animations show the first
 frame, designed as a useful still, and the website respects your reduced-motion setting.
 
 ## Versions and dates {.unnumbered}
@@ -153,3 +179,5 @@ and uv, in November 2026. Facts that change, such as a model's price, an assista
 or a free hosting plan's limits, carry the date they were checked, as in "(checked
 2026-11-06)". Some will have changed by the time you read them; the principles around them
 should not have.
+
+Chapter 1 needs nothing installed: start there.

@@ -3,7 +3,7 @@
 ```{python}
 #| label: ch4-setup
 import pandas as pd
-from scripts.prose import number_words
+from scripts.prose import number_words, text_holds
 
 ldn_sights = pd.read_csv("../examples/london/data/sights.csv")
 ldn_att = pd.read_csv("../examples/london/data/attractions.csv")
@@ -38,44 +38,188 @@ content in Word, PDF, PowerPoint, e-book and slide formats.
 
 ![Where Part II ends: the guide's page on its published website, with the other formats linked in the margin. Rendered from `examples/london/london.qmd`.](../media/figures/london-guide.png){#fig-london-guide fig-alt="A web page titled Visit London, under a navigation bar with Guide, Dashboard and a Downloads menu. Beneath the title, the author, London Tourism Office, and the date it was published. A welcome sentence with London in bold and riverside walks in italics; a numbered list, Five sights to start with: British Museum, Natural History Museum, Tate Modern, National Gallery and Tower of London; a bulleted list, Getting around: Tube, Bus and Santander Cycles; and the start of a Plan your visit section with a link to the TfL Journey Planner above a photograph. In the right margin, Other Formats: MS Word, PDF, Powerpoint, ePub and Slides."}
 
-It starts as an empty folder. By the end of this chapter the folder holds a web page built
-from one plain-text file, written rules that hold the assistant to cited facts, and a Python
-environment for the code to come.
-
-The plain text is Markdown, a way of writing structured text with a few punctuation marks.
-The assistant writes most of it, but Markdown is what you check: the layer you review, compare
-between versions and fix by hand when a sentence is wrong.
+It starts as an empty folder and one plain-text file in Markdown, a way of writing structured
+text with a few punctuation marks. The assistant writes most of it, but Markdown is what you
+check: the layer you review, compare between versions and fix by hand when a sentence is wrong.
 
 More is new here than in any other chapter: the assistant, the rules, the preview and the
-environment. When a step goes wrong, nothing is lost: one line pasted into the assistant
-restores the chapter's finished state (@sec-catch-up).
+environment. Work through it in order: read a section, paste its prompt and look at the result
+before moving on; each *Try it* box says what you should see by then. When a step goes wrong,
+nothing is lost: one line pasted into the assistant restores the chapter's finished state
+(@sec-catch-up).
+
+::: opener
+- Write a Markdown page: headings, lists, links, images, tables, fences.
+- Render a file, and keep a live preview running beside it.
+- Write project rules concrete enough to check.
+- Set up a project's own Python environment with uv.
+
+Start from
+: an empty `~/london-guide/` folder
+
+You build
+: `london.md`, its rules and a uv environment
+
+Checkpoint
+: `checkpoints/01-london-markdown/`
+:::
+
+## Markdown at a glance {#sec-md-basics}
+
+Before the first prompt, here are the marks themselves, all at once, as a reference to come
+back to. The sections after this one use each of them in the guide, one prompt at a time.
+
+Markdown comes in dialects. *GitHub Flavored Markdown* (GFM) is the one GitHub uses for what
+people write there, such as README files and issues. It is "a strict superset of CommonMark",
+a precise specification of Markdown, with five extensions: tables, task lists, strikethrough,
+automatic links and a ban on some raw HTML (GFM specification, version 0.29-gfm, checked
+2026-11-12).
+
+Quarto "is based on Pandoc and uses its variation of markdown as its underlying document
+syntax" (Quarto, *Markdown Basics*, checked 2026-11-12). Pandoc's Markdown reads the same
+core marks as GFM, takes its task lists from it, and adds more: attributes in braces,
+footnotes, definition lists, citations and mathematics among them (Pandoc User's Guide,
+checked 2026-11-12). Three differences catch people who learnt Markdown on GitHub:
+
+- A list needs a blank line above it; without one, it runs on as part of the paragraph.
+- Strikethrough needs two tildes, `~~Car~~`, because a single pair, `~2~`, makes a subscript.
+- An image's text in square brackets is its caption in Quarto, where GitHub uses it as alt
+  text; Quarto's alt text goes in `fig-alt` (@sec-md-link-image).
+
+@tbl-md-text and @tbl-md-blocks list the marks this book uses, each with the section where
+the guide first needs it.
+
+| You type | You get |
+|:-----------|:-----------|
+| `# Visit London` | a heading; `##` is the next level down (@sec-md-heading) |
+| a blank line between lines | a new paragraph (@sec-md-heading) |
+| `\` at the end of a line | a line break inside the paragraph |
+| `*italic*`, `**bold**` | *italic*, **bold** (@sec-md-heading) |
+| `~~Car~~` | ~~Car~~ |
+| `- Tube` | a bulleted item (@sec-md-lists) |
+| `1. British Museum` | a numbered item (@sec-md-lists) |
+| `- [ ] Umbrella` | an item with an empty box; `[x]` ticks it |
+
+: Markdown for text and lists. {#tbl-md-text}
+
+Lines with no blank line between them join into one paragraph. To break a line without
+starting a paragraph, end it with `\`. Two spaces at the end work too, but "the backslash is
+easier to see, and editors that strip trailing whitespace on save won't remove it" (Quarto,
+*Markdown Basics*).
+
+| You type | You get |
+|:-----------|:-----------|
+| `[TfL](https://tfl.gov.uk/)` | a link, [TfL](https://tfl.gov.uk/) (@sec-md-link-image) |
+| `![Big Ben](big-ben.jpg)` | the picture, captioned "Big Ben" (@sec-md-link-image) |
+| `> Book ahead.` | a quotation (@sec-md-link-image) |
+| `` `quarto render` `` | `quarto render`, in code type |
+| lines between ```` ```text ```` and ```` ``` ```` | a code block, shown exactly as typed (@sec-md-code-fence) |
+| `| Sight | Price |` over `|---|---|` | a table with a header row (@sec-md-table) |
+| `---` between blank lines | a horizontal rule |
+| `\*free\*` | \*free\*, stars and all: `\` before a mark keeps it as typed |
+
+: Markdown for links, pictures and blocks. {#tbl-md-blocks}
+
+Here is every one of those marks in one file, `toy.md`, a short London note with no settings
+and no code:
+
+```{python}
+#| label: ch4-toy-md
+#| output: asis
+import re
+from pathlib import Path
+
+
+def show_file(path: str, lang: str = "markdown") -> str:
+    """A file's text, as it is, in a fence longer than any run of backticks inside it."""
+    text = Path(path).read_text()
+    ticks = "`" * max(4, 1 + max(map(len, re.findall("`+", text)), default=0))
+    return f"{ticks}{lang}\n{text}{ticks}"
+
+
+# toy.md types two price bands: stop if sights.csv no longer gives them.
+price = ldn_sights[ldn_sights["fact"] == "price_band"].set_index("sight")["value"]
+text_holds(price["British Museum"] == "Free" and price["Tower of London"] == "Paid",
+           "toy.md's price bands")
+print(show_file("media/examples/toy.md"))
+```
+
+`quarto render toy.md` turns it into `toy.html`, @fig-toy-md. Compare the two line by line:
+the lines of each paragraph have joined, except where a `\` broke one; "Car" is struck
+through; the escaped stars round "free" and the stars inside the fence have stayed stars.
+
+![What `quarto render toy.md` makes of the file, at a phone's width: a screenshot of `toy.html` as Quarto 1.10.20 renders it. Photo of Big Ben: John Dillenbeck, CC0, via Wikimedia Commons.](../media/figures/toy-md.png){#fig-toy-md width=50% fig-alt="A web page at a phone's width. The heading A day in London; a sentence with British Museum in bold and free in italics, then, on a new line, Get there by, over a bulleted list: Tube, Bus and Car, with Car struck through. A quotation with a grey bar: Tip: book a free timed ticket. A smaller heading, Two sights, over a numbered list and a two-column table of the two sights and their prices, Free and Paid. A horizontal rule, then a small photo of Big Ben captioned Big Ben. One paragraph: the photo's credit, a blue TfL link, quarto render in code type, and free between two asterisks. A ticked box for Contactless card and an empty one for Umbrella. Last, a line in typewriter type in which the asterisks round marks are shown, not applied."}
+
+::: think
+A line of text, and straight under it, with no blank line between, a line of three dashes.
+Does the page show a horizontal rule?
+
+No: the line of text becomes a level-2 heading. A line underlined with dashes is another way
+of writing one, in GFM and in Pandoc's Markdown alike, which is why the rule in
+@tbl-md-blocks needs a blank line above it.
+:::
+
+### Two commands: render and preview
+
+Quarto turns a file into a page with either of two commands, typed in the terminal in the
+file's folder (`quarto render --help` and `quarto preview --help`, Quarto 1.10.20, checked
+2026-11-12):
+
+`quarto render toy.md`
+: writes the output once, here `toy.html`, and stops. `--to docx` picks another format. Use
+  it to make a finished file, the one you send or publish.
+
+`quarto preview toy.md`
+: renders the file, serves the page on a local address and renders it again each time the
+  file is saved; Ctrl+C stops it. Use it while you write, in a terminal tab of its own.
+
+A plain `.md` file needs no settings to render, as `toy.md` shows. @sec-md-render runs both
+commands on the guide.
 
 ## A folder for the guide {#sec-brief}
 
-The guide gets its own folder in your home folder, beside the `quarto-workshop` repository
-you cloned during setup (@sec-step-check), so that its checkpoints are always at
-`../quarto-workshop/checkpoints/`:
+The guide gets its own folder in your home folder, beside the `quarto-workshop` repository (a
+project folder with its Git history) that you cloned during setup (@sec-step-check), so that
+its checkpoints are always at
+`../quarto-workshop/checkpoints/`. By the end of the chapter your home folder, `~`, looks like
+this:
 
 ```text
-~                      your home folder
-├── quarto-workshop/   the clone from Chapter 3
-└── london-guide/      this part's project
+~
+├── quarto-workshop/
+└── london-guide/
+    ├── AGENTS.md
+    ├── london.md
+    ├── london.html
+    ├── data/
+    ├── images/
+    ├── pyproject.toml
+    ├── uv.lock
+    └── .venv/
 ```
+
+- `AGENTS.md`: the rules the assistant reads first.
+- `london.md`: the guide's source, the file you check; `london.html` is rendered from it.
+- `data/` and `images/`: cited facts and credited photos, copied in and never edited.
+- `pyproject.toml`, `uv.lock` and `.venv/`: the packages, their exact versions and the
+  installed environment.
 
 Make the folder and start the assistant in it:
 
 ::: {.you}
 ```bash
 cd ~
-mkdir -p london-guide && cd london-guide
-claude
+mkdir -p london-guide
+cd london-guide
+claude    # or: codex, or: agy
 ```
 :::
 
-Later prompts copy files from `../quarto-workshop/`, which is outside the project folder, so
-the assistant asks your permission the first time it reads there. Approve it, or start Claude
-Code with `claude --add-dir ../quarto-workshop` to allow it up front (Codex has the same
-option, `--add-dir`).
+Claude Code first asks whether you trust the new folder (@sec-step-assistant): you made it for
+this work, so say yes. Later prompts copy files from `../quarto-workshop/`, which is outside the
+project folder, so the assistant asks your permission the first time it reads there. Approve
+it, or start Claude Code with `claude --add-dir ../quarto-workshop` to allow it up front (Codex
+has the same option, `--add-dir`).
 
 ## A first page: a title and a welcome {#sec-md-heading}
 
@@ -113,17 +257,18 @@ Render london.md with quarto render and tell me which file it wrote.
 in a second terminal tab:
 
 ```bash
-cd ~/london-guide && quarto preview london.md
+cd ~/london-guide
+quarto preview london.md
 ```
 
-it prints a local address; open it in your browser · Ctrl+C stops it
+open the address it prints · Ctrl+C stops it
 :::
 
-Plain Markdown is valid Quarto input: no settings and no code are needed to get a web page.
-`quarto render` writes `london.html` once. `quarto preview` does more: it renders the file,
-serves it on a local address, and renders it again every time the file is saved, including
-when the assistant saves it, so the page in your browser follows each change
-(@fig-preview-reload).
+The render writes `london.html` once. The preview (@sec-md-basics) renders it again every time
+`london.md` is saved, including when the assistant saves it, so the page in your browser
+follows each change (@fig-preview-reload). It prints a line such as
+`Browse at http://localhost:4200/` (the number varies) and usually opens that page in your
+browser; if it does not, open the address yourself.
 
 ![A live preview: each time `london.md` is saved (left), `quarto preview` renders it again and the page reloads (right). A real recording of `quarto preview` with the edits this chapter makes.](../media/gifs/quarto-preview-reload.gif){#fig-preview-reload .anim fig-alt="Two panes. On the left, the source of london.md as the assistant saves it, with each new section highlighted: first the heading and welcome, then a numbered list of five sights, then a Plan your visit section with a link and a tip from a local, then a Before you go checklist. On the right, the page served by quarto preview reloads after each save and shows the new section, rendered as headings, a numbered list, a link, a quotation and a code block."}
 
@@ -188,6 +333,8 @@ The finished project's version reads, in part:
 
 Read what the assistant wrote and edit it yourself if the wording is off. It is your project's
 contract with the assistant, and the rules work best when they are concrete enough to check.
+Any plain-text editor will do, or the terminal's own: in a new tab, `cd ~/london-guide`, then
+`nano AGENTS.md` opens the file; Ctrl+O and Enter save it, and Ctrl+X leaves (@sec-terminal).
 
 ## Five sights and how to get around {#sec-md-lists}
 
@@ -265,8 +412,9 @@ Copy ../quarto-workshop/examples/london/data here. In london.md, add a "Sights a
 ```
 :::
 
-`data/sights.csv` holds one row per sight and fact, and every row names its own source and
-the date it was retrieved: `{python} word(n_sight_rows)` facts from
+`data/sights.csv` is a *CSV* file (comma-separated values): a table in plain text, one line
+per row, with commas between the columns. It holds one row per sight and fact, and every row
+names its own source and the date it was retrieved: `{python} word(n_sight_rows)` facts from
 `{python} word(n_sight_sources)` distinct pages. @tbl-sights-provenance shows three of them.
 
 ```{python}
@@ -288,6 +436,19 @@ The table in `london.md` is plain Markdown:
 Vertical bars separate columns, and the row of dashes under the header marks it as a header;
 the relative number of dashes sets the relative column widths. A link or an image works inside
 a cell.
+
+The guide has no code yet, so the assistant reads the file and types its values into the
+table: a cited *copy* of the facts, not a link to them. The next chapter makes numbers
+compute, and @sec-london-change shows what a copy costs.
+
+::: think
+The assistant has filled in the sights table. How do you check that a price band came from
+the file and not from the assistant's memory?
+
+Find that sight's `price_band` row in `data/sights.csv`: its value, source and retrieval date
+are there. For a whole table, ask the assistant to name the row behind each cell, then check a
+few of them yourself.
+:::
 
 ::: pitfall
 Two traps in this one table. First, the PDF format made later (with Typst) rejects image sizes
@@ -336,22 +497,30 @@ checklist.
 
 ## An environment for the code to come {#sec-environments}
 
-The next chapter runs Python, and code never runs in a vacuum. It runs on an operating system
-(macOS, Windows, Linux) and a processor (Intel and AMD `x86_64`, or Apple and other ARM
-`arm64`), in some version of its language, with packages at particular versions. Many
-scientific Python packages contain compiled C, C++ or Fortran, built separately for each
-system and processor, and Python's packaging encodes both in each package file's *platform
-tag*, such as `macosx_11_0_arm64` (Python Packaging Authority, checked 2026-10-31).
+A Python *environment* is a folder holding one version of Python and the packages a project
+uses, kept apart from every other project's. *Packages* are the add-on libraries that Python
+code imports, such as pandas for tables or matplotlib for charts. The next chapter runs
+Python, and code never runs in a vacuum: what it does depends on the Python version and on the
+exact version of each package.
 
 Getting all of that to agree used to be a lesson of its own: install conda or a system Python,
-sometimes a compiler, fix the `PATH`, register a Jupyter kernel, then debug it on every
-laptop. **uv** now does it in one step, for one project at a time. It fetches the Python
-version a project needs, and its lockfile, `uv.lock`, "captures the packages that would be
-installed across all possible Python markers such as operating system, architecture, and
-Python version" (uv documentation, checked 2026-10-31), so one file reproduces the same
-environment on every Mac, Windows and Linux machine. Other languages pair a project file with
-a lockfile in the same way: R's `renv.lock`, JavaScript's `package-lock.json`, Rust's
-`Cargo.lock`.
+sometimes a compiler, fix the `PATH` (the list of folders where the terminal looks for
+programs), register a Jupyter kernel, then debug it on every laptop. **uv** now does it in one
+step, for one project at a time. It fetches the Python version a project needs, and its
+*lockfile*, `uv.lock`, records the exact version of every package: it "captures the packages
+that would be installed across all possible Python markers such as operating system,
+architecture, and Python version" (uv documentation, checked 2026-10-31), so one file
+reproduces the same environment on every Mac, Windows and Linux machine. Other languages pair
+a project file with a lockfile in the same way: R's `renv.lock`, JavaScript's
+`package-lock.json`, Rust's `Cargo.lock`.
+
+::: why
+Why does the lockfile need to know the computer? Many scientific packages contain compiled C,
+C++ or Fortran, built separately for each operating system and processor (Intel and AMD
+`x86_64`, or Apple and other ARM `arm64`). Each package file's *platform tag*, such as
+`macosx_11_0_arm64`, names the system it fits (Python Packaging Authority, checked
+2026-10-31), so the lockfile lists the right file for every system.
+:::
 
 ::: {.prompt}
 ```default
@@ -367,10 +536,12 @@ writes `pyproject.toml` (the packages), `uv.lock` (their exact versions) and `.v
 
 The four packages `ipykernel`, `nbclient`, `nbformat` and `pyyaml` are what Quarto needs to run
 Python cells; `pandas`, `matplotlib` and `plotly` are what the guide's code will use. The
-larger `jupyter` package, with its notebook applications, is not needed. Measured in a dry run
-on 2026-10-30, on one fast connection, a cold install of Part III's larger package set took 8
-seconds with uv and 31 seconds with pip plus `jupyter`. That compares the old route with the new
-one, not the two installers like for like, since the pip run also installed `jupyter`.
+larger `jupyter` package, with its notebook applications, is not needed.[^uv-speed]
+
+[^uv-speed]: Measured in a dry run on 2026-10-30, on one fast connection, a cold install of
+    Part III's larger package set took 8 seconds with uv and 31 seconds with pip plus
+    `jupyter`. That compares the old route with the new one, not the two installers like for
+    like, since the pip run also installed `jupyter`.
 
 ::: why
 Why `uv run` in front of every command? Quarto refuses to run Python next to a `.venv` folder
@@ -378,6 +549,15 @@ that is not activated ("There is an unactivated Python environment in .venv"). `
 activates the project's environment for that one command, and first brings `.venv` up to date
 with `uv.lock`. So a copied project, or a checkpoint, rebuilds its own environment on its first
 `uv run`, and the rule in `AGENTS.md` keeps the assistant using it after a restart.
+:::
+
+::: think
+Which file tells you the exact version of pandas the guide uses: `pyproject.toml` or
+`uv.lock`?
+
+`uv.lock`. `pyproject.toml` lists the packages the project asked for, each with only a lowest
+acceptable version (`pandas>=…`); `uv.lock` records the one version installed, for every
+system. That is the file that makes a colleague's `uv run` build the same environment as yours.
 :::
 
 ::: tryit
@@ -402,12 +582,14 @@ checkpoint holds the end of the whole chapter, whichever step you were stuck on.
 the assistant, it:
 
 ::: {.agent}
-backs up `london-guide/` to `../london-guide-backup-01-<time>` · copies the checkpoint in · renders · names the section to rejoin at
+backs up `london-guide/` to `../london-guide-backup-01-<time>` · copies the checkpoint in · renders `london.md` · checks `london.html`
 :::
 
-The checkpoint's README lists the same steps, which you can also run by hand
-(@fig-catch-up-steps). Nothing is lost: each backup is a new folder named with the date and
-time, so earlier backups are kept.
+Then carry on with the next chapter (@sec-compute). The README was written for the workshop,
+so the assistant may also point you to one of its slides; in this book, the next step is
+always the one after the catch-up box. The README lists the same steps, which you can also run
+by hand (@fig-catch-up-steps). Nothing is lost: each backup is a new folder named with
+the date and time, so earlier backups are kept.
 
 ![Catching up by hand, as the checkpoint's README lists it: a time-stamped backup of the folder (all but `.venv/`), the checkpoint copied in, and a render that rebuilds the environment from `uv.lock` first. A real recording with a demo account.](../media/gifs/catch-up.gif){#fig-catch-up-steps .anim fig-alt="A terminal in london-guide, which holds only a london.md with a typo in its heading. A tar command copies everything except .venv to a backup folder named london-guide-backup-01 with the date and time. cp copies checkpoint 01 into the folder. uv run quarto render london.md creates the virtual environment from uv.lock, installs 51 packages and renders, ending with Output created: london.html. ls shows the guide's files, and ls of the parent shows london-guide beside its backup."}
 
@@ -418,12 +600,14 @@ The backup leaves out `.venv/` because it can hold hundreds of megabytes and is 
 
 ## Summary {.unnumbered}
 
-Markdown is the layer you read and check: headings, emphasis, lists, links, images with alt
-text, quotations, tables and code fences cover almost everything the guide needs, and plain
-Markdown renders to a web page with no settings at all. While `quarto preview` runs, let it do
-the rendering. `AGENTS.md` holds rules concrete enough to check, and facts come from cited
-files that record their source and date, never from the assistant's memory. uv gives the
-project its own Python environment, pinned in `uv.lock`, and `uv run` uses it.
+::: keyideas
+- Markdown is the layer you read and check; Quarto reads Pandoc's, which accepts GitHub's
+  marks and adds more.
+- Plain Markdown renders with no settings; while a preview runs, let it render.
+- `AGENTS.md` holds rules concrete enough to check, written before the data arrive.
+- Facts come from cited files, never from the assistant's memory.
+- uv pins the project's packages in `uv.lock`, and `uv run` uses them.
+:::
 
 The guide still has no visitor numbers, because so far a number could only be typed, and a
 typed number goes stale the day its source is revised. The next chapter makes the guide
@@ -433,6 +617,8 @@ compute them.
 
 - Quarto, [Markdown Basics](https://quarto.org/docs/authoring/markdown-basics.html) (checked
   2026-11-12).
+- [GitHub Flavored Markdown Spec](https://github.github.com/gfm/), version 0.29-gfm, and
+  [CommonMark](https://commonmark.org/) (checked 2026-11-12).
 - [Learn Markdown in Y minutes](https://learnxinyminutes.com/markdown/) (checked 2026-10-30).
 - Pandoc, [Pandoc's Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown), the full
   syntax behind Quarto's (checked 2026-11-12).

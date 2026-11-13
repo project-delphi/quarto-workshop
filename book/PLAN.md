@@ -57,8 +57,8 @@ Also relevant from the repo:
 
 AGENTS.md asks for these before a new module is written.
 
-- **Audience:** researchers, practitioners, lecturers and students, anyone who works with
-  data and needs to share the results (the author's words in the preface), many new to Quarto
+- **Audience:** researchers, software practitioners, data experts and students, anyone who works
+  with data or code and needs to share the results (the author's words in the preface), many new to Quarto
   and to coding assistants and with little terminal experience. The same readers as the workshop, now
   reading alone.
 - **Prerequisites:** a computer they can install software on, a GitHub account, and access
@@ -514,3 +514,38 @@ What the finished book does differently from this plan, and why:
 5. **No e-reader was tested.** The EPUB was validated with EPUBCheck and checked as rendered in
    Chrome with its own stylesheet; `book/README.md` marks every reader as untested, except where
    it quotes Amazon's guidelines.
+
+## 12. Pedagogy and design pass (2026-11-12)
+
+Four read-only pedagogy reviews (preface and Part I; Part II; Chapters 8–11; Chapters 12–14,
+the exercises and the afterword) and one render review of every EPUB page at phone and tablet
+sizes, light and night, preceded the changes; the reviewers then edited their own chapters.
+
+1. **A frame for every chapter** (`filters/book.lua`, README "Conventions"): an opener with three
+   or four objectives and, in hands-on chapters, Start from / You build / Checkpoint; Pause and
+   think as its own aside, the answer set apart below the question (it had been an "In practice"
+   aside); key ideas in place of each prose summary; and a glossary appendix (J) whose entries
+   cross-reference the section that explains each term. Terms are defined where they first appear.
+2. **Corrections found by the reviews:** the preface's count of 3-D scenes; Chapter 9's "missing at
+   random" (the gaps depend on zone, and perhaps on risk: missing not at random); Chapter 10's rule
+   wrongly attributed to `AGENTS.md`; Chapter 13's range-restriction argument, which its own
+   numbers contradicted; Chapter 14 and Appendix E's claim that the explore page changes when
+   `MAX_MISSING` does (it reads only `data/`). The deck's notes for `#water-change` repeat that
+   claim and are unchanged here.
+3. **More computed evidence:** tables of the water variables, the k selection, a two-place distance
+   example, Tunja's placement, the within-cluster spread and the water pages' inputs; bootstrap
+   intervals for Spearman's ρ (municipalities resampled, fixed seed); a pooled scatter; a third
+   Tunja panel showing the 2017 method change. Every new data-dependent sentence is guarded.
+4. **Catching up:** a catch-up box stands where its checkpoint's state is reached, so the reader
+   carries on from the box (it had said "rejoin at the next exercise", which skipped prompts).
+5. **Part II primers** (the author's request): Markdown at a glance with GFM's main marks, render
+   and preview, and a toy `.md` (Chapter 4); the anatomy of a `.qmd` with a toy file (Chapter 5).
+   The toy files live in `media/examples/` and are printed from the files themselves.
+6. **Design:** chapter and part openers, caption labels, booktabs tables, callouts and assistant
+   boxes as cards, live-link cards with the QR code beside the text, ordinary spaces in "Chapter
+   3"; EPUB charts drawn 4.6 inches wide with stacked panels (`scripts/figures.py`); tables, figures
+   and boxes kept to one page (the author's request); new diagrams of the loop and of drift, a
+   redrawn confounders diagram, roadmaps that say what each chapter builds, diagram text of at
+   least 19 px; terminal GIFs whose first frame shows the whole story (and no personal path); the
+   k-means GIF without its buttons; sharper PDF page images; a redesigned square advert
+   (`examples/london/london-social.qmd`, the author's request).

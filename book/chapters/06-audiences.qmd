@@ -5,7 +5,7 @@
 import pandas as pd
 
 from scripts.scenes import london_map, scene_html
-from scripts.prose import number_words
+from scripts.prose import alt_text_holds, number_words
 
 visits = pd.read_csv("../examples/london/data/visits.csv")
 churches = pd.read_csv("../examples/london/data/churches.csv")
@@ -17,6 +17,18 @@ WORDS = number_words()
 def word(n: int) -> str:
     """A count in words, as prose writes small numbers."""
     return WORDS[n] if n < len(WORDS) else f"{n:,}"
+
+attractions = pd.read_csv("../examples/london/data/attractions.csv")
+# The dashboard screenshot's caption and alt text name the most visited attraction, the ten
+# attractions and the years of the line chart: stop if the data no longer match them.
+alt_text_holds(len(attractions) == 10
+               and attractions.loc[attractions["visits_2025"].idxmax(), "attraction"]
+               .startswith("Natural History Museum")
+               and (first_year, last_year) == (2015, 2025), "fig-london-dashboard")
+# The square advert's alt text names the top attraction and says it is free to enter.
+top_row = attractions.loc[attractions["visits_2025"].idxmax()]
+alt_text_holds(top_row["attraction"].startswith("Natural History Museum")
+               and top_row["admission"].startswith("Free"), "fig-london-social")
 
 ldn = london_map()
 top_sight = ldn["top"]["place"]
@@ -35,40 +47,65 @@ same data file, so a corrected count reaches both; the flyer copies its facts fr
 exist, which makes them the first job in this book worth splitting across several assistants
 at once, and the first chance to ask when that is worth what it costs.
 
+::: opener
+- Choose a format for each audience, and set it.
+- Decide when sub-agents are worth their cost, and prompt them safely.
+- Check each output as its reader would use it.
+- Judge when a raw Typst block or a 3-D chart earns its place.
+
+Start from
+: the end of @sec-compute
+
+You build
+: a dashboard, a Word brief and its email, an A5 flyer
+
+Checkpoint
+: `checkpoints/04-london-audiences/` (there is no 03)
+:::
+
 ## Content once, format per audience {#sec-content-once}
 
-Each audience gets the format that suits it, and each format is a setting:
+Each audience gets the format that suits it, and each format is a setting. This chapter makes
+the first three outputs in @tbl-audiences and the optional advert; @sec-publish makes the
+website.
 
-| Audience | Output | What makes the difference |
+| Audience | Output | Setting |
 |---|---|---|
-| Managers | a dashboard | `format: dashboard` |
-| Partners | a Word brief, and the email it goes with | `format: docx` |
-| Walk-ins | a one-page A5 flyer, as a PDF | `format: typst` with `papersize: a5` |
-| Social media (optional) | a 12 cm square advert | a page size set in raw Typst |
-| Visitors | a website | `project: type: website` (@sec-publish) |
+| Managers | dashboard | `dashboard` |
+| Partners | Word brief and email | `docx` |
+| Walk-ins | A5 flyer (PDF) | `typst`, `papersize: a5` |
+| Social media | square advert | raw Typst page size |
+| Visitors | website | `type: website` |
 
-: The guide's audiences and the setting that makes each output. {#tbl-audiences}
+: Each audience's output and the setting that makes it. {#tbl-audiences}
 
 **A dashboard** is a page of charts and key numbers arranged in a grid. In a `.qmd` file with
 `format: dashboard`, a level-1 heading starts a page, a level-2 heading starts a row, and each
 cell's output becomes a card in that row (Quarto dashboards documentation, checked
-2026-10-31). The guide's dashboard has two pages:
+2026-10-31). The guide's dashboard has two pages; its outline, without the code, is:
 
 ```markdown
-# Attractions                           <- a page
+# Attractions
 
-## Row {height=25%}                     <- a row of value boxes
+## Row {height=25%}
 
 ::: {.valuebox icon="trophy" color="primary"}
 Most visited: `{{python}} top_name`
 :::
 
-## Row                                  <- a row of charts, one card per cell
+## Row
 
-# Churches                              <- the second page
+# Churches
 ```
 
-![The finished dashboard's Attractions page: three value boxes, ALVA's ten most visited London members in 2025, and visits to the five sights by year. Rendered from `examples/london/london-dashboard.qmd`.](../media/figures/london-dashboard.png){#fig-london-dashboard fig-alt="A dashboard titled London attractions dashboard, with Attractions and Churches tabs. Three value boxes: most visited, the Natural History Museum with 7,116,929 visits; visits to the top ten ALVA members in 2025, 39,692,434; and top ten with free entry, 8 of 10. Below, a horizontal bar chart of 2025 visits to London's ten most visited ALVA member attractions, and a line chart of visits per year from 2015 to 2025 for five sights, with a deep dip in 2020 and 2021."}
+`# Attractions` and `# Churches` start the two pages, and `{height=25%}` gives the first row a
+quarter of the page's height. That row holds the *value boxes*, each showing one key number with
+a label and an icon; the next row holds the charts, one card per cell. A value box is written
+as a *div*: a block of Markdown between two lines of three colons, whose class in braces,
+`.valuebox`, tells Quarto what to make of it. Quarto's other special blocks, such as callouts,
+use the same syntax.
+
+![The finished dashboard's Attractions page: three value boxes, ALVA's ten most visited London members in 2025, and visits to the five sights by year. Rendered from `examples/london/london-dashboard.qmd`.](../media/figures/london-dashboard.png){#fig-london-dashboard fig-alt="A dashboard titled London attractions dashboard, with Attractions and Churches tabs. Three value boxes: the most visited attraction, the Natural History Museum, with its 2025 visits; the total visits to the ten; and how many of the ten are free to enter. Below, a horizontal bar chart of 2025 visits to London's ten most visited ALVA member attractions, and a line chart of visits per year from 2015 to 2025 for five sights, with a deep dip in 2020 and 2021."}
 
 It also needs a second data file. `data/visits.csv` holds the yearly visits to the five sights
 from `{python} first_year` to `{python} last_year`, from ALVA's annual tables. Two notes travel
@@ -122,6 +159,15 @@ prompt that might run without sub-agents should say what to do then: the prompt 
 first sentence with "none? do the items in turn".
 :::
 
+::: think
+The office also wants the guide in French and Spanish, each a new file made from
+`london.qmd`. Is that a job for sub-agents?
+
+Yes: the two translations are independent, substantial and write different files (say
+`london-fr.qmd` and `london-es.qmd`), and the lead renders them one at a time. If both first
+needed a shared list of place names, write that list first, then split the work.
+:::
+
 ## One prompt, three audiences {#sec-audiences-do}
 
 ::: {.prompt .long}
@@ -135,18 +181,28 @@ Then render the three .qmd files yourself, one at a time, and check each.
 :::
 
 ::: {.agent}
-starts three sub-agents · waits · `uv run quarto render london-dashboard.qmd`, then `london-email.qmd`, then `london-flyer.qmd`
+starts three sub-agents · waits · renders the three `.qmd` files one at a time
 :::
 
 ::: {.you}
-approve its commands · watch it report each sub-agent's progress · open the dashboard, the Word brief and its email, and the flyer
+approve its commands · open the four outputs
 :::
 
-The prompt is long because it is three specifications in one, each as concrete as a single
+The lead's renders are `uv run quarto render london-dashboard.qmd`, then `london-email.qmd`,
+then `london-flyer.qmd`, and it reports each sub-agent's progress as it goes. The prompt is
+long because it is three specifications in one, each as concrete as a single
 prompt would be. The lead checks each file it renders; the office's checks are yours. Open
 each output as its reader would: can a manager find the top attraction without reading a
 sentence, can a partner forward the brief and its email as they are, and does the flyer fit on
 one A5 page?
+
+::: think
+A partner asks for this year's total visits in the covering email itself. Where should the
+number go, and why?
+
+In the brief, as inline code, with the email pointing to it. The email is a plain Markdown file
+that is never rendered, so a number typed there is a copy that will not follow the data.
+:::
 
 ::: pitfall
 "End each chart cell with `fig`" is there because of a failure seen in practice: a Plotly chart
@@ -179,27 +235,33 @@ Create london-social.qmd: one 12 cm square Typst page (raw Typst page size) for 
 :::
 
 Typst has no square paper name, so the page size is set in a *raw* Typst block, which Quarto
-passes to Typst untouched:
+passes to Typst untouched. The finished advert's photo runs to the edges, so its page has no
+margin:
 
 ````markdown
 ```{=typst}
-#set page(width: 12cm, height: 12cm, margin: 0.9cm, numbering: none, fill: rgb("#0b2545"))
+#set page(width: 12cm, height: 12cm, margin: 0cm,
+          numbering: none, fill: rgb("#0b2545"))
 #set text(fill: white)
 ```
 ````
 
-![The finished square advert. Rendered from `examples/london/london-social.qmd`.](../media/figures/london-social.png){#fig-london-social width=50% fig-alt="A square dark-blue card titled Visit London, with the Big Ben photograph and the text: Natural History Museum, 7,116,929 visits in 2025, Free to enter, and a credit line for the visits and the photo."}
+![The finished square advert, styled as a social-media ad: a full-bleed photo under an inset border, a gradient that keeps the text legible and a gold call to action. Rendered from `examples/london/london-social.qmd`.](../media/figures/london-social.jpg){#fig-london-social width=70% fig-alt="A square advert. A photograph of Big Ben's clock tower fills it, the spire rising past a thin white border inset from the edges. Over the darkened lower part: Visit London in large white letters, a short gold rule, the label Top ALVA member attraction 2025, the Natural History Museum with its 2025 visit count, a gold Free to enter badge on the right, and a small credit line for the visits and the photo."}
+
+Everything on the page is placed by raw Typst: the photo fills the square (`fit: "cover"`), a
+rectangle with a navy gradient darkens its lower half, and `place()` positions the border, the
+text and the badge. The facts are still computed. A Python cell reads `attractions.csv` and
+prints them as Typst variables (`#let top-name = "Natural History Museum"`), which the layout
+uses, so a corrected count reaches the advert at the next render like every other output.
 
 The finished advert has no title and no level-1 heading: either would land on a page of the
 default size before the square one. This was tested with Quarto 1.10.20 and its bundled Typst
-0.15 on 2026-11-01. A raw block is a useful escape hatch, and a costly one: it ties the source
-to one format, so use it only for what the format's settings cannot express.
+on 2026-11-12. A raw block is a useful escape hatch, and a costly one: it ties the source to
+one format, so use it only for what the format's settings cannot express.
 
-::: catchup
-```default
-Catch me up: follow ../quarto-workshop/examples/london/README.md
-```
-:::
+If the advert will not come out as one square page, skip it: nothing later depends on it. The
+finished version is `../quarto-workshop/examples/london/london-social.qmd`, which you can copy
+into your folder and render.
 
 ## The sights in three dimensions (optional) {#sec-london-3d}
 
@@ -251,8 +313,8 @@ Create visits-3d.html with `three.js` from a CDN: a labelled 3-D bar per `attrac
 
 ![A 3-D bar chart of 2025 visits to five ALVA member attractions, drawn by three.js from this prompt. A dry run by Claude Code (Opus 5.5) on 2026-11-06, following the prompt in a scratch folder; your page will look different.](../media/deck/threejs-visits.png){#fig-threejs-visits width=60% fig-alt="A 3-D bar chart on a dark floor, drawn by three.js: 2025 visits to five ALVA member attractions. Natural History Museum 7.1 million, British Museum 6.4 million, Tate Modern 4.5 million, National Gallery 4.1 million, Tower of London 2.8 million."}
 
-three.js is a free JavaScript library (MIT License) that draws 3-D scenes with the browser's
-WebGL, so the reader installs nothing. Two details of the prompt matter. It asks for the numbers
+three.js is a free JavaScript library (MIT License) that draws 3-D scenes with WebGL, the
+browser's built-in 3-D graphics, so the reader installs nothing. Two details of the prompt matter. It asks for the numbers
 to be written into the page, because a page opened by double-click cannot read local files. And
 the page loads three.js from a content delivery network (CDN), so it needs the internet to work;
 a published page keeps that dependency, which is why this book, like the workshop's slides,
@@ -267,14 +329,13 @@ or for delight, and say which.
 
 ## Summary {.unnumbered}
 
-One project's cited files can serve every audience, each in its own format: a dashboard
-(`format: dashboard`, where headings become pages and rows), a Word brief with a plain-text
-covering email that quotes no numbers, an A5 Typst flyer, and an optional square advert made
-with a raw Typst page size. Independent, substantial tasks that write different files can run as
-parallel sub-agents, which saves time at the cost of tokens, provided each writes only its own
-files and the lead renders one file at a time. Ask for unfamiliar tools, such as three.js, by
-naming the library, the data and the check, and choose 3-D only when the third dimension means
-something.
+::: keyideas
+- Each audience's format is a setting: a dashboard, a Word brief, an A5 flyer.
+- Outputs whose code reads the data follow it; the flyer's copied facts do not.
+- Sub-agents suit independent, substantial tasks that write different files.
+- Each sub-agent writes only its own files; the lead renders one at a time.
+- Open each output as its reader would: the lead's checks do not replace yours.
+:::
 
 The office now has a version of the guide for every reader but one, and all of them sit on
 your computer. Visitors need a website: the next chapter publishes one, then changes one

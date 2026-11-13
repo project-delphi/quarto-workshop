@@ -3,9 +3,12 @@
 ```{python}
 #| label: ex2-setup
 import pandas as pd
-from scripts.prose import number_words
+from scripts.prose import number_words, text_holds
 
 n_churches = len(pd.read_csv("../examples/london/data/churches.csv"))
+# Answer 4 quotes the guide's typed "ten": stop if the attractions file changes size.
+text_holds(len(pd.read_csv("../examples/london/data/attractions.csv")) == 10,
+           "the guide's ten most visited attractions")
 WORDS = number_words()
 churches_word = WORDS[n_churches] if n_churches < len(WORDS) else f"{n_churches:,}"
 ```
@@ -13,7 +16,9 @@ churches_word = WORDS[n_churches] if n_churches < len(WORDS) else f"{n_churches:
 The first five exercises collect Part II's hands-on work in order. Each names the chapter
 that explains it, how you know you are done, and the line that catches you up if you are not;
 a checkpoint is the state at the *end* of its block, so after catching up, skip to the next
-exercise. @sec-checkpoints has the whole table. The rest leave the prompts out. In the transfer
+exercise. @sec-checkpoints has the whole table. If you did the chapters' steps, use these five
+as a checklist: confirm each "done when" and move on. If you read without doing, do them here,
+in order. The rest leave the prompts out. In the transfer
 tasks you write the prompt and the check yourself, and the review questions test whether the
 reasons stuck; short answers are at the end.
 
@@ -37,7 +42,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/01-london-markdown/README.md
 ```
 :::
 
-## Exercise II.2: a document that computes {.unnumbered}
+## Exercise II.2: A document that computes {.unnumbered}
 
 From @sec-compute. Rename the guide to `london.qmd` with front matter, add a cell that reads
 `data/attractions.csv` and a sentence with inline code, add a captioned, labelled bar chart, then
@@ -54,7 +59,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
 ```
 :::
 
-## Exercise II.3: three audiences at once {.unnumbered}
+## Exercise II.3: Three audiences at once {.unnumbered}
 
 From @sec-audiences. With one prompt and three sub-agents, write the dashboard, the Word brief
 with its covering email, and the A5 flyer; the lead renders them one at a time.
@@ -74,7 +79,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/04-london-audiences/README.md
 
 There is no checkpoint 03: the workshop's block numbering skips it.
 
-## Exercise II.4: a published website {.unnumbered}
+## Exercise II.4: A published website {.unnumbered}
 
 From @sec-publish. Make the folder a website with a navigation bar and a Downloads menu, put it
 on GitHub, and publish it with an interactive `uv run quarto publish gh-pages`.
@@ -92,7 +97,7 @@ Catch me up: follow ../quarto-workshop/examples/london/README.md
 If you have already published, the catch-up copies the finished project's README over yours;
 restore your own with `git checkout -- README.md`.
 
-## Exercise II.5: change an input, explain the rebuild {.unnumbered}
+## Exercise II.5: Change an input, explain the rebuild {.unnumbered}
 
 From @sec-london-change, with no prompt supplied. Set the Tower of London's `visits_2025` to
 `8000000`, predict which outputs change, rebuild, explain what changed and what did not, and
@@ -138,14 +143,22 @@ the three.js page (@sec-london-3d).
 
 1. The project's rules say "ALVA member attractions", never "London's most visited
    attractions". What would be wrong with the second phrase?
-2. While `quarto preview` runs on `london.qmd`, the assistant runs `quarto render london.qmd`
+2. A colleague copies your `london-guide/` folder without `.venv/`. What gives them the same
+   packages as you, and what do they type first?
+3. While `quarto preview` runs on `london.qmd`, the assistant runs `quarto render london.qmd`
    and it fails with `readfile 'london.quarto_ipynb'`. What happened, and what are two ways
    to avoid it?
-3. The guide's bar chart has a caption and alt text. What should each say, and why are they
+4. In the guide's sentence about visits, which parts update when `attractions.csv` changes,
+   and when? Does any part not update?
+5. The guide's bar chart has a caption and alt text. What should each say, and why are they
    not the same?
-4. You need two changes to `london-dashboard.qmd`: a new value box and a fix to the line
+6. You need two changes to `london-dashboard.qmd`: a new value box and a fix to the line
    chart's legend. Should you give them to two sub-agents working in parallel?
-5. After the rebuild in Exercise II.5, the dashboard on your computer shows the Tower of
+7. Why is the flyer's page size set with `papersize: a5`, but the square advert's in a raw
+   Typst block?
+8. Netlify can build your site from the repository, or you can render it yourself and upload
+   it. Which does the London project need, and why?
+9. After the rebuild in Exercise II.5, the dashboard on your computer shows the Tower of
    London as the most visited attraction, but the flyer has not changed and the dashboard on
    your phone still shows the old numbers. Explain both.
 
@@ -154,15 +167,30 @@ the three.js page (@sec-london-3d).
 1. ALVA counts only its member sites, so its table is not a list of every London
    attraction. "London's most visited attractions" would claim more than the data show
    (@sec-london-agents).
-2. A render writes a temporary notebook named after the file, and the preview was rendering
+2. `uv.lock`, which records the exact version of every package for every system. Their first
+   `uv run` command, such as `uv run quarto render london.md`, builds `.venv/` from it
+   (@sec-environments).
+3. A render writes a temporary notebook named after the file, and the preview was rendering
    the same file at the same moment, so the two collided. Let the preview do the rendering
    while it runs, or stop it with Ctrl+C first and restart it afterwards
    (@sec-render-mechanics).
-3. The caption says what the chart is: the measure, the year and whose attractions. The alt
+4. The inline code (the top attraction, its visits and the total) updates at the next render,
+   not when the file is saved. The word "ten" is typed, so it never updates (@sec-code-cells).
+5. The caption says what the chart is: the measure, the year and whose attractions. The alt
    text says what it shows, such as which bar is longest and which shortest, for a reader who
    cannot see it (@sec-cell-options).
-4. No. Both edit the same file, and both are small. Sub-agents suit independent, substantial
+6. No. Both edit the same file, and both are small. Sub-agents suit independent, substantial
    tasks that write different files; make these two edits in turn (@sec-sub-agents).
-5. The flyer loads no data at all: its facts were copied into its Markdown, so a change to
+7. Typst has a paper name for A5 but none for a 12 cm square, so the advert's size needs a raw
+   block, which Quarto passes to Typst untouched. A raw block ties the source to one format,
+   so use it only for what the format's settings cannot express (@sec-london-social).
+8. Render it yourself and upload it: the pages run Python, and Quarto's Netlify build plugin
+   runs none. A host that builds would also find no rendered site in the repository, because
+   `.gitignore` leaves `_site/` out (@sec-hosting).
+9. The flyer loads no data at all: its facts were copied into its Markdown, so a change to
    `attractions.csv` cannot reach it. The live site shows what was last published, and
    changes only when you publish again (@sec-london-change).
+
+The second transfer task compares with 2019 because it is the last year before the pandemic
+years 2020 and 2021, which `data/README.md` says are not comparable with the others. The sight
+to flag is the Natural History Museum: from 2024 its count includes its reopened gardens.
