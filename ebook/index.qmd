@@ -1,0 +1,377 @@
+---
+pagetitle: "Prompt, Check, Publish: a free e-book by Ravi Kalia"
+# Quarto writes this into the share tags too; the setup cell checks it against book/_quarto.yml.
+description: "Free e-book. A practitioner's guide to reproducible publishing: write once in Markdown, let a coding assistant write the code, check its work, and rebuild one source into a web page, Word, PDF, slides, an e-book, a website, a blog and a dashboard."
+lang: en-GB
+# The landing page for the book (book/). It is built with the book's own method: every
+# number, the contents, the fan of formats and the quotations are read from the book's
+# source and data by the cells below (_source.py), never typed. README.md, "The e-book
+# landing page", explains how to rebuild it and its media.
+format:
+  html:
+    # No Bootstrap or Quarto page furniture: the page loads only its own CSS and JS.
+    minimal: true
+    page-layout: custom
+    css: ebook.css
+    include-in-header: _head.html
+    include-after-body:
+      - text: '<script src="ebook.js"></script>'
+execute:
+  echo: false
+resources:
+  - ebook.js
+  - media/*
+  - media/fonts/*
+---
+
+```{python}
+#| label: setup
+import re
+
+from IPython.display import Markdown
+
+import _source as S
+from _parts import raw
+import _parts as P
+
+
+def link(text: str, href: str) -> Markdown:
+    """A Markdown link for an inline expression (a link target cannot hold one)."""
+    return Markdown(f"[{text}]({href})")
+
+
+m = S.meta()
+formats = S.format_links()
+n_formats = S.words(len(formats))
+size = S.epub_size()
+toc = S.contents()
+london = S.london_top()
+water = S.water_span()
+cost, cost_checked = S.assistant_cost()
+accounts, accounts_checked = S.assistant_accounts()
+chart = S.cell_figure("book/chapters/05-compute.qmd", "fig-ldn-top10")
+appx = {a["label"]: a for a in toc["appendices"]}
+parts = toc["parts"]
+ch2, ch3 = parts[0]["chapters"][1]["href"], parts[0]["chapters"][2]["href"]
+
+# The page's <head> and its <title> must agree with the book (scripts/ebook_media.py writes it).
+S.check_head()
+header = S.read("ebook/index.qmd")
+if (re.search(r'^pagetitle: "(.+)"$', header, re.M).group(1),
+        re.search(r'^description: "(.+)"$', header, re.M).group(1)) != S.share_text():
+    raise ValueError("pagetitle or description no longer matches book/_quarto.yml (_source.share_text)")
+# The deck's Get the Book slide links here with a QR code (scripts/deck_qr.py).
+deck_url = re.search(r'^ebook-qr:\n(?:  .*\n)*?  url: "([^"]+)"', S.read("index.qmd"), re.M).group(1)
+if deck_url != S.PAGE_URL:
+    raise ValueError(f"index.qmd's ebook-qr url {deck_url} is not {S.PAGE_URL}")
+
+# Wording the page quotes, which must still be the book's.
+PREFACE = "book/index.qmd"
+LOOP = [
+    ("Prompt", "Describe one small piece of work to a coding assistant, with its files and columns named."),
+    ("Check", "Read what changed, look at the result, compare it with the data. An assistant can be "
+              "fluent, fast and wrong, so this step is never skipped, and it is always yours."),
+    ("Publish", "Quarto rebuilds every output from the checked source, the same way every time."),
+]
+S.quote(PREFACE, "one small piece of work with its files and columns named",
+        "read what changed, look at the result, compare it with the data",
+        "An assistant can be fluent, fast and wrong, so this step is never skipped, and it is always yours",
+        "every output from the checked source the same way every time",
+        "No programming is assumed",
+        "a computer on which you can install software (Windows, Mac or Linux), a free GitHub account, "
+        "and an account with one coding assistant",
+        "the exact prompt to give your assistant, what it will probably run, and the few things only you can do",
+        "a web page, a Word brief for partners, a printed flyer, a dashboard for managers and a published website",
+        "publish the analysis as a report, slides, a blog post and a website, all from one analysis script")
+S.quote("book/about-author.qmd", "PhD", "University of Oxford", "written edition")
+S.quote("book/appendices/i-workshop.qmd", "six-hour, hands-on workshop")
+S.quote("book/copyright.qmd", "were checked on the dates given in the text and will change")
+# The contents' introduction names the first and last appendices.
+if not (appx["A"]["title"].startswith("Windows") and appx["J"]["title"] == "Glossary"):
+    raise ValueError("the appendices changed: reword the contents' introduction")
+```
+
+```{python}
+#| output: asis
+raw(P.hero(f"Write once. Let an assistant write the code. Check it. Publish to {n_formats} formats.", size))
+```
+
+::: {#main .page}
+
+::: {.band #loop}
+::: {.wrap}
+[The method]{.eyebrow}
+
+## One loop, every step {#the-loop}
+
+You ask, you check, Quarto rebuilds. Every hands-on step in the book goes once round this
+loop, so a mistake is caught while it is still small.
+
+```{python}
+#| output: asis
+raw(P.loop(LOOP))
+```
+:::
+:::
+
+::: {.band .alt #formats}
+::: {.wrap}
+[One source]{.eyebrow}
+
+## One `.qmd` file, `{python} n_formats` outputs {#one-source}
+
+The fan on the cover is the book's promise: one plain-text source, rebuilt into every format
+with one command. Each line below leads to a real one.
+
+```{python}
+#| output: asis
+raw(P.fan(formats))
+```
+:::
+:::
+
+::: {.band #build}
+::: {.wrap}
+[Two real projects]{.eyebrow}
+
+## What you'll build {#what-youll-build}
+
+Both run on real, cited data: no toy tables pretending to be research.
+
+```{python}
+#| output: asis
+fan = {f["name"]: f["colour"] for f in formats}
+ch6 = parts[1]["chapters"][2]["href"]
+ch11 = parts[2]["chapters"][3]["href"]
+raw('<div class="cards">' + P.card(
+    fan["html"], f"{parts[1]['label']} · London", "A visitor guide for London",
+    f"{london['visits']:,}",
+    f"visits in {london['year']} to the {london['name']}, the most of London’s "
+    f"{S.words(london['n'])} most visited ALVA member attractions",
+    "One guide becomes a web page, a Word brief for partners, a printed flyer, a dashboard for "
+    "managers and a published website.",
+    P.clip("london-map", "london-map-orbit"),
+    [("Turn the live 3-D map", f"{ch6}#sec-london-3d"), (f"Read {parts[1]['label']}", parts[1]["href"])],
+) + P.card(
+    fan["epub"], f"{parts[2]['label']} · Colombia", "Drinking-water risk in Colombia",
+    f"{water['codes']:,}",
+    f"municipalities and areas, every one of DANE’s DIVIPOLA entries, urban and rural, "
+    f"{water['first']}–{water['last']}",
+    "Group municipal zones into kinds with k-means, compare health and education between them, "
+    "and publish the analysis as a report, slides, a blog post and a website, all from one "
+    "analysis script.",
+    P.clip("colombia-relief", "colombia-relief-orbit"),
+    [("Step through k-means", f"{ch11}#sec-kmeans-steps"), (f"Read {parts[2]['label']}", parts[2]["href"])],
+) + "</div>")
+```
+
+::: {.made}
+### This page was built the way the book teaches {#how-this-page-was-made}
+
+This page is a Quarto document. When it is built, code reads the book's data, chapter list
+and cover, so every number on it, the contents below and the fan of formats above come from
+the book's source, not from typing. Change the data, rebuild, and the page changes with it.
+This is the function behind the London number:
+
+```{python}
+#| output: asis
+raw(P.code(S.london_top))
+```
+
+[This page's source](https://github.com/project-delphi/quarto-workshop/blob/main/ebook/index.qmd){.arrow}
+[The code that reads the book](https://github.com/project-delphi/quarto-workshop/blob/main/ebook/_source.py){.arrow}
+:::
+:::
+:::
+
+::: {.band .alt #who}
+::: {.wrap .two}
+::: {}
+[Who it's for]{.eyebrow}
+
+## No programming required {#who-its-for}
+
+```{python}
+#| output: asis
+raw('<ul class="pills">' + "".join(f"<li>{a[0].upper() + a[1:]}</li>" for a in S.audiences())
+    + "</ul>")
+```
+
+Anyone who works with data or code and needs to share the results. No programming is
+assumed: the book explains the Python the assistant writes, but you do not have to write it.
+:::
+
+::: {}
+[What you need]{.eyebrow}
+
+## Three things {#what-you-need}
+
+1. A computer on which you can install software: Windows, Mac or Linux.
+2. A free [GitHub](https://github.com/signup) account.
+3. An account with one coding assistant.
+
+[An honest note on cost: `{python} cost` (checked `{python} cost_checked`).
+`{python} link("Chapter 3", ch3 + "#sec-before-setup")` lists what each assistant needs.]{.note}
+:::
+:::
+:::
+
+::: {.band #contents}
+::: {.wrap .narrow}
+[Contents]{.eyebrow}
+
+## `{python} S.words(toc["chapters"]).capitalize()` chapters in `{python} S.words(len(toc["parts"]))` parts {#table-of-contents}
+
+Plus `{python} S.words(len(toc["appendices"]))` appendices, from Windows setup to a glossary.
+Every entry opens in the website edition.
+
+```{python}
+#| output: asis
+raw(P.toc(toc))
+```
+:::
+:::
+
+::: {.band .alt #inside}
+::: {.wrap}
+[Inside the book]{.eyebrow}
+
+## What a page looks like {#inside-the-book}
+
+```{python}
+#| output: asis
+ch4, ch5 = parts[1]["chapters"][0]["href"], parts[1]["chapters"][1]["href"]
+raw(P.inside([
+    {"img": "inside-box.webp", "href": f"{ch5}#sec-yaml",
+     "alt": "A three-part box from Chapter 5: Ask your coding assistant, with the prompt; Expect it to run; You do.",
+     "caption": "Every hands-on step is a three-part box: the exact prompt to give your "
+                "assistant, what it will probably run, and the few things only you can do."},
+    {"img": "inside-catch-up.webp", "href": f"{ch4}#sec-catch-up",
+     "alt": "A Try it box from Chapter 4 that ends with a one-line catch-up prompt naming a checkpoint's README.",
+     "caption": "Stuck for two minutes? One line to your assistant brings the project to the "
+                "chapter's checkpoint, and you carry on from there."},
+    {"img": "inside-chart.webp", "href": f"{ch5}#fig-ldn-top10", "alt": chart["alt"],
+     "caption": f"{chart['caption']} Every chart has a caption and alt text, which say different things.",
+     "alt_shown": chart["alt"]},
+    {"img": "inside-epub.webp", "href": S.EPUB_URL, "cls": "phone",
+     "alt": f"The EPUB on a phone in night mode, opening Chapter 5, which quotes {london['visits']:,} visits.",
+     "caption": f"The EPUB at night on a phone. Chapter 5 opens with the same {london['visits']:,} "
+                "visits, computed from the same file."},
+]))
+```
+:::
+:::
+
+::: {.band #workshop}
+::: {.wrap .narrow}
+[The workshop]{.eyebrow}
+
+## Run it as a six-hour workshop {#the-workshop}
+
+The book is the written edition of a six-hour, hands-on workshop. Its slides are online, and
+its worked examples and catch-up checkpoints are in the repository, so you can follow along
+alone or teach it.
+
+```{python}
+#| output: asis
+raw('<p class="links">' + "".join(
+    f'<a href="{P.e(h)}">{P.e(t)}{P.ICON["right"]}</a>' for t, h in [
+        ("Workshop slides", S.DECK_URL), ("GitHub repository", S.REPO),
+        ("Catch-up checkpoints", f"{S.REPO}/tree/main/checkpoints"),
+        (f"Appendix I: {appx['I']['title']}", appx["I"]["href"])]) + "</p>")
+```
+:::
+:::
+
+::: {.band .alt #author}
+::: {.wrap .narrow}
+[About the author]{.eyebrow}
+
+## `{python} m["author"]` {#about-the-author}
+
+```{python}
+#| output: asis
+print(S.about_author())
+```
+:::
+:::
+
+::: {.band #faq}
+::: {.wrap .narrow}
+[Questions]{.eyebrow}
+
+## Before you download {#faq-heading}
+
+<details>
+<summary>Is it really free?</summary>
+
+Yes. Download the EPUB or read the website edition: there is no sign-up and no email to give.
+
+</details>
+
+<details>
+<summary>Which assistant do I need?</summary>
+
+One coding assistant. `{python} accounts` (checked `{python} accounts_checked`).
+`{python} link("Chapter 2", ch2 + "#sec-choose")` explains how to choose, and
+`{python} link("what a conversation costs", ch2 + "#sec-cost")`.
+
+</details>
+
+<details>
+<summary>Does it work on Windows?</summary>
+
+Yes: Windows, Mac or Linux. On Windows you first install Ubuntu with WSL;
+`{python} link("Appendix A", appx["A"]["href"])` and the workshop's
+[Windows page](../windows-setup.html) take you through it, one checked step at a time.
+
+</details>
+
+<details>
+<summary>How current is it?</summary>
+
+The first edition, of `{python} S.month_year(m["date"])`, was checked with Quarto
+`{python} S.checked_with()`. Prices, versions, screens and plans are given with the date they
+were checked, and will change.
+
+</details>
+
+<details>
+<summary>Can I teach with it?</summary>
+
+Yes: teach from the free book and slides, link to them, and follow
+`{python} link("Appendix I", appx["I"]["href"])` to run the workshop. To copy or adapt the material,
+[ask the author first](https://github.com/project-delphi/quarto-workshop/issues).
+
+</details>
+
+<details>
+<summary>How was it written?</summary>
+
+With an AI coding assistant, as the book teaches. From the book's AI usage statement:
+
+> `{python} S.ai_statement()`
+
+</details>
+:::
+:::
+
+::: {.band .final #get}
+::: {.wrap .narrow}
+## Get the book {#get-the-book}
+
+Free. The EPUB for your e-reader, or the website edition with the live 3-D scenes.
+
+```{python}
+#| output: asis
+raw(P.cta_buttons(size, "final") + P.INAPP + P.share_row())
+```
+:::
+:::
+
+:::
+
+```{python}
+#| output: asis
+raw(P.footer() + P.sticky(size))
+```
