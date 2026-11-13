@@ -280,6 +280,14 @@ def paragraph_after(rel: str, marker: str) -> str:
     return " ".join(text[i:].split("\n\n", 1)[0].split())
 
 
+def author_linkedin() -> str:
+    """The author's LinkedIn profile, from the workshop deck's header (index.qmd)."""
+    m = re.search(r'^author-linkedin: "([^"]+)"$', read("index.qmd"), re.M)
+    if not m:
+        raise ValueError('index.qmd needs author-linkedin: "https://…" (double-quoted, alone on its line)')
+    return m.group(1)
+
+
 def about_author() -> str:
     """The About the Author page's paragraphs, as Markdown."""
     body = read("book/about-author.qmd").split("\n", 1)[1].strip()
@@ -335,7 +343,7 @@ def head_html() -> str:
         "@type": "Book",
         "name": m["title"],
         "alternativeHeadline": m["subtitle"],
-        "author": {"@type": "Person", "name": m["author"]},
+        "author": {"@type": "Person", "name": m["author"], "sameAs": [author_linkedin()]},
         "datePublished": m["date"],
         "inLanguage": m["lang"],
         "isAccessibleForFree": True,
