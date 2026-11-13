@@ -59,11 +59,13 @@ book-shots:
 	cd $(BOOK) && uv run --with playwright python scripts/shoot_epub.py $(EPUB:$(BOOK)/%=%)
 
 ## book-publish: copy the HTML edition and the EPUB into docs/book/ for GitHub Pages
-## (build both first: it stops before touching docs/book/ if either is missing)
+## (build both first: it stops before touching docs/book/ if either is missing). Quarto copies
+## every frozen figure folder into the HTML edition; the EPUB's (figure-epub/) are left out.
 book-publish:
 	@test -f $(BOOK)/_book/html/index.html -a -f $(EPUB) \
 	  || { echo "book-publish: build both editions first (make book)" >&2; exit 1; }
-	rsync -a --delete --exclude $(notdir $(EPUB)) $(BOOK)/_book/html/ docs/book/
+	rsync -a --delete --delete-excluded --exclude $(notdir $(EPUB)) --exclude 'figure-epub/' \
+	  $(BOOK)/_book/html/ docs/book/
 	cp $(EPUB) docs/book/
 
 ## deck: render the workshop decks into docs/, keeping docs/book/ exactly as it was (a full
