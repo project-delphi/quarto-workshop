@@ -10,6 +10,7 @@ _ebook-check/, ignored by git):
 - whether the primary download button is on the phone's first screen (and above 640 px, the
   height left in LinkedIn's in-app browser);
 - the bytes a phone downloads on first load, and any sideways scrolling;
+- that the title slide's short link redirects to the deck;
 - every link on the page, on the deck's title and Get the Book slides, and in the website
   edition's sidebar tools: local targets and #anchors must exist in docs/, external ones must
   answer (the EPUB's release link is reported as pending only while no release exists, and
@@ -208,6 +209,38 @@ def deck_links() -> None:
     check_links("index.html", PUBLIC, hrefs)
     if not re.search(r'<img [^>]*src="data:image/(webp|svg)', blocks[-1] if blocks else ""):
         print("  note: the Get the Book slide's images are not embedded")
+    short_link()
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def short_link() -> None:
+    """The title slide's short link (index.qmd, title-qr: short:) must redirect to its url:."""
+    head = (ROOT / "index.qmd").read_text()
+    block = re.search(r"^title-qr:\n((?:  .*\n)+)", head, re.M)
+    fields = dict(re.findall(r'^  (\w+): "([^"]+)"', block.group(1), re.M)) if block else {}
+    if "short" not in fields:
+        return
+    short, url = fields["short"], fields["url"]
+    if "://" in short:
+        fail(f"title-qr short {short} must not include a scheme (the slide adds https://)")
+        return
+    req = urllib.request.Request("https://" + short, method="HEAD",
+                                 headers={"User-Agent": "Mozilla/5.0 (link check)"})
+    try:
+        urllib.request.build_opener(_NoRedirect).open(req, timeout=20)
+        fail(f"https://{short} does not redirect")
+    except urllib.error.HTTPError as err:
+        to = err.headers.get("Location", "")
+        if err.code in (301, 302, 307, 308) and to == url:
+            print(f"  ok {err.code} https://{short} -> {to}")
+        else:
+            fail(f"https://{short} answers {err.code} -> {to or 'nowhere'}, not {url}")
+    except urllib.error.URLError as err:
+        fail(f"https://{short}: {err.reason}")
 
 
 def book_links() -> None:
