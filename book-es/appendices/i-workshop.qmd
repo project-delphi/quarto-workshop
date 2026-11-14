@@ -1,0 +1,97 @@
+# Darlo como taller {#sec-workshop}
+
+El libro sigue un taller práctico de seis horas, y se puede enseñar de esa manera: 300 minutos de
+enseñanza en cuatro sesiones, de 65, 65, 85 y 85 minutos, con dos descansos de 15 minutos y una comida de
+30 minutos. Las [diapositivas](https://project-delphi.github.io/quarto-workshop/) del taller, en inglés,
+son el material del curso el día del taller; este libro es la lectura detrás de ellas. Los participantes
+hacen en casa, antes del día, la preparación del Capítulo 3 y la lectura sobre los asistentes, los costos,
+las políticas de IA y Markdown.
+
+## El día {.unnumbered}
+
+La @tbl-agenda y la @tbl-agenda-water relacionan el día con el libro: el comienzo y la duración en
+minutos de cada bloque, el punto de control con el que termina, cuando lo hay, y los capítulos que cubre.
+
+| Hora | Bloque (su punto de control) | Libro |
+|---|---|---|
+| antes | Preparación; lectura sobre asistentes, costos, políticas de IA y Markdown | 2, 3, 4 |
+| 0:00 (10) | Bienvenida, objetivo, resultado | Prefacio |
+| 0:10 (5) | Qué es Quarto | 1 |
+| 0:15 (15) | Listos para pedir: comprobaciones fallidas, los recuadros, los prompts | 2 |
+| 0:30 (35) | Londres: de Markdown a HTML, reglas, entorno (01) | 4 |
+| 1:05 (15) | *Descanso y puesta al día* | |
+| 1:20 (20) | Londres: de `.md` a `.qmd`, formatos (02) | 5 |
+| 1:40 (15) | Londres: tres públicos con subagentes (04) | 6 |
+| 1:55 (20) | Londres: publicar en GitHub Pages (`examples/london`) | 7 |
+| 2:15 (10) | Londres: cambiar un dato de entrada | 7 |
+| 2:25 (30) | *Comida y puesta al día* | |
+
+: La mañana del taller: la Parte I y la guía de Londres. {#tbl-agenda}
+
+| Hora | Bloque (su punto de control) | Libro |
+|---|---|---|
+| 2:55 (20) | Agua: por qué, reglas, datos (05) | 8 |
+| 3:15 (20) | Agua: explorar (05) | 9 |
+| 3:35 (20) | Agua: preparar (06) | 10 |
+| 3:55 (25) | Agua: agrupar (07) | 11 |
+| 4:20 (15) | *Descanso y puesta al día* | |
+| 4:35 (20) | Agua: interpretar (08) | 12 |
+| 4:55 (15) | Agua: correlación y causalidad (09) | 13 |
+| 5:10 (40) | Agua: publicar en muchos formatos, cambiar un dato de entrada (10–13, `examples/water`) | 14 |
+| 5:50 (10) | Mostrar los sitios, próximos pasos | Epílogo |
+
+: La tarde del taller: el análisis del agua. Si se empieza a las 9:30, la comida es a las 11:55 y el día termina a las 15:30. {#tbl-agenda-water}
+
+Los tiempos de los ejercicios son estimaciones de planificación que nunca llenan un bloque: el resto es
+para las diapositivas de conceptos, mostrar resultados y recuperarse de un comando fallido. Si el lugar
+fija la hora de la comida, mueve el comienzo, no la comida: la comida va entre las dos partes, para que
+todo el mundo empiece junto la Parte III.
+
+## Antes del día {.unnumbered}
+
+- **Reúne las confirmaciones de la prueba.** Pídele a cada participante que confirme la comprobación de
+  la preparación y la prueba (@sec-step-test), y contacta a quien no lo haya hecho.
+- **Windows.** Pide antes del día la salida de `wsl -l -v` que muestre VERSION 2. Quienes no tengan una
+  cuenta de administrador, o tengan la virtualización desactivada en la BIOS, no pueden instalar WSL:
+  ponlos a trabajar con alguien al lado. El procedimiento para Windows se revisó contra la documentación
+  de Microsoft y en una Mac; ejecútalo una vez en una máquina Windows limpia antes de enseñar.
+- **La red.** Comprueba que el Wi-Fi del lugar permita GitHub, las descargas de paquetes de uv y GitHub
+  Pages, y que aguante que todo el mundo descargue a la vez.
+
+## La regla de los dos minutos {.unnumbered}
+
+La regla que mantiene unido al grupo: quien lleve dos minutos sin avanzar por un comando, un error del
+asistente o una errata no depura delante de todo el grupo. Pega la línea del ejercicio para ponerse al
+día (@fig-catch-up), y todo el mundo vuelve a trabajar junto en el bloque siguiente. Muestra una vez cómo
+ponerse al día, en vivo, al comienzo del primer bloque, para que nadie lo vea como un fracaso. En el
+bloque de las 0:15, alguien de apoyo se sienta con quien haya fallado en la comprobación de la
+preparación o en la prueba mientras la persona que presenta sigue adelante.
+
+Desde el bloque de agrupamiento en adelante, mantén al grupo en la ruta normal, que copia el
+`analysis.py` terminado de cada bloque. La ruta de desafío, escribir el análisis, es para quienes vayan
+muy por delante del grupo; los tiempos de la agenda suponen la ruta normal.
+
+## Publicar {.unnumbered}
+
+La primera publicación de cada sitio tarda unos dos minutos desde que se crea la rama `gh-pages` hasta
+que se sube el sitio, y luego GitHub Pages lo construye en 20 a 35 segundos (prueba del 2026-11-01).
+Aprovecha la espera: muestra uno de los sitios de ejemplo terminados, o explica cómo funciona la rama
+`gh-pages`. Los tres problemas más comunes son la primera publicación (tiene que ser interactiva), un
+push que falla con `HTTP 400` (sube `http.postBuffer`) y un renderizado que choca con una vista previa en
+curso (detén antes la vista previa); el @sec-troubleshooting tiene las soluciones.
+
+## Revisar los ejemplos antes de enseñar {.unnumbered}
+
+Después de cualquier cambio en las dependencias, comprueba que los dos proyectos terminados se sigan
+renderizando:
+
+```bash
+cd examples/london
+uv run quarto render
+test -f _site/index.html && test -f _site/london-whitepaper.pdf && echo "Part II OK"
+
+cd ../water
+uv run python scripts/analysis.py
+uv run quarto render
+test -f _site/index.html && test -f _site/dashboard.html && test -f _site/whitepaper.pdf && echo "Part III OK"
+```
