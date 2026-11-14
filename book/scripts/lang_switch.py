@@ -21,7 +21,8 @@ BOOK = Path(__file__).resolve().parents[1]
 SITE = "https://project-delphi.github.io/quarto-workshop/book/"
 EDITIONS = {"en": (BOOK / "_book" / "html", ""), "es": (BOOK.parent / "book-es" / "_book" / "html", "es/")}
 LABEL = {"en": ("EN", "English"), "es": ("ES", "Español")}
-MARK = re.compile(r"<!-- lang-switch -->.*?<!-- /lang-switch -->", re.S)
+# The block, and the newline that earlier versions put after the <head> block.
+MARK = re.compile(r"<!-- lang-switch -->.*?<!-- /lang-switch -->(\n(?=</head>))?", re.S)
 TOOLS_END = re.compile(r'(<div class="sidebar-tools-main[^"]*">.*?</div>)', re.S)
 SEARCH = '<button type="button" class="btn quarto-search-button"'
 
@@ -51,7 +52,7 @@ def add(path: Path, lang: str, rel: str) -> bool:
     text = MARK.sub("", path.read_text(encoding="utf-8"))
     head = "".join(f'<link rel="alternate" hreflang="{l}" href="{url(l, rel)}">' for l in EDITIONS)
     head += f'<link rel="alternate" hreflang="x-default" href="{url("en", rel)}">'
-    text = text.replace("</head>", f"<!-- lang-switch -->{head}<!-- /lang-switch -->\n</head>", 1)
+    text = text.replace("</head>", f"<!-- lang-switch -->{head}<!-- /lang-switch --></head>", 1)
     text, n_side = TOOLS_END.subn(lambda m: m.group(1) + switch(lang, rel, "lang-switch-sidebar"), text, 1)
     if SEARCH in text:
         text = text.replace(SEARCH, switch(lang, rel, "lang-switch-top") + SEARCH, 1)

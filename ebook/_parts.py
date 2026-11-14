@@ -94,8 +94,7 @@ def inapp() -> str:
     return f'<p class="inapp" hidden>{w("inapp")}</p>'
 
 
-INAPP = ('<p class="inapp" hidden>In LinkedIn’s browser? If the download does not start, open '
-         "this page in your phone’s browser from LinkedIn’s menu.</p>")
+
 
 
 # ---- 1. hero -------------------------------------------------------------------------------

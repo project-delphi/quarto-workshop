@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Iterable
+from functools import cache
 
 _WORDS = ("zero one two three four five six seven eight nine ten eleven twelve thirteen "
           "fourteen fifteen sixteen seventeen eighteen nineteen twenty").split()
@@ -26,9 +27,15 @@ _AND = {"en": " and ", "es": " y "}
 
 def language() -> str:
     """"es" when the document being rendered has `lang: es...`, else "en". Read from the
-    execute info Quarto passes to the kernel, as scripts/figures.py reads the format."""
+    execute info Quarto passes to the kernel, as scripts/figures.py reads the format; each
+    document has its own execute-info file, so the answer is cached per file."""
+    return _language(os.environ.get("QUARTO_EXECUTE_INFO", ""))
+
+
+@cache
+def _language(info: str) -> str:
     try:
-        with open(os.environ["QUARTO_EXECUTE_INFO"]) as f:
+        with open(info) as f:
             lang = json.load(f)["format"]["metadata"].get("lang") or ""
     except (KeyError, OSError, ValueError):
         return "en"
@@ -39,8 +46,10 @@ class NumberWords:
     """Words for 1 to 20, the chosen word for 0, and digits with separators beyond."""
 
     def __init__(self, zero: str = "zero") -> None:
-        self.zero = zero
-        self.words = _WORDS_ES if language() == "es" else _WORDS
+        spanish = language() == "es"
+        # The default zero is the edition's own word; a chosen one ("no") is kept as given.
+        self.zero = "cero" if spanish and zero == "zero" else zero
+        self.words = _WORDS_ES if spanish else _WORDS
 
     def __getitem__(self, n) -> str:
         n = int(n)

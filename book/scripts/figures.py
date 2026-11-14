@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import os
 from contextlib import contextmanager
+from functools import cache
 
 import matplotlib.pyplot as plt
 
@@ -112,6 +113,23 @@ PATTERNS_ES: list[tuple[str, str]] = [
 ]
 
 
+# English function words: chart text containing one and left untranslated is reported.
+import re as _re
+ENGLISH = _re.compile(r"\b(the|of|and|per|in|by|with|from|to|share|visits|rows)\b", _re.I)
+
+
+@cache
+def _proper_names() -> frozenset[str]:
+    """Names that stay English in any edition: the London attractions, as the charts write them."""
+    import csv
+    try:
+        with open("../examples/london/data/attractions.csv", newline="") as f:
+            names = {r["attraction"] for r in csv.DictReader(f)}
+    except OSError:
+        return frozenset()
+    return frozenset(names | {n.replace(" (South Kensington)", "") for n in names})
+
+
 def _translate(text: str) -> str:
     import re
     if text in TERMS_ES:
@@ -128,12 +146,17 @@ def translate_figures() -> None:
     from matplotlib.text import Text
     from matplotlib.ticker import FixedFormatter, FuncFormatter
 
+    import warnings
     for num in plt.get_fignums():
         fig = plt.figure(num)
         for text in fig.findobj(Text):
             new = _translate(text.get_text())
             if new != text.get_text():
                 text.set_text(new)
+            elif ENGLISH.search(new) and new not in _proper_names():
+                # Shown as a render warning, so a label added to an English chapter without its
+                # Spanish twin in TERMS_ES is noticed rather than published in English.
+                warnings.warn(f"chart text with no Spanish in TERMS_ES: {new!r}")
         for ax in fig.axes:
             for axis in (ax.xaxis, ax.yaxis):
                 fmt = axis.get_major_formatter()

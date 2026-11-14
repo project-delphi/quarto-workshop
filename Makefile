@@ -107,10 +107,13 @@ EPUB_ES := $(BOOK_ES)/_book/epub/prompt-check-publish-es.epub
 QUARTO_BOOK_ES := cd $(BOOK_ES) && JUPYTER_PATH="$$PWD/../$(BOOK)/.venv/share/jupyter" uv run --project ../$(BOOK) quarto
 
 ## book-es: render the Spanish HTML and EPUB editions, post-process and check the EPUB, check its
-## links into the Spanish website edition, and compare every file with its English original
+## links into the Spanish website edition, compare every file with its English original, lint
+## the glossary and scan the output for English left untranslated
 book-es: book-es-html book-es-epub
 	cd $(BOOK) && uv run python scripts/check_live_links.py ../$(EPUB_ES) --edition ../$(BOOK_ES)
 	python3 translation/compare.py
+	python3 translation/lint.py
+	python3 translation/english_scan.py
 
 ## book-es-sync: the Spanish chapter lists (from book/_chapters.yml), the deck assets and copies of
 ## the animations and stills, which Quarto's resource globs cannot reach through a symlink
@@ -150,12 +153,12 @@ book-es-publish:
 ## the book is published and pushed: make book-release TAG=book-2026-11-13
 book-release:
 	@test -n "$(TAG)" || { echo "book-release: name the release, e.g. TAG=book-2026-11-13" >&2; exit 1; }
-	git ls-files --error-unmatch docs/book/prompt-check-publish.epub >/dev/null \
-	  && git diff --quiet HEAD -- docs/book/prompt-check-publish.epub \
-	  || { echo "book-release: commit docs/book/prompt-check-publish.epub first" >&2; exit 1; }
+	for f in docs/book/prompt-check-publish.epub docs/book/es/prompt-check-publish-es.epub; do \
+	  git ls-files --error-unmatch $$f >/dev/null && git diff --quiet HEAD -- $$f \
+	  || { echo "book-release: commit $$f first" >&2; exit 1; }; done
 	git fetch --quiet origin main && git merge-base --is-ancestor HEAD origin/main \
 	  || { echo "book-release: merge this commit into main first" >&2; exit 1; }
 	gh release create $(TAG) docs/book/prompt-check-publish.epub \
-	  $(wildcard docs/book/es/prompt-check-publish-es.epub) --latest \
+	  docs/book/es/prompt-check-publish-es.epub --latest \
 	  --title "Prompt, Check, Publish ($(TAG))" \
 	  --notes "The EPUB edition of Prompt, Check, Publish, and of its Spanish edition, Pide, revisa, publica. Read online: https://project-delphi.github.io/quarto-workshop/book/ (Spanish: https://project-delphi.github.io/quarto-workshop/book/es/)"

@@ -348,18 +348,11 @@ def head() -> None:
 
 def qr() -> None:
     """The Spanish page's QR code, drawn as scripts/deck_qr.py draws the English page's."""
-    import segno
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from deck_qr import qr_svg
     url = S.PAGE_URL
-    code = segno.make(url, error="m", micro=False)
-    n = code.symbol_size(scale=1, border=4)[0]
-    buf = io.BytesIO()
-    code.save(buf, kind="svg", scale=1, border=4, dark="#191919", light="#f4f1ea", xmldecl=False,
-              svgns=True, omitsize=True, title="QR code: " + url)
-    svg = buf.getvalue().decode()
-    if "viewBox" not in svg:
-        svg = svg.replace("<svg ", f'<svg viewBox="0 0 {n} {n}" ', 1)
     out = OUT / "qr.svg"
-    out.write_text(svg + "\n")
+    out.write_text(qr_svg(url)[0])
     print(f"{out.relative_to(ROOT)}: {url}")
 
 

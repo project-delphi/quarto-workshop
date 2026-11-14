@@ -393,6 +393,11 @@ def main(path: str) -> None:
         entries = [(i, z.read(i.filename)) for i in z.infolist()]
     chapters = {i.filename: d.decode("utf-8") for i, d in entries
                 if i.filename.startswith("EPUB/text/ch") and i.filename.endswith(".xhtml")}
+    # The labels' language first: classify() recognises appendices by their heading's word.
+    opf = next(d.decode("utf-8") for i, d in entries if i.filename == "EPUB/content.opf")
+    global L
+    lang = re.search(r"<dc:language>([^<]*)</dc:language>", opf)
+    L = LABELS["es"] if lang and lang.group(1).startswith("es") else LABELS["en"]
     kinds = classify(chapters)
     examples = [n for n, c in chapters.items() if '<ol class="example"' in c]
     if examples:
@@ -403,9 +408,6 @@ def main(path: str) -> None:
     sub = re.search(r'<p class="subtitle">(.*?)</p>', titles[0] if titles else "")
     subtitle = sub.group(1) if sub else ""
     opf = next(d.decode("utf-8") for i, d in entries if i.filename == "EPUB/content.opf")
-    global L
-    lang = re.search(r"<dc:language>([^<]*)</dc:language>", opf)
-    L = LABELS["es"] if lang and lang.group(1).startswith("es") else LABELS["en"]
     cover = re.search(r'<item [^>]*properties="cover-image"[^>]*id="([^"]+)"', opf)
     panels = set().union(*(panel_images(t) for t in chapters.values()))
     flattened = 0

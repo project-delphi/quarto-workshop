@@ -3,8 +3,10 @@
 // works without it: everything is drawn, the clips show their stills, the buttons are links.
 // The page's words in its language (<html lang>): English, or the Spanish page's (ebook/es/).
 const T = document.documentElement.lang.startsWith("es")
-  ? { pause: "Pausa", play: "Reproducir", copied: "Enlace copiado", failed: "No se pudo copiar", copy: "Copiar enlace" }
-  : { pause: "Pause", play: "Play", copied: "Link copied", failed: "Copy failed", copy: "Copy link" };
+  ? { pause: "Pausa", play: "Reproducir", copied: "Enlace copiado", failed: "No se pudo copiar", copy: "Copiar enlace",
+      copiedTo: "Copiado:", copyThis: "Copia esta dirección:" }
+  : { pause: "Pause", play: "Play", copied: "Link copied", failed: "Copy failed", copy: "Copy link",
+      copiedTo: "Copied", copyThis: "Copy this address:" };
 (() => {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const canWatch = "IntersectionObserver" in window;
@@ -100,7 +102,7 @@ const T = document.documentElement.lang.startsWith("es")
         field.remove();
       }
       label.textContent = ok ? T.copied : T.failed;
-      if (status) { status.textContent = ok ? `Copied ${url}` : `Copy this address: ${url}`; }
+      if (status) { status.textContent = ok ? `${T.copiedTo} ${url}` : `${T.copyThis} ${url}`; }
       setTimeout(() => { label.textContent = T.copy; }, 2500);
     });
   });

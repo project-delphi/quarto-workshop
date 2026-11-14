@@ -137,17 +137,17 @@ def release_link(url: str) -> None:
         print(f"  PENDING (no release yet) {url}")
         return
     code = external_status(url)
-    if code != 200 and url.endswith("-es.epub"):
+    name = url.rsplit("/", 1)[1]
+    if code != 200 and not any(a["name"] == name for a in release.get("assets", [])) \
+            and name.endswith("-es.epub") and release.get("assets"):
+        # A release made before the Spanish edition: pending only while it lacks the asset.
         print(f"  PENDING (release {release.get('tag_name', '?')} has no Spanish EPUB yet: "
               f"the next make book-release attaches it) {url}")
         return
     if code != 200:
         fail(f"{url} answered {code}, though release {release.get('tag_name', '?')} exists")
         return
-    name = url.rsplit("/", 1)[1]
     asset = next((a for a in release.get("assets", []) if a["name"] == name), None)
-    if asset is None and code != 200:
-        return
     folder = "docs/book/es" if name.endswith("-es.epub") else "docs/book"
     committed = subprocess.run(["git", "cat-file", "-s", f":{folder}/{name}"], cwd=ROOT,
                                capture_output=True, text=True)
