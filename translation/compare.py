@@ -119,13 +119,26 @@ def norm_url(u: str) -> str:
         "prompt-check-publish-es.epub", "prompt-check-publish.epub")
 
 
+def auto_id(text: str) -> str:
+    """Pandoc's auto_identifiers, for a heading with no explicit ID (heading_ids.py has the same)."""
+    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"[`*_]", "", text) if "`" in text or "*" in text else text
+    text = "".join(ch for ch in text.lower() if ch.isalnum() or ch in " _-.")
+    text = re.sub(r"^[^a-z]+", "", re.sub(r"\s+", "-", text.strip()))
+    return text or "section"
+
+
 def headings(prose_parts):
+    """(level, effective ID, other attributes) per heading: an explicit #id, else Pandoc's."""
     hs = []
     for text in prose_parts:
         for line in text.split("\n"):
             m = HEADING.match(line)
             if m:
-                hs.append((len(m.group(1)), m.group(3) or ""))
+                attrs = (m.group(3) or "{}")[1:-1].split()
+                ids = [a[1:] for a in attrs if a.startswith("#")]
+                rest = tuple(a for a in attrs if not a.startswith("#"))
+                hs.append((len(m.group(1)), ids[0] if ids else auto_id(m.group(2)), rest))
     return hs
 
 
@@ -199,8 +212,8 @@ def compare(rel: str, strings: list) -> tuple[list[str], list[str]]:
     label = lambda t: set(re.findall(r"^#\|\s*label:\s*(\S+)", t, re.M))
     attrs = lambda t: " ".join(re.findall(r"\{[^{}\n]*\}", t))
     checks = {
-        "IDs": (set(ID.findall(attrs(joined_e))) | label(cells_e),
-                set(ID.findall(attrs(joined_s))) | label(cells_s)),
+        "IDs": (set(ID.findall(attrs(joined_e))) | label(cells_e) | {h[1] for h in headings(pe)},
+                set(ID.findall(attrs(joined_s))) | label(cells_s) | {h[1] for h in headings(ps)}),
         "cross-references": ({r.lower() for r in REF.findall(joined_e + cells_e)},
                              {r.lower() for r in REF.findall(joined_s + cells_s)}),
         "URLs": ({norm_url(u) for u in URL.findall(en)}, {norm_url(u) for u in URL.findall(es)}),

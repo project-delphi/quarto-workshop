@@ -6,6 +6,17 @@ in the cells is identical. Review that each one only reaches the page.
 
 | File | Cell | English | Spanish |
 |---|--:|---|---|
+| `appendices/e-checkpoints.qmd` | 2 | `"zeroth"` | `"cero"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"first"` | `"primer"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"second"` | `"segundo"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"third"` | `"tercer"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"fourth"` | `"cuarto"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"fifth"` | `"quinto"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"sixth"` | `"sexto"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"seventh"` | `"séptimo"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"eighth"` | `"octavo"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"ninth"` | `"noveno"` |
+| `appendices/e-checkpoints.qmd` | 2 | `"tenth"` | `"décimo"` |
 | `chapters/04-markdown.qmd` | 1 | `"first"` | `"primero"` |
 | `chapters/04-markdown.qmd` | 1 | `"second"` | `"segundo"` |
 | `chapters/04-markdown.qmd` | 1 | `"third"` | `"tercero"` |
@@ -122,6 +133,7 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/12-interpret.qmd` | 2 | `" and "` | `" y "` |
 | `chapters/12-interpret.qmd` | 2 | `"low-coverage"` | `"baja cobertura"` |
 | `chapters/12-interpret.qmd` | 2 | `"poverty"` | `"pobreza"` |
+| `chapters/12-interpret.qmd` | 2 | `"2017–2019 and 2021–2023"` | `"2017–2019 y 2021–2023"` |
 | `chapters/12-interpret.qmd` | 2 | `"Cities and large towns"` | `"Ciudades y pueblos grandes"` |
 | `chapters/12-interpret.qmd` | 2 | `"Highland towns"` | `"Pueblos de tierras altas"` |
 | `chapters/12-interpret.qmd` | 2 | `"Lowland towns"` | `"Pueblos de tierras bajas"` |
@@ -135,3 +147,25 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/12-interpret.qmd` | 7 | `"Saber 11 score\n(higher is better)"` | `"Puntaje Saber 11\n(más es mejor)"` |
 | `chapters/12-interpret.qmd` | 7 | `"Dropout %\n(lower is better)"` | `"Deserción %\n(menos es mejor)"` |
 | `chapters/12-interpret.qmd` | 8 | `Box plots of  · , one per cluster. Medians:  · cluster  ·  ( · )  · .1f · cluster  ·  no data` | `Diagramas de caja de  · , uno por clúster. Medianas:  · clúster  ·  ( · )  · .1f · clúster  ·  sin datos` |
+| `chapters/13-causation.qmd` | 2 | `"2017–2019 and 2021–2023"` | `"2017–2019 y 2021–2023"` |
+| `chapters/13-causation.qmd` | 2 | `"Poverty"` | `"Pobreza"` |
+| `chapters/13-causation.qmd` | 2 | `"Rural share"` | `"Proporción rural"` |
+| `chapters/13-causation.qmd` | 2 | `"Piped-water coverage"` | `"Cobertura de acueducto"` |
+| `chapters/13-causation.qmd` | 2 | `"Altitude"` | `"Altitud"` |
+| `chapters/13-causation.qmd` | 2 | `"clusters "` | `"los clústeres "` |
+| `chapters/13-causation.qmd` | 2 | `cluster  ·  and  · .1f` | `el clúster  ·  y  · .1f` |
+| `chapters/13-causation.qmd` | 4 | `"\| Feature \| "` | `"\| Característica \| "` |
+| `chapters/13-causation.qmd` | 5 | `"N"` | `"S"` |
+| `chapters/13-causation.qmd` | 5 | `"L"` | `"B"` |
+| `chapters/13-causation.qmd` | 5 | `"H"` | `"A"` |
+| `chapters/13-causation.qmd` | 5 | `"U"` | `"I"` |
+| `chapters/13-causation.qmd` | 5 | `"IRCA band: N no risk · L low · M medium · H high · U unfit"` | `"Nivel del IRCA: S sin riesgo · B bajo · M medio · A alto · I inviable"` |
+| `chapters/13-causation.qmd` | 5 | `"IRCA band: N no risk · L low · M medium\nH high · U unfit"` | `"Nivel del IRCA: S sin riesgo · B bajo · M medio\nA alto · I inviable"` |
+| `chapters/13-causation.qmd` | 6 | `"\| \| n \| ρ \| 95% interval \| SD of IRCA \|"` | `"\| \| n \| ρ \| Intervalo del 95% \| DE del IRCA \|"` |
+| `chapters/13-causation.qmd` | 6 | ` to  · \| All places \|  ·  \|  ·  \|  ·  \|  · .1f ·  \| · \| Cluster  ·  \|  ·  \|  ·   · \|  ·  \|  · .1f ·  \|` | ` a  · \| Todos los lugares \|  ·  \|  ·  \|  ·  \|  · .1f ·  \| · \| Clúster  ·  \|  ·  \|  ·   · \|  ·  \|  · .1f ·  \|` |
+| `chapters/14-publish-many.qmd` | 14 | `"none"` | `"ninguno"` |
+| `chapters/14-publish-many.qmd` | 14 | `"\| Page \| Reads `outputs/` \| Reads `data/` \| Writes \|"` | `"\| Página \| Lee `outputs/` \| Lee `data/` \| Escribe \|"` |
+| `chapters/14-publish-many.qmd` | 14 | `"the post"` | `"la entrada"` |
+| `chapters/14-publish-many.qmd` | 14 | `"none"` | `"ninguno"` |
+| `chapters/14-publish-many.qmd` | 14 | ` file · ` · ` · \|  ·  \|  ·  \|  ·  \|  ·  \|` | ` archivo · ` · ` · \|  ·  \|  ·  \|  ·  \|  ·  \|` |
+| `chapters/exercises-water.qmd` | 1 | `"no-risk water"` | `"agua sin riesgo"` |
