@@ -38,6 +38,9 @@ RULES = [
     (r"prestar|rendir", "renderizar"),
     (r"guion|guiones", "script"),
     (r"zona-años", "zonas-año"),
+    # The reader's gender is never assumed (glossary, conventions).
+    (r"tú mism[oa]s?|est(ás|és|arás) (list[oa]|segur[oa]|atascad[oa]|perdid[oa]|preparad[oa])", "a neutral phrasing"),
+    (r"(sé|seas) (específic[oa]|concret[oa]|cuidados[oa])", "a neutral phrasing"),
 ]
 STRIP = [
     re.compile(r"^(\s*)(`{3,}).*?^\1\2\s*$", re.S | re.M),  # fences
