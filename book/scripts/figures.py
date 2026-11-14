@@ -97,6 +97,8 @@ TERMS_ES = {
     "IRCA, utility-supplied": "IRCA de prestadores",
     "Aqueduct coverage (%)": "Cobertura de acueducto (%)", "new method": "método nuevo",
     "Infant mortality (per 1,000 live births)": "Mortalidad infantil (por 1,000 nacidos vivos)",
+    "raw units": "unidades originales", "z-scores": "puntajes z",
+    "Share of squared distance (%)": "Proporción de la distancia al cuadrado (%)",
 }
 PATTERNS_ES: list[tuple[str, str]] = [
     (r"^Cluster (\d+)$", r"Clúster \1"),
