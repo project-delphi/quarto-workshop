@@ -22,18 +22,41 @@
 --    "Answer", set apart so a reader can stop and answer first.
 -- 7. Key ideas. ::: keyideas holds a chapter summary's list of takeaways; it only styles them.
 
-local BOX = {
-  prompt = "Ask your coding assistant",
-  agent = "Expect it to run",
-  you = "You do",
+-- 10. Language. Every label above is written in the document's `lang`: English, or the
+--    Spanish edition's (book-es/, translation/glossary.md) when `lang` starts "es".
+local LABELS = {
+  en = {
+    prompt = "Ask your coding assistant", agent = "Expect it to run", you = "You do",
+    why = "Why this works", pitfall = "Common pitfall", practice = "In practice", tryit = "Try it",
+    opener = "In this chapter", think = "Pause and think", answer = "Answer",
+    done = "You’re done when", stuck = "Stuck for two minutes?",
+    catchup = "Paste this into your assistant. It backs up your work and brings the project to "
+      .. "this point; then carry on from here.",
+  },
+  es = {
+    prompt = "Pídele a tu asistente", agent = "Probablemente ejecute", you = "Tú haces",
+    why = "Por qué funciona", pitfall = "Error frecuente", practice = "En la práctica", tryit = "Pruébalo",
+    opener = "En este capítulo", think = "Detente y piensa", answer = "Respuesta",
+    done = "Terminaste cuando", stuck = "¿Dos minutos sin avanzar?",
+    catchup = "Pega esto en tu asistente. Respalda tu trabajo y lleva el proyecto hasta "
+      .. "este punto; luego sigue leyendo desde aquí.",
+  },
 }
+local L = LABELS.en
 
-local ASIDE = {
-  why = { "callout-note", "Why this works" },
-  pitfall = { "callout-warning", "Common pitfall" },
-  practice = { "callout-tip", "In practice" },
-  tryit = { "callout-important", "Try it" },
-}
+local BOX = {}
+local ASIDE = {}
+local function set_language(meta)
+  local lang = meta.lang and pandoc.utils.stringify(meta.lang) or ""
+  L = lang:match("^es") and LABELS.es or LABELS.en
+  BOX = { prompt = L.prompt, agent = L.agent, you = L.you }
+  ASIDE = {
+    why = { "callout-note", L.why },
+    pitfall = { "callout-warning", L.pitfall },
+    practice = { "callout-tip", L.practice },
+    tryit = { "callout-important", L.tryit },
+  }
+end
 
 -- A part already labelled (inside an .agent-box) carries data-boxed and is not regrouped.
 local function box_kind(block)
@@ -90,7 +113,7 @@ end
 
 -- ::: opener: "In this chapter", the objectives, then Start from / You build / Checkpoint.
 local function opener(div)
-  local out = pandoc.Blocks({ labelled("In this chapter") })
+  local out = pandoc.Blocks({ labelled(L.opener) })
   for _, block in ipairs(div.content) do
     if block.t == "DefinitionList" then
       local meta = pandoc.Blocks({})
@@ -119,11 +142,11 @@ end
 
 -- ::: think: the question, then the answer under its own label.
 local function think(div)
-  local question, answer = pandoc.Blocks({}), pandoc.Blocks({ labelled("Answer", "think-answer-label") })
+  local question, answer = pandoc.Blocks({}), pandoc.Blocks({ labelled(L.answer, "think-answer-label") })
   for i, block in ipairs(div.content) do
     if i == 1 then question:insert(block) else answer:insert(block) end
   end
-  local out = pandoc.Blocks({ labelled("Pause and think") })
+  local out = pandoc.Blocks({ labelled(L.think) })
   out:insert(pandoc.Div(question, pandoc.Attr("", { "think-question" })))
   if #answer > 1 then out:insert(pandoc.Div(answer, pandoc.Attr("", { "think-answer" }))) end
   div.content = out
@@ -145,14 +168,13 @@ local function aside(div)
     local first = div.content[1]
     if first and (first.t == "Para" or first.t == "Plain") then
       first.content:insert(1, pandoc.Space())
-      first.content:insert(1, pandoc.Strong("You’re done when"))
+      first.content:insert(1, pandoc.Strong(L.done))
     end
     return div
   end
   if div.classes:includes("catchup") then
-    div.content:insert(1, pandoc.Para({ pandoc.Strong("Stuck for two minutes?"), pandoc.Space(),
-      pandoc.Str("Paste this into your assistant. It backs up your work and brings the project to "
-        .. "this point; then carry on from here.") }))
+    div.content:insert(1, pandoc.Para({ pandoc.Strong(L.stuck), pandoc.Space(),
+      pandoc.Str(L.catchup) }))
     return div
   end
   return nil
@@ -211,6 +233,8 @@ local function keep_dates(str)
 end
 
 return {
+  -- The labels' language first: Pandoc runs a filter's Meta function after its blocks.
+  { Meta = set_language },
   -- Every date in a Str, but none inside a link: a URL's own dates must stay breakable. The
   -- walk is bottom-up, so a link's text has been wrapped by the time its Link is seen.
   { Str = keep_dates,

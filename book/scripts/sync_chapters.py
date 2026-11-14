@@ -8,8 +8,10 @@ So the base _quarto.yml has no chapter list, and this script writes one per prof
 - _quarto-epub.yml: one flat list in which the part pages are ordinary chapters
   (scripts/epub_postprocess.py nests the EPUB table of contents under them).
 
-Run from book/:  uv run python scripts/sync_chapters.py [--check]
+Run from book/:  uv run python scripts/sync_chapters.py [--check] [--book ../book-es]
 --check exits with status 1 if a profile on disk differs from what it would write.
+--book writes the profiles of another edition with the same chapters (the Spanish edition,
+book-es/, translation/PLAN.md), still from this folder's _chapters.yml.
 """
 from __future__ import annotations
 
@@ -40,10 +42,12 @@ def profiles(spec: dict) -> dict[str, dict]:
 
 def main() -> int:
     spec = yaml.safe_load((BOOK / "_chapters.yml").read_text())
-    check = "--check" in sys.argv[1:]
+    args = sys.argv[1:]
+    check = "--check" in args
+    target = (Path.cwd() / args[args.index("--book") + 1]).resolve() if "--book" in args else BOOK
     stale = []
     for name, data in profiles(spec).items():
-        path = BOOK / f"_quarto-{name}.yml"
+        path = target / f"_quarto-{name}.yml"
         text = HEADER + yaml.safe_dump(data, sort_keys=False, allow_unicode=True)
         if path.exists() and path.read_text() == text:
             continue
@@ -58,7 +62,7 @@ def main() -> int:
     missing = [f for f in [*spec["front"], *spec["back"], *spec["appendices"],
                            *(p["file"] for p in spec["parts"]),
                            *(c for p in spec["parts"] for c in p["chapters"])]
-               if not (BOOK / f).exists()]
+               if not (target / f).exists()]
     if missing:
         print("missing chapter files:", ", ".join(missing), file=sys.stderr)
         return 1

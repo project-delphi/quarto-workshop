@@ -7,13 +7,32 @@
 
 The guards stop a render when a sentence, alt text or caption typed in the source no longer
 matches the data, so that it is rewritten rather than published wrong.
+
+The words follow the document's `lang`: the Spanish edition (book-es/) gets "nueve" and
+"2014–2017, 2019 y 2020" from the same calls (`language()`).
 """
 from __future__ import annotations
 
+import json
+import os
 from collections.abc import Iterable
 
 _WORDS = ("zero one two three four five six seven eight nine ten eleven twelve thirteen "
           "fourteen fifteen sixteen seventeen eighteen nineteen twenty").split()
+_WORDS_ES = ("cero uno dos tres cuatro cinco seis siete ocho nueve diez once doce trece "
+             "catorce quince dieciséis diecisiete dieciocho diecinueve veinte").split()
+_AND = {"en": " and ", "es": " y "}
+
+
+def language() -> str:
+    """"es" when the document being rendered has `lang: es...`, else "en". Read from the
+    execute info Quarto passes to the kernel, as scripts/figures.py reads the format."""
+    try:
+        with open(os.environ["QUARTO_EXECUTE_INFO"]) as f:
+            lang = json.load(f)["format"]["metadata"].get("lang") or ""
+    except (KeyError, OSError, ValueError):
+        return "en"
+    return "es" if str(lang).startswith("es") else "en"
 
 
 class NumberWords:
@@ -21,12 +40,13 @@ class NumberWords:
 
     def __init__(self, zero: str = "zero") -> None:
         self.zero = zero
+        self.words = _WORDS_ES if language() == "es" else _WORDS
 
     def __getitem__(self, n) -> str:
         n = int(n)
         if n == 0:
             return self.zero
-        return _WORDS[n] if 0 < n < len(_WORDS) else f"{n:,}"
+        return self.words[n] if 0 < n < len(self.words) else f"{n:,}"
 
     def get(self, n, default=None) -> str:
         return self[n]
@@ -47,7 +67,7 @@ def spans(years: Iterable) -> str:
         if b != a + 1:
             out += [f"{start}–{a}"] if a - start > 1 else [str(y) for y in range(start, a + 1)]
             start = b
-    return out[0] if len(out) == 1 else ", ".join(out[:-1]) + " and " + out[-1]
+    return out[0] if len(out) == 1 else ", ".join(out[:-1]) + _AND[language()] + out[-1]
 
 
 def text_holds(ok: bool, what: str) -> None:
