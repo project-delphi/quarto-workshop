@@ -1,6 +1,7 @@
 # Spanish edition: plan
 
-Status: step 1 (plan and glossary), waiting for review. Branch `spanish-edition`.
+Status: done on branch `spanish-edition` (decisions D1–D6 taken as recommended; D5: the
+Spanish text writes around the author's gender). The sections below are the plan as approved.
 
 ## 1. What gets translated, in order
 
