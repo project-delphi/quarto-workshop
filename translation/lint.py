@@ -23,7 +23,7 @@ RULES = [
     (r"vosotros|vosotras|vuestr[oa]s?|habéis|tenéis|podéis|queréis|sabéis|(?-i:os)", "the tú form"),
     (r"usted", "the tú form"),
     (r"coger|cogemos|coge", "tomar"),
-    (r"móvil(es)?", "teléfono"),
+    (r"(un|el|tu|del|al) móvil|los móviles", "teléfono"),
     (r"renderización(es)?", "renderizado"),
     (r"carpeta de inicio", "carpeta personal"),
     (r"puntuaci[oó]n(es)? z", "puntaje z"),
