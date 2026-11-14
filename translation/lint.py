@@ -20,7 +20,7 @@ RULES = [
     (r"clusters?|clusteres", "clúster, clústeres"),
     (r"ordenador(es)?|computador(es)?", "computadora"),
     (r"ficheros?", "archivo"),
-    (r"vosotros|vosotras|vuestr[oa]s?|habéis|tenéis|podéis|queréis|sabéis|os", "the tú form"),
+    (r"vosotros|vosotras|vuestr[oa]s?|habéis|tenéis|podéis|queréis|sabéis|(?-i:os)", "the tú form"),
     (r"usted", "the tú form"),
     (r"coger|cogemos|coge", "tomar"),
     (r"vale", "de acuerdo / bien"),

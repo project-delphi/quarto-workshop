@@ -255,3 +255,40 @@ Conventions that apply everywhere:
 | visitor guide | guía para visitantes | | |
 | attraction visits | visitas a atracciones | | |
 | WebGL | WebGL | EN | |
+
+## Titles
+
+Sentence case, as Spanish titles are written. Exercise headings read "Ejercicio II.1: …".
+
+| English | Spanish |
+|---|---|
+| Part I: Foundations | Parte I: Fundamentos |
+| Part II: One Guide, Many Audiences | Parte II: Una guía, muchos públicos |
+| Part III: One Analysis, Many Publications | Parte III: Un análisis, muchas publicaciones |
+| 1 Publishing That Rebuilds Itself | Publicar algo que se reconstruye solo |
+| 2 Working With a Coding Assistant | Trabajar con un asistente de programación |
+| 3 Setting Up Your Machine | Preparar tu computadora |
+| 4 Markdown, Rendering and Project Rules | Markdown, renderizado y reglas del proyecto |
+| 5 Documents That Compute | Documentos que calculan |
+| 6 One Guide, Five Audiences | Una guía, cinco públicos |
+| 7 Publishing and Proving the Rebuild | Publicar y demostrar la reconstrucción |
+| Exercises for Part II | Ejercicios de la Parte II |
+| 8 The Question, the Data and the Rules | La pregunta, los datos y las reglas |
+| 9 Look Before You Model | Mira antes de modelar |
+| 10 From Table to Features | De la tabla a las características |
+| 11 Finding Kinds of Places: k-Means | Encontrar tipos de lugares: k-means |
+| 12 Interpreting Clusters | Interpretar los clústeres |
+| 13 Correlation Is Not Causation | Correlación no es causalidad |
+| 14 Publish Many | Publicar en muchos formatos |
+| Exercises for Part III | Ejercicios de la Parte III |
+| Afterword: What You Built, and Where Next | Epílogo: lo que construiste y cómo seguir |
+| A Windows: Get Ubuntu Ready | Windows: prepara Ubuntu |
+| B Terminal Keys and Habits | Teclas y hábitos de la terminal |
+| C Cheatsheet | Hoja de referencia |
+| D Troubleshooting | Solución de problemas |
+| E Checkpoints at a Glance, and Answers | Los puntos de control de un vistazo, y respuestas |
+| F Reading in Another Language | Leer en otro idioma |
+| G Data Sources, Licences and Credits | Fuentes de datos, licencias y créditos |
+| H How This Book Is Built | Cómo está hecho este libro |
+| I Running This as a Workshop | Darlo como taller |
+| J Glossary | Glosario |
