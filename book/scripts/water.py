@@ -53,13 +53,21 @@ RISK_ES = {"no-risk water": "agua sin riesgo", "low-risk water": "agua de riesgo
 
 
 class _Spanish:
-    """The analysis module, with its labels in Spanish."""
+    """The analysis module, with its labels and run()'s cluster names in Spanish. Settings
+    assigned to it (a chapter's `A.MAX_MISSING = 1`) are set on the module itself."""
 
     def __init__(self, module) -> None:
-        self._module = module
+        object.__setattr__(self, "_module", module)
 
     def __getattr__(self, name):
-        return LABELS_ES[name] if name in LABELS_ES else getattr(self._module, name)
+        if name in LABELS_ES:
+            return LABELS_ES[name]
+        if name == "run":
+            return lambda *args, **kwargs: _localize(self._module.run(*args, **kwargs))
+        return getattr(self._module, name)
+
+    def __setattr__(self, name, value) -> None:
+        setattr(self._module, name, value)
 
 
 def name_es(name: str) -> str:
@@ -71,16 +79,20 @@ def name_es(name: str) -> str:
 A = _Spanish(analysis) if language() == "es" else analysis
 
 
+def _localize(out: dict) -> dict:
+    """A run's cluster names in Spanish (the Spanish edition only)."""
+    out = dict(out)
+    out["profiles"] = out["profiles"].assign(name=out["profiles"]["name"].map(name_es))
+    if "cluster_name" in out["clusters"]:
+        out["clusters"] = out["clusters"].assign(cluster_name=out["clusters"]["cluster_name"].map(name_es))
+    return out
+
+
 @cache
 def res() -> dict:
     """The full in-memory run (about 5 seconds): summary, prepared, clusters, profiles, k table."""
     out = analysis.run()
-    if language() == "es":
-        out = dict(out)
-        out["profiles"] = out["profiles"].assign(name=out["profiles"]["name"].map(name_es))
-        if "cluster_name" in out["clusters"]:
-            out["clusters"] = out["clusters"].assign(cluster_name=out["clusters"]["cluster_name"].map(name_es))
-    return out
+    return _localize(out) if language() == "es" else out
 
 
 @cache
