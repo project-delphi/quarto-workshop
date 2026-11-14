@@ -1,6 +1,10 @@
 // The e-book landing page's only script (ebook/index.qmd): drawing on scroll, the clips,
 // the sticky bar on phones, copy-link, and a hint for LinkedIn's in-app browser. The page
 // works without it: everything is drawn, the clips show their stills, the buttons are links.
+// The page's words in its language (<html lang>): English, or the Spanish page's (ebook/es/).
+const T = document.documentElement.lang.startsWith("es")
+  ? { pause: "Pausa", play: "Reproducir", copied: "Enlace copiado", failed: "No se pudo copiar", copy: "Copiar enlace" }
+  : { pause: "Pause", play: "Play", copied: "Link copied", failed: "Copy failed", copy: "Copy link" };
 (() => {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const canWatch = "IntersectionObserver" in window;
@@ -47,7 +51,7 @@
         const paused = clip.dataset.paused === "yes";
         clip.dataset.paused = paused ? "no" : "yes";
         button.setAttribute("aria-pressed", String(!paused));
-        button.textContent = paused ? "Pause" : "Play";
+        button.textContent = paused ? T.pause : T.play;
         if (paused) { video.play().catch(() => {}); } else { video.pause(); }
       });
       play.observe(clip);
@@ -95,9 +99,9 @@
         try { ok = document.execCommand("copy"); } catch { ok = false; }
         field.remove();
       }
-      label.textContent = ok ? "Link copied" : "Copy failed";
+      label.textContent = ok ? T.copied : T.failed;
       if (status) { status.textContent = ok ? `Copied ${url}` : `Copy this address: ${url}`; }
-      setTimeout(() => { label.textContent = "Copy link"; }, 2500);
+      setTimeout(() => { label.textContent = T.copy; }, 2500);
     });
   });
 })();

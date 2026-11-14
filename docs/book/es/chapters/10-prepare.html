@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="keywords" content="Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means">
+<meta name="description" content="Una guía práctica de publicación reproducible: escribe una sola vez en Markdown, deja que un asistente de programación escriba el código, revisa su trabajo y reconstruye una sola fuente como página web, Word, PDF, diapositivas, libro electrónico, sitio web, blog y dashboard. Dos proyectos reales recorren el libro: una guía para visitantes de Londres y un estudio del riesgo del agua potable en los municipios de Colombia.">
+
+<title>10&nbsp; De la tabla a las características – Pide, revisa, publica</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/11-cluster.html" rel="next">
+<link href="../chapters/09-explore.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No hay resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<!-- lang-switch --><link rel="alternate" hreflang="en" href="https://project-delphi.github.io/quarto-workshop/book/chapters/10-prepare.html"><link rel="alternate" hreflang="es" href="https://project-delphi.github.io/quarto-workshop/book/es/chapters/10-prepare.html"><link rel="alternate" hreflang="x-default" href="https://project-delphi.github.io/quarto-workshop/book/chapters/10-prepare.html"><!-- /lang-switch -->
+</head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-3.html">Parte III: Un análisis, muchas publicaciones</a></li><li class="breadcrumb-item"><a href="../chapters/10-prepare.html"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <!-- lang-switch --><nav class="lang-switch lang-switch-top" aria-label="Language / Idioma"><a href="../../chapters/10-prepare.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch --><button type="button" class="btn quarto-search-button" aria-label="Buscar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Pide, revisa, publica</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://project-delphi.github.io/quarto-workshop/ebook/es/" title="La página del libro" class="quarto-navigation-tool px-1" aria-label="La página del libro"><i class="bi bi-book"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/releases/latest/download/prompt-check-publish-es.epub" title="Descarga el EPUB" class="quarto-navigation-tool px-1" aria-label="Descarga el EPUB"><i class="bi bi-download"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book-es/" title="Ejecutar el código" class="quarto-navigation-tool px-1" aria-label="Ejecutar el código"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Alternar modo oscuro"><i class="bi"></i></a>
+</div><!-- lang-switch --><nav class="lang-switch lang-switch-sidebar" aria-label="Language / Idioma"><a href="../../chapters/10-prepare.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch -->
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Buscar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefacio: cómo usar este libro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../copyright.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Derechos de autor</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedicatoria</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sobre Ravi Kalia</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte I: Fundamentos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-assistant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un asistente de programación</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Preparar tu computadora</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte II: Una guía, muchos públicos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-markdown.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Markdown, renderizado y reglas del proyecto</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-compute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Documentos que calculan</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-audiences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Una guía, cinco públicos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-publish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Publicar y demostrar la reconstrucción</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-london.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte II</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte III: Un análisis, muchas publicaciones</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-water-question.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">La pregunta, los datos y las reglas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-explore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Mira antes de modelar</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-prepare.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Encontrar tipos de lugares: k-means</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Interpretar los clústeres</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-causation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Correlación no es causalidad</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-publish-many.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-water.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte III</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../afterword.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Epílogo: lo que construiste y cómo seguir</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Apéndices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-windows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Windows: prepara Ubuntu</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-terminal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Teclas y hábitos de la terminal</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Hoja de referencia</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/d-troubleshooting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Solución de problemas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/e-checkpoints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Los puntos de control de un vistazo, y respuestas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/f-translation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Leer en otro idioma</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/g-sources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Fuentes de datos, licencias y créditos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/h-how-built.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">H</span>&nbsp; <span class="chapter-title">Cómo está hecho este libro</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/i-workshop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Darlo como taller</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glosario</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Tabla de contenidos</h2>
+   
+  <ul>
+  <li><a href="#sec-prepare-steps" id="toc-sec-prepare-steps" class="nav-link active" data-scroll-target="#sec-prepare-steps"><span class="header-section-number">10.1</span> Cuatro pasos de la tabla a las características</a></li>
+  <li><a href="#sec-prepare-counts" id="toc-sec-prepare-counts" class="nav-link" data-scroll-target="#sec-prepare-counts"><span class="header-section-number">10.2</span> Lo que conservan los pasos</a></li>
+  <li><a href="#sec-scaling" id="toc-sec-scaling" class="nav-link" data-scroll-target="#sec-scaling"><span class="header-section-number">10.3</span> ¿Por qué cambiar la escala?</a></li>
+  <li><a href="#sec-prepare-do" id="toc-sec-prepare-do" class="nav-link" data-scroll-target="#sec-prepare-do"><span class="header-section-number">10.4</span> Construir <code>prepare()</code></a></li>
+  <li><a href="#resumen" id="toc-resumen" class="nav-link" data-scroll-target="#resumen">Resumen</a></li>
+  <li><a href="#lecturas-adicionales" id="toc-lecturas-adicionales" class="nav-link" data-scroll-target="#lecturas-adicionales">Lecturas adicionales</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-3.html">Parte III: Un análisis, muchas publicaciones</a></li><li class="breadcrumb-item"><a href="../chapters/10-prepare.html"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="sec-prepare" class="quarto-section-identifier"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Palabras clave</div>
+    <p>Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means</p>
+  </div>
+</div>
+
+</header>
+
+
+<p>Un algoritmo de agrupamiento no lee una tabla como lo hace una persona. Ve números, mide distancias entre filas y agrupa las filas que están cerca. Todo en el resultado depende de qué filas ve, qué números, en qué escala, y qué recibe donde falta un número. <em>Preparar</em> los datos es el nombre de esas decisiones, y le dan forma a los clústeres tanto como el algoritmo. Hay cuatro entre la tabla del agua y el agrupamiento, y cada una tiene un precio, que se cuenta en filas y en conjeturas.</p>
+<div class="opener">
+<div class="box-label">
+<strong>En este capítulo</strong>
+</div>
+<ul>
+<li>Explicar los cuatro pasos de la preparación y lo que cuesta cada uno.</li>
+<li>Calcular un puntaje z dentro de un año y decir qué significa +1.</li>
+<li>Explicar por qué la escala decide lo que pueden ver los clústeres, y por qué el peso igual es una elección.</li>
+<li>Revisar los conteos de <code>prepare()</code>, y seguir a un municipio a lo largo de cada paso.</li>
+</ul>
+<div class="opener-meta">
+<p><span class="meta-label"><strong>Partes de</strong></span>El proyecto tal como lo dejó el <a href="09-explore.html" class="quarto-xref"><span>Capítulo 9</span></a>.</p>
+<p><span class="meta-label"><strong>Construyes</strong></span><code>prepare()</code> en <code>scripts/analysis.py</code>, que escribe <code>outputs/prepared.parquet</code>.</p>
+<p><span class="meta-label"><strong>Punto de control</strong></span><code>checkpoints/06-water-prepare/</code>.</p>
+</div>
+</div>
+<section id="sec-prepare-steps" class="level2" data-number="10.1">
+<h2 data-number="10.1" class="anchored" data-anchor-id="sec-prepare-steps"><span class="header-section-number">10.1</span> Cuatro pasos de la tabla a las características</h2>
+<p><strong>1. Seleccionar.</strong> Conserva los años de 2016 a 2023, porque el índice de desempeño municipal (MDM), una de las características, empieza en 2016. Conserva solo los municipios: San Andrés no tiene ninguno de los valores del DNP y las áreas no municipalizadas están casi vacías. Conserva solo las filas con un valor de IRCA, ya que la calidad del agua es el punto del análisis. El IRCA es la única característica que nunca se llena: sus vacíos pueden depender del riesgo mismo (<a href="09-explore.html#sec-water-bands" class="quarto-xref"><span>Sección 9.2</span></a>), así que un puntaje llenado sería una conjetura justo sobre aquello de lo que trata el análisis.</p>
+<p><strong>2. Transformar.</strong> Las transferencias para agua por persona (SGP) son muy <em>asimétricas</em>: la mayoría son moderadas y unas pocas son muy grandes. Por eso el análisis usa su logaritmo, que mide razones y no diferencias: cada vez que una transferencia se duplica, suma lo mismo, y las pocas transferencias muy grandes ya no quedan lejos de todas las demás. Las capitales de departamento no tienen una separación urbana y rural para la cobertura, así que sus filas urbanas usan en su lugar la cobertura total del municipio, y una columna indicadora registra que lo hicieron. El total le sirve a la fila urbana porque la mayoría de la gente de una capital vive en su cabecera (el 88% en la capital mediana en 2023). No le serviría a la fila rural: en los demás municipios, el total supera a la cifra rural en el 86% de las zonas-año rurales, así que las filas rurales de las capitales se llenan en el paso siguiente.</p>
+<p><strong>3. Imputar, con indicadores.</strong> <em>Imputar</em> es llenar un valor faltante con una estimación. Descarta las filas a las que les faltan más de dos de las nueve características. Llena los vacíos restantes con la mediana del mismo año y la misma zona, y agrega una columna indicadora, como <code>water_coverage_imputed</code>, que marca cada valor llenado. La mediana, porque unos pocos valores extremos no pueden arrastrarla; el mismo año y la misma zona, porque las zonas rurales y urbanas difieren (<a href="09-explore.html#sec-water-bands" class="quarto-xref"><span>Sección 9.2</span></a>) y los años se desplazan.</p>
+<p><strong>4. Estandarizar dentro de cada año.</strong> Reemplaza cada característica por su <em>puntaje z</em> dentro de su año:</p>
+<p><span class="math display">\[z = \frac{x - \bar{x}_{\text{año}}}{s_{\text{año}}}\]</span></p>
+<p>donde <span class="math inline">\(x\)</span> es el valor de la característica en una fila, y <span class="math inline">\(\bar{x}_{\text{año}}\)</span> y <span class="math inline">\(s_{\text{año}}\)</span> son la media y la <em>desviación estándar</em> de la característica en las filas conservadas de ese año. La desviación estándar es, más o menos, la distancia típica de un valor a la media, en la unidad propia de la característica. Un puntaje z de +1 significa una desviación estándar por encima del promedio de ese año; un puntaje z no tiene unidad.</p>
+<div class="why callout callout-style-default callout-note callout-titled" title="Por qué funciona">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Por qué funciona
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>¿Por qué dentro de cada año y no sobre todos los años? Por dos razones. El SGP está en pesos corrientes, no ajustados por inflación, así que sus valores suben con el tiempo por razones que no tienen que ver con ningún municipio. Y otras características se desplazan en bloque de un año a otro, como el IRCA rural en la <a href="09-explore.html#fig-wat-years" class="quarto-xref">Figura&nbsp;<span>9.2</span></a>. Estandarizar dentro de cada año elimina los dos desplazamientos. Una zona se compara solo con las demás zonas de ese año, así que un desplazamiento nacional, real o producto del muestreo, no la cambia de clúster, y un solo agrupamiento sobre todos los años da etiquetas que significan la misma posición relativa en cada año. El precio es que una mejora real compartida por todas las zonas también es invisible para los clústeres.</p>
+</div>
+</div>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Cada relleno es una conjetura, y una conjetura sin indicador se vuelve imposible de distinguir de los datos. Los indicadores hacen que las conjeturas se puedan contar y revisar después: un clúster hecho sobre todo de valores imputados sería un clúster de medianas, no de lugares. El README de los datos lo dice sobre la cobertura de las capitales (“Do not do it silently”: no lo hagas en silencio), y el <code>AGENTS.md</code> del proyecto, escrito a partir de ese README, le lleva sus advertencias al asistente: nada se llena en silencio.</p>
+</div>
+</div>
+</section>
+<section id="sec-prepare-counts" class="level2" data-number="10.2">
+<h2 data-number="10.2" class="anchored" data-anchor-id="sec-prepare-counts"><span class="header-section-number">10.2</span> Lo que conservan los pasos</h2>
+<p>Cada decisión tiene un precio en filas (<a href="#tbl-prepare-counts" class="quarto-xref">Tabla&nbsp;<span>10.1</span></a>).</p>
+<div id="tbl-prepare-counts" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-prepare-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;10.1: Lo que conserva cada paso de la preparación, calculado por el <code>prepare()</code> del proyecto terminado.
+</figcaption>
+<div aria-describedby="tbl-prepare-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Paso</th>
+<th style="text-align: right;">Filas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>filas de municipios, 2016–2023</td>
+<td style="text-align: right;">17,648</td>
+</tr>
+<tr class="even">
+<td>descartadas: sin IRCA</td>
+<td style="text-align: right;">6,411</td>
+</tr>
+<tr class="odd">
+<td>descartadas: les faltan más de dos características</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr class="even">
+<td><strong>conservadas</strong>: 7,534 urbanas y 3,701 rurales</td>
+<td style="text-align: right;"><strong>11,235</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Las filas conservadas cubren 1,090 municipios. 653 filas tienen al menos un valor imputado, y 214 filas urbanas de capitales de departamento tomaron el total municipal para la cobertura.</p>
+<p>Casi toda la pérdida es el primer descarte: las filas sin valor de IRCA, la mayoría de zonas rurales que nunca se muestrean o que no tienen prestador (<a href="09-explore.html#sec-water-bands" class="quarto-xref"><span>Sección 9.2</span></a>). Así que el clúster rural que aparece en el capítulo siguiente describe solo los sistemas rurales <em>muestreados</em>. Los valores imputados son valores de cobertura: las filas rurales de las capitales y los municipios a los que les falta la separación en algunos años.</p>
+<p>Tunja muestra los dos tratamientos de una capital, y no pierde ninguna de sus 16 zonas-año de 2016 a 2023. Sus 8 filas urbanas tomaron el total municipal para la cobertura, marcado en <code>water_coverage_from_total</code>, y sus 8 filas rurales tomaron la mediana rural de su año, marcada en <code>water_coverage_imputed</code>. La revisión también encuentra algo que los indicadores no marcan: el total que tomó la fila urbana de 2021 es el 0 que la sección de Tunja (<a href="09-explore.html#sec-tunja" class="quarto-xref"><span>Sección 9.3</span></a>) señaló como probablemente “no reportado”. El análisis lo conserva tal como se publicó, como hace el README de los datos. Tratar esos ceros como faltantes sería un cambio defendible, pero un cambio que hay que hacer en <code>prepare()</code> e informar, nunca en silencio.</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Supón que <code>prepare()</code> tratara como faltante el 0 reportado de Tunja. ¿Qué le pasaría a esa fila, y a su puntaje z de cobertura?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>Sin un total que tomar, la fila urbana de 2021 pasaría al paso 3 y se llenaría con la mediana urbana de ese año, marcada en <code>water_coverage_imputed</code>. Su puntaje z de cobertura pasaría de −1.9, muy por debajo del promedio del año, a más o menos +0.8, el de una cabecera común: un error sin marcar se volvería una conjetura marcada.</p>
+</div>
+</div>
+</section>
+<section id="sec-scaling" class="level2" data-number="10.3">
+<h2 data-number="10.3" class="anchored" data-anchor-id="sec-scaling"><span class="header-section-number">10.3</span> ¿Por qué cambiar la escala?</h2>
+<p>k-means agrupa las filas por la distancia en línea recta, o <em>euclidiana</em>: la raíz cuadrada de la suma de las diferencias al cuadrado en todas las características. La proporción de la distancia al cuadrado esperada, entre dos filas tomadas al azar, que aporta una característica es proporcional a su <em>varianza</em>, el cuadrado de su desviación estándar. En unidades originales, las características que se miden en miles, como los milímetros de lluvia y los metros de altitud, opacan a las que se miden de 0 a 100 (<a href="#fig-wat-scale" class="quarto-xref">Figura&nbsp;<span>10.1</span></a>).</p>
+<div id="cell-fig-wat-scale" class="cell on-light" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div id="fig-wat-scale" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Gráfico de barras horizontales con nueve características. En unidades originales, la precipitación y la altitud juntas forman casi toda la distancia, y las otras siete barras son demasiado pequeñas para verse. Después de los puntajes z, cada característica aporta la misma proporción, más o menos el 11 por ciento.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-wat-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="10-prepare_files/figure-html/fig-wat-scale-output-1.svg" class="img-fluid figure-img" alt="Gráfico de barras horizontales con nueve características. En unidades originales, la precipitación y la altitud juntas forman casi toda la distancia, y las otras siete barras son demasiado pequeñas para verse. Después de los puntajes z, cada característica aporta la misma proporción, más o menos el 11 por ciento.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wat-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;10.1: La proporción de la distancia al cuadrado entre filas que aporta cada característica, en unidades originales (el SGP como su logaritmo) y después de los puntajes z. Filas conservadas, 2016–2023.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Sin cambiar la escala, la precipitación y la altitud juntas formarían el 99.8% de la distancia, así que los clústeres serían zonas climáticas y las variables del agua casi no contarían. Después de los puntajes z, cada característica tiene varianza 1 y aporta la misma proporción, más o menos el 11%. El logaritmo del SGP también importa. En pesos originales, su varianza sería unas 3,100 veces la de la precipitación, así que dominaría incluso a la precipitación; después de los puntajes z, el logaritmo evita que unas pocas transferencias muy grandes queden lejos de todas las demás filas, y baja el puntaje z más grande de 7.3 a 4.3.</p>
+<p>Dos filas reales muestran lo que cambia la escala (<a href="#tbl-two-rows" class="quarto-xref">Tabla&nbsp;<span>10.2</span></a>): las zonas urbanas de Tunja, en lo alto de los Andes, y de Cartagena, en la costa del Caribe, en 2023. Las dos son capitales, así que su cobertura es el total de cada municipio. En unidades originales, su diferencia de altitud forma el 98% de su distancia al cuadrado, y una brecha de 43 puntos en la cobertura de acueducto forma menos del 1%. En puntajes z, la cobertura cuenta un 16%, y la altitud sigue a la cabeza, con un 68%, porque la altura es donde más difieren de verdad las dos ciudades. Cambiar la escala no hace que todas las diferencias cuenten lo mismo; evita que las unidades decidan.</p>
+<div id="tbl-two-rows" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-two-rows-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;10.2: Las zonas urbanas de Tunja y Cartagena en el último año del análisis: qué tan lejos están en cada característica, en unidades originales (cobertura, pobreza, IRCA y MDM en puntos), y la proporción de su distancia al cuadrado que aporta cada característica, en unidades originales y en puntajes z. Calculado a partir de las filas preparadas.
+</figcaption>
+<div aria-describedby="tbl-two-rows-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th>Característica</th>
+<th style="text-align: right;">Diferencia</th>
+<th style="text-align: right;">Proporción, original</th>
+<th style="text-align: right;">Proporción, z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>IRCA</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0%</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr class="even">
+<td>Cob. acueducto</td>
+<td style="text-align: right;">43.4</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">16%</td>
+</tr>
+<tr class="odd">
+<td>Cob. alcantarillado</td>
+<td style="text-align: right;">41.7</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">8%</td>
+</tr>
+<tr class="even">
+<td>Pobreza</td>
+<td style="text-align: right;">7.9</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">2%</td>
+</tr>
+<tr class="odd">
+<td>Proporción rural</td>
+<td style="text-align: right;">0.06</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">1%</td>
+</tr>
+<tr class="even">
+<td>Altitud (derivada)</td>
+<td style="text-align: right;">2,679 m</td>
+<td style="text-align: right;">98%</td>
+<td style="text-align: right;">68%</td>
+</tr>
+<tr class="odd">
+<td>Precipitación</td>
+<td style="text-align: right;">416 mm</td>
+<td style="text-align: right;">2%</td>
+<td style="text-align: right;">2%</td>
+</tr>
+<tr class="even">
+<td>MDM</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">&lt;1%</td>
+</tr>
+<tr class="odd">
+<td>log SGP/persona</td>
+<td style="text-align: right;">0.39</td>
+<td style="text-align: right;">&lt;1%</td>
+<td style="text-align: right;">3%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Supón que la precipitación se registrara en metros en lugar de milímetros. ¿Qué le pasaría a su proporción de la distancia, sin cambiar la escala y después de los puntajes z?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>Sin cambiar la escala, sus valores se achicarían mil veces y su varianza un millón de veces, así que su proporción casi desaparecería y la altitud dominaría sola. Después de los puntajes z no cambiaría nada: la unidad se cancela, porque un puntaje z divide una distancia a la media por la desviación estándar, las dos en la misma unidad.</p>
+</div>
+</div>
+<div class="practice callout callout-style-default callout-tip callout-titled" title="En la práctica">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>En la práctica
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>El peso igual es en sí una elección, no un valor por defecto neutral. Nueve características en puntaje z cuentan lo mismo, así que las tres variables de calidad y cobertura del agua cuentan el 33% de la distancia y el contexto, el resto. Peso igual por característica tampoco es peso igual por idea: la cobertura de acueducto y la de alcantarillado están muy correlacionadas (r = 0.77 sobre las filas conservadas, donde el coeficiente de correlación r va de −1 a 1, y 1 significaría que suben juntas a lo largo de una línea recta), así que lo que comparten cuenta dos veces. Si la calidad del agua debiera pesar más, esa es una decisión que hay que tomar explícitamente e informar, no dejarla a las unidades en las que vinieron los datos.</p>
+</div>
+</div>
+</section>
+<section id="sec-prepare-do" class="level2" data-number="10.4">
+<h2 data-number="10.4" class="anchored" data-anchor-id="sec-prepare-do"><span class="header-section-number">10.4</span> Construir <code>prepare()</code></h2>
+<p>Dos prompts escriben los cuatro pasos en el script del proyecto. El primero selecciona y transforma:</p>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Lee data/README.md. Crea scripts/analysis.py con prepare(df): las filas con entity_type "municipality", 2016–2023, con irca; las características irca, water_coverage, sewer_coverage, ipm, rural_share, altitude_m, rainfall_mm, mdm, log(sgp_water_pc); llena la cobertura faltante de las filas "urban" con department_capital == 1 a partir de *_total, marcada en &lt;col&gt;_from_total. Ejecútalo.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Probablemente ejecute</strong>
+</div>
+<p>escribe <code>scripts/analysis.py</code> · <code>uv run python scripts/analysis.py</code></p>
+</div>
+</div>
+<p>Deberías verlo ejecutarse sin errores y, si informa un conteo, 11,237 filas: las filas de municipios de 2016–2023 que tienen un valor de IRCA, antes de descartar ninguna por características faltantes. <code>department_capital</code>, en la que se apoya este prompt, marca las 32 capitales de departamento. El script de construcción la escribe a partir de los códigos DIVIPOLA, donde cada capital lleva el número <code>001</code>, salvo que la capital de Cundinamarca es Bogotá, así que <code>25001</code> (Agua de Dios) no es una: un detalle que el asistente solo puede hacer bien si lee el README de los datos.</p>
+<p>El segundo imputa y estandariza, y guarda el resultado:</p>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>En prepare(), descarta las filas a las que les faltan más de 2 características, llena el resto con la mediana de `year` × `zone` más indicadores &lt;col&gt;_imputed, y luego agrega z_&lt;col&gt; (puntaje z dentro de `year`) al lado de las columnas originales; conserva las claves, las variables de resultado y los indicadores. Guarda outputs/prepared.parquet, imprime las filas conservadas y descartadas en cada paso. Ejecútalo.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Probablemente ejecute</strong>
+</div>
+<p>edita <code>prepare()</code> · <code>uv run python scripts/analysis.py</code></p>
+</div>
+</div>
+<p>La versión del proyecto terminado de la imputación y el cambio de escala, un poco recortada, muestra el poco código que lleva cada decisión una vez que está clara:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-1"><pre class="sourceCode python code-annotation-code code-with-copy code-annotated"><code class="sourceCode python"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a>n_missing <span class="op">=</span> d[FEATURES].isna().<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="1" onclick="event.preventDefault();">1</a><span id="annotated-cell-1-2" class="code-annotation-target"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> d[n_missing <span class="op">&lt;=</span> MAX_MISSING].copy()</span>
+<span id="annotated-cell-1-3"><a href="#annotated-cell-1-3" aria-hidden="true" tabindex="-1"></a></span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="2" onclick="event.preventDefault();">2</a><span id="annotated-cell-1-4" class="code-annotation-target"><a href="#annotated-cell-1-4" aria-hidden="true" tabindex="-1"></a>medians <span class="op">=</span> (d.groupby([<span class="st">"year"</span>, <span class="st">"zone"</span>])[FEATURES]</span>
+<span id="annotated-cell-1-5"><a href="#annotated-cell-1-5" aria-hidden="true" tabindex="-1"></a>           .transform(<span class="st">"median"</span>))</span>
+<span id="annotated-cell-1-6"><a href="#annotated-cell-1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> FEATURES:</span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="3" onclick="event.preventDefault();">3</a><span id="annotated-cell-1-7" class="code-annotation-target"><a href="#annotated-cell-1-7" aria-hidden="true" tabindex="-1"></a>    d[<span class="ss">f"</span><span class="sc">{</span>col<span class="sc">}</span><span class="ss">_imputed"</span>] <span class="op">=</span> d[col].isna().astype(<span class="bu">int</span>)</span>
+<span id="annotated-cell-1-8"><a href="#annotated-cell-1-8" aria-hidden="true" tabindex="-1"></a>    d[col] <span class="op">=</span> d[col].fillna(medians[col])</span>
+<span id="annotated-cell-1-9"><a href="#annotated-cell-1-9" aria-hidden="true" tabindex="-1"></a></span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="4" onclick="event.preventDefault();">4</a><span id="annotated-cell-1-10" class="code-annotation-target"><a href="#annotated-cell-1-10" aria-hidden="true" tabindex="-1"></a>grp <span class="op">=</span> d.groupby(<span class="st">"year"</span>)[FEATURES]</span>
+<span id="annotated-cell-1-11"><a href="#annotated-cell-1-11" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> ((d[FEATURES] <span class="op">-</span> grp.transform(<span class="st">"mean"</span>))</span>
+<span id="annotated-cell-1-12"><a href="#annotated-cell-1-12" aria-hidden="true" tabindex="-1"></a>     <span class="op">/</span> grp.transform(<span class="kw">lambda</span> s: s.std(ddof<span class="op">=</span><span class="dv">0</span>)))</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-1" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="2" data-code-annotation="1"><code>MAX_MISSING</code> es 2, fijado una vez al comienzo del script; el último ejercicio de la Parte III lo cambia.</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="4" data-code-annotation="2">La mediana de cada característica dentro del mismo año y la misma zona, alineada con cada fila.</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="7" data-code-annotation="3">El indicador se escribe antes del relleno, así que registra exactamente qué valores faltaban.</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="4">4</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="10" data-code-annotation="4">Medias y desviaciones estándar por año: los puntajes z dentro de cada año de la fórmula de arriba.</span>
+</dd>
+</dl>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Importante</span>Pruébalo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Ejecuta los dos prompts.</p>
+<div class="done">
+<p><strong>Terminaste cuando</strong> los conteos impresos coinciden con la <a href="#tbl-prepare-counts" class="quarto-xref">Tabla&nbsp;<span>10.1</span></a>: 11,235 filas conservadas.</p>
+</div>
+<div class="catchup">
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu asistente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</section>
+<section id="resumen" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="resumen">Resumen</h2>
+<div class="keyideas">
+<ul>
+<li>Qué filas, qué números, cómo se llenan los vacíos y en qué escala le dan forma a los clústeres tanto como el algoritmo.</li>
+<li>El precio más grande son las filas sin IRCA, así que los resultados rurales describen solo los sistemas muestreados.</li>
+<li>Cada relleno lleva un indicador, y aun así una revisión puede encontrar un valor que ningún indicador marca.</li>
+<li>Los puntajes z dentro de cada año ponen las características en una sola escala y eliminan los desplazamientos nacionales.</li>
+<li>Sin cambiar la escala, la precipitación y la altitud decidirían los clústeres; el peso igual es en sí una elección.</li>
+</ul>
+</div>
+<p>Lo que queda son 11,235 filas de nueve puntajes z cada una, demasiadas para que alguien las lea: el capítulo siguiente le pide a un algoritmo que las resuma en unos pocos tipos.</p>
+</section>
+<section id="lecturas-adicionales" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="lecturas-adicionales">Lecturas adicionales</h2>
+<ul>
+<li>scikit-learn, <a href="https://scikit-learn.org/stable/modules/preprocessing.html#standardization-or-mean-removal-and-variance-scaling">Preprocessing data: standardisation</a> (consultado el <span class="nowrap">2026-11-12</span>).</li>
+<li>scikit-learn, <a href="https://scikit-learn.org/stable/modules/impute.html">Imputation of missing values</a>, incluidas las columnas indicadoras que marcan los valores imputados (consultado el <span class="nowrap">2026-11-12</span>).</li>
+<li><code>examples/water/scripts/analysis.py</code>, <code>prepare()</code>, en el repositorio del taller: la función completa, con sus conteos.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/quarto-workshop\/book\/es\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/09-explore.html" class="pagination-link" aria-label="Mira antes de modelar">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Mira antes de modelar</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/11-cluster.html" class="pagination-link" aria-label="Encontrar tipos de lugares: k-means">
+        <span class="nav-page-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Encontrar tipos de lugares: k-means</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

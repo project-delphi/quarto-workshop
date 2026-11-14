@@ -89,10 +89,11 @@ site:
 	$(MAKE) book-es-publish
 
 ## ebook-media: remake the landing page's media and <head> (ebook/media/, ebook/_head.html).
-## STEPS picks steps of scripts/ebook_media.py: fonts cover og icons clips inside head
+## STEPS picks steps of scripts/ebook_media.py: fonts cover og icons clips inside head.
+## EDITION=es makes the Spanish page's own media (cover og inside head qr) in ebook/es/media/.
 ebook-media:
 	uv run --no-project --python 3.12 --with fonttools --with brotli --with pillow --with pyyaml \
-	  --with playwright python scripts/ebook_media.py $(STEPS)
+	  --with playwright --with segno python scripts/ebook_media.py $(if $(filter es,$(EDITION)),--es) $(STEPS)
 
 ## ebook-check: check the rendered landing page (render it first with `make deck`): screenshots,
 ## the first screen on a phone, links, contents numbers, share card and JSON-LD, into _ebook-check/

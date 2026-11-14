@@ -17,6 +17,11 @@ Steps, in order:
   inside  pictures of the book's pages: a three-part box, a catch-up box and a chart from the
           website edition (docs/book/, dark theme), and an EPUB page on a phone at night
   head    ebook/_head.html: share card, icons and structured data, from book/_quarto.yml
+  qr      (Spanish page only) ebook/es/media/qr.svg, the code to the page for a projector
+
+With --es, the steps make the Spanish page's own media in ebook/es/media/ from the Spanish
+edition (book-es/, docs/book/es/): cover, og, inside, head and qr. Fonts, icons and clips are
+shared with the English page (ebook/media/).
 
 Needs Google Chrome (driven by Playwright) and ffmpeg; `make ebook-media` brings the Python
 packages with `uv run --with`.
@@ -130,13 +135,15 @@ def cover() -> None:
     from PIL import Image
 
     OUT.mkdir(parents=True, exist_ok=True)
-    img = Image.open(ROOT / "book/media/cover.png")
+    img = Image.open(ROOT / S.BOOK_DIR / "media/cover.png")
     check_palette(img)
     for w in (240, 480, 720):
         h = round(img.height * w / img.width)
         out = OUT / f"cover-{w}.webp"
         img.convert("RGB").resize((w, h), Image.LANCZOS).save(out, "WEBP", quality=86, method=6)
         print(f"{out.relative_to(ROOT)}: {w} x {h}, {kb(out)}")
+    if S.LANG != "en":
+        return
     deck = ROOT / "assets" / "ebook-cover.webp"  # the deck's Get the Book slide (embedded)
     img.convert("RGB").resize((360, 576), Image.LANCZOS).save(deck, "WEBP", quality=84, method=6)
     print(f"{deck.relative_to(ROOT)}: {kb(deck)}")
@@ -194,14 +201,14 @@ h1 {{ font: 700 84px/1.0 Newsreader; color: {c["cream"]}; margin: 0 0 22px; lett
 .chips span {{ font: 400 21px/1 "JetBrains Mono"; padding: 9px 14px; border-radius: 8px;
   border: 2px solid currentColor; }}
 </style>
-<img class="cover" src="{(ROOT / 'book/media/cover.png').as_uri()}">
+<img class="cover" src="{(ROOT / S.BOOK_DIR / 'media/cover.png').as_uri()}">
 <div class="text">
-  <p class="eyebrow">Free e-book</p>
-  <h1>{m["title"].replace(", Publish", ",<br>Publish")}</h1>
-  <p class="sub">{m["subtitle"].replace(" with ", "<br>with ", 1)}</p>
+  <p class="eyebrow">{"Libro electrónico gratuito" if S.LANG == "es" else "Free e-book"}</p>
+  <h1>{m["title"].replace(", Publish", ",<br>Publish").replace(", publica", ",<br>publica")}</h1>
+  <p class="sub">{m["subtitle"].replace(" with ", "<br>with ", 1).replace(" con ", "<br>con ", 1)}</p>
   <p class="by">{m["author"].upper()}</p>
   <div class="chips"><span style="color:{c["fan"][3]["colour"]}">epub</span><span
-    style="color:{c["fan"][5]["colour"]}">website</span></div>
+    style="color:{c["fan"][5]["colour"]}">{"web" if S.LANG == "es" else "website"}</span></div>
 </div>"""
     out = OUT / "og-image.png"
     shoot_html(markup, (w, h), out)
@@ -280,10 +287,10 @@ def save_webp(png: bytes, out: Path, width: int) -> None:
 def inside() -> None:
     from playwright.sync_api import sync_playwright
 
-    site = ROOT / "docs" / "book"
+    site = ROOT / "docs" / "book" / ("es" if S.LANG == "es" else "")
     epub = site / S.EPUB_NAME
     if not (site / "index.html").exists() or not epub.exists():
-        raise SystemExit("inside: docs/book/ is missing; run `make book book-publish` first")
+        raise SystemExit(f"inside: {site.relative_to(ROOT)}/ is missing; build and publish that edition first")
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": 1100, "height": 1000}, device_scale_factor=2,
@@ -334,16 +341,44 @@ def inside() -> None:
 # ---- the page's <head> ------------------------------------------------------------------------
 
 def head() -> None:
-    out = ROOT / "ebook" / "_head.html"
+    out = ROOT / S.HEAD
     out.write_text(S.head_html())
-    print(f"{out.relative_to(ROOT)}: written from book/_quarto.yml")
+    print(f"{out.relative_to(ROOT)}: written from {S.BOOK_DIR}/_quarto.yml")
+
+
+def qr() -> None:
+    """The Spanish page's QR code, drawn as scripts/deck_qr.py draws the English page's."""
+    import segno
+    url = S.PAGE_URL
+    code = segno.make(url, error="m", micro=False)
+    n = code.symbol_size(scale=1, border=4)[0]
+    buf = io.BytesIO()
+    code.save(buf, kind="svg", scale=1, border=4, dark="#191919", light="#f4f1ea", xmldecl=False,
+              svgns=True, omitsize=True, title="QR code: " + url)
+    svg = buf.getvalue().decode()
+    if "viewBox" not in svg:
+        svg = svg.replace("<svg ", f'<svg viewBox="0 0 {n} {n}" ', 1)
+    out = OUT / "qr.svg"
+    out.write_text(svg + "\n")
+    print(f"{out.relative_to(ROOT)}: {url}")
 
 
 STEPS = {"fonts": fonts, "cover": cover, "og": og, "icons": icons, "clips": clips,
-         "inside": inside, "head": head}
+         "inside": inside, "head": head, "qr": qr}
+SPANISH = ["cover", "og", "inside", "head", "qr"]
 
 if __name__ == "__main__":
-    names = sys.argv[1:] or list(STEPS)
+    args = sys.argv[1:]
+    if "--es" in args:
+        args.remove("--es")
+        S.use("es")
+        OUT = ROOT / "ebook" / "es" / "media"
+        unshared = [n for n in args if n not in SPANISH]
+        if unshared:
+            raise SystemExit(f"--es makes only {SPANISH}; {unshared} are shared with ebook/media/")
+        names = args or SPANISH
+    else:
+        names = args or [n for n in STEPS if n != "qr"]
     unknown = [n for n in names if n not in STEPS]
     if unknown:
         raise SystemExit(f"unknown step(s) {unknown}; choose from {list(STEPS)}")

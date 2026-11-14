@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="keywords" content="Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means">
+<meta name="description" content="Una guía práctica de publicación reproducible: escribe una sola vez en Markdown, deja que un asistente de programación escriba el código, revisa su trabajo y reconstruye una sola fuente como página web, Word, PDF, diapositivas, libro electrónico, sitio web, blog y dashboard. Dos proyectos reales recorren el libro: una guía para visitantes de Londres y un estudio del riesgo del agua potable en los municipios de Colombia.">
+
+<title>1&nbsp; Publicar algo que se reconstruye solo – Pide, revisa, publica</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/02-assistant.html" rel="next">
+<link href="../part-1.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No hay resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+
+<!-- lang-switch --><link rel="alternate" hreflang="en" href="https://project-delphi.github.io/quarto-workshop/book/chapters/01-quarto.html"><link rel="alternate" hreflang="es" href="https://project-delphi.github.io/quarto-workshop/book/es/chapters/01-quarto.html"><link rel="alternate" hreflang="x-default" href="https://project-delphi.github.io/quarto-workshop/book/chapters/01-quarto.html"><!-- /lang-switch -->
+</head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-1.html">Parte I: Fundamentos</a></li><li class="breadcrumb-item"><a href="../chapters/01-quarto.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <!-- lang-switch --><nav class="lang-switch lang-switch-top" aria-label="Language / Idioma"><a href="../../chapters/01-quarto.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch --><button type="button" class="btn quarto-search-button" aria-label="Buscar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Pide, revisa, publica</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://project-delphi.github.io/quarto-workshop/ebook/es/" title="La página del libro" class="quarto-navigation-tool px-1" aria-label="La página del libro"><i class="bi bi-book"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/releases/latest/download/prompt-check-publish-es.epub" title="Descarga el EPUB" class="quarto-navigation-tool px-1" aria-label="Descarga el EPUB"><i class="bi bi-download"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book-es/" title="Ejecutar el código" class="quarto-navigation-tool px-1" aria-label="Ejecutar el código"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Alternar modo oscuro"><i class="bi"></i></a>
+</div><!-- lang-switch --><nav class="lang-switch lang-switch-sidebar" aria-label="Language / Idioma"><a href="../../chapters/01-quarto.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch -->
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Buscar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefacio: cómo usar este libro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../copyright.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Derechos de autor</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedicatoria</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sobre Ravi Kalia</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte I: Fundamentos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-quarto.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-assistant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un asistente de programación</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Preparar tu computadora</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte II: Una guía, muchos públicos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-markdown.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Markdown, renderizado y reglas del proyecto</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-compute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Documentos que calculan</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-audiences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Una guía, cinco públicos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-publish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Publicar y demostrar la reconstrucción</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-london.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte II</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte III: Un análisis, muchas publicaciones</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-water-question.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">La pregunta, los datos y las reglas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-explore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Mira antes de modelar</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-prepare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Encontrar tipos de lugares: k-means</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Interpretar los clústeres</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-causation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Correlación no es causalidad</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-publish-many.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-water.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte III</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../afterword.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Epílogo: lo que construiste y cómo seguir</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Apéndices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-windows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Windows: prepara Ubuntu</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-terminal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Teclas y hábitos de la terminal</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Hoja de referencia</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/d-troubleshooting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Solución de problemas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/e-checkpoints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Los puntos de control de un vistazo, y respuestas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/f-translation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Leer en otro idioma</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/g-sources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Fuentes de datos, licencias y créditos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/h-how-built.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">H</span>&nbsp; <span class="chapter-title">Cómo está hecho este libro</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/i-workshop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Darlo como taller</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glosario</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Tabla de contenidos</h2>
+   
+  <ul>
+  <li><a href="#sec-drift" id="toc-sec-drift" class="nav-link active" data-scroll-target="#sec-drift"><span class="header-section-number">1.1</span> Por qué los informes se desactualizan</a></li>
+  <li><a href="#sec-what-quarto" id="toc-sec-what-quarto" class="nav-link" data-scroll-target="#sec-what-quarto"><span class="header-section-number">1.2</span> Qué es Quarto</a>
+  <ul class="collapse">
+  <li><a href="#three-steps-execute-convert-typeset" id="toc-three-steps-execute-convert-typeset" class="nav-link" data-scroll-target="#three-steps-execute-convert-typeset"><span class="header-section-number">1.2.1</span> Tres pasos: ejecutar, convertir, componer</a></li>
+  <li><a href="#what-comes-out" id="toc-what-comes-out" class="nav-link" data-scroll-target="#what-comes-out"><span class="header-section-number">1.2.2</span> Qué sale</a></li>
+  </ul></li>
+  <li><a href="#sec-not-ai" id="toc-sec-not-ai" class="nav-link" data-scroll-target="#sec-not-ai"><span class="header-section-number">1.3</span> Quarto no es IA</a></li>
+  <li><a href="#sec-reproducible" id="toc-sec-reproducible" class="nav-link" data-scroll-target="#sec-reproducible"><span class="header-section-number">1.4</span> Reproducible: misma fuente, mismo resultado</a></li>
+  <li><a href="#sec-wrong-tool" id="toc-sec-wrong-tool" class="nav-link" data-scroll-target="#sec-wrong-tool"><span class="header-section-number">1.5</span> Cuándo Quarto no es la herramienta adecuada</a></li>
+  <li><a href="#resumen" id="toc-resumen" class="nav-link" data-scroll-target="#resumen">Resumen</a></li>
+  <li><a href="#lecturas-adicionales" id="toc-lecturas-adicionales" class="nav-link" data-scroll-target="#lecturas-adicionales">Lecturas adicionales</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-1.html">Parte I: Fundamentos</a></li><li class="breadcrumb-item"><a href="../chapters/01-quarto.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="sec-quarto" class="quarto-section-identifier"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Palabras clave</div>
+    <p>Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means</p>
+  </div>
+</div>
+
+</header>
+
+
+<p>La mayoría de los informes se hacen a mano. Un analista ejecuta un script, copia un número en un documento de Word, pega un gráfico en una diapositiva, vuelve a escribir el mismo número en un correo y exporta un PDF para el sitio web. Cada copia es un pequeño acto de fe: que el número era correcto y que lo sigue siendo. Cuando los datos cambian, alguien tiene que encontrar cada copia, y nadie puede decir con certeza de dónde salió cada una.</p>
+<p>Esa fe es el problema, porque la razón para publicar datos es que la gente se apoya en ellos. Un trabajo que se puede reproducir se gana la confianza: quien lo lee, lo revisa o lo dirige puede ver de dónde salió cada número y reconstruirlo. Justifica las decisiones, porque la evidencia detrás de una elección se puede mostrar, volver a revisar y defender más tarde. Y sirve de base para otros: alguien parte de tu fuente en lugar de empezar de cero, la amplía y la corrige, que es como mejoran la ciencia, la tecnología y el entendimiento. Un trabajo que no se puede reproducir no ofrece nada de esto; pide que lo aceptes por fe.</p>
+<p>La alternativa es <strong>una sola fuente que reconstruye cada salida</strong>, el paso <em>Publica</em> del ciclo de este libro. Cuanto más de ese trabajo hace un programa, menos lugares hay por donde se cuele un error, y mejor es la experiencia para todas las personas involucradas: las que hacen los documentos y las que leen documentos que coinciden entre sí y con los datos.</p>
+<div class="opener">
+<div class="box-label">
+<strong>En este capítulo</strong>
+</div>
+<ul>
+<li>Explicar por qué los números copiados a mano se desactualizan, y cómo una sola fuente que reconstruye cada salida lo evita.</li>
+<li>Seguir un archivo <code>.qmd</code> a través de los tres pasos de <code>quarto render</code>, y decir de qué paso viene un error dado.</li>
+<li>Distinguir lo que hace Quarto de lo que hace un asistente de programación, y decir cómo se revisa cada uno.</li>
+<li>Decidir si vale la pena construir un documento con Quarto, a partir de lo que promete “reproducible” y de dónde Quarto no es la herramienta adecuada.</li>
+</ul>
+</div>
+<section id="sec-drift" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="sec-drift"><span class="header-section-number">1.1</span> Por qué los informes se desactualizan</h2>
+<p>La guía para visitantes de Londres que recorre la Parte II es un ejemplo pequeño de un problema común. La oficina de turismo publica los mismos datos para varios públicos: una guía web para los visitantes, un dashboard para la gerencia, un informe en Word para los socios, una tarjeta cuadrada para redes sociales y, más adelante, un documento técnico. En el proyecto terminado, cinco páginas leen la misma tabla de visitas a atracciones, y entre todas escriben diez archivos: solo la guía se convierte en una página web, un documento de Word, un PDF, una presentación de PowerPoint, un libro electrónico y una presentación que se ve en el navegador.</p>
+<p>Supón que la Association of Leading Visitor Attractions (ALVA), la fuente de esos conteos, corrige una cifra. En un flujo de copiar y pegar, esa corrección tiene que llegar a mano a diez archivos. Suelen fallar tres cosas:</p>
+<ul>
+<li><strong>Números viejos.</strong> Se pasa por alto una copia, y el informe para los socios no coincide con el dashboard.</li>
+<li><strong>Origen perdido.</strong> Seis meses después, nadie puede decir qué versión de los datos produjo el número del documento técnico.</li>
+<li><strong>Cambios lentos.</strong> Como cada actualización es cara, se dejan de hacer, y los documentos envejecen sin que nadie lo note.</li>
+</ul>
+<p>Nada de esto es falta de cuidado. Es lo que pasa cuando la <em>salida</em> se trata como lo que se edita. La solución es estructural: edita la fuente y deja que un programa reconstruya las salidas (<a href="#fig-drift" class="quarto-xref">Figura&nbsp;<span>1.1</span></a>).</p>
+<div id="fig-drift" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="Dos maneras de publicar los conteos de atracciones de la guía de Londres después de que ALVA corrige una cifra en attractions.csv. A mano: cada número se copia en cada salida, una por una, así que la guía web y el dashboard reciben el número nuevo mientras el informe en Word, la tarjeta para redes sociales y el documento técnico siguen mostrando el viejo. Una sola fuente: las celdas de código de las páginas .qmd del proyecto leen attractions.csv, y un solo quarto render reconstruye la guía web, el dashboard, el informe en Word, la tarjeta para redes sociales y el documento técnico, todos con el número corregido.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-drift-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/diagrams/drift.svg" class="on-light img-fluid figure-img" alt="Dos maneras de publicar los conteos de atracciones de la guía de Londres después de que ALVA corrige una cifra en attractions.csv. A mano: cada número se copia en cada salida, una por una, así que la guía web y el dashboard reciben el número nuevo mientras el informe en Word, la tarjeta para redes sociales y el documento técnico siguen mostrando el viejo. Una sola fuente: las celdas de código de las páginas .qmd del proyecto leen attractions.csv, y un solo quarto render reconstruye la guía web, el dashboard, el informe en Word, la tarjeta para redes sociales y el documento técnico, todos con el número corregido.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-drift-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;1.1: Una corrección, dos formas de trabajar. A mano, cada copia espera a que alguien la reescriba y algunas quedan viejas; desde una sola fuente, un solo renderizado actualiza cada salida.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="sec-what-quarto" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="sec-what-quarto"><span class="header-section-number">1.2</span> Qué es Quarto</h2>
+<p>Quarto es un sistema de publicación de código abierto, gratuito para cualquiera: un <em>programa de línea de comandos</em>, de esos que ejecutas escribiendo un comando en una terminal (<a href="03-setup.html#sec-step-terminal" class="quarto-xref"><span>Sección 3.3</span></a>), que convierte archivos fuente de texto plano en documentos terminados.</p>
+<p>La entrada es un archivo de Markdown simple (<code>.md</code>) o un documento de Quarto (<code>.qmd</code>). <em>Markdown</em> es una forma de escribir texto estructurado con unos pocos signos de puntuación, como <code>#</code> antes de un título (<a href="04-markdown.html" class="quarto-xref"><span>Capítulo 4</span></a>). Un archivo <code>.qmd</code> es Markdown con dos agregados: un bloque de configuración al principio, escrito en <em>YAML</em>, un formato de configuración en el que la sangría tiene significado (<a href="05-compute.html#sec-qmd-basics" class="quarto-xref"><span>Sección 5.1</span></a>), y <em>celdas de código</em>, bloques de código delimitados que se ejecutan cuando se construye el documento. Aquí va uno completo, el archivo que la prueba del <a href="03-setup.html" class="quarto-xref"><span>Capítulo 3</span></a> le pide escribir a tu asistente:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Hello"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">  html: default</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">  typst: default</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>answer <span class="op">=</span> <span class="dv">6</span> <span class="op">*</span> <span class="dv">7</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>The answer is <span class="in">`{python} answer`</span>.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Entre las dos líneas <code>---</code> está la configuración: un título y dos formatos, una página web (<code>html</code>) y un PDF (<code>typst</code>). El bloque delimitado que sigue es una celda de código. La oración del final contiene <em>código en línea</em>: cuando se construye el documento, Quarto ejecuta <code>answer</code> y escribe su valor en la oración. Cuando se construyó este libro, el mismo cálculo dio 42, y ese número se calculó, no se escribió a mano.</p>
+<section id="three-steps-execute-convert-typeset" class="level3" data-number="1.2.1">
+<h3 data-number="1.2.1" class="anchored" data-anchor-id="three-steps-execute-convert-typeset"><span class="header-section-number">1.2.1</span> Tres pasos: ejecutar, convertir, componer</h3>
+<p><em>Renderizar</em> un documento es construir sus salidas a partir de su fuente, y <code>quarto render</code> lo hace en tres pasos (<a href="#fig-pipeline" class="quarto-xref">Figura&nbsp;<span>1.2</span></a>).</p>
+<div id="fig-pipeline" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="Un archivo fuente, london.qmd, con Markdown, YAML y celdas de código, pasa por tres pasos. Paso 1, ejecutar: Jupyter para Python o knitr para R ejecuta cada celda de código. El resultado es Markdown con los resultados en lugar del código. Paso 2, convertir: Pandoc convierte ese Markdown en html, docx, epub, pptx y revealjs. Paso 3, componer: para el PDF, Pandoc escribe fuente de Typst y Typst la compone en un pdf. Un solo comando, quarto render, ejecuta los tres pasos.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/diagrams/render-pipeline.svg" class="on-light img-fluid figure-img" alt="Un archivo fuente, london.qmd, con Markdown, YAML y celdas de código, pasa por tres pasos. Paso 1, ejecutar: Jupyter para Python o knitr para R ejecuta cada celda de código. El resultado es Markdown con los resultados en lugar del código. Paso 2, convertir: Pandoc convierte ese Markdown en html, docx, epub, pptx y revealjs. Paso 3, componer: para el PDF, Pandoc escribe fuente de Typst y Typst la compone en un pdf. Un solo comando, quarto render, ejecuta los tres pasos.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;1.2: Lo que hace <code>quarto render</code>. Una sola fuente se convierte en Markdown con resultados, que Pandoc convierte a cada formato de salida; para el PDF, Typst compone el resultado.
+</figcaption>
+</figure>
+</div>
+<ol type="1">
+<li><strong>Ejecutar.</strong> Un motor de cálculo ejecuta las celdas de código: Jupyter para Python, knitr para R. Los resultados (números, tablas, figuras) reemplazan al código en un archivo Markdown intermedio. Las celdas se ejecutan una vez por formato, así que cada salida recibe resultados hechos para ella (<a href="05-compute.html#sec-formats" class="quarto-xref"><span>Sección 5.5</span></a>). Este libro usa solo Python.</li>
+<li><strong>Convertir.</strong> Para cada formato, Pandoc, un conversor de documentos con larga trayectoria, lee ese Markdown y escribe la salida: HTML, Word (<code>docx</code>), EPUB, PowerPoint (<code>pptx</code>) o una presentación de Reveal.js.</li>
+<li><strong>Componer.</strong> Para el PDF, Pandoc escribe fuente para Typst, un sistema de composición tipográfica moderno que viene dentro de Quarto, y Typst produce el PDF. No hace falta instalar LaTeX. (Quarto también puede hacer PDF a través de LaTeX, <code>format: pdf</code>, si instalas una distribución de TeX.)</li>
+</ol>
+<p>La separación importa en la práctica. Una falla en el paso 1 es una falla de <em>tu código</em>: un paquete que falta, un nombre de columna equivocado, una celda que lanza un error. Una falla en el paso 2 o 3 es una falla <em>del documento</em>: una tabla mal formada, una imagen demasiado grande para la página, una opción de un formato que no existe. Cuando un renderizado falla, el mensaje de error te dice qué paso se detuvo, y eso te dice dónde buscar.</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Un renderizado de <code>london.qmd</code> se detiene con <code>KeyError: 'visits_2025'</code>. ¿Qué paso falló y dónde buscas primero?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>En el paso 1, ejecutar. Una celda de código le pidió a los datos una columna que no tienen, así que compara la celda con los nombres de columna del archivo de datos. La configuración de los formatos no es el problema: Pandoc y Typst nunca llegaron a ejecutarse.</p>
+</div>
+</div>
+<div class="why callout callout-style-default callout-note callout-titled" title="Por qué funciona">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Por qué funciona
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Pandoc convierte entre muchos formatos leyendo cada entrada en un único modelo interno de documento y escribiendo cada salida desde ese modelo. Por eso un solo archivo de Markdown puede convertirse a la vez en un documento de Word y en una presentación: ninguna salida se deriva de la otra. Las dos salen del mismo tipo de intermedio estructurado, construido desde la misma fuente, así que un título es un título en todas partes.</p>
+</div>
+</div>
+</section>
+<section id="what-comes-out" class="level3" data-number="1.2.2">
+<h3 data-number="1.2.2" class="anchored" data-anchor-id="what-comes-out"><span class="header-section-number">1.2.2</span> Qué sale</h3>
+<p>La lista oficial de formatos es larga y está agrupada por tipo (Quarto, <em>All Formats</em>, consultada el <span class="nowrap">2026-11-12</span>):</p>
+<div id="tbl-formats" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-formats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;1.1: Los formatos de salida de Quarto, agrupados como en la lista oficial.
+</figcaption>
+<div aria-describedby="tbl-formats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Tipo</th>
+<th>Formatos que usa este libro</th>
+<th>Otros</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Documentos</td>
+<td>HTML, PDF (Typst), Word, EPUB</td>
+<td>OpenDocument, PDF a través de LaTeX</td>
+</tr>
+<tr class="even">
+<td>Presentaciones</td>
+<td>Reveal.js, PowerPoint</td>
+<td>Beamer</td>
+</tr>
+<tr class="odd">
+<td>Markdown</td>
+<td></td>
+<td>GitHub, CommonMark, Hugo y otros</td>
+</tr>
+<tr class="even">
+<td>Wikis</td>
+<td></td>
+<td>MediaWiki, DokuWiki y otros</td>
+</tr>
+<tr class="odd">
+<td>Más formatos</td>
+<td></td>
+<td>Jupyter, JATS, AsciiDoc y muchos más</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Los sitios web y los blogs son tipos de proyecto construidos con los mismos archivos <code>.qmd</code>; un dashboard es un formato propio, cuyos títulos organizan páginas y filas (<a href="06-audiences.html" class="quarto-xref"><span>Capítulo 6</span></a>).</p>
+</section>
+</section>
+<section id="sec-not-ai" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="sec-not-ai"><span class="header-section-number">1.3</span> Quarto no es IA</h2>
+<p>Este libro combina Quarto con un asistente de programación, y esa combinación se presta a un malentendido: que Quarto mismo es una herramienta de IA. No lo es. Quarto es software convencional. Con los mismos archivos fuente y los mismos datos, escribe las mismas salidas cada vez. No genera texto, código ni figuras por su cuenta, y no le envía nada a ningún servicio de IA.</p>
+<p>El asistente es un programa aparte. Lee y escribe los archivos de la carpeta de tu proyecto y ejecuta los comandos que apruebas; luego Quarto convierte esos archivos en formatos. Los dos fallan de maneras distintas, y el flujo de trabajo de este libro está diseñado alrededor de esa diferencia:</p>
+<div id="tbl-split" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-split-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;1.2: Dos herramientas que fallan de maneras distintas.
+</figcaption>
+<div aria-describedby="tbl-split-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Asistente de programación</th>
+<th>Quarto</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Salida para la misma entrada</td>
+<td>varía de una ejecución a otra</td>
+<td>idéntica</td>
+</tr>
+<tr class="even">
+<td>Error típico</td>
+<td>código o prosa plausibles pero equivocados</td>
+<td>un error preciso y reproducible</td>
+</tr>
+<tr class="odd">
+<td>Cómo lo revisas</td>
+<td>lees sus cambios, los ejecutas y los comparas con los datos</td>
+<td>lees la salida renderizada</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Como la generación y el renderizado están separados, cada error del asistente termina en un archivo que puedes leer o en un comando que apruebas antes de que se publique nada: en ese intervalo ocurre el paso <em>Revisa</em> del ciclo. Y como el renderizado es repetible, cualquiera puede reconstruir tus salidas para confirmarlas, sin tener que confiar en el asistente.</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Si le pides dos veces el mismo gráfico, el asistente escribe dos celdas de código distintas. Si te quedas con una y la renderizas dos veces, ¿obtienes dos gráficos distintos?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>No.&nbsp;El asistente varía; Quarto no. Una vez que la celda está en el archivo, cada renderizado ejecuta el mismo código con los mismos datos, así que revisas la celda una vez y cada reconstrucción hereda esa revisión.</p>
+</div>
+</div>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Quarto ejecuta el código que contengan tus celdas, sea cual sea. Si una celda llama a un servicio de IA, el documento se vuelve tan impredecible como ese servicio, y la causa es tu código, no Quarto. Deja las llamadas a modelos fuera de los documentos que renderizas, a menos que la variación sea justamente lo que buscas.</p>
+</div>
+</div>
+</section>
+<section id="sec-reproducible" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="sec-reproducible"><span class="header-section-number">1.4</span> Reproducible: misma fuente, mismo resultado</h2>
+<p><em>Reproducible</em> se usa a la ligera, así que este es el sentido preciso que le da este libro: otra persona, o tú dentro de seis meses, puede reconstruir los mismos resultados a partir de los mismos archivos con un solo comando, y puede ver de dónde salió cada número. Cuatro propiedades lo hacen posible:</p>
+<p><strong>Una sola fuente.</strong> El texto, el código y los datos viven en archivos de texto plano en una sola carpeta. Nada importante existe solo dentro de una aplicación.</p>
+<p><strong>Los números se calculan.</strong> Cada figura, tabla y número dentro de una oración sale de una celda de código o de código en línea que lee los datos. Nada se escribe a mano ni se pega desde otro lado.</p>
+<p><strong>Un solo comando.</strong> <code>quarto render</code> lo reconstruye todo. No hay una secuencia de pasos manuales de exportación que recordar.</p>
+<p><strong>Con versiones.</strong> Git, la herramienta de control de versiones que se instala en el <a href="03-setup.html" class="quarto-xref"><span>Capítulo 3</span></a>, es algo así como el control de cambios de Word para una carpeta entera, con un historial que perdura; una carpeta de proyecto con su historial es un <em>repositorio</em>. Cada estado de la fuente, los datos y la configuración que decides registrar se convierte en un <em>commit</em>, con un mensaje que dice por qué cambió. Cualquier estado anterior se puede restaurar, dos estados se pueden comparar y un resultado se puede atar a los archivos exactos que lo produjeron. Los paquetes de Python del proyecto también quedan fijados, en un archivo de bloqueo o lockfile (<code>uv.lock</code>, que se presenta en la <a href="04-markdown.html#sec-environments" class="quarto-xref"><span>Sección 4.10</span></a>), así que la computadora de un colega construye el mismo <em>entorno</em> que la tuya: la versión de Python y los paquetes con los que corre el código.</p>
+<p>Juntas, estas propiedades le dan la vuelta al problema de la desactualización. Corrige un valor en los datos, renderiza, y la tabla, el gráfico y la oración que lo citan se actualizan juntos, en todos los formatos.</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Corriges un número en los datos. ¿Qué vuelves a escribir en el informe?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>Nada. Arreglas el archivo de datos y renderizas de nuevo. Si la respuesta es cualquier otra cosa, algún número del informe se escribió a mano en lugar de calcularse, y ese es el error que hay que corregir.</p>
+</div>
+</div>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Reproducible no significa correcto. Un análisis equivocado se reproduce a la perfección: el mismo número equivocado aparece en cada formato, cada vez. La reproducibilidad hace que los errores se puedan <em>encontrar</em>, porque cualquiera puede rastrear un número hasta su código y sus datos, pero igual tienes que revisar los resultados contra sus fuentes. El <a href="13-causation.html" class="quarto-xref"><span>Capítulo 13</span></a> es un ejemplo extenso de un resultado que se reproduce sin problemas y que aun así no se debe leer como parece a primera vista.</p>
+</div>
+</div>
+<p>Hay una sutileza más, que importa cuando los proyectos crecen. Renderizar cada página desde cero puede ser lento, así que Quarto puede guardar en caché los resultados con una opción llamada <code>freeze</code>. Un caché vale lo que vale su regla para descartar resultados, y Quarto vuelve a ejecutar una página congelada cuando cambia <em>la fuente de esa página</em>, no cuando cambia un archivo de datos que lee. El <a href="14-publish-many.html" class="quarto-xref"><span>Capítulo 14</span></a> muestra cómo usar el caché de forma segura. Este mismo libro usa uno, con una forma documentada de vaciarlo (<a href="../appendices/h-how-built.html" class="quarto-xref"><span>Apéndice H</span></a>).</p>
+</section>
+<section id="sec-wrong-tool" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="sec-wrong-tool"><span class="header-section-number">1.5</span> Cuándo Quarto no es la herramienta adecuada</h2>
+<p>Quarto se gana su lugar cuando el mismo contenido se reconstruye, ya sea porque cambian los datos o porque el contenido va a varios públicos. A cambio te pide un flujo de trabajo en texto plano, una línea de comandos y algo de preparación. Ese trato no siempre conviene:</p>
+<ul>
+<li><strong>Colaboradores que editan en Word.</strong> Si las personas que revisan el documento trabajan en un procesador de texto con control de cambios, pueden comentar la salida en Word, pero sus ediciones hay que llevarlas a mano de vuelta a la fuente. Para documentos cuyo trabajo principal es la edición línea por línea entre varias personas, un procesador de texto compartido puede encajar mejor, sin más.</li>
+<li><strong>Diseños maquetados.</strong> Quarto produce documentos estructurados: títulos, párrafos, figuras, tablas. Typst y CSS pueden llevar el aspecto bastante lejos, pero un póster o un folleto muy cargado de marca y maquetado al milímetro es más fácil en una herramienta de diseño.</li>
+<li><strong>La fidelidad de los formatos en los bordes.</strong> Cada formato solo puede llevar lo que admite. Pandoc escribe buenos archivos de Word y PowerPoint, pero una tabla de PowerPoint no puede contener imágenes, por ejemplo, así que la tabla de fotos de la guía de Londres muestra en su versión <code>pptx</code> el texto alternativo de cada foto. Revisa cada formato que prometas entregar.</li>
+<li><strong>Documentos de una sola vez.</strong> Una nota de dos párrafos, sin datos y sin un segundo público, gana poco con un sistema de construcción.</li>
+</ul>
+<div class="practice callout callout-style-default callout-tip callout-titled" title="En la práctica">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>En la práctica
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Una prueba útil: ¿este documento se va a construir una segunda vez? Si los datos van a cambiar, si un segundo público lo va a necesitar en otro formato o si alguien va a preguntar “¿de dónde salió este número?”, el flujo en texto plano se paga solo rápidamente. Si nada de eso es probable, usa lo que sea más rápido.</p>
+</div>
+</div>
+</section>
+<section id="resumen" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="resumen">Resumen</h2>
+<div class="keyideas">
+<ul>
+<li>Los informes se desactualizan cuando sus salidas se editan a mano; editar una sola fuente y dejar que un programa reconstruya cada salida elimina las copias.</li>
+<li><code>quarto render</code> ejecuta las celdas de código, convierte el resultado con Pandoc y, para el PDF, lo compone con Typst; el paso que se detiene te dice dónde buscar.</li>
+<li>Quarto es software convencional, no IA: la misma fuente y los mismos datos dan las mismas salidas, así que revisas el trabajo del asistente una vez y cualquiera puede reconstruir el tuyo sin tener que confiar en él.</li>
+<li>El trabajo reproducible se gana la confianza, justifica decisiones y sirve de base para otros. Significa una sola fuente, números calculados, un solo comando y archivos con versiones, y hace que los errores se puedan encontrar, no que desaparezcan.</li>
+<li>Un caché como <code>freeze</code> vuelve a ejecutar una página cuando cambia su fuente, no cuando cambian sus datos, así que necesita una regla para vaciarlo.</li>
+<li>Quarto conviene para documentos que se van a construir de nuevo, y no es la herramienta adecuada para coeditar en Word, para diseños maquetados ni para notas de una sola vez.</li>
+</ul>
+</div>
+<p>Pero Quarto solo renderiza lo que le dan. En este libro esas fuentes las escribe un asistente de programación, y lo que produce varía de una ejecución a otra y puede estar equivocado con total seguridad. ¿Cómo le pides trabajo a un programa así, y cómo revisas lo que te devuelve antes de que se publique nada? El <a href="02-assistant.html" class="quarto-xref"><span>Capítulo 2</span></a> lo responde.</p>
+</section>
+<section id="lecturas-adicionales" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="lecturas-adicionales">Lecturas adicionales</h2>
+<ul>
+<li>Quarto, <a href="https://quarto.org/docs/get-started/">Get Started</a> (consultado el <span class="nowrap">2026-10-30</span>) y <a href="https://quarto.org/docs/output-formats/all-formats.html">All Formats</a> (consultado el <span class="nowrap">2026-11-12</span>).</li>
+<li>Quarto, <a href="https://quarto.org/docs/computations/python.html">Using Python</a>: cómo se ejecutan las celdas de código a través de Jupyter (consultado el <span class="nowrap">2026-11-12</span>).</li>
+<li>Quarto, <a href="https://quarto.org/docs/output-formats/typst.html">Typst Basics</a>: PDF sin LaTeX (consultado el <span class="nowrap">2026-10-30</span>).</li>
+<li>Quarto, <a href="https://quarto.org/license.html">Licence</a>: la herramienta de línea de comandos tiene la licencia MIT desde la versión 1.4 (antes, la GNU GPL v2), y las herramientas que incluye conservan sus propias licencias de código abierto (consultado el <span class="nowrap">2026-11-06</span>).</li>
+<li>Pandoc, <a href="https://pandoc.org/MANUAL.html">User’s Guide</a>: el conversor detrás de cada formato (consultado el <span class="nowrap">2026-11-12</span>).</li>
+<li>Typst, <a href="https://typst.app/docs/">Documentation</a> (consultado el <span class="nowrap">2026-11-12</span>).</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/quarto-workshop\/book\/es\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../part-1.html" class="pagination-link" aria-label="Parte I: Fundamentos">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Parte I: Fundamentos</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/02-assistant.html" class="pagination-link" aria-label="Trabajar con un asistente de programación">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un asistente de programación</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
