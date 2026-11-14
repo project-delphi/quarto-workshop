@@ -115,6 +115,18 @@ def headings(prose_parts):
     return hs
 
 
+# Differences a translation needs and the checks would otherwise reject, each with its reason.
+# Keyed by file, then by check, then by the exact item; reported as accepted, not as errors.
+EXCEPTIONS = {
+    "chapters/09-explore.qmd": {
+        "inline {python}": {
+            "{python} rural_med_band": "an English band name (\"low\") inside a sentence; the "
+            "Spanish types \"bajo\", which the cell's own guard on fig-wat-years keeps true",
+        },
+    },
+}
+
+
 def compare(rel: str, strings: list) -> tuple[list[str], list[str]]:
     en, es = (EN / rel).read_text(), (ES / rel).read_text()
     be, bs = blocks(en), blocks(es)
@@ -173,11 +185,19 @@ def compare(rel: str, strings: list) -> tuple[list[str], list[str]]:
         "inline {python}": (Counter(c for c in INLINE.findall(joined_e) if c.startswith("{python}")),
                             Counter(c for c in INLINE.findall(joined_s) if c.startswith("{python}"))),
     }
+    accepted = EXCEPTIONS.get(rel, {})
     for what, (a, b) in checks.items():
         if a != b:
             gone = sorted((a - b) if isinstance(a, set) else (a - b).elements())
             new = sorted((b - a) if isinstance(b, set) else (b - a).elements())
-            errors.append(f"{what} differ: only in English {gone}; only in Spanish {new}")
+            ok = accepted.get(what, {})
+            for item in [*gone, *new]:
+                if item in ok:
+                    warnings.append(f"accepted exception in {what}: {item!r}: {ok[item]}")
+            gone = [g for g in gone if g not in ok]
+            new = [n for n in new if n not in ok]
+            if gone or new:
+                errors.append(f"{what} differ: only in English {gone}; only in Spanish {new}")
     ia = Counter(c for c in INLINE.findall(joined_e) if not c.startswith("{python}"))
     ib = Counter(c for c in INLINE.findall(joined_s) if not c.startswith("{python}"))
     if ia != ib:

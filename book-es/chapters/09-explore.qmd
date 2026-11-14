@@ -1,0 +1,365 @@
+# Mira antes de modelar {#sec-explore}
+
+```{python}
+#| label: ch9-setup
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from scripts import water as w
+from scripts.figures import INK, MUTED, figsize, grid, is_epub, style
+from scripts.scenes import tunja
+from scripts.prose import alt_text_holds, number_words, spans, text_holds
+
+A = w.A
+raw = w.raw()
+band = A.irca_band(raw["irca"]).astype(str).where(raw["irca"].notna(), "No IRCA")
+order = ["No IRCA"] + A.IRCA_BANDS
+tab = pd.crosstab(raw["zone"], band).reindex(columns=order, fill_value=0).reindex(["rural", "urban"])
+pct = tab.div(tab.sum(axis=1), axis=0) * 100
+rural_missing = f"{pct.loc['rural', 'No IRCA']:.0f}%"
+urban_missing = f"{pct.loc['urban', 'No IRCA']:.0f}%"
+rural_high = tab.loc["rural", ["High", "Unfit"]].sum() / tab.loc["rural", A.IRCA_BANDS].sum()
+urban_high = tab.loc["urban", ["High", "Unfit"]].sum() / tab.loc["urban", A.IRCA_BANDS].sum()
+med = raw.groupby(["year", "zone"])["irca"].median().unstack()
+ZONE = {"urban": "#2f72b0", "rural": "#b07a14"}
+tj = tunja(raw)
+first, last = int(raw["year"].min()), int(raw["year"].max())
+WORD = number_words()
+drops = sorted(med["rural"].diff().nsmallest(2).index)       # the two sharpest falls
+# Tunja: why it is a good case, from its rows.
+tjr = tj["rows"]
+munis = raw[raw["entity_type"] == "municipality"]
+n_munis = munis["divipola"].nunique()
+n_years = raw["year"].nunique()
+rural_full = int(munis[munis["zone"] == "rural"].groupby("divipola")["irca"].count().eq(n_years).sum())
+tj_full = bool(tjr["irca"].notna().all())
+tj_rural = tjr[tjr["zone"] == "rural"].set_index("year")["irca"].sort_index()
+tj_rural_high = A.irca_band(tj_rural).astype(str).eq("High")
+tj_rural_high_to = int(tj_rural.index[tj_rural_high.cumprod().astype(bool)].max())  # first run
+tj_urban_max = tjr.loc[tjr["zone"] == "urban", "irca"].max()
+tj_zero = sorted(int(y) for y in tjr.loc[tjr["water_coverage_total"].eq(0), "year"].unique())
+idf_last = int(raw.loc[raw["idf"].notna(), "year"].max())
+idf_new_first = int(raw.loc[raw["idf_new"].notna(), "year"].min())
+
+
+saber_years = spans(raw.loc[raw["saber11_mean"].notna(), "year"].unique())
+# The same shares in the last year alone, as Part III's opening computes them (part-3.qmd).
+scored_last = raw[(raw["year"] == last) & raw["irca"].notna()]
+high_last = (A.irca_band(scored_last["irca"]).isin(["High", "Unfit"])
+             .groupby(scored_last["zone"]).mean())
+text_holds(high_last["rural"] < rural_high, "the last year's lower rural share, after the falls")
+# The rural median's last value against INCA's national rural figure, 36.5 (@tbl-irca-bands).
+rural_med_last = med["rural"].iloc[-1]
+rural_med_band = str(A.irca_band(med["rural"].iloc[[-1]]).iloc[0]).lower()
+text_holds(rural_med_last < 35.1, "the rural median below INCA's high-risk rural figure")
+# Tunja's infant mortality (municipal, the same on both rows) and its method change in 2017.
+tj_im = tj["pivot"]["infant_mortality"]["urban"]
+text_holds(tj_im[2017] < tj_im[2016], "Tunja's apparent drop in infant mortality in 2017")
+infant_years = spans(A.INFANT_YEARS)
+```
+
+Antes de cualquier modelo, mira los datos. Explorar te dice lo que un modelo va a poder ver y lo
+que no: qué columnas están casi vacías, qué zonas nunca se miden y si una serie cambia de nivel por
+razones que no tienen nada que ver con lo que mide. Nada de eso aparece como un error. Un algoritmo
+de agrupamiento agrupará de buena gana filas que solo se volvieron comparables porque se llenaron
+sus vacíos, y el gráfico de una serie cuyo método cambió dibujará una tendencia que no existe.
+
+Los datos del agua tienen dos sorpresas de ese tipo que un gráfico puede mostrar, y varias más que
+solo se ven de cerca, en un solo lugar. Para esas, este capítulo presenta a Tunja, el municipio que
+sigue el resto de la parte.
+
+::: opener
+- Hacerle cuatro preguntas a cualquier tabla antes de modelarla.
+- Interpretar dónde falta el IRCA, y decidir qué permite afirmar al análisis descartar esas filas.
+- Decidir si un salto en una serie es un avance o un cambio de método.
+- Revisar la primera página del asistente contra resultados que ya conoces.
+
+Partes de
+: `~/water-quality/` tal como lo dejó el @sec-water-question.
+
+Construyes
+: `explore.qmd`, renderizado como `explore.html`.
+
+Punto de control
+: `checkpoints/05-water-explore/`, que también contiene el trabajo del @sec-water-question.
+:::
+
+## Para qué sirve explorar {#sec-explore-what}
+
+Vale la pena responder cuatro preguntas antes de modelar cualquier tabla, y este capítulo se las
+hace a los datos del agua:
+
+1. **¿Qué tan grande es?** Filas y columnas, y qué es una fila.
+2. **¿Qué falta, y dónde?** Los faltantes por columna y por grupo (aquí, por zona).
+3. **¿Cómo se distribuyen los valores clave?** Para el IRCA, el conteo de filas en cada nivel de
+   riesgo.
+4. **¿Cómo se mueven en el tiempo?** Para el IRCA, su mediana (el valor del medio, con la mitad de
+   las filas por debajo) por año y zona.
+
+Las respuestas deciden lo que puede afirmar el análisis. Si un grupo está casi todo vacío, las
+conclusiones sobre él se apoyan en la minoría que se midió, y esa minoría puede no ser típica.
+
+## Lo rural: menos datos, más riesgo {#sec-water-bands}
+
+```{python}
+#| label: fig-wat-bands
+#| fig-cap: "Todas las filas, 2010–2023, incluidas San Andrés y las áreas no municipalizadas, por zona: sin IRCA reportado (rayado) y el nivel de riesgo de la Resolución 2115 del resto. IRCA de prestadores, datos abiertos del INS (datos.gov.co nxt2-39c3)."
+#| fig-alt: "Dos barras horizontales apiladas, urbana y rural. La barra urbana es sobre todo IRCA sin riesgo y de riesgo bajo, con una pequeña parte rayada sin datos. Más de la mitad de la barra rural es rayada, sin datos, y la mayor parte del resto está en el nivel de riesgo alto."
+#| classes: on-light
+alt_text_holds((first, last) == (2010, 2023) and pct.loc["rural", "No IRCA"] > 50
+               and pct.loc["urban", "No IRCA"] < 20 and pct.loc["urban", ["No risk", "Low"]].sum() > 50
+               and tab.loc["rural", A.IRCA_BANDS].idxmax() == "High", "fig-wat-bands")
+with style():
+    fig, ax = plt.subplots(figsize=figsize(6.6, 2.6, epub=(4.6, 2.9)))
+    left = np.zeros(2)
+    cols = [A.NO_DATA_COLOR["light"]] + A.BAND_COLORS["light"]
+    for b, c in zip(order, cols):
+        nodata = b == "No IRCA"
+        ax.barh(["rural", "urban"], pct[b], left=left, color=c, height=0.6, label=b,
+                hatch=A.NO_DATA_HATCH if nodata else None,
+                edgecolor=A.NO_DATA_EDGE["light"] if nodata else "white", linewidth=0 if nodata else 1)
+        left += pct[b].to_numpy()
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("Share of rows (%)")
+    ax.legend(ncol=3, loc="lower left", bbox_to_anchor=(0, 1.02), fontsize=11 if is_epub() else 9,
+              handlelength=1.2)
+    fig.tight_layout()
+    plt.show()
+```
+
+Lado a lado, la @fig-wat-bands muestra las `{python} w.fmt(len(raw))` filas. El
+`{python} rural_missing` de las filas rurales no tiene ningún IRCA, frente al `{python} urban_missing`
+de las urbanas, porque muchos sistemas rurales nunca se muestrean, o no los opera un prestador y por
+eso quedan fuera de la tabla de prestadores. Entre las filas rurales que sí tienen un valor, el
+`{python} f"{rural_high:.0%}"` cae en los niveles alto o inviable sanitariamente, frente al
+`{python} f"{urban_high:.0%}"` de las urbanas. Esas proporciones juntan los
+`{python} WORD[n_years]` años. Solo en `{python} last`, fueron del
+`{python} f"{high_last['rural']:.0%}"` y del `{python} f"{high_last['urban']:.0%}"`, las cifras con
+las que empieza la Parte III, después de las caídas del IRCA rural que muestra la @fig-wat-years más
+abajo.
+
+Los dos hechos se suman en la peor dirección: las zonas con peores puntajes son también las que
+menos se puntúan. Los vacíos no son aleatorios. Dependen de la zona, que los datos registran, y
+quizá del riesgo mismo, que no registran: en estadística, al segundo tipo se le llama *faltantes no
+aleatorios*, y ningún relleno puede repararlo. Cualquier análisis que descarte las filas sin IRCA,
+como debe hacerlo el de la Parte III, describe solo los sistemas rurales *muestreados*, y debería
+decirlo.
+
+::: think
+Supón que cada IRCA rural faltante se llenara con la mediana de las filas rurales con puntaje. ¿El
+agua rural se vería entonces más segura o más riesgosa de lo que realmente es?
+
+Probablemente más segura, aunque nadie puede comprobarlo. Muchos sistemas sin puntaje son sistemas
+que no opera ningún prestador, y los sistemas de autoabastecimiento puntúan mucho peor a nivel
+nacional (@tbl-irca-bands), así que el relleno convertiría "desconocido, y probablemente peor" en
+"típico". Por eso el análisis descarta estas filas en lugar de llenarlas (@sec-prepare-steps).
+:::
+
+```{python}
+#| label: fig-wat-years
+#| fig-cap: "Mediana del IRCA de prestadores por año y zona, 2010–2023, sobre las filas que lo reportan."
+#| fig-alt: "Dos líneas a lo largo de los años 2010 a 2023. La mediana urbana es baja y desciende suavemente, del nivel de riesgo bajo en los primeros años a menos de 5 desde mediados de la década. La mediana rural es mucho más alta y casi plana hasta 2015, luego cae bruscamente en 2016 y otra vez en 2020, y termina en el nivel de riesgo bajo."
+#| classes: on-light
+alt_text_holds((first, last) == (2010, 2023) and drops == [2016, 2020]
+               and str(A.irca_band(med["rural"].iloc[[-1]]).iloc[0]) == "Low", "fig-wat-years")
+with style():
+    fig, ax = plt.subplots(figsize=figsize(6.6, 2.8, epub=(4.6, 3.0)))
+    for z in ("rural", "urban"):
+        ax.plot(med.index, med[z], marker="o", ms=4, color=ZONE[z], label=z)
+    ax.set_ylabel("Median IRCA")
+    ax.set_xticks(med.index[::2])
+    ax.legend(loc="upper right")
+    fig.tight_layout()
+    plt.show()
+```
+
+La cuarta pregunta importa, como muestra la @fig-wat-years. La mediana rural cae bruscamente en
+`{python} drops[0]` y otra vez en `{python} drops[1]`. Eso podría ser una mejora del agua rural, o un
+cambio en qué sistemas se muestrearon; el README de los datos advierte que la caída de
+`{python} drops[1]` puede reflejar el muestreo, y los datos abiertos no pueden distinguir lo uno de lo
+otro. Un análisis que compara años no debería leer la caída como un avance sin evidencia de fuera de
+la tabla.
+
+La mediana rural también termina muy por debajo de la cifra rural nacional de la @tbl-irca-bands:
+`{python} f"{rural_med_last:.1f}"` en `{python} last`, en el nivel bajo, frente al 36.5 del INCA. Dos
+cosas explican la brecha. La tabla contiene solo sistemas operados por prestadores
+(@sec-water-why), y la mediana de las zonas es la zona del medio, a la que las peores zonas no
+arrastran hacia arriba, y que no está ponderada por cuánta gente bebe esa agua.
+
+## Un municipio para seguir: Tunja {#sec-tunja}
+
+Los agregados esconden los detalles que hacen que una variable sea confiable o no, así que de aquí
+en adelante esta parte sigue a un municipio a lo largo de cada paso. Tunja, la capital del
+departamento de Boyacá, es un buen caso por tres razones que están en sus filas. Como capital de
+departamento, carga con la advertencia sobre la cobertura que tienen todas las capitales. A
+diferencia de la mayoría de los municipios, tiene un IRCA para las dos zonas en todos los años: solo
+`{python} w.fmt(rural_full)` de los `{python} w.fmt(n_munis)` municipios tienen uno para su zona
+rural en los `{python} WORD[n_years]` años, así que el análisis nunca va a perder a Tunja por falta de
+un puntaje. Y sus dos zonas difieren: su agua rural puntuó en el nivel de riesgo alto todos los años
+de `{python} first` a `{python} tj_rural_high_to`, mientras que su agua urbana nunca puntuó por encima
+de `{python} f"{tj_urban_max:.1f}"`.
+
+Tunja tiene `{python} len(tjr)` filas, `{python} WORD[tjr["zone"].nunique()]` zonas a lo largo de
+`{python} WORD[tjr["year"].nunique()]` años. Las variables de zona, como el IRCA, difieren entre sus
+dos filas de un año; las municipales, como la precipitación y la mortalidad infantil, se repiten en
+las dos (@tbl-water-features), así que el explorador y cada resumen las cuentan una vez. Mirar las
+filas una variable a la vez muestra varias de las advertencias del README en un solo lugar
+(@fig-tunja).
+
+::: {.content-visible when-format="html:js"}
+::: {#fig-tunja}
+```{python}
+#| output: asis
+print(tj["html"])
+```
+
+Las `{python} len(tjr)` filas de Tunja, a partir de `water_municipal.csv`. Elige una vista (los datos, un resumen, una distribución, una serie de tiempo o un diagrama de dispersión), luego una variable y una zona. Las variables que repiten el mismo valor en las filas de las dos zonas son municipales y se cuentan una vez. Algunas palabras del explorador están en inglés.
+:::
+:::
+
+::: {.content-visible when-format="epub"}
+```{python}
+#| label: fig-tunja
+#| fig-cap: "Tunja, 2010–2023, a partir de `water_municipal.csv`. Arriba: IRCA de prestadores por zona. En el medio: la cobertura de acueducto del municipio, donde un punto hueco es un valor reportado como 0. Abajo: la mortalidad infantil del municipio (muertes de menores de un año por cada 1,000 nacidos vivos), cortada donde cambia su método en 2017; 2020, que parece venir de otra fuente, va hueco."
+#| fig-alt: "Tres gráficos pequeños, uno encima del otro. Arriba: el IRCA urbano de Tunja está en el nivel de riesgo bajo los dos primeros años y cerca de cero después, mientras que su IRCA rural es mucho más alto, en el nivel de riesgo alto hasta 2014, y baja a los niveles bajo y medio desde 2016. En el medio: la cobertura de acueducto del municipio se mueve entre más o menos 60 y 100 por ciento, con un punto hueco en 0 en el único año reportado como 0, lo que probablemente significa no reportado más que sin servicio. Abajo: la mortalidad infantil baja de forma pareja hasta 2016, cae en 2017 donde cambia el método y luego sube y baja de un año a otro, con 2020 dibujado hueco."
+#| classes: on-light
+im_smooth = bool((tj_im.loc[:2016].diff().dropna() <= 0).all())
+im_jumpy = bool((np.sign(tj_im.loc[2017:].diff().dropna()) > 0).any() and tj_im[2018] > tj_im[2017])
+alt_text_holds((first, last) == (2010, 2023) and tj_full and tj_rural_high_to == 2014
+               and len(tj_zero) == 1 and im_smooth and im_jumpy, "fig-tunja")
+p_irca = tj["pivot"]["irca"]
+p_cov = tj["pivot"]["water_coverage_total"]["urban"]
+rows, cols = grid(3)
+with style():
+    fig, axes = plt.subplots(rows, cols, figsize=figsize(7.0, 2.4, rows=rows))
+    a1, a2, a3 = axes.flat
+    for z in ("urban", "rural"):
+        a1.plot(p_irca.index, p_irca[z], marker="o", ms=4, color=ZONE[z], label=z)
+    a1.set_title("IRCA, utility-supplied")
+    a1.legend(loc="upper right")
+    zero = p_cov.eq(0)
+    a2.plot(p_cov.index, p_cov.where(~zero), marker="o", ms=4, color=MUTED)
+    a2.scatter(p_cov.index[zero], p_cov[zero], s=30, facecolors="none", edgecolors=MUTED, linewidths=1.5)
+    a2.set_title("Aqueduct coverage (%)")
+    for part in (tj_im.loc[:2016], tj_im.loc[2017:2019], tj_im.loc[2021:]):
+        a3.plot(part.index, part, marker="o", ms=4, color=INK)
+    a3.scatter([2020], [tj_im[2020]], s=30, facecolors="none", edgecolors=INK, linewidths=1.5)
+    a3.axvline(2016.5, color=MUTED, linestyle="--", linewidth=1)
+    a3.text(2016.7, tj_im.max(), "new method", va="top", fontsize=10, color=MUTED)
+    a3.set_title("Infant mortality (per 1,000 live births)")
+    for a in axes.flat:
+        a.set_xticks([2010, 2014, 2018, 2022])
+    fig.tight_layout()
+    plt.show()
+```
+
+::: {.live-link}
+Explora las `{python} WORD[len(tj["pivot"])]` variables de Tunja
+[en la edición web](https://project-delphi.github.io/quarto-workshop/book/es/chapters/09-explore.html#sec-tunja).
+:::
+:::
+
+::: think
+La mortalidad infantil de Tunja cae en 2017. ¿Es un avance?
+
+No con esta evidencia. La serie cambia de método ese año, de lo que parecen estimaciones modeladas
+a tasas observadas (el README de los datos, advertencia 8), así que la caída puede ser el cambio
+mismo, y la tabla no puede decirlo. Una serie así solo se compara dentro de un mismo método.
+:::
+
+Vale la pena encontrar cinco cosas (@tbl-tunja-caveats). Como Tunja es capital de departamento, su
+cobertura no tiene separación urbana y rural, así que el explorador usa el total del municipio. Ese
+total se reporta exactamente como 0 en `{python} spans(tj_zero)`, lo que, al lado de sus años
+vecinos, probablemente significa "no reportado" más que "sin servicio"; esos puntos se dibujan
+huecos. El índice fiscal `idf` termina en `{python} idf_last` y `idf_new` empieza ahí, en otra escala,
+así que los dos nunca deben unirse en una sola línea.
+
+| Advertencia | En las filas de Tunja | El análisis |
+|---|---|---|
+| Sin separación por zona para la cobertura de las capitales | solo el total municipal | lo usa para llenar, marcado (@sec-prepare-steps) |
+| Un 0 puede significar "no reportado" | cobertura 0 en `{python} spans(tj_zero)` | lo conserva (@sec-prepare-counts) |
+| Dos índices fiscales | `idf` termina en `{python} idf_last`, empieza `idf_new` | no usa ninguno (@sec-water-features) |
+| El método nuevo de la mortalidad infantil | una caída en 2017 | solo `{python} infant_years` (@sec-outcomes) |
+| Saber 11 en algunos años | `{python} saber_years` | solo los años publicados (@sec-outcomes) |
+
+: Cinco advertencias de `data/README.md`, tal como aparecen en las filas de Tunja, y lo que hace el análisis con cada una. {#tbl-tunja-caveats}
+
+::: practice
+Los resúmenes del explorador nunca juntan las dos zonas. Promediar los valores de la pequeña
+población rural con los de la población urbana, mucho más grande, no describiría a ninguna de las
+dos. La misma precaución vale para cada comparación de esta parte: compara lo comparable, y di de
+qué filas sale un número.
+:::
+
+## La primera página: `explore.qmd` {#sec-explore-do}
+
+::: {.prompt}
+```default
+Lee data/README.md. Crea explore.qmd a partir de data/water_municipal.csv (divipola como texto): filas y columnas, % de faltantes por columna según `zone`, conteos del IRCA por nivel de la Resolución 2115 y `zone`, y la mediana del IRCA por `year` y `zone`, con la etiqueta IRCA de prestadores (utility-supplied, prestadores). Renderízalo; informa los errores.
+```
+:::
+
+::: {.agent}
+escribe `explore.qmd` · `uv run quarto render explore.qmd`
+:::
+
+::: {.you}
+abres `explore.html` en tu navegador
+:::
+
+"divipola como texto" importa: los códigos tienen ceros a la izquierda (`05001` es Medellín), y un
+código leído como número los pierde, y con ellos la unión con cualquier otra tabla.
+
+::: pitfall
+Revisa la tabla de faltantes antes de confiar en la página. `irca` debería faltar en más o menos el
+`{python} rural_missing` de las filas rurales y el `{python} urban_missing` de las urbanas. Si no está
+mucho más vacía en las filas rurales que en las urbanas, probablemente el asistente contó la columna
+equivocada, o contó filas en lugar de valores. Ahora sabes la respuesta que debería dar la tabla
+(@fig-wat-bands), que es exactamente lo que hace posible la revisión.
+:::
+
+::: tryit
+Ejecuta el prompt y lee la página.
+
+::: done
+`explore.html` muestra las filas y las columnas, los valores faltantes por zona, y el IRCA por nivel,
+zona y año para `{python} first`–`{python} last`.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md
+```
+:::
+:::
+
+Este recuadro para ponerte al día también cubre el @sec-water-question: restaura las reglas y el
+entorno además de `explore.qmd`, y copia `data/` si falta, porque los puntos de control del agua
+solo contienen fuentes.
+
+## Resumen {.unnumbered}
+
+::: keyideas
+- Antes de modelar, pregúntale a una tabla su tamaño, qué falta y dónde, cómo se distribuyen los
+  valores clave y cómo se mueven en el tiempo.
+- Las filas rurales casi no tienen IRCA y, donde lo tienen, son más riesgosas, así que los
+  resultados describen solo los sistemas muestreados.
+- Los vacíos pueden depender del riesgo mismo, así que llenarlos inventaría una calidad del agua que
+  nadie midió.
+- Un salto en una serie puede ser un cambio de método o de muestreo, que la tabla no puede
+  distinguir de un cambio real.
+- Mantén separadas las zonas, cuenta una vez las variables municipales y lee los códigos como texto.
+:::
+
+Ver los vacíos no es lo mismo que decidir qué hacer con ellos: el capítulo siguiente decide qué
+filas y qué números va a ver el agrupamiento, y cuenta lo que cuesta cada decisión.
+
+## Lecturas adicionales {.unnumbered}
+
+- `examples/water/data/README.md`, "Known gaps and caveats", en el repositorio del taller: la lista
+  completa de las trampas de los datos, con cómo se encontró cada una.
+- pandas, [Working with missing data](https://pandas.pydata.org/docs/user_guide/missing_data.html)
+  (consultado el 2026-11-12).
+- Quarto, [Tables](https://quarto.org/docs/authoring/tables.html): tablas calculadas y tablas de
+  Markdown con pie (consultado el 2026-11-12).

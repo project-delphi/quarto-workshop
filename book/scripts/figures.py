@@ -85,7 +85,70 @@ def figsize(w: float, h: float, rows: int = 1, epub: tuple[float, float] | None 
     return min(w, EPUB_WIDTH), h * rows
 
 
+# The Spanish edition (book-es/, translation/glossary.md): the charts' own words, which the
+# cells take from data keys ("urban", "High") as well as from literals, are translated where
+# the chart is shown, so every cell's code stays the English edition's. Exact texts first, then
+# patterns for texts that carry a number.
+TERMS_ES = {
+    "urban": "urbana", "rural": "rural", "both": "ambas",
+    "No IRCA": "Sin IRCA", "No risk": "Sin riesgo", "Low": "Bajo", "Medium": "Medio",
+    "High": "Alto", "Unfit": "Inviable sanitariamente",
+    "Share of rows (%)": "Proporción de filas (%)", "Median IRCA": "Mediana del IRCA",
+    "IRCA, utility-supplied": "IRCA de prestadores",
+    "Aqueduct coverage (%)": "Cobertura de acueducto (%)", "new method": "método nuevo",
+    "Infant mortality (per 1,000 live births)": "Mortalidad infantil (por 1,000 nacidos vivos)",
+}
+PATTERNS_ES: list[tuple[str, str]] = [
+    (r"^Cluster (\d+)$", r"Clúster \1"),
+]
+
+
+def _translate(text: str) -> str:
+    import re
+    if text in TERMS_ES:
+        return TERMS_ES[text]
+    for pattern, repl in PATTERNS_ES:
+        if re.match(pattern, text):
+            return re.sub(pattern, repl, text)
+    return text
+
+
+def translate_figures() -> None:
+    """Put the open figures' texts and tick labels in Spanish (only called for lang: es)."""
+    from matplotlib.category import StrCategoryFormatter
+    from matplotlib.text import Text
+    from matplotlib.ticker import FixedFormatter, FuncFormatter
+
+    for num in plt.get_fignums():
+        fig = plt.figure(num)
+        for text in fig.findobj(Text):
+            new = _translate(text.get_text())
+            if new != text.get_text():
+                text.set_text(new)
+        for ax in fig.axes:
+            for axis in (ax.xaxis, ax.yaxis):
+                fmt = axis.get_major_formatter()
+                # Only word labels: numeric formatters need their own set_locs, so stay as they are.
+                if isinstance(fmt, (StrCategoryFormatter, FixedFormatter)):
+                    wrapped = FuncFormatter(lambda x, pos, f=fmt: _translate(f(x, pos)))
+                    axis.set_major_formatter(wrapped)
+
+
 @contextmanager
 def style():
-    with plt.rc_context(RC):
-        yield
+    from scripts.prose import language
+
+    spanish = language() == "es"
+    show = plt.show
+    if spanish:
+        def translated_show(*args, **kwargs):
+            translate_figures()
+            return show(*args, **kwargs)
+        plt.show = translated_show
+    try:
+        with plt.rc_context(RC):
+            yield
+    finally:
+        if spanish:
+            translate_figures()
+            plt.show = show

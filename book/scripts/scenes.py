@@ -209,6 +209,8 @@ def tunja(raw: pd.DataFrame) -> dict:
         ("saber11_mean", "Saber 11 mean (points)", "Saber 11 mean (points)"),
         ("dropout_rate", "school dropout (%)", "school dropout (%)"),
     ]
+    if language() == "es":
+        tvars = [(k, *TUNJA_ES[k]) for k, _, _ in tvars]
     cav = {
         "water_coverage_total": {"note": "hollow = reported as 0, probably “not reported” (data README, caveat 2)"},
         "sewer_coverage_total": {"note": "hollow = reported as 0, probably “not reported” (data README, caveat 2)"},
@@ -218,6 +220,8 @@ def tunja(raw: pd.DataFrame) -> dict:
                                      "the 2017 drop is not an improvement (data README, caveat 8)",
                              "breaks": [[2017, "new method"], [2020, "2020: other source"], [2021, ""]]},
     }
+    if language() == "es":
+        cav = TUNJA_CAVEATS_ES
     piv = {k: tj.pivot(index="year", columns="zone", values=k) for k, _, _ in tvars}
 
     def lvl(p):
@@ -264,18 +268,51 @@ def tunja(raw: pd.DataFrame) -> dict:
         '<div class="tunja">'
         f'<script type="application/json">{json.dumps(data, separators=(",", ":"))}</script>'
         '<div class="tj-bar">'
-        '<label>view <select name="view"><option value="table">data</option><option value="summary">summary</option>'
-        '<option value="distribution">distribution</option><option value="series">time series</option>'
-        '<option value="scatter">scatter</option></select></label>'
-        f'<label class="tj-x"><span class="tj-xl">variable</span> <select name="x">{opts}</select></label>'
+        + _t('<label>view <select name="view"><option value="table">data</option><option value="summary">summary</option>'
+             '<option value="distribution">distribution</option><option value="series">time series</option>'
+             '<option value="scatter">scatter</option></select></label>',
+             '<label>vista <select name="view"><option value="table">datos</option><option value="summary">resumen</option>'
+             '<option value="distribution">distribución</option><option value="series">serie de tiempo</option>'
+             '<option value="scatter">dispersión</option></select></label>')
+        + f'<label class="tj-x"><span class="tj-xl">variable</span> <select name="x">{opts}</select></label>'
         f'<label class="tj-y" hidden>y <select name="y">{opts}</select></label>'
-        '<label>zone <select name="zone"><option value="both">both zones</option><option value="urban">urban</option>'
-        '<option value="rural">rural</option></select></label></div>'
+        + _t('<label>zone <select name="zone"><option value="both">both zones</option><option value="urban">urban</option>'
+             '<option value="rural">rural</option></select></label></div>',
+             '<label>zona <select name="zone"><option value="both">las dos zonas</option><option value="urban">urbana</option>'
+             '<option value="rural">rural</option></select></label></div>')
+        +
         '<div class="tj-out"></div><p class="tj-note"></p></div>',
         '<script src="../assets/tunja-explorer.js"></script>',
         "```"])
     return {"html": block, "rows": tj, "pivot": piv}
 
+
+# The Tunja explorer's labels and caveats in Spanish (the explorer's own script,
+# assets/tunja-explorer.js, keeps its few words in English).
+TUNJA_ES = {
+    "irca": ("IRCA de prestadores (0–100 %)", "IRCA (0–100 %)"),
+    "water_coverage_total": ("cobertura de acueducto, municipio (%)", "cobertura de acueducto (%)"),
+    "sewer_coverage_total": ("cobertura de alcantarillado, municipio (%)", "cobertura de alcantarillado (%)"),
+    "population": ("población (personas)", "personas"),
+    "ipm": ("pobreza multidimensional IPM, censo de 2018 (%)", "IPM, censo de 2018 (%)"),
+    "mdm": ("desempeño municipal MDM (puntos)", "MDM (puntos)"),
+    "idf": ("desempeño fiscal, método anterior (puntos)", "IDF, método anterior (puntos)"),
+    "idf_new": ("desempeño fiscal, método nuevo (puntos)", "IDF, método nuevo (puntos)"),
+    "sgp_water_pc": ("SGP agua, pesos corrientes por persona", "SGP agua (pesos por persona)"),
+    "rainfall_mm": ("precipitación (mm al año)", "precipitación (mm al año)"),
+    "infant_mortality": ("mortalidad infantil (por 1000 nacidos vivos)", "muertes infantiles por 1000 nacidos vivos"),
+    "saber11_mean": ("media de Saber 11 (puntos)", "media de Saber 11 (puntos)"),
+    "dropout_rate": ("deserción escolar (%)", "deserción escolar (%)"),
+}
+TUNJA_CAVEATS_ES = {
+    "water_coverage_total": {"note": "hueco = reportado como 0, probablemente “no reportado” (README de los datos, advertencia 2)"},
+    "sewer_coverage_total": {"note": "hueco = reportado como 0, probablemente “no reportado” (README de los datos, advertencia 2)"},
+    "population": {"note": "retroproyección del DANE hasta 2017, una serie más nueva desde 2018 (README de los datos, advertencia 9)",
+                   "breaks": [[2018, "serie nueva"]]},
+    "infant_mortality": {"note": "modelada hasta 2016, tasas observadas desde 2017, 2020 de otra fuente: "
+                                 "la caída de 2017 no es una mejora (README de los datos, advertencia 8)",
+                         "breaks": [[2017, "método nuevo"], [2020, "2020: otra fuente"], [2021, ""]]},
+}
 
 GLYPH = {"o": "●", "s": "■", "^": "▲", "D": "◆", "v": "▼", "P": "✚", "X": "✖", "*": "★"}
 
