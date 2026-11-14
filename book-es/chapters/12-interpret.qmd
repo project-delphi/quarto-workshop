@@ -1,0 +1,759 @@
+# Interpretar los clústeres {#sec-interpret}
+
+```{python}
+#| label: ch12-setup
+import base64
+import html
+import io
+import textwrap
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.colors import LinearSegmentedColormap
+
+from scripts import water as w
+from scripts.figures import INK, figsize, grid, is_epub, style
+from scripts.prose import number_words, spans, text_holds
+
+A = w.A
+res = w.res()
+prof = res["profiles"]
+clusters = res["clusters"]
+k = res["k"]
+names, colors = w.names(), w.colors()
+zcols = [f"z_{c}" for c in A.FEATURES]
+cmap = LinearSegmentedColormap.from_list("div", A.DIVERGING["light"])
+ZLIM = 1.5
+kind = {c: n.rsplit(", ", 1)[0] for c, n in names.items()}
+tick = {c: f"{c} · " + "\n".join(textwrap.wrap(kind[c], 18)) for c in names}
+rural_cov = prof.loc[prof["name"].str.startswith("Rural"), "mean_water_coverage"].item()
+
+# The highest-IRCA cluster (clusters are numbered by centre IRCA), described by the features
+# farthest from the year's average, one per idea: water and sewer coverage are strongly
+# correlated (@sec-scaling), so they count as one idea, coverage.
+ex_c = int(prof.index.max())
+WORDS = {"irca": "IRCA", "water_coverage": "cobertura de acueducto", "sewer_coverage": "cobertura de alcantarillado",
+         "ipm": "pobreza", "rural_share": "proporción rural", "altitude_m": "altitud",
+         "rainfall_mm": "precipitación", "mdm": "desempeño municipal", "log_sgp_water_pc": "transferencias para agua"}
+IDEA = {c: "coverage" if c.endswith("_coverage") else c for c in A.FEATURES}
+ex_z = prof.loc[ex_c, zcols].astype(float).rename(lambda c: c[2:])
+best = ex_z.abs().groupby(IDEA).idxmax()                 # each idea's strongest feature
+ex_top = list(ex_z[best.values].abs().sort_values(ascending=False).index)
+
+
+def zword(c):
+    return f"{WORDS[c]} ({f'{ex_z[c]:+.1f}'.replace('-', '−')} DE)"
+
+
+# Outcomes in z units, as the deck computes them: standardise within year, then average over
+# each cluster's rows; municipal outcomes count each municipality once per year.
+ocols = list(A.OUTCOMES)
+oz = {}
+for col in ocols:
+    r = clusters[clusters["year"].isin(A.OUTCOME_YEARS[col])].dropna(subset=[col])
+    base = r.drop_duplicates(["divipola", "year"]) if A.OUTCOME_LEVEL[col] == "municipality" else r
+    mu, sd = base.groupby("year")[col].mean(), base.groupby("year")[col].std(ddof=0)
+    r = A.once_per_municipality(r, col)
+    oz[col] = ((r[col] - r["year"].map(mu)) / r["year"].map(sd)).groupby(r["cluster"]).mean()
+oz = pd.DataFrame(oz).loc[prof.index]
+omean = prof[[f"{c}_mean" for c in ocols]]
+oz_max = oz.abs().to_numpy().max()
+
+
+def cname(c):
+    return f"clúster {c} ({names[c].split(',')[0].lower()})"
+```
+
+```{python}
+#| label: ch12-checks
+# Values for the prose, and guards for its sentences whose words, not only their numbers,
+# depend on the data: the render stops when the data no longer support one.
+NUM = number_words(zero="no")
+WORD = number_words()
+
+
+OUT_WORDS = {"infant_mortality": "la mortalidad infantil", "saber11_mean": "los puntajes del examen",
+             "dropout_rate": "la deserción"}
+
+
+def listing(words):
+    words = list(words)
+    return ", ".join(words[:-1]) + " y " + words[-1] if len(words) > 1 else words[0]
+
+
+# The highest-IRCA cluster in words: its three strongest ideas (@sec-heatmap), and two of them
+# for the "describe one cluster" question, whose answer then compares them with the name.
+ex3_text, ex2_text = listing(map(zword, ex_top[:3])), listing(map(zword, ex_top[:2]))
+text_holds(set(ex_top[:3]) == {"water_coverage", "ipm", "irca"} and set(ex_top[:2]) == {"water_coverage", "ipm"}
+           and "baja cobertura" in names[ex_c] and "pobreza" not in names[ex_c],
+           "the highest-IRCA cluster's strongest features, and what its name carries")
+
+
+IM_YEARS = spans(A.OUTCOME_YEARS["infant_mortality"])
+text_holds(IM_YEARS == "2017–2019 y 2021–2023", "infant mortality's years in fig-wat-outcomes' caption")
+
+worst = int(prof["irca_median"].idxmax())          # the worst water
+rural_c = int(prof["urban_row_share"].idxmin())   # the rural cluster
+im_max = int(omean["infant_mortality_mean"].idxmax())
+fz_max = prof[zcols].abs().to_numpy().max()
+widest = (oz.max() - oz.min()).idxmax()           # the outcome whose cluster means spread most
+text_holds(worst != im_max, "the worst water and the highest infant mortality")
+text_holds(oz_max < fz_max, "outcomes differing less than features")
+
+# The municipality-years behind each cluster's infant mortality: median population, both zones.
+pop = w.raw().groupby(["divipola", "year"])["population"].sum().rename("muni_pop")
+im_rows = clusters[clusters["year"].isin(A.OUTCOME_YEARS["infant_mortality"])]
+im_rows = A.once_per_municipality(im_rows.dropna(subset=["infant_mortality"]), "infant_mortality")
+pop_med = im_rows.join(pop, on=["divipola", "year"]).groupby("cluster")["muni_pop"].median()
+text_holds(pop_med.idxmin() == im_max, "the highest-mortality kind being the smallest places")
+
+# Every outcome's 5th-95th percentile ranges (the box plots' whiskers) share a common stretch.
+for col in ocols:
+    r = clusters[clusters["year"].isin(A.OUTCOME_YEARS[col])].dropna(subset=[col])
+    q = A.once_per_municipality(r, col).groupby("cluster")[col].quantile([0.05, 0.95]).unstack()
+    text_holds(q[0.05].max() < q[0.95].min(), f"overlapping distributions of {col}")
+
+# What the highest-IRCA cluster stands out on, in words (@sec-heatmap).
+text_holds(prof.loc[ex_c, "irca_median_band"] == "High" and prof.loc[ex_c, "z_irca"] > 0.5
+           and prof.loc[ex_c, "z_ipm"] > 0.5 and prof.loc[ex_c, "z_water_coverage"] < -0.5,
+           "the highest-IRCA cluster's combination")
+
+# Blank infant-mortality rates: the series has no zeros, so a blank may be a recorded zero.
+im_years = clusters[clusters["year"].isin(A.OUTCOME_YEARS["infant_mortality"])]
+blank_all = im_years.drop_duplicates(["divipola", "year"])["infant_mortality"].isna().mean()
+blank_c = (im_years.drop_duplicates(["cluster", "divipola", "year"])
+           .groupby("cluster")["infant_mortality"].apply(lambda v: v.isna().mean()))
+text_holds(w.raw()["infant_mortality"].eq(0).sum() == 0 and blank_c.idxmax() == im_max,
+           "blank rates in the highest-mortality kind")
+
+# Alt texts are static cell options: stop the render when the data no longer match one.
+zp = prof[zcols]
+text_holds(k == 4 and len(zcols) == 9 and zp.loc[4, "z_irca"] > 0.5 and zp.loc[4, "z_ipm"] > 0.5
+           and zp.loc[4, ["z_water_coverage", "z_sewer_coverage"]].max() < -1
+           and zp.loc[1, "z_rural_share"] < -0.5 and zp.loc[1, "z_mdm"] > 0.5
+           and zp.loc[3, "z_altitude_m"] < -0.5 and zp.loc[2, "z_altitude_m"] > 0.5,
+           "fig-wat-heatmap's alt text")
+by_year = res["outcomes_by_year"].pivot_table(index=["outcome", "year"], columns="cluster", values="median")
+im_y, sb_y, dr_y = (by_year.loc[c] for c in ("infant_mortality", "saber11_mean", "dropout_rate"))
+text_holds([names[c].split(",")[0] for c in (1, 2, 3, 4)]
+           == ["Ciudades y pueblos grandes", "Pueblos de tierras altas", "Pueblos de tierras bajas", "Rural"]
+           and (im_y.idxmin(axis=1) == 1).all() and (im_y.idxmax(axis=1) == 2).all()
+           and (sb_y.idxmax(axis=1) == 1).all()
+           and all(set(row.nsmallest(2).index) == {3, 4} for _, row in sb_y.iterrows())
+           and 1 < dr_y.min().min() and dr_y.max().max() < 5 and (dr_y.idxmin() == 2020).all(),
+           "fig-wat-outcomes' alt text")
+
+
+def quartiles(col):
+    """The box plots' quartiles (@sec-compare): outcomes in their years, once per municipality."""
+    r = clusters
+    if col in A.OUTCOMES:
+        r = A.once_per_municipality(r[r["year"].isin(A.OUTCOME_YEARS[col])].dropna(subset=[col]), col)
+    return r.groupby("cluster")[col].quantile([0.25, 0.5, 0.75]).unstack()
+
+
+qi, qw, qm = quartiles("irca"), quartiles("water_coverage"), quartiles("infant_mortality")
+text_holds(qi.loc[4, 0.5] > qi.loc[[1, 2, 3], 0.75].max() and qi.loc[1, 0.5] < qi.loc[2, 0.5] < qi.loc[3, 0.5]
+           and qw.loc[4, 0.75] < qw.loc[[1, 2, 3], 0.25].min()
+           and qm[0.25].max() < qm[0.75].min() and qm[0.5].idxmin() == 1 and qm[0.5].idxmax() == 2,
+           "fig-compare's alt text (EPUB)")
+
+# Tunja (@sec-tunja) in the clusters: where each zone falls, and what puts it there.
+tjc = clusters[clusters["divipola"] == "15001"]
+tju = tjc[tjc["zone"] == "urban"].set_index("year").sort_index()
+tjr = tjc[tjc["zone"] == "rural"].set_index("year").sort_index()
+tj_c = int(tjc["cluster"].iloc[0])
+years = list(range(A.FIRST_YEAR, A.LAST_YEAR + 1))
+text_holds(tjc["municipio"].eq("TUNJA").all() and tjc["cluster"].eq(tj_c).all()
+           and list(tju.index) == years and list(tjr.index) == years, "Tunja's zones in one cluster")
+tj_medium = int(tjr["irca_band"].astype(str).eq("Medium").sum())
+text_holds(not tjr["irca_band"].astype(str).eq("No risk").any(), "Tunja's rural IRCA never no-risk")
+risk_word = names[tj_c].rsplit(", ", 1)[1]
+text_holds(tj_medium > 0 and prof.loc[tj_c, "irca_median_band"] == "No risk"
+           and tju["irca_band"].astype(str).eq("No risk").all(), "Tunja's IRCA by zone")
+shared = [c for c in A.FEATURES if np.allclose(tju[c], tjr[c])]   # the municipality's own values
+own = [c for c in A.FEATURES if c not in shared]
+centres = res["centers"]
+
+
+def nearest(cols):
+    """The clusters whose centres are nearest Tunja's rural zone-years on these features alone."""
+    i = [A.FEATURES.index(c) for c in cols]
+    x = tjr[[f"z_{c}" for c in cols]].to_numpy()
+    d = ((x[:, None, :] - centres[:, i][None, :, :]) ** 2).sum(axis=2)
+    return set((d.argmin(axis=1) + 1).tolist())
+
+
+text_holds(nearest(own) == {rural_c} and nearest(shared) == {tj_c} != {rural_c}
+           and {"rural_share", "altitude_m"} <= set(shared), "what places Tunja's rural zone")
+text_holds(tju[["water_coverage_from_total", "sewer_coverage_from_total"]].eq(1).all().all()
+           and tjr[["water_coverage_imputed", "sewer_coverage_imputed"]].eq(1).all().all()
+           and sum(tjr[f"{c}_imputed"].eq(1).all() for c in own) == 2, "how Tunja's coverage was filled")
+tj_c_rural = 1 - prof.loc[tj_c, "urban_row_share"]
+# Before the window: the first run of high-risk years in Tunja's rural water, from the raw rows.
+raw = w.raw()
+tj_raw = raw[(raw["divipola"] == "15001") & (raw["zone"] == "rural")].set_index("year").sort_index()
+tj_first = int(tj_raw.index.min())
+tj_high = A.irca_band(tj_raw["irca"]).astype(str).eq("High")
+tj_high_to = int(tj_raw.index[tj_high.cumprod().astype(bool)].max())
+text_holds(tj_high.iloc[0] and tj_high_to < A.FIRST_YEAR, "Tunja's high-risk years before the window")
+
+# @tbl-tunja-place: the rural zone's mean z over its zone-years beside two centres, and the
+# squared distance to each, summed over its own features, the shared ones and all nine.
+tj_mean = tjr[zcols].mean().rename(lambda c: c[2:])
+cen = pd.DataFrame(centres, index=range(1, k + 1), columns=A.FEATURES)
+
+
+def sqdist(cols, c):
+    return float(((tj_mean[cols] - cen.loc[c, cols]) ** 2).sum())
+
+
+tj_d = {c: sqdist(A.FEATURES, c) for c in cen.index}
+text_holds(sqdist(own, rural_c) < sqdist(own, tj_c) and sqdist(shared, tj_c) < sqdist(shared, rural_c)
+           and min(tj_d, key=tj_d.get) == tj_c, "@tbl-tunja-place's distances")
+text_holds(sorted(tj_d, key=tj_d.get)[:2] == [tj_c, rural_c], "the other two centres being farther still")
+
+# Years with no comparable value inside each outcome's span: the gaps in its lines.
+def gaps(col):
+    ys = A.OUTCOME_YEARS[col]
+    return [y for y in range(min(ys), max(ys) + 1) if y not in ys]
+
+
+im_excl = [y for y in range(A.FIRST_YEAR, A.LAST_YEAR + 1) if y not in A.OUTCOME_YEARS["infant_mortality"]]
+```
+
+El clúster `{python} worst` es un número, y sobre un número es difícil actuar.
+"`{python} names[worst]`" es una frase que un funcionario puede repetir y sobre la que un concejo
+puede discutir, y cualquiera puede revisarla, siempre que la haya producido una regla y no el ojo de
+alguien. Los nombres son lo que más pesa en la comparación para la que se construyó el análisis: la
+mortalidad infantil, los puntajes de los exámenes y la deserción escolar, que el agrupamiento nunca
+vio, tipo por tipo. En esa comparación es donde los lectores sacan conclusiones, así que es donde más
+importa la honestidad, y tiene tres vistas, porque cada una esconde algo que las otras muestran.
+
+::: opener
+- Leer el mapa de calor de los perfiles y describir un clúster por las características que lo
+  distinguen.
+- Explicar la regla que le pone nombre a cada clúster, y revisar un nombre contra el perfil y contra
+  un miembro, Tunja.
+- Comparar las variables de resultado entre los tipos por año, en unidades de desviación estándar y
+  como distribuciones, y decir por qué cada brecha es una descripción, no un efecto.
+- Agregar el mapa de calor y las líneas de las variables de resultado a la página de los clústeres.
+
+Partes de
+: tu carpeta `water-quality` en el punto de control 07, con k-means y la página de los clústeres.
+
+Construyes
+: las reglas de las variables de resultado, los perfiles y los nombres en `scripts/analysis.py`, y el
+  mapa de calor y las líneas de las variables de resultado en `clusters.html`.
+
+Punto de control
+: `checkpoints/08-water-interpret/`
+:::
+
+## Qué distingue a cada clúster {#sec-heatmap}
+
+El *perfil* de un clúster es la media de cada característica sobre sus filas, en unidades z
+(@sec-prepare-steps): +1 significa una desviación estándar por encima del promedio de ese año en
+todas las filas conservadas (@fig-wat-heatmap). Lee a lo largo de la línea de un clúster para
+describirlo, y a lo largo de la línea de una característica para ver qué característica separa a los
+clústeres.
+
+```{python}
+#| label: fig-wat-heatmap
+#| fig-cap: "Perfiles de los clústeres en unidades z: desviaciones estándar por encima (rojo) o por debajo (azul) del promedio del año. IRCA: de prestadores. Altitud: punto SRTM derivado."
+#| fig-alt: "Mapa de calor de cuatro clústeres por nueve características, con el valor impreso en cada celda. El clúster 4 está en rojo para el IRCA y la pobreza y en azul oscuro para la cobertura de acueducto y de alcantarillado. El clúster 1 está en azul para la proporción rural y en rojo para el desempeño municipal. El clúster 3 está en azul para la altitud. El clúster 2 está en rojo para la altitud."
+#| classes: on-light
+# In the EPUB the heatmap turns on its side, features down and clusters across, so its labels
+# stay readable on a phone.
+side = is_epub()
+grid_z = prof[zcols].to_numpy().T if side else prof[zcols].to_numpy()
+flabels = [A.SHORT_LABELS[c] for c in A.FEATURES]
+clabels = [f"Cluster {c}" for c in prof.index] if not side else [str(c) for c in prof.index]
+with style():
+    fig, ax = plt.subplots(figsize=figsize(7.0, 0.55 * k + 1.6, epub=(4.6, 0.5 * grid_z.shape[0] + 1.1)))
+    im = ax.imshow(grid_z, cmap=cmap, vmin=-ZLIM, vmax=ZLIM, aspect="auto")
+    if side:
+        ax.set_yticks(range(len(zcols)), flabels)
+        ax.set_xticks(range(k), clabels)
+        ax.xaxis.tick_top()
+        ax.set_xlabel("cluster")
+        ax.xaxis.set_label_position("top")
+        cl_ticks = ax.get_xticklabels()
+    else:
+        ax.set_xticks(range(len(zcols)), flabels, rotation=30, ha="right")
+        ax.set_yticks(range(k), clabels)
+        cl_ticks = ax.get_yticklabels()
+    for t, c in zip(cl_ticks, prof.index):
+        t.set_color(colors[c]); t.set_fontweight("bold")
+    for i, row in enumerate(grid_z):
+        for j, v in enumerate(row):
+            ax.text(j, i, f"{v:+.1f}", ha="center", va="center", fontsize=11 if side else 8,
+                    color="white" if abs(v) > 0.8 else INK)
+    ax.spines[:].set_visible(False)
+    ax.tick_params(length=0)
+    cb = fig.colorbar(im, ax=ax, shrink=0.85, pad=0.02,
+                      orientation="horizontal" if side else "vertical")
+    cb.set_label("z"); cb.outline.set_visible(False)
+    fig.tight_layout()
+    plt.show()
+```
+
+El clúster de IRCA más alto, el clúster `{python} ex_c`, se destaca en tres cosas a la vez:
+`{python} ex3_text`. Cada clúster es una combinación así, que es exactamente lo que una sola variable
+no habría podido encontrar.
+
+## Ponerles nombre con una regla {#sec-names}
+
+Los nombres hacen que los clústeres se puedan usar, y también los hacen persuasivos, así que
+necesitan una regla que cualquiera pueda revisar. La función `name_rule()` del script del análisis
+arma cada nombre a partir de tres partes (el script los escribe en inglés; este libro los traduce):
+
+- **Entorno**, probado en este orden: "Rural" si menos del 40% de las filas del clúster son zonas
+  urbanas; si no, "Ciudades y pueblos grandes" si su proporción rural está 0.5 DE o más por debajo del
+  promedio, "Pueblos de tierras bajas" si su altitud está 0.5 DE o más por debajo, "Pueblos de tierras
+  altas" si está 0.5 DE o más por encima, y simplemente "Pueblos" si no se cumple nada de esto.
+- **Cobertura:** "baja cobertura" si la cobertura de acueducto media del clúster está 0.5 DE o más
+  por debajo del promedio.
+- **Riesgo:** el nivel de la Resolución 2115 de la *mediana* del IRCA de prestadores del clúster, el
+  valor del medio cuando sus zonas-año se ordenan por IRCA.
+
+```{python}
+#| label: tbl-names
+#| tbl-cap: "Los cuatro clústeres con nombre: zonas-año y municipios en cada uno, y la mediana del IRCA de prestadores. Un municipio cuenta en cada clúster que contiene una de sus zonas-año."
+#| output: asis
+print("| | Tipo | Zonas-año | Municipios | Mediana del IRCA (0–100) |")
+print("|---|---|--:|--:|--:|")
+for c, p in prof.iterrows():
+    print(f"| {c} | {p['name']} | {p['rows']:,} | {p['municipalities']:,} | {p['irca_median']:.1f} |")
+```
+
+Como la regla lee el perfil, los nombres nunca dependen del número que k-means le haya tocado darle a
+un clúster. Dos palabras de los nombres requieren cuidado. "Baja cobertura" es una posición relativa,
+no absoluta: la cobertura media del clúster rural es del `{python} f"{rural_cov:.0f}"`%, baja pero no
+cero, así que "sin servicio" sería exagerar. Y la palabra del riesgo describe la mediana del clúster,
+no cada zona-año que contiene: las zonas-año individuales pueden estar en cualquier nivel, y una
+mediana cerca del borde de un nivel puede cambiar la palabra.
+
+::: practice
+Revisa cada nombre contra el mapa de calor y la tabla de perfiles antes de usarlo, y mantén la regla
+al lado del nombre en todo lo que publiques. Un nombre es un resumen que otra persona va a citar sin
+la tabla. Los umbrales, el 40% y media desviación estándar, también son elecciones: uno distinto
+podría cambiar un nombre.
+:::
+
+::: think
+El agua rural de Tunja puntuó en el nivel de riesgo alto en sus primeros años (@sec-tunja). Antes de
+seguir leyendo, ¿en qué clúster esperas que caiga su zona rural, y qué podría ponerla en otro?
+
+El clúster rural es la apuesta obvia. Pero k-means ubica una zona-año según las
+`{python} NUM[len(A.FEATURES)]` características a la vez, y varias de ellas, como la proporción rural
+y la altitud, pertenecen al municipio, así que son iguales para las dos zonas de Tunja. Si esas
+quedan lejos del centro del clúster rural, pueden pesar más que el agua.
+:::
+
+## Dónde cae Tunja {#sec-tunja-kind}
+
+El clúster que contiene las `{python} len(tjc)` zonas-año de Tunja, urbanas y rurales, ahora tiene
+nombre: el `{python} cname(tj_c)`, "`{python} names[tj_c]`". Para la zona urbana, encaja. Para la
+zona rural, la etiqueta esconde casi todo lo que encontró la @sec-tunja. Su agua puntuó en el nivel
+de riesgo alto todos los años de `{python} tj_first` a `{python} tj_high_to`, antes de que se abra la
+ventana del análisis en `{python} A.FIRST_YEAR`, y dentro de la ventana su IRCA de prestadores nunca
+está en el nivel sin riesgo, y está en el nivel medio en `{python} NUM[tj_medium]` de los
+`{python} NUM[len(tjr)]` años.
+
+Hay dos cosas en juego. La palabra del riesgo describe la mediana del clúster, no a cada miembro, como
+advirtió la @sec-names. Y k-means pone cada zona-año en el clúster cuyo centro está más cerca sobre
+las `{python} NUM[len(A.FEATURES)]` características a la vez (@sec-kmeans-steps), sumando las
+diferencias al cuadrado característica por característica. La @tbl-tunja-place divide esa suma en
+dos. En sus `{python} NUM[len(own)]` características propias,
+`{python} listing(WORDS[c] for c in own)`, la zona rural de Tunja queda más cerca del centro del
+`{python} cname(rural_c)`, y dos de ellas, las coberturas, son rellenos (@sec-prepare-counts). Las
+otras `{python} NUM[len(shared)]`, `{python} listing(WORDS[c] for c in shared)`, son del municipio,
+iguales para las dos zonas. En esas queda mucho más cerca del centro del clúster `{python} tj_c`, lo
+bastante como para pesar más que las primeras `{python} NUM[len(own)]`. Los otros dos centros están
+todavía más lejos.
+
+```{python}
+#| label: tbl-tunja-place
+#| tbl-cap: "Dónde queda la zona rural de Tunja: su puntaje z medio sobre sus zonas-año al lado de dos centros de clúster, y su distancia al cuadrado a cada uno. Llenada: imputada en todos los años."
+#| output: asis
+def zfmt(v):
+    return f"{v:+.1f}".replace("-", "−")
+
+
+def fname(c):
+    label = WORDS[c][0].upper() + WORDS[c][1:]
+    return label + (" (llenada)" if tjr[f"{c}_imputed"].eq(1).all() else "")
+
+
+rows = [f"| Característica | Tunja, rural | Centro {tj_c} | Centro {rural_c} |", "|---|--:|--:|--:|"]
+for title, cols in ((f"sus {NUM[len(own)]} propias", own), (f"las {NUM[len(shared)]} compartidas", shared)):
+    rows += [f"| {fname(c)} | {zfmt(tj_mean[c])} | {zfmt(cen.loc[tj_c, c])} | {zfmt(cen.loc[rural_c, c])} |"
+             for c in cols]
+    rows.append(f"| *Distancia al cuadrado, {title}* | | *{sqdist(cols, tj_c):.1f}* | *{sqdist(cols, rural_c):.1f}* |")
+rows.append(f"| **Distancia al cuadrado, las {NUM[len(A.FEATURES)]}** | | **{tj_d[tj_c]:.1f}** | **{tj_d[rural_c]:.1f}** |")
+print("\n".join(rows))
+```
+
+No está sola: el `{python} f"{tj_c_rural:.0%}"` de las zonas-año de ese clúster son zonas rurales. Una
+etiqueta describe un tipo; para decir algo sobre un miembro, vuelve a sus filas.
+
+## Las variables de resultado por clúster {#sec-outcomes}
+
+Ahora, las variables de resultado, que el agrupamiento nunca usó (@fig-wat-outcomes). Cada línea es
+la mediana de un clúster dentro de cada año, así que un desplazamiento que mueve todos los tipos en un
+año no puede pasar por una diferencia entre tipos. La mortalidad infantil se compara solo en
+`{python} IM_YEARS`: su método cambia en 2017, y 2020 parece venir de otra fuente (el README de los
+datos, advertencia 8).
+
+```{python}
+#| label: fig-wat-outcomes
+#| fig-cap: "Mediana de cada variable de resultado por clúster y año: la mortalidad infantil solo en 2017–2019 y 2021–2023, Saber 11 en sus años publicados. Solo descriptivo: no son efectos causales de la calidad del agua."
+#| fig-alt: "Tres gráficos de líneas pequeños por año, una línea por clúster. El clúster 1, ciudades y pueblos grandes, tiene la mortalidad infantil más baja y los puntajes de Saber 11 más altos. El clúster 2, pueblos de tierras altas, tiene la mortalidad infantil más alta. Los clústeres 3 y 4, pueblos de tierras bajas y rural, tienen los puntajes de Saber 11 más bajos. Las medianas de la deserción se mantienen en unos pocos puntos porcentuales y bajan en 2020 en todos los clústeres."
+#| classes: on-light
+out = res["outcomes_by_year"]
+short = {"infant_mortality": "Mortalidad infantil\npor 1,000 nacidos vivos", "saber11_mean": "Saber 11\npuntaje medio",
+         "dropout_rate": "Deserción escolar\n(%)"}
+nr, nc = grid(len(ocols))
+small = not is_epub()                          # the HTML edition's three panels in a row
+with style():
+    fig, axes = plt.subplots(nr, nc, figsize=figsize(7.2, 3.0, rows=nr, epub=(4.6, 2.45 * nr)), squeeze=False)
+    for ax, col in zip(axes.flat, ocols):
+        o = out[out["outcome"] == col]
+        for c, g in o.groupby("cluster"):
+            yrs = A.OUTCOME_YEARS[col]
+            g = g.set_index("year").reindex(range(min(yrs), max(yrs) + 1))
+            ax.plot(g.index, g["median"], marker=A.CLUSTER_MARKERS[c - 1], ms=4 if small else 5,
+                    lw=1.6, color=colors[c], label=f"{c} · {kind[c]}")
+        ax.set_title(short[col] if small else short[col].replace("\n", " "), fontsize=9 if small else 11,
+                     loc="left")
+        ax.set_xticks([2017, 2020, 2023])
+        ax.tick_params(labelsize=8 if small else 10)
+    handles = axes.flat[0].get_legend_handles_labels()
+    if small:
+        fig.legend(*handles, loc="lower center", ncol=2, fontsize=8, bbox_to_anchor=(0.5, -0.12))
+        fig.tight_layout(w_pad=1.2)
+    else:
+        fig.tight_layout(h_pad=1.0)
+        fig.legend(*handles, loc="upper center", ncol=2, fontsize=10, bbox_to_anchor=(0.5, 0.0))
+    plt.show()
+```
+
+Los huecos en las líneas son años sin un valor comparable, dibujados como huecos y no unidos. La
+mortalidad infantil y la deserción se miden para todo el municipio pero se repiten en las filas de
+las dos zonas, así que se cuentan una vez por municipio en cada clúster y año: para estas dos, la
+unidad es el *municipio-año*, un municipio en un año, mientras que las características y Saber 11
+siguen siendo por zona-año.
+
+La @fig-wat-outcome-heatmap pone las variables de resultado en la escala de las características:
+cada variable de resultado estandarizada dentro de su año, y cada celda es el z medio del clúster, con
+la media en sí entre paréntesis.
+
+```{python}
+#| label: fig-wat-outcome-heatmap
+#| fig-cap: "Media de cada variable de resultado por clúster en unidades z, con la media entre paréntesis. El rojo está por encima del promedio: mejor para Saber 11, peor para las otras dos. Solo descriptivo."
+#| fig-alt: "Mapa de calor de los cuatro clústeres con nombre por tres variables de resultado: la mortalidad infantil, Saber 11 y la deserción escolar. Cada celda imprime la media de la variable de resultado del clúster en unidades z y, entre paréntesis, la media en sí. Todas las celdas son pálidas comparadas con el mapa de calor de las características."
+#| classes: on-light
+ohead = {"infant_mortality": "Mortalidad infantil\npor 1,000 (menos es mejor)",
+         "saber11_mean": "Puntaje Saber 11\n(más es mejor)", "dropout_rate": "Deserción %\n(menos es mejor)"}
+ofmt = {"infant_mortality": "{:.1f}", "saber11_mean": "{:.0f}", "dropout_rate": "{:.1f}%"}
+# In the EPUB, as for the features, outcomes run down and clusters across.
+side = is_epub()
+grid_o = oz.to_numpy().T if side else oz.to_numpy()
+with style():
+    fig, ax = plt.subplots(figsize=figsize(7.0, 0.6 * k + 1.4, epub=(4.6, 0.7 * grid_o.shape[0] + 1.5)))
+    im = ax.imshow(grid_o, cmap=cmap, vmin=-ZLIM, vmax=ZLIM, aspect="auto")
+    ax.xaxis.tick_top()
+    ax.xaxis.set_label_position("top")
+    if side:
+        ax.set_yticks(range(len(ocols)), [ohead[c].replace(" (", "\n(") for c in ocols], fontsize=10)
+        ax.set_xticks(range(k), [str(c) for c in prof.index], fontsize=11)
+        ax.set_xlabel("cluster")
+        cl_ticks = ax.get_xticklabels()
+    else:
+        ax.set_xticks(range(len(ocols)), [ohead[c] for c in ocols], fontsize=8)
+        ax.set_yticks(range(k), [tick[c] for c in prof.index], fontsize=8)
+        cl_ticks = ax.get_yticklabels()
+    for t, c in zip(cl_ticks, prof.index):
+        t.set_color(colors[c]); t.set_fontweight("bold")
+    for i, c in enumerate(prof.index):
+        for j, col in enumerate(ocols):
+            m = ofmt[col].format(prof.loc[c, f"{col}_mean"])
+            x, y = (i, j) if side else (j, i)
+            ax.text(x, y, f"{oz.loc[c, col]:+.2f}" + ("\n" if side else "  ") + f"({m})", ha="center",
+                    va="center", fontsize=11 if side else 8, color=INK)
+    ax.spines[:].set_visible(False)
+    ax.tick_params(length=0)
+    cb = fig.colorbar(im, ax=ax, shrink=0.85, pad=0.04 if side else 0.02,
+                      orientation="horizontal" if side else "vertical")
+    cb.set_label("z"); cb.outline.set_visible(False)
+    fig.tight_layout()
+    plt.show()
+```
+
+Lo pálido es el hallazgo. La media de ninguna variable de resultado de ningún clúster está a más de
+`{python} f"{oz_max:.2f}"` desviaciones estándar del promedio, frente a `{python} f"{fz_max:.2f}"` en
+las características que los formaron: los tipos difieren menos en las variables de resultado que en
+lo que los define. En parte, esto es por diseño: k-means eligió los clústeres para separar las
+características, así que deberían diferir más en esas que en cualquier otra cosa. Dentro de eso: la
+mortalidad infantil registrada más baja está en el
+`{python} cname(omean["infant_mortality_mean"].idxmin())` y la más alta en el
+`{python} cname(omean["infant_mortality_mean"].idxmax())`; los mejores puntajes de Saber 11 están en
+el `{python} cname(omean["saber11_mean_mean"].idxmax())`; y la deserción más baja, en el
+`{python} cname(omean["dropout_rate_mean"].idxmin())`.
+
+::: think
+Supón que el agua insegura sí dañara mucho la salud de los bebés. ¿Seguirías esperando que el mapa de
+calor de las variables de resultado fuera más pálido que el de las características?
+
+Sí. k-means eligió los clústeres para separar las características, así que difieren más en esas por
+construcción. Las variables de resultado difieren solo en la medida en que van de la mano con las
+características, y las tasas ruidosas de los lugares pequeños las desdibujan todavía más. Lo pálido,
+por sí solo, no es evidencia de que el agua no importe.
+:::
+
+La mortalidad infantil registrada más alta no está en el clúster con la peor agua, el
+`{python} cname(worst)`. Es un buen momento para ir más despacio en lugar de buscarle una explicación
+fácil, porque dos cosas de los datos empujan en la misma dirección. La primera son los números
+pequeños. Las tasas del `{python} cname(im_max)` vienen de los lugares más pequeños de todos los
+tipos, una mediana de `{python} w.fmt(int(pop_med[im_max]))` personas por municipio-año, donde un
+puñado de muertes mueve mucho una tasa.
+
+La segunda es lo que falta. Desde 2017, la serie parece de tasas observadas y no de estimaciones
+modeladas, así que un municipio donde no murió ningún bebé ese año debería mostrar una tasa de 0, y
+sin embargo no aparece ningún cero: un vacío puede ser un cero registrado. El
+`{python} f"{blank_c[im_max]:.0%}"` de los municipios-año de este tipo está vacío, frente al
+`{python} f"{blank_all:.0%}"` de todos los municipios-año agrupados. Dejar fuera los vacíos descarta
+lo que pueden ser ceros, lo que sube sobre todo los promedios de los lugares pequeños. Eso es
+*selección según la variable de resultado*: que una fila se conserve depende del valor que se está
+midiendo, así que las filas conservadas no son típicas. Puede explicar parte del lugar de este tipo en
+lo más alto. Los números pequeños, el registro y muchas otras diferencias entre los tipos están todos
+entre el agua de un clúster y sus variables de resultado, y el @sec-causation se ocupa de eso
+directamente.
+
+## Cada variable, clúster por clúster {#sec-compare}
+
+Las medias y las medianas esconden la superposición. Los diagramas de caja la muestran: cómo se
+dispersa cada variable dentro de cada clúster (@fig-compare). Cada caja contiene la mitad central de
+los valores de un clúster, con una línea continua en la mediana y una línea discontinua en la media,
+y sus bigotes van del percentil 5 al 95, así que abarcan el 90% central de los valores. Las
+características cubren cada zona-año de `{python} A.FIRST_YEAR`–`{python} A.LAST_YEAR`; las variables
+de resultado cuentan en sus años, las municipales una vez por municipio.
+
+```{python}
+#| label: compare-images
+# One box plot per feature and outcome (as the deck draws them, in the book's light style).
+vars_ = {**{c: A.FEATURE_LABELS[c] for c in A.FEATURES}, **A.OUTCOMES}
+ids = list(prof.index)
+
+
+def box_values(col):
+    r = clusters
+    if col in A.OUTCOMES:
+        r = r[r["year"].isin(A.OUTCOME_YEARS[col])]
+        r = A.once_per_municipality(r.dropna(subset=[col]), col)
+    return [r.loc[r["cluster"] == c, col].dropna().to_numpy() for c in ids]
+
+
+def box(ax, col, label, fontsize=8):
+    vals = box_values(col)
+    bp = ax.boxplot(vals, whis=(5, 95), showfliers=False, showmeans=True, meanline=True,
+                    patch_artist=True, widths=0.5, medianprops=dict(color=INK, linewidth=2),
+                    meanprops=dict(color=INK, linestyle="--", linewidth=1.4))
+    for j, c in enumerate(ids):
+        bp["boxes"][j].set(facecolor=colors[c] + "55", edgecolor=colors[c], linewidth=1.6)
+        for part in ("whiskers", "caps"):
+            for line in bp[part][2 * j:2 * j + 2]:
+                line.set(color=colors[c], linewidth=1.6)
+    ax.set_xticks(range(1, len(ids) + 1), [str(c) for c in ids], fontsize=fontsize)
+    ax.set_title("\n".join(textwrap.wrap(label, 28)), fontsize=fontsize, loc="left")
+    ax.yaxis.grid(True, color="#e3e7eb")
+    ax.set_axisbelow(True)
+    return vals
+
+
+panels = []
+for i, (col, lab) in enumerate(vars_.items()):
+    with style():
+        fig, ax = plt.subplots(figsize=(6.0, 3.0))
+        vals = box(ax, col, lab, fontsize=10)
+        ax.set_xlabel("cluster")
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        plt.close(fig)
+    alt = (f"Diagramas de caja de {lab}, uno por clúster. Medianas: "
+           + "; ".join(f"clúster {c} ({names[c]}) {np.median(v):.1f}" if len(v) else f"clúster {c} sin datos"
+                       for c, v in zip(ids, vals)) + ".")
+    panels.append((i, lab, alt, base64.b64encode(buf.getvalue()).decode()))
+```
+
+::: {.content-visible when-format="html:js"}
+::: {#fig-compare}
+```{python}
+#| output: asis
+opts = "".join(f'<option value="{i}">{html.escape(lab)}</option>' for i, lab, _, _ in panels)
+imgs = "".join(f'<img data-i="{i}" alt="{html.escape(alt)}" src="data:image/png;base64,{src}"'
+               + (' style="display:none"' if i else "") + ">" for i, _, alt, src in panels)
+print("```{=html}")
+print('<div class="wat-compare on-light"><select aria-label="Variable" onchange="for (const im of '
+      "this.parentNode.querySelectorAll('img')) im.style.display = im.dataset.i === this.value ? '' : 'none'\">"
+      + opts + "</select>" + imgs + "</div>")
+print("```")
+```
+
+Cada característica y variable de resultado, clúster por clúster: elige una variable. Las cajas contienen la mitad central de los valores de cada clúster; los bigotes, el 90% central.
+:::
+:::
+
+::: {.content-visible when-format="epub"}
+```{python}
+#| label: fig-compare
+#| fig-cap: "Tres variables, clúster por clúster: el IRCA de prestadores, la cobertura de acueducto y la mortalidad infantil. La edición web tiene un menú con las doce variables."
+#| fig-alt: "Tres paneles de diagramas de caja, con una caja por clúster en cada uno. IRCA: la mediana del clúster 4 está por encima de la caja de todos los demás clústeres, y las otras medianas suben del clúster 1 al clúster 3. Cobertura de acueducto: la caja del clúster 4 está mucho más abajo, las demás arriba. Mortalidad infantil: las cuatro cajas se superponen mucho, con la del clúster 1 la más baja y la del clúster 2 la más alta."
+#| classes: on-light
+text_holds(len(vars_) == 12, "fig-compare's caption (all twelve variables)")
+nr, nc = grid(3)
+with style():
+    fig, axes = plt.subplots(nr, nc, figsize=figsize(7.2, 2.9, rows=nr, epub=(4.6, 2.45 * nr)), squeeze=False)
+    for ax, col in zip(axes.flat, ["irca", "water_coverage", "infant_mortality"]):
+        box(ax, col, vars_[col], fontsize=8 if nr == 1 else 10)
+    if nr > 1:
+        axes.flat[-1].set_xlabel("cluster")
+    fig.tight_layout()
+    plt.show()
+```
+:::
+
+Las cajas hacen visible la superposición. Los clústeres difieren mucho en las características que
+los construyeron y se superponen en las variables de resultado, y una brecha entre las cajas de dos
+clústeres es una descripción de los datos, no un efecto de la calidad del agua.
+
+Así que la segunda pregunta de la Parte III tiene una respuesta, y es descriptiva: la mortalidad
+infantil, los puntajes de los exámenes y la deserción sí difieren entre los tipos de lugar,
+`{python} OUT_WORDS[widest]` más que nada, pero en no más de `{python} f"{oz_max:.2f}"` desviaciones
+estándar en la media de ningún clúster, y en cada variable de resultado el 90% central de los valores
+de cada tipo se superpone con el de todos los demás.
+
+## Construir la interpretación {#sec-interpret-do}
+
+La ruta normal copia las reglas de las variables de resultado y los nombres terminados, como en la
+@sec-routes:
+
+::: {.prompt}
+```default
+Copia ../quarto-workshop/checkpoints/08-water-interpret/scripts/analysis.py sobre scripts/analysis.py (guarda el mío como scripts/analysis-before-08.py), ejecútalo con `uv run python scripts/analysis.py` y muéstrame los nombres de los clústeres.
+```
+:::
+
+::: {.agent}
+copia · ejecuta · escribe `outputs/outcomes_by_year.csv` y `outputs/cluster_profiles.csv`
+:::
+
+Debería mostrar `{python} WORD[k]` nombres, en inglés, los de la @tbl-names.
+
+Para construirlos (opcional), dos prompts: las reglas de las variables de resultado, y luego los
+perfiles y los nombres.
+
+::: {.prompt}
+```default
+En scripts/analysis.py, agrega reglas para las variables de resultado: infant_mortality solo en 2017–2019 y 2021–2023; infant_mortality y dropout_rate son municipales, así que cuenta cada municipio una vez por `cluster` y `year`; saber11_mean sigue siendo por zona-año. Guarda outputs/outcomes_by_year.csv (median, n). Ejecútalo.
+```
+:::
+
+::: {.prompt}
+```default
+Escribe outputs/cluster_profiles.csv: filas, municipios, características medias originales y z, medianas de las variables de resultado y n con las mismas reglas. Ponle nombre en inglés a cada clúster con una regla: entorno, cobertura relativa ("low-coverage" si la media de z_water_coverage ≤ −0.5), nivel de la mediana del IRCA. Muéstrame los nombres.
+```
+:::
+
+Sea cual sea la ruta que tomaste, `outputs/outcomes_by_year.csv` no debería tener filas de
+mortalidad infantil para `{python} spans(im_excl).replace(' y ', ' o ')`: las reglas conservan solo
+los años cuyo método coincide.
+
+Las dos rutas agregan luego la interpretación a la página de los clústeres:
+
+::: {.prompt}
+```default
+Agrega a clusters.qmd un mapa de calor de los puntajes z medios de los clústeres (características × clústeres, de azul a rojo) y un gráfico de líneas por variable de resultado a partir de outputs/outcomes_by_year.csv, con huecos, no líneas unidas, en los años faltantes. Usa los nombres y los colores de los clústeres. Renderízalo.
+```
+:::
+
+::: {.you}
+recargas `clusters.html` en tu navegador
+:::
+
+La página debería mostrar el mapa de calor, `{python} WORD[k]` clústeres por
+`{python} WORD[len(A.FEATURES)]` características, y un gráfico por variable de resultado, con las
+líneas de la mortalidad infantil cortadas en `{python} spans(gaps("infant_mortality"))` y las de
+Saber 11 en sus años sin publicar, como `{python} spans(gaps("saber11_mean"))`.
+
+::: think
+Mientras se renderiza: describe un clúster con dos características que no sean las dos de cobertura,
+y luego revisa si su nombre dice lo mismo.
+
+Una buena respuesta, a partir de la @fig-wat-heatmap: el clúster `{python} ex_c`,
+"`{python} names[ex_c]`", se destaca en `{python} ex2_text`. Su nombre lleva la cobertura pero no la
+pobreza, una razón más para publicar el perfil al lado del nombre.
+:::
+
+::: tryit
+Toma una de las rutas para las reglas de las variables de resultado y los nombres, y luego amplía la
+página de los clústeres.
+
+::: done
+el asistente muestra un nombre para cada clúster, y `clusters.html` muestra el mapa de calor y las
+variables de resultado por clúster y año.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
+```
+:::
+:::
+
+## Exploraciones en 3-D (opcional) {#sec-explorations}
+
+La presentación del taller de la que salió este libro tiene cinco vistas 3-D más de las variables de
+resultado que el agrupamiento nunca usó, por clúster y año: la deserción como terreno, los clústeres
+como envolventes, los años apilados, los clústeres como órbitas y la deserción en columnas de
+Voronoi. Son imágenes exploratorias más que evidencia, y corren en vivo en las diapositivas
+publicadas, en inglés, empezando por
+[la deserción como terreno](https://project-delphi.github.io/quarto-workshop/#/water-meta-terrain).
+
+::: {.content-visible when-format="epub"}
+::: {.live-link}
+Ábrelas [en las diapositivas publicadas](https://project-delphi.github.io/quarto-workshop/#/water-meta-terrain).
+:::
+:::
+
+## Resumen {.unnumbered}
+
+::: keyideas
+- El perfil de un clúster, su puntaje z medio en cada característica, lo describe como una
+  combinación de rasgos que ninguna variable sola habría podido encontrar.
+- Una regla escrita le pone nombre a cada clúster a partir de su perfil (entorno, cobertura relativa,
+  nivel de la mediana del IRCA), así que cualquiera puede revisar el nombre.
+- "Baja cobertura" es relativa y la palabra del riesgo describe una mediana: la zona rural de Tunja,
+  nunca sin riesgo dentro de la ventana, queda en un clúster que se llama "`{python} risk_word`",
+  llevada ahí por lo que comparte con su zona urbana.
+- Las variables de resultado, que nunca se usaron para formar los clústeres, difieren entre los tipos
+  menos que las características, en parte por diseño, y sus distribuciones se superponen.
+- La mortalidad infantil registrada más alta no está donde el agua es peor, y los lugares pequeños y
+  las tasas vacías hacen frágil ese orden.
+- Todo esto es descripción: una brecha entre tipos no es un efecto de la calidad del agua.
+:::
+
+Aun así, una descripción como esta invita a una lectura causal. El @sec-causation pone a prueba el
+vínculo dentro de cada tipo de lugar, donde la pobreza, lo rural y la cobertura se parecen más que en
+todo el país.
+
+## Lecturas adicionales {.unnumbered}
+
+- `examples/water/scripts/analysis.py`, `name_rule()`, `profiles()` y `outcomes_by_year()`, en el
+  repositorio.
+- `examples/water/data/README.md`, advertencia 8, sobre por qué la mortalidad infantil se compara
+  solo en `{python} IM_YEARS`.
+- matplotlib, [boxplot](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.boxplot.html): lo
+  que muestran las cajas, los bigotes y las medias (consultado el 2026-11-12).

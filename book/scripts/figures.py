@@ -102,6 +102,7 @@ TERMS_ES = {
     "random start": "inicio al azar", "first assignment": "primera asignación",
     "halfway": "a mitad de camino", "stable": "estable",
     "Inertia (thousands)": "Inercia (miles)", "Silhouette": "Silueta",
+    "cluster": "clúster",
 }
 PATTERNS_ES: list[tuple[str, str]] = [
     (r"^Cluster (\d+)$", r"Clúster \1"),
@@ -134,27 +135,36 @@ def translate_figures() -> None:
         for ax in fig.axes:
             for axis in (ax.xaxis, ax.yaxis):
                 fmt = axis.get_major_formatter()
-                # Only word labels: numeric formatters need their own set_locs, so stay as they are.
-                if isinstance(fmt, (StrCategoryFormatter, FixedFormatter)):
+                # Only formatters that can give words (set_ticks with labels makes a FuncFormatter);
+                # numeric ones such as ScalarFormatter need their own set_locs, so stay as they are.
+                if (isinstance(fmt, (StrCategoryFormatter, FixedFormatter, FuncFormatter))
+                        and not getattr(fmt, "translated", False)):
                     wrapped = FuncFormatter(lambda x, pos, f=fmt: _translate(f(x, pos)))
+                    wrapped.translated = True
                     axis.set_major_formatter(wrapped)
 
 
 @contextmanager
 def style():
+    from matplotlib.figure import Figure
+
     from scripts.prose import language
 
     spanish = language() == "es"
-    show = plt.show
+    show, savefig = plt.show, Figure.savefig
     if spanish:
         def translated_show(*args, **kwargs):
             translate_figures()
             return show(*args, **kwargs)
-        plt.show = translated_show
+
+        def translated_savefig(self, *args, **kwargs):
+            translate_figures()
+            return savefig(self, *args, **kwargs)
+        plt.show, Figure.savefig = translated_show, translated_savefig
     try:
         with plt.rc_context(RC):
             yield
     finally:
         if spanish:
             translate_figures()
-            plt.show = show
+            plt.show, Figure.savefig = show, savefig

@@ -91,11 +91,25 @@ def tokens(code: str):
             if tok.type in (tokenize.NL, tokenize.NEWLINE, tokenize.INDENT, tokenize.DEDENT,
                             tokenize.ENDMARKER):
                 continue
-            kind = "str" if tok.type == tokenize.STRING or tok.type == getattr(tokenize, "FSTRING_MIDDLE", -1) else "tok"
+            if tok.type == getattr(tokenize, "FSTRING_MIDDLE", -1):
+                # An f-string's text may gain or lose a segment in translation ("its own {n}" ->
+                # "sus {n} propias"); its expressions and delimiters still have to match.
+                out.append(("fstr", tok.string))
+                continue
+            kind = "str" if tok.type == tokenize.STRING else "tok"
             out.append((kind, tok.string))
     except (tokenize.TokenError, IndentationError, SyntaxError) as e:
         out.append(("error", str(e)))
     return out
+
+
+QUOTED = re.compile(r"'[^']*'|\"[^\"]*\"")
+
+
+def mask(expr: str) -> str:
+    """An inline expression with its string literals blanked: they may be translated
+    (`.replace(' and ', ' or ')` -> `.replace(' y ', ' o ')`), the rest may not."""
+    return QUOTED.sub('""', expr) if "replace(" in expr or "join(" in expr else expr
 
 
 def norm_url(u: str) -> str:
@@ -151,13 +165,17 @@ def compare(rel: str, strings: list) -> tuple[list[str], list[str]]:
             if [option_key(l) for l in oa] != [option_key(l) for l in ob]:
                 errors.append(f"cell {n}: option keys differ")
             ta, tb = tokens(ca), tokens(cb)
-            if len(ta) != len(tb) or any(x[0] != y[0] or (x[0] != "str" and x[1] != y[1])
-                                         for x, y in zip(ta, tb)):
-                diff = next(((x, y) for x, y in zip(ta, tb) if x != y and (x[0] != "str" or y[0] != "str")),
-                            (ta[len(tb):len(tb) + 1], tb[len(ta):len(ta) + 1]))
+            sa, sb = [x for x in ta if x[0] != "fstr"], [x for x in tb if x[0] != "fstr"]
+            if len(sa) != len(sb) or any(x[0] != y[0] or (x[0] != "str" and x[1] != y[1])
+                                         for x, y in zip(sa, sb)):
+                diff = next(((x, y) for x, y in zip(sa, sb) if x != y and (x[0] != "str" or y[0] != "str")),
+                            (sa[len(sb):len(sb) + 1], sb[len(sa):len(sa) + 1]))
                 errors.append(f"cell {n}: code differs beyond string literals, first at {diff}")
             else:
-                strings += [(rel, n, x[1], y[1]) for x, y in zip(ta, tb) if x[1] != y[1]]
+                strings += [(rel, n, x[1], y[1]) for x, y in zip(sa, sb) if x[1] != y[1]]
+                fa, fb = [x[1] for x in ta if x[0] == "fstr"], [x[1] for x in tb if x[0] == "fstr"]
+                if fa != fb:
+                    strings.append((rel, n, " · ".join(fa), " · ".join(fb)))
         elif b[3]:  # a prompt: translated, its literals kept
             lits = set(INLINE.findall(a[2])) | set(LITERAL_PATH.findall(a[2]))
             missing = sorted(l for l in lits if l not in b[2])
@@ -182,8 +200,8 @@ def compare(rel: str, strings: list) -> tuple[list[str], list[str]]:
         "URLs": ({norm_url(u) for u in URL.findall(en)}, {norm_url(u) for u in URL.findall(es)}),
         "image paths": (set(IMAGE.findall(joined_e)), set(IMAGE.findall(joined_s))),
         "shortcodes": (set(SHORTCODE.findall(joined_e)), set(SHORTCODE.findall(joined_s))),
-        "inline {python}": (Counter(c for c in INLINE.findall(joined_e) if c.startswith("{python}")),
-                            Counter(c for c in INLINE.findall(joined_s) if c.startswith("{python}"))),
+        "inline {python}": (Counter(mask(c) for c in INLINE.findall(joined_e) if c.startswith("{python}")),
+                            Counter(mask(c) for c in INLINE.findall(joined_s) if c.startswith("{python}"))),
     }
     accepted = EXCEPTIONS.get(rel, {})
     for what, (a, b) in checks.items():
