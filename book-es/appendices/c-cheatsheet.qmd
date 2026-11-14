@@ -1,0 +1,129 @@
+# Hoja de referencia {#sec-cheatsheet}
+
+Una referencia de una página para los patrones que usa este libro, con el capítulo que explica cada
+uno.
+
+## Encabezado YAML {.unnumbered}
+
+Una sola fuente, varios formatos (@sec-compute):
+
+```yaml
+---
+title: "Project Report"
+author: "Author Name"
+date: today
+format:
+  html:
+    toc: true
+    format-links:
+      - docx
+      - {format: typst, text: PDF}
+  docx: default
+  typst:
+    papersize: a4
+  pptx: default
+  revealjs:
+    output-file: report-slides.html
+  epub:
+    toc: true
+lang: en
+---
+```
+
+## Celdas de código y código en línea {.unnumbered}
+
+Las opciones van al principio de una celda, como comentarios `#|` (@sec-cell-options):
+
+- `#| label: fig-name` numera la figura y permite que el texto la mencione como `@fig-name`.
+- `#| echo: false` oculta el código y muestra la salida.
+- `#| eval: false` muestra el código sin ejecutarlo.
+- `#| fig-cap: "…"` es el pie debajo de una figura.
+- `#| fig-alt: "…"` es el texto alternativo que anuncian los lectores de pantalla.
+- `#| tbl-cap: "…"` es el pie de una tabla.
+- `#| output: asis` trata el texto impreso como Markdown.
+
+El código en línea pone un valor calculado en una oración (@sec-code-cells):
+
+```markdown
+The dataset contains `{{python}} len(df)` rows across `{{python}} df['year'].nunique()` years.
+```
+
+## Dashboards {.unnumbered}
+
+Un título de nivel 1 empieza una página, uno de nivel 2 una fila, y la salida de cada celda se
+convierte en una tarjeta (@sec-content-once):
+
+````markdown
+---
+title: "Operations dashboard"
+format: dashboard
+---
+
+# Overview
+
+## Row {height=30%}
+
+::: {.valuebox icon="trophy" color="primary"}
+Most visited
+`{{python}} top_name`
+:::
+
+## Row
+
+```{{python}}
+#| title: Visits by attraction
+fig = px.bar(attractions, x="visits_2025", y="attraction")
+fig
+```
+````
+
+Asigna las figuras de Plotly y termina la celda con `fig`; nunca llames a `fig.show()` en un dashboard.
+
+## Sitios web {.unnumbered}
+
+`_quarto.yml` convierte una carpeta en un sitio web (@sec-london-website, @sec-water-website):
+
+```yaml
+project:
+  type: website
+  execute-dir: project
+  pre-render: scripts/analysis.py
+  render:
+    - index.qmd
+    - report.qmd
+website:
+  title: "My project"
+  navbar:
+    left:
+      - {text: Report, href: report.qmd}
+      - text: Downloads
+        menu:
+          - {text: "Report (PDF)", href: report.pdf}
+execute:
+  freeze: false
+```
+
+## Comandos {.unnumbered}
+
+| Comando | Hace |
+|---|---|
+| `uv init --bare` | inicia un proyecto de uv en esta carpeta |
+| `uv add pandas matplotlib` | agrega paquetes a `pyproject.toml` y a `uv.lock`, y los instala |
+| `uv run quarto preview file.qmd` | renderiza y sirve una página, y la vuelve a renderizar cada vez que se guarda |
+| `uv run quarto render file.qmd` | renderiza un archivo en todos sus formatos; `--to docx` para un solo formato |
+| `uv run quarto render` | renderiza todo el proyecto |
+| `uv run quarto publish gh-pages` | la primera publicación en GitHub Pages, interactiva |
+| `uv run quarto publish gh-pages --no-prompt` | las actualizaciones siguientes, una vez que existe la rama `gh-pages` |
+| `uv run quarto check jupyter` | muestra qué Python y qué Jupyter va a usar Quarto |
+
+: Los comandos que usa este libro. {#tbl-cheat-commands}
+
+## Prompts {.unnumbered}
+
+Un prompt confiable (@sec-prompting):
+
+1. **Nombra las entradas y las salidas**: nombres de archivo y de columna, entre comillas invertidas.
+2. **Hace una sola tarea.**
+3. **Termina con una comprobación**: "renderízalo y dime qué archivo escribió", "comprueba que el PDF
+   tenga una página".
+4. **Respeta los datos**: "calcula cada número a partir de los archivos citados; nunca inventes uno".
