@@ -99,9 +99,13 @@ TERMS_ES = {
     "Infant mortality (per 1,000 live births)": "Mortalidad infantil (por 1,000 nacidos vivos)",
     "raw units": "unidades originales", "z-scores": "puntajes z",
     "Share of squared distance (%)": "Proporción de la distancia al cuadrado (%)",
+    "random start": "inicio al azar", "first assignment": "primera asignación",
+    "halfway": "a mitad de camino", "stable": "estable",
+    "Inertia (thousands)": "Inercia (miles)", "Silhouette": "Silueta",
 }
 PATTERNS_ES: list[tuple[str, str]] = [
     (r"^Cluster (\d+)$", r"Clúster \1"),
+    (r"^PC(\d) \((\d+%) of variance\)$", r"PC\1 (\2 de la varianza)"),
 ]
 
 

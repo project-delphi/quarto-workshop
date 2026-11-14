@@ -56,7 +56,12 @@ def lint(path: Path) -> list[str]:
     for pattern in STRIP:
         text = pattern.sub(lambda m: "\n" * m.group(0).count("\n"), text)
     hits = []
+    references = False  # reading lists quote English titles
     for n, line in enumerate(text.split("\n"), 1):
+        if line.startswith("#"):
+            references = line.startswith("## Lecturas adicionales")
+        if references:
+            continue
         for pattern, instead in RULES:
             for m in re.finditer(rf"(?<![\w-])(?:{pattern})(?![\w-])", line, re.I):
                 hits.append(f"{path.relative_to(ROOT)}:{n}: {m.group(0)!r} -> {instead}")
