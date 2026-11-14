@@ -177,7 +177,7 @@ def compare(rel: str, strings: list) -> tuple[list[str], list[str]]:
                 if fa != fb:
                     strings.append((rel, n, " · ".join(fa), " · ".join(fb)))
         elif b[3]:  # a prompt: translated, its literals kept
-            lits = set(INLINE.findall(a[2])) | set(LITERAL_PATH.findall(a[2]))
+            lits = (set(INLINE.findall(a[2])) | set(LITERAL_PATH.findall(a[2]))) - {"e.g", "i.e", "etc"}
             missing = sorted(l for l in lits if l not in b[2])
             if missing:
                 errors.append(f"prompt in fence {n}: literals missing from the Spanish: {missing}")
