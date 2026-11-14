@@ -60,6 +60,18 @@ ET.register_namespace("epub", OPS)
 
 # Front matter that comes before the Contents page, in this order, after the title page.
 FRONT = ("copyright", "dedication")
+
+# The words this script writes, by the EPUB's dc:language: English, or the Spanish edition's
+# (book-es/, translation/glossary.md). Quarto 1.10.20 writes "Appendix" in both.
+LABELS = {
+    "en": {"chapter": "Chapter", "appendix": "Appendix", "appendices": "Appendices",
+           "title_page": "Title Page", "copyright": "Copyright", "start": "Start of Content",
+           "scan": ", or scan the code."},
+    "es": {"chapter": "Capítulo", "appendix": "Apéndice", "appendices": "Apéndices",
+           "title_page": "Portada", "copyright": "Derechos de autor", "start": "Comienzo del contenido",
+           "scan": ", o escanea el código."},
+}
+L = LABELS["en"]
 H1 = re.compile(r"<h1([^>]*)>(.*?)</h1>", re.S)
 PANEL = (0xF1, 0xF0, 0xEB)  # styles/epub.css: img.on-light, .on-light img
 DIV_ALT = re.compile(r'(<div\b[^>]*?)\s+alt="[^"]*"')
@@ -82,7 +94,7 @@ def classify(files: dict[str, str]) -> dict[str, str]:
             kinds[name] = "preface"
         elif "part" in classes:
             kinds[name] = "part"
-        elif title.startswith("Appendix"):
+        elif title.startswith(("Appendix", L["appendix"])):
             kinds[name] = "appendix"
         elif "backmatter" in classes:
             kinds[name] = "end"
@@ -161,7 +173,7 @@ def fix_nav(text: str, kinds: dict[str, str]) -> str:
 
     def group(first):
         li = ET.Element(f"{{{XHTML}}}li", {"class": "toc-group"})
-        ET.SubElement(li, f"{{{XHTML}}}span").text = "Appendices"
+        ET.SubElement(li, f"{{{XHTML}}}span").text = L["appendices"]
         return li, ET.SubElement(li, f"{{{XHTML}}}ol", {"class": "toc"})
 
     nest(ol, f"{{{XHTML}}}li", f"{{{XHTML}}}ol", target, kinds, group)
@@ -171,9 +183,9 @@ def fix_nav(text: str, kinds: dict[str, str]) -> str:
     by_kind = {k: f[len("EPUB/"):] for f, k in kinds.items() if k in ("copyright", "preface")}
     extra = []
     if "copyright" in by_kind:
-        extra.append(("copyright-page", by_kind["copyright"], "Copyright"))
+        extra.append(("copyright-page", by_kind["copyright"], L["copyright"]))
     if "preface" in by_kind:
-        extra.append(("bodymatter", by_kind["preface"], "Start of Content"))
+        extra.append(("bodymatter", by_kind["preface"], L["start"]))
     for etype, href, label in extra:
         if etype in have:
             continue
@@ -197,7 +209,7 @@ def fix_ncx(text: str, kinds: dict[str, str]) -> str:
     def group(first):
         point = ET.Element(f"{{{NCX}}}navPoint", {"id": "navPoint-appendices"})
         ET.SubElement(ET.SubElement(point, f"{{{NCX}}}navLabel"), f"{{{NCX}}}text").text = \
-            "Appendices"
+            L["appendices"]
         src = first.find(f"{{{NCX}}}content").get("src")
         ET.SubElement(point, f"{{{NCX}}}content", {"src": src})
         return point, point
@@ -235,16 +247,17 @@ def fix_spine(text: str, kinds: dict[str, str]) -> str:
     return text
 
 
-APPENDIX_H1 = re.compile(r'<h1([^>]*)>Appendix <span class="header-section-number">([^<]+)</span>\s*—\s*')
+APPENDIX_H1 = re.compile(r'<h1([^>]*)>(?:Appendix|Apéndice) <span class="header-section-number">([^<]+)</span>\s*—\s*')
 CHAPTER_H1 = re.compile(r'<h1([^>]*)><span class="header-section-number">(\d+)</span>')
-PART_H1 = re.compile(r'<h1([^>]*\bpart\b[^>]*)>(Part [IVX]+):\s*')
-CAPTION = re.compile(r'(<figcaption\b[^>]*>\s*)((?:Figure|Table) [A-Z0-9]+(?:\.\d+)?):\s*')
+PART_H1 = re.compile(r'<h1([^>]*\bpart\b[^>]*)>((?:Part|Parte) [IVX]+):\s*')
+CAPTION = re.compile(r'(<figcaption\b[^>]*>\s*)((?:Figure|Table|Figura|Tabla) [A-Z0-9]+(?:\.\d+)?):\s*')
 # Quarto joins "Chapter", "Figure" and the like to their number with a no-break space, which
 # macOS's Charter (a reading font in Apple Books) draws twice as wide as a space.
-NBSP_REF = re.compile("(Chapter|Section|Figure|Table|Appendix|Part|Equation)\u00a0")
+NBSP_REF = re.compile("(Chapter|Section|Figure|Table|Appendix|Part|Equation"
+                      "|Capítulo|Sección|Figura|Tabla|Apéndice|Parte|Ecuación)\u00a0")
 HOOK = re.compile(r'(<h1 class="chapter"[^>]*>.*?</h1>\s*)<p>', re.S)
-EXERCISE_H2 = re.compile(r'<h2 class="unnumbered"([^>]*)>(Exercise [IVX]+\.\d+):\s*')
-NAV_APPENDIX = re.compile(r'Appendix (<span class="header-section-number">[A-Z]</span>) — ')
+EXERCISE_H2 = re.compile(r'<h2 class="unnumbered"([^>]*)>((?:Exercise|Ejercicio) [IVX]+\.\d+):\s*')
+NAV_APPENDIX = re.compile(r'(?:Appendix|Apéndice) (<span class="header-section-number">[A-Z]</span>) — ')
 
 
 LIVE_LINK = re.compile(r'<div class="live-link">\s*<p>(.*?)</p>\s*</div>', re.S)
@@ -261,7 +274,7 @@ def live_links(text: str) -> str:
         img = QR_IMG.search(body)
         if not img:
             return m.group(0)
-        body = re.sub(r",?\s*or scan:\s*$", ", or scan the code.", body.replace(img.group(0), "").strip())
+        body = re.sub(r",?\s*(?:or scan|o escanea):\s*$", L["scan"], body.replace(img.group(0), "").strip())
         return f'<div class="live-link"><p class="qr">{img.group(0)}</p><p>{body}</p></div>'
     return LIVE_LINK.sub(card, text)
 
@@ -302,7 +315,7 @@ def fix_chapter(text: str, kind: str, front: bool) -> str:
     """Chapter, part and appendix headings, and epub:type for appendices, the afterword and
     front matter."""
     if kind == "":
-        text = CHAPTER_H1.sub(r'<h1 class="chapter"\1><span class="header-section-number">Chapter \2</span>',
+        text = CHAPTER_H1.sub(rf'<h1 class="chapter"\1><span class="header-section-number">{L["chapter"]} \2</span>',
                               text, 1)
         text = HOOK.sub(r'\1<p class="hook">', text, 1)
         text = EXERCISE_H2.sub(r'<h2 class="unnumbered exercise"\1><span class="exercise-label">\2</span> ', text)
@@ -313,7 +326,7 @@ def fix_chapter(text: str, kind: str, front: bool) -> str:
         text = (text.replace("<dl>", '<dl epub:type="glossary">').replace("<dt>", '<dt epub:type="glossterm">')
                 .replace("<dd>", '<dd epub:type="glossdef">'))
     if kind == "appendix":
-        text = APPENDIX_H1.sub(r'<h1 class="chapter"\1><span class="header-section-number">Appendix \2</span> ',
+        text = APPENDIX_H1.sub(rf'<h1 class="chapter"\1><span class="header-section-number">{L["appendix"]} \2</span> ',
                                text, 1)
         text = text.replace('<body epub:type="bodymatter">', '<body epub:type="backmatter">', 1)
         text = re.sub(r'<section ([^>]*class="level1[^"]*")>', r'<section \1 epub:type="appendix">', text, 1)
@@ -335,12 +348,12 @@ def fix_opf(text: str, kinds: dict[str, str], subtitle: str) -> str:
             + f'\n    <meta refines="#{tid}" property="title-type">main</meta>'
             + f'\n    <dc:title id="epub-subtitle">{subtitle}</dc:title>'
             + '\n    <meta refines="#epub-subtitle" property="title-type">subtitle</meta>', 1)
-    refs = {"title-page": ("Title Page", "text/title_page.xhtml")}
+    refs = {"title-page": (L["title_page"], "text/title_page.xhtml")}
     for name, kind in kinds.items():
         if kind == "copyright":
-            refs["copyright-page"] = ("Copyright", name[len("EPUB/"):])
+            refs["copyright-page"] = (L["copyright"], name[len("EPUB/"):])
         if kind == "preface":
-            refs["text"] = ("Start of Content", name[len("EPUB/"):])
+            refs["text"] = (L["start"], name[len("EPUB/"):])
     extra = "".join(f'\n    <reference type="{k}" title="{v[0]}" href="{v[1]}" />'
                     for k, v in refs.items() if f'type="{k}"' not in text)
     return text.replace("<guide>", "<guide>" + extra, 1)
@@ -380,6 +393,11 @@ def main(path: str) -> None:
         entries = [(i, z.read(i.filename)) for i in z.infolist()]
     chapters = {i.filename: d.decode("utf-8") for i, d in entries
                 if i.filename.startswith("EPUB/text/ch") and i.filename.endswith(".xhtml")}
+    # The labels' language first: classify() recognises appendices by their heading's word.
+    opf = next(d.decode("utf-8") for i, d in entries if i.filename == "EPUB/content.opf")
+    global L
+    lang = re.search(r"<dc:language>([^<]*)</dc:language>", opf)
+    L = LABELS["es"] if lang and lang.group(1).startswith("es") else LABELS["en"]
     kinds = classify(chapters)
     examples = [n for n, c in chapters.items() if '<ol class="example"' in c]
     if examples:

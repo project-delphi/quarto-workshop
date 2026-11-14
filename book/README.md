@@ -11,6 +11,11 @@ Both are published under `docs/book/` and served at
 the book. `PLAN.md` holds the design: the table of contents, the inventory of the deck's
 interactive elements with each one's EPUB replacement, and the decisions taken.
 
+The Spanish edition, *Pide, revisa, publica*, is built from `../book-es/` with the same scripts,
+filters and styles, and published under `docs/book/es/` (`make book-es book-es-publish`); see
+`../translation/PLAN.md`. Every page of each website edition links to its twin in the other
+language (`scripts/lang_switch.py`).
+
 ## Tools
 
 | Tool | Version used | Needed for |

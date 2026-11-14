@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="keywords" content="Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means">
+<meta name="description" content="Una guía práctica de publicación reproducible: escribe una sola vez en Markdown, deja que un asistente de programación escriba el código, revisa su trabajo y reconstruye una sola fuente como página web, Word, PDF, diapositivas, libro electrónico, sitio web, blog y dashboard. Dos proyectos reales recorren el libro: una guía para visitantes de Londres y un estudio del riesgo del agua potable en los municipios de Colombia.">
+
+<title>14&nbsp; Publicar en muchos formatos – Pide, revisa, publica</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/exercises-water.html" rel="next">
+<link href="../chapters/13-causation.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No hay resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+
+<!-- lang-switch --><link rel="alternate" hreflang="en" href="https://project-delphi.github.io/quarto-workshop/book/chapters/14-publish-many.html"><link rel="alternate" hreflang="es" href="https://project-delphi.github.io/quarto-workshop/book/es/chapters/14-publish-many.html"><link rel="alternate" hreflang="x-default" href="https://project-delphi.github.io/quarto-workshop/book/chapters/14-publish-many.html"><!-- /lang-switch --></head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-3.html">Parte III: Un análisis, muchas publicaciones</a></li><li class="breadcrumb-item"><a href="../chapters/14-publish-many.html"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <!-- lang-switch --><nav class="lang-switch lang-switch-top" aria-label="Language / Idioma"><a href="../../chapters/14-publish-many.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch --><button type="button" class="btn quarto-search-button" aria-label="Buscar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Pide, revisa, publica</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://project-delphi.github.io/quarto-workshop/ebook/es/" title="La página del libro" class="quarto-navigation-tool px-1" aria-label="La página del libro"><i class="bi bi-book"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/releases/latest/download/prompt-check-publish-es.epub" title="Descarga el EPUB" class="quarto-navigation-tool px-1" aria-label="Descarga el EPUB"><i class="bi bi-download"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book-es/" title="Ejecutar el código" class="quarto-navigation-tool px-1" aria-label="Ejecutar el código"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Alternar modo oscuro"><i class="bi"></i></a>
+</div><!-- lang-switch --><nav class="lang-switch lang-switch-sidebar" aria-label="Language / Idioma"><a href="../../chapters/14-publish-many.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch -->
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Buscar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefacio: cómo usar este libro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../copyright.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Derechos de autor</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedicatoria</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sobre Ravi Kalia</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte I: Fundamentos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-assistant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un asistente de programación</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Preparar tu computadora</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte II: Una guía, muchos públicos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-markdown.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Markdown, renderizado y reglas del proyecto</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-compute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Documentos que calculan</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-audiences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Una guía, cinco públicos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-publish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Publicar y demostrar la reconstrucción</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-london.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte II</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte III: Un análisis, muchas publicaciones</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-water-question.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">La pregunta, los datos y las reglas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-explore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Mira antes de modelar</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-prepare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Encontrar tipos de lugares: k-means</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Interpretar los clústeres</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-causation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Correlación no es causalidad</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-publish-many.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-water.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte III</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../afterword.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Epílogo: lo que construiste y cómo seguir</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Apéndices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-windows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Windows: prepara Ubuntu</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-terminal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Teclas y hábitos de la terminal</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Hoja de referencia</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/d-troubleshooting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Solución de problemas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/e-checkpoints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Los puntos de control de un vistazo, y respuestas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/f-translation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Leer en otro idioma</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/g-sources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Fuentes de datos, licencias y créditos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/h-how-built.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">H</span>&nbsp; <span class="chapter-title">Cómo está hecho este libro</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/i-workshop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Darlo como taller</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glosario</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Tabla de contenidos</h2>
+   
+  <ul>
+  <li><a href="#sec-water-report" id="toc-sec-water-report" class="nav-link active" data-scroll-target="#sec-water-report"><span class="header-section-number">14.1</span> El informe, en Word y PDF</a></li>
+  <li><a href="#sec-water-slides" id="toc-sec-water-slides" class="nav-link" data-scroll-target="#sec-water-slides"><span class="header-section-number">14.2</span> Diapositivas para el concejo</a></li>
+  <li><a href="#sec-water-epub" id="toc-sec-water-epub" class="nav-link" data-scroll-target="#sec-water-epub"><span class="header-section-number">14.3</span> El informe como libro electrónico (opcional)</a></li>
+  <li><a href="#sec-water-website" id="toc-sec-water-website" class="nav-link" data-scroll-target="#sec-water-website"><span class="header-section-number">14.4</span> Un sitio web con un blog</a>
+  <ul class="collapse">
+  <li><a href="#fresh-or-frozen" id="toc-fresh-or-frozen" class="nav-link" data-scroll-target="#fresh-or-frozen"><span class="header-section-number">14.4.1</span> ¿Al día o congelado?</a></li>
+  </ul></li>
+  <li><a href="#sec-water-ship" id="toc-sec-water-ship" class="nav-link" data-scroll-target="#sec-water-ship"><span class="header-section-number">14.5</span> Publícalo</a></li>
+  <li><a href="#sec-water-change" id="toc-sec-water-change" class="nav-link" data-scroll-target="#sec-water-change"><span class="header-section-number">14.6</span> Cambia un dato de entrada, explica la reconstrucción</a></li>
+  <li><a href="#sec-water-dashboard" id="toc-sec-water-dashboard" class="nav-link" data-scroll-target="#sec-water-dashboard"><span class="header-section-number">14.7</span> Un dashboard y un documento técnico (opcional)</a></li>
+  <li><a href="#sec-water-stretch" id="toc-sec-water-stretch" class="nav-link" data-scroll-target="#sec-water-stretch"><span class="header-section-number">14.8</span> Más desafíos</a></li>
+  <li><a href="#resumen" id="toc-resumen" class="nav-link" data-scroll-target="#resumen">Resumen</a></li>
+  <li><a href="#lecturas-adicionales" id="toc-lecturas-adicionales" class="nav-link" data-scroll-target="#lecturas-adicionales">Lecturas adicionales</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-3.html">Parte III: Un análisis, muchas publicaciones</a></li><li class="breadcrumb-item"><a href="../chapters/14-publish-many.html"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="sec-publish-many" class="quarto-section-identifier"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Palabras clave</div>
+    <p>Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means</p>
+  </div>
+</div>
+
+</header>
+
+
+<p>Los funcionarios van a leer los hallazgos como un informe, así que lo necesitan en los formatos que circulan en las oficinas: Word y PDF. El concejo municipal los va a ver en una pantalla durante una reunión, y va a buscar la conclusión en la última diapositiva. Los dos van a buscar dónde actuar, y cualquier otra persona necesita un enlace. Así que el proyecto recibe un informe, diapositivas y un sitio web con una entrada de blog, y ninguno de ellos puede calcular nada. Cada uno lee <code>outputs/</code>, y eso es lo que hace justa la última prueba del capítulo: cambia una opción del análisis, predice lo que sigue, reconstruye y comprueba que cada publicación lo siguió.</p>
+<div class="opener">
+<div class="box-label">
+<strong>En este capítulo</strong>
+</div>
+<ul>
+<li>Publicar un solo conjunto de resultados como un informe en Word y PDF, diapositivas para un concejo y, si quieres, un EPUB, sin que ninguna página vuelva a calcular el análisis.</li>
+<li>Configurar un sitio web que vuelve a ejecutar el análisis antes de cada renderizado, y explicar qué se perdería guardando en caché con <code>freeze: auto</code>.</li>
+<li>Proteger con una guarda una oración cuyas palabras dependen de los datos, y publicar el sitio en GitHub Pages.</li>
+<li>Predecir, comprobar y explicar qué salidas actualiza una opción que cambia, y cuáles no.</li>
+</ul>
+<div class="opener-meta">
+<p><span class="meta-label"><strong>Partes de</strong></span>tu carpeta <code>water-quality</code> en el punto de control 09, con la comprobación dentro de cada clúster.</p>
+<p><span class="meta-label"><strong>Construyes</strong></span>un informe, diapositivas para el concejo y un sitio web con una entrada de blog, publicado en GitHub Pages.</p>
+<p><span class="meta-label"><strong>Punto de control</strong></span>de <code>checkpoints/10-water-report/</code> a <code>checkpoints/13-water-website/</code></p>
+</div>
+</div>
+<section id="sec-water-report" class="level2" data-number="14.1">
+<h2 data-number="14.1" class="anchored" data-anchor-id="sec-water-report"><span class="header-section-number">14.1</span> El informe, en Word y PDF</h2>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Crea report.qmd, en inglés (formatos html, docx, typst), a partir de outputs/: resumen, pregunta, datos (IRCA = IRCA de prestadores, utility-supplied prestadores IRCA), método, mapa de calor, variables de resultado, correlación ≠ causalidad (un gráfico de la mediana de infant_mortality por nivel del IRCA en cada clúster), límites, fuentes. Figuras de matplotlib con pie y texto alternativo; oculta el código. Renderiza todos los formatos; informa los errores.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Probablemente ejecute</strong>
+</div>
+<p>escribe <code>report.qmd</code> · <code>uv run quarto render report.qmd</code></p>
+</div>
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>Tú haces</strong>
+</div>
+<p>abres <code>report.docx</code> (Word o LibreOffice) y <code>report.pdf</code></p>
+</div>
+</div>
+<p>El prompt enumera las secciones del informe, y tres de sus decisiones llevan las lecciones de los últimos capítulos. “De prestadores” está en la sección de los datos porque la <a href="08-water-question.html#sec-water-why" class="quarto-xref"><span>Sección 8.2</span></a> mostró lo que esconde la etiqueta. “Correlación ≠ causalidad” es una sección, no una nota al pie. Y las figuras son de matplotlib, porque Word, PowerPoint y PDF no pueden ejecutar el JavaScript que necesitan los gráficos interactivos de Plotly (<a href="#fig-water-report" class="quarto-xref">Figura&nbsp;<span>14.1</span></a>).</p>
+<div id="fig-water-report" class="on-light scaled quarto-float quarto-figure quarto-figure-center anchored" alt="La primera página del PDF del informe, en inglés, titulada Kinds of municipal zone in Colombia, con el subtítulo Water quality, services, poverty and outcomes, 2016 to 2023: a descriptive cluster analysis. Un resumen en cuatro viñetas dice cuántas zonas-año se agruparon en cuatro tipos, describe el tipo de mayor riesgo y el tipo con la mortalidad infantil más baja, y dice que las comparaciones son descriptivas y no establecen un efecto causal de la calidad del agua. Luego vienen la pregunta, la sección de los datos, que nombra el IRCA de prestadores, y el comienzo del método.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-water-report-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/figures/water-report-p1.png" class="on-light scaled img-fluid figure-img" style="width:70.0%" alt="La primera página del PDF del informe, en inglés, titulada Kinds of municipal zone in Colombia, con el subtítulo Water quality, services, poverty and outcomes, 2016 to 2023: a descriptive cluster analysis. Un resumen en cuatro viñetas dice cuántas zonas-año se agruparon en cuatro tipos, describe el tipo de mayor riesgo y el tipo con la mortalidad infantil más baja, y dice que las comparaciones son descriptivas y no establecen un efecto causal de la calidad del agua. Luego vienen la pregunta, la sección de los datos, que nombra el IRCA de prestadores, y el comienzo del método.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-water-report-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;14.1: La primera página del informe del agua terminado como PDF de Typst. Renderizada desde <code>examples/water/report.qmd</code>.
+</figcaption>
+</figure>
+</div>
+<p>Cada número del texto es código en línea que lee <code>outputs/</code>, nunca escrito a mano: un informe que cita la cantidad de filas conservadas cita lo que el análisis haya calculado por última vez. Deberías tener <code>report.html</code>, <code>report.docx</code> y <code>report.pdf</code>, cada uno con el mapa de calor, las variables de resultado y la figura de la comprobación dentro de cada clúster.</p>
+<div class="catchup">
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu asistente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/10-water-report/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sec-water-slides" class="level2" data-number="14.2">
+<h2 data-number="14.2" class="anchored" data-anchor-id="sec-water-slides"><span class="header-section-number">14.2</span> Diapositivas para el concejo</h2>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Crea slides.qmd, en inglés (revealjs y pptx), para el concejo municipal, 6 diapositivas con el título: la pregunta, una tabla de los clústeres con nombre, el mapa de calor, las variables de resultado por clúster, lo que esto muestra y lo que no. Lee outputs/, usa matplotlib, oculta el código. Renderiza los dos; cuenta las diapositivas.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Probablemente ejecute</strong>
+</div>
+<p>escribe <code>slides.qmd</code> · <code>uv run quarto render slides.qmd</code></p>
+</div>
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>Tú haces</strong>
+</div>
+<p>abres <code>slides.html</code> en tu navegador y <code>slides.pptx</code> en PowerPoint o LibreOffice</p>
+</div>
+</div>
+<p>El asistente debería contar seis diapositivas en cada uno, el título incluido. En los dos formatos, cada título <code>##</code> empieza una diapositiva. Una diapositiva de PowerPoint contiene texto, o una figura, o una tabla, así que limita cada diapositiva a una sola cosa. La presentación para el concejo repite el mensaje de “solo descriptivo” en su última diapositiva, donde un concejo va a buscar la conclusión (<a href="#fig-water-slides" class="quarto-xref">Figura&nbsp;<span>14.2</span></a>).</p>
+<div id="fig-water-slides" class="scaled screenshot quarto-float quarto-figure quarto-figure-center anchored" alt="Una diapositiva para el concejo, en inglés, titulada How the kinds differ: un mapa de calor de los cuatro tipos con nombre frente a nueve características en unidades de desviación estándar, rojo por encima y azul por debajo del promedio del año, con una nota de que el IRCA es la cifra de prestadores.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-water-slides-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/figures/water-slides.png" class="scaled screenshot img-fluid figure-img" style="width:85.0%" alt="Una diapositiva para el concejo, en inglés, titulada How the kinds differ: un mapa de calor de los cuatro tipos con nombre frente a nueve características en unidades de desviación estándar, rojo por encima y azul por debajo del promedio del año, con una nota de que el IRCA es la cifra de prestadores.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-water-slides-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;14.2: Una de las seis diapositivas para el concejo, en la versión de Reveal.js. Renderizada desde <code>examples/water/slides.qmd</code>.
+</figcaption>
+</figure>
+</div>
+<div class="catchup">
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu asistente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/11-water-slides/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sec-water-epub" class="level2" data-number="14.3">
+<h2 data-number="14.3" class="anchored" data-anchor-id="sec-water-epub"><span class="header-section-number">14.3</span> El informe como libro electrónico (opcional)</h2>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>En report.qmd, agrega un formato epub (toc: true), fija lang: en y agrega ePub a los `format-links` del html. Renderiza report.qmd y comprueba que report.epub contenga las tres figuras y las fuentes.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p>Un EPUB es un conjunto comprimido de páginas web cuyo texto se reacomoda al tamaño de la pantalla del lector. La mayoría de los lectores de libros electrónicos no ejecutan JavaScript, así que las figuras tienen que ser imágenes estáticas, como ya lo son las del informe. <code>lang: en</code> registra el idioma del libro (sin él, el archivo declara uno desconocido), y <code>toc: true</code> agrega una tabla de contenidos. Abre el resultado en Libros, en una Mac, o en Calibre: debería contener las tres figuras y las fuentes.</p>
+<p>El libro que tienes en las manos es lo mismo a una escala mayor, y construirlo mostró dónde deja de bastar un EPUB del tamaño de un informe. Las partes y las páginas de las partes desaparecen del EPUB de un libro de Quarto; el contenido marcado para HTML también aparece en el EPUB salvo que se marque para HTML con JavaScript; los colores de los recuadros y del código que trae Quarto desaparecen con el tema nocturno de un lector; y un validador de EPUB rechaza marcado que cualquier navegador acepta. El <a href="../appendices/h-how-built.html" class="quarto-xref"><span>Apéndice H</span></a> describe cada problema y su solución.</p>
+<div class="catchup">
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu asistente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/12-water-epub/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sec-water-website" class="level2" data-number="14.4">
+<h2 data-number="14.4" class="anchored" data-anchor-id="sec-water-website"><span class="header-section-number">14.4</span> Un sitio web con un blog</h2>
+<p>Las publicaciones se convierten en un solo sitio web, con una entrada de blog que cuenta la historia en prosa:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-1"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># _quarto.yml</span></span>
+<span id="annotated-cell-1-2"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">project</span><span class="kw">:</span></span>
+<span id="annotated-cell-1-3"><a href="#annotated-cell-1-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">type</span><span class="kw">:</span><span class="at"> website</span></span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="1" onclick="event.preventDefault();">1</a><span id="annotated-cell-1-4" class="code-annotation-target"><a href="#annotated-cell-1-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">execute-dir</span><span class="kw">:</span><span class="at"> project</span></span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="2" onclick="event.preventDefault();">2</a><span id="annotated-cell-1-5" class="code-annotation-target"><a href="#annotated-cell-1-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pre-render</span><span class="kw">:</span><span class="at"> scripts/analysis.py</span></span>
+<span id="annotated-cell-1-6"><a href="#annotated-cell-1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">execute</span><span class="kw">:</span></span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="3" onclick="event.preventDefault();">3</a><span id="annotated-cell-1-7" class="code-annotation-target"><a href="#annotated-cell-1-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">freeze</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-1" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="4" data-code-annotation="1">Cada página, incluida una entrada en <code>posts/…/</code>, lee <code>outputs/</code> y <code>data/</code> desde la carpeta del proyecto.</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="5" data-code-annotation="2">Quarto ejecuta el análisis antes de cada renderizado, incluso el de una sola página: <code>outputs/</code> siempre está al día.</span>
+</dd>
+<dt data-target-cell="annotated-cell-1" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-1" data-code-lines="7" data-code-annotation="3">Cada renderizado vuelve a ejecutar cada página, así que cada página muestra las salidas recién escritas.</span>
+</dd>
+</dl>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="annotated-cell-2"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-2-1"><a href="#annotated-cell-2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># index.qmd</span></span>
+<span id="annotated-cell-2-2"><a href="#annotated-cell-2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">listing</span><span class="kw">:</span></span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-2" data-target-annotation="1" onclick="event.preventDefault();">1</a><span id="annotated-cell-2-3" class="code-annotation-target"><a href="#annotated-cell-2-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">contents</span><span class="kw">:</span><span class="at"> posts</span></span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<dl class="code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-2" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-2" data-code-lines="3" data-code-annotation="1">Un <em>listado</em> convierte cada <code>posts/*/index.qmd</code> en una entrada de la página de inicio: un blog.</span>
+</dd>
+</dl>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Convierte esta carpeta en un sitio web de Quarto, en inglés: _quarto.yml (execute-dir: project, `pre-render` scripts/analysis.py, freeze: false, lista render, barra de navegación), index.qmd con el listado de posts/, y una entrada titulada con el k real, por ejemplo "Four kinds of municipal zone". Renderízalo; revisa los enlaces.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>Tú haces</strong>
+</div>
+<p><code>uv run quarto preview</code></p>
+</div>
+</div>
+<p>La página de inicio de la vista previa debería enumerar una entrada, cuyo título dice el k real.</p>
+<p>El título de la entrada dice la cantidad de clústeres, así que un cambio en el análisis podría dejarlo equivocado. La entrada terminada se protege con una línea en su celda de preparación, <code>assert k == 4</code>, que hace fallar el renderizado si el análisis encuentra alguna vez un k distinto (<a href="#fig-water-post" class="quarto-xref">Figura&nbsp;<span>14.3</span></a>). Esa línea es una <em>guarda</em>: detiene el renderizado cuando las palabras de una oración, no solo sus números, ya no coinciden con los datos, porque una falla ruidosa es mejor que una falsedad silenciosa. Este libro protege sus propias oraciones de la misma manera. La <a href="12-interpret.html#sec-outcomes" class="quarto-xref"><span>Sección 12.4</span></a> dice que la mortalidad infantil registrada más alta no está en el clúster con la peor agua; si los datos nuevos lo volvieran falso, el libro dejaría de construirse en lugar de imprimirlo.</p>
+<div id="fig-water-post" class="scaled screenshot quarto-float quarto-figure quarto-figure-center anchored" alt="Una entrada de blog en inglés titulada Four kinds of municipal zone, con las etiquetas water, clustering y Colombia, un párrafo inicial sobre las zonas-año y las nueve características usadas, y una lista de los cuatro tipos, cada uno con sus zonas-año, municipios, mediana del IRCA, cobertura de acueducto y pobreza.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-water-post-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/figures/water-post.png" class="scaled screenshot img-fluid figure-img" style="width:85.0%" alt="Una entrada de blog en inglés titulada Four kinds of municipal zone, con las etiquetas water, clustering y Colombia, un párrafo inicial sobre las zonas-año y las nueve características usadas, y una lista de los cuatro tipos, cada uno con sus zonas-año, municipios, mediana del IRCA, cobertura de acueducto y pobreza.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-water-post-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;14.3: La entrada de blog terminada, cuyo título dice la cantidad de clústeres que encontró el análisis. Renderizada desde <code>examples/water/posts/four-kinds-of-municipal-zone/index.qmd</code>.
+</figcaption>
+</figure>
+</div>
+<section id="fresh-or-frozen" class="level3" data-number="14.4.1">
+<h3 data-number="14.4.1" class="anchored" data-anchor-id="fresh-or-frozen"><span class="header-section-number">14.4.1</span> ¿Al día o congelado?</h3>
+<p><code>freeze: false</code> es la opción simple y segura: cada renderizado lo vuelve a calcular todo, así que nada puede quedar viejo. El costo es tiempo, en cada renderizado y para cada página. <code>freeze: auto</code> es la alternativa: Quarto guarda los resultados de cada página en <code>_freeze/</code> y vuelve a ejecutar una página solo cuando cambia <em>su propia fuente</em>.</p>
+<p>La trampa está en esa última frase. Quarto no sabe qué archivos lee una página, así que un cambio en <code>data/</code> o en <code>outputs/</code> no se detecta, y una página congelada conserva sus números viejos. Con <code>freeze: auto</code> necesitas una regla para descartar resultados: borra <code>_freeze/</code> (o renderiza esa página directamente, lo que ignora el caché) cada vez que cambien los datos o el análisis.</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Tu sitio usa <code>freeze: auto</code>. Cambias <code>MAX_MISSING</code> en <code>scripts/analysis.py</code> y ejecutas <code>uv run quarto render</code>. ¿Qué páginas muestran los números nuevos?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>Solo las páginas cuya propia fuente cambió, y no cambiaste ninguna. <code>pre-render</code> igual reescribe <code>outputs/</code>, pero cada página congelada reutiliza sus resultados guardados, así que el sitio muestra los números viejos al lado de archivos de salida nuevos hasta que borres <code>_freeze/</code> o renderices cada página por separado.</p>
+</div>
+</div>
+<div class="practice callout callout-style-default callout-tip callout-titled" title="En la práctica">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>En la práctica
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Empieza con <code>freeze: false</code> y cambia solo cuando los renderizados se vuelvan lo bastante lentos como para importar, y cuando lo hagas, escribe la regla para invalidar el caché donde la vaya a encontrar la próxima persona. Este libro usa <code>freeze: auto</code>, para que el EPUB se reconstruya rápido y de forma reproducible, y su regla está escrita en su configuración y en su README: después de cualquier cambio en los datos o en el análisis de los ejemplos, ejecuta <code>make book-fresh</code>, que borra <code>_freeze/</code> y vuelve a ejecutar cada capítulo.</p>
+</div>
+</div>
+<div class="catchup">
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu asistente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="sec-water-ship" class="level2" data-number="14.5">
+<h2 data-number="14.5" class="anchored" data-anchor-id="sec-water-ship"><span class="header-section-number">14.5</span> Publícalo</h2>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Inicializa un repositorio de git aquí con un .gitignore para _site/, .quarto/, .venv/, outputs/ y *_files/. Reemplaza el README.md de esta carpeta por uno corto, en inglés, que enlace a https://&lt;your-github-username&gt;.github.io/water-quality/ y enumere los archivos del menú Downloads del sitio. Haz commit de todo lo que no esté ignorado, luego crea con gh un repositorio público de GitHub llamado `water-quality` y haz push. Fija el sitio web del repositorio en la misma URL con `gh repo edit --homepage`. Muéstrame el README y la URL que configuraste.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>Tú haces</strong>
+</div>
+<p>apruebas <code>gh</code> · cuando muestre la URL del sitio web, en la segunda pestaña: <code>uv run quarto publish gh-pages</code>, y luego Enter en “Publish site … (Y/n)” · abres la dirección en vivo</p>
+</div>
+</div>
+<p>Los pasos son los de la Parte II (<a href="07-publish.html#sec-london-publish" class="quarto-xref"><span>Sección 7.4</span></a>), con un agregado al <code>.gitignore</code>: <code>outputs/</code>, que reconstruye el paso previo al renderizado. En una prueba del <span class="nowrap">2026-11-01</span>, la primera publicación tardó unos dos minutos, y luego GitHub Pages construyó el sitio en 20 a 35 segundos.</p>
+<p>Los datos son públicos, y publicarlos con el sitio está bien, siempre que las atribuciones viajen con ellos. <code>data/README.md</code> enumera los términos de cada fuente: CC BY-SA 4.0 para la lista DIVIPOLA del DANE y las tablas del INS, el ICFES y el MEN, CC BY 4.0 para TerriData y CHIRPS, términos de cita para la población y los límites del DANE, y ninguno para SRTM. CC BY-SA agrega una condición <em>CompartirIgual</em>: cualquier cosa construida a partir de esos datos, como <code>water_municipal.csv</code>, debe compartirse con la misma licencia (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>, consultada el <span class="nowrap">2026-11-12</span>).</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Mientras publica: ¿cuál es la diferencia entre tu carpeta y el sitio en vivo?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>El sitio en vivo es el último <code>_site/</code> que publicaste. Los cambios en tu carpeta, incluidas las salidas renderizadas de nuevo, no aparecen en línea hasta que vuelvas a publicar.</p>
+</div>
+</div>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Importante</span>Pruébalo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Construye el informe, las diapositivas y el sitio web, y luego publica.</p>
+<div class="done">
+<p><strong>Terminaste cuando</strong> <code>https://&lt;your-github-username&gt;.github.io/water-quality/</code> se abre en un navegador, con el informe, las diapositivas y la entrada de blog.</p>
+</div>
+<div class="catchup">
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu asistente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-water-change" class="level2" data-number="14.6">
+<h2 data-number="14.6" class="anchored" data-anchor-id="sec-water-change"><span class="header-section-number">14.6</span> Cambia un dato de entrada, explica la reconstrucción</h2>
+<p>Esta es la segunda tarea sin prompt, y la prueba del diseño de esta parte.</p>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Importante</span>Pruébalo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>Predice</strong>, y anótalo antes de reconstruir. En <code>scripts/analysis.py</code>, cambia <code>MAX_MISSING = 2</code> a <code>1</code>. ¿Qué salidas van a cambiar, y qué les va a pasar a las dos zonas de Tunja?</li>
+<li><strong>Reconstruye</strong> el sitio.</li>
+<li><strong>Explica</strong> qué salidas cambiaron, cuáles no y por qué.</li>
+<li><strong>Deshaz</strong> el cambio (<code>git restore scripts/analysis.py</code>) y reconstruye, para que las salidas coincidan con la configuración real.</li>
+</ol>
+<div class="done">
+<p><strong>Terminaste cuando</strong> puedes nombrar las salidas que cambiaron, las que no, y por qué.</p>
+</div>
+</div>
+</div>
+<p><code>MAX_MISSING</code> descarta las filas a las que les faltan más de esa cantidad de las nueve características (<a href="10-prepare.html" class="quarto-xref"><span>Capítulo 10</span></a>). Para responder, necesitas saber qué lee cada página. La <a href="#tbl-water-deps" class="quarto-xref">Tabla&nbsp;<span>14.1</span></a> se calcula a partir de las fuentes del proyecto terminado: una página cuenta como lectora de un archivo solo si su código lo nombra.</p>
+<div id="tbl-water-deps" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-water-deps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;14.1: Lo que lee y escribe cada página del proyecto del agua terminado, según su código. La entrada es <code>posts/four-kinds-of-municipal-zone/index.qmd</code>.
+</figcaption>
+<div aria-describedby="tbl-water-deps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th>Página</th>
+<th>Lee <code>outputs/</code></th>
+<th>Lee <code>data/</code></th>
+<th>Escribe</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>index</td>
+<td>ninguno</td>
+<td>ninguno</td>
+<td>html</td>
+</tr>
+<tr class="even">
+<td>explore</td>
+<td>ninguno</td>
+<td><code>water_municipal.csv</code></td>
+<td>html</td>
+</tr>
+<tr class="odd">
+<td>clusters</td>
+<td>8 archivos</td>
+<td>ninguno</td>
+<td>html</td>
+</tr>
+<tr class="even">
+<td>report</td>
+<td>5 archivos</td>
+<td>ninguno</td>
+<td>html, docx, pdf, epub</td>
+</tr>
+<tr class="odd">
+<td>whitepaper</td>
+<td>6 archivos</td>
+<td>ninguno</td>
+<td>pdf</td>
+</tr>
+<tr class="even">
+<td>slides</td>
+<td>4 archivos</td>
+<td>ninguno</td>
+<td>html, pptx</td>
+</tr>
+<tr class="odd">
+<td>dashboard</td>
+<td>7 archivos</td>
+<td><code>municipios.geojson</code></td>
+<td>html</td>
+</tr>
+<tr class="even">
+<td>la entrada</td>
+<td>4 archivos</td>
+<td>ninguno</td>
+<td>html</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Todas las páginas menos dos leen sus números de <code>outputs/</code>. La página de exploración lee solo <code>data/water_municipal.csv</code>, que la opción no toca, así que se vuelve a ejecutar y muestra los mismos números; la página de inicio no lee ningún archivo. Una respuesta sólida nombra el mecanismo: <code>pre-render</code> vuelve a ejecutar el análisis, que reescribe cada archivo de <code>outputs/</code>, y <code>freeze: false</code> vuelve a ejecutar cada página que los lee. Revisa al menos dos salidas contra los nuevos conteos de filas. Y se da cuenta de lo que no cambió: <code>data/</code>, la página de exploración y el sitio en vivo. Una vez que tengas escrita tu predicción, compárala con la respuesta modelo del <a href="../appendices/e-checkpoints.html" class="quarto-xref"><span>Apéndice E</span></a>, que sigue a Tunja a lo largo de la reconstrucción con los números calculados (<a href="../appendices/e-checkpoints.html#tbl-answer-water" class="quarto-xref">Tabla&nbsp;<span>E.3</span></a>).</p>
+</section>
+<section id="sec-water-dashboard" class="level2" data-number="14.7">
+<h2 data-number="14.7" class="anchored" data-anchor-id="sec-water-dashboard"><span class="header-section-number">14.7</span> Un dashboard y un documento técnico (opcional)</h2>
+<p>Un dashboard puede mostrar los clústeres en un mapa. El primer prompt construye un <em>mapa coroplético</em> de Plotly, un mapa cuyas áreas se colorean según un valor, aquí cada municipio según el nivel del IRCA de su zona urbana, con un control deslizante de años; el segundo agrega páginas para los tipos, las variables de resultado y el método:</p>
+<div class="agent-box">
+<div class="prompt long" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Crea dashboard.qmd, en inglés (format: dashboard): un mapa coroplético de Plotly con el nivel del IRCA de las filas "urban" de outputs/clusters.parquet sobre data/municipios.geojson (featureidkey="properties.divipola"), un control deslizante de años sobre sus años (los frames solo actualizan z), una tabla de itables de outputs/clusters.parquet (maxBytes=0); termina cada celda de gráfico con `fig`. Que quede pulido: los niveles del IRCA en orden de sin riesgo a inviable, de claro a oscuro, con leyenda, tarjetas con título y etiquetas legibles. Agrégalo a la barra de navegación; renderiza, comprueba que se vea bien al tamaño de una laptop e informa los errores.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p>Cuando la página del mapa se vea bien, el segundo prompt agrega las otras páginas:</p>
+<div class="agent-box">
+<div class="prompt long" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>Agrega a dashboard.qmd las páginas Kinds, Outcomes y Method, solo a partir de outputs/: un mapa de calor de las columnas `z_` de cluster_profiles.csv; las medianas de outcomes_by_year.csv por `year` y `cluster`, y la ρ de irca_infant.csv; la inercia y la silueta de k_selection.csv por k. Usa el `color` de cada clúster y las unidades de los ejes; di que es descriptivo, no causal. Renderiza; revisa cada página al tamaño de una laptop.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<div id="fig-water-dashboard" class="screenshot quarto-float quarto-figure quarto-figure-center anchored" alt="La página Map del dashboard, en inglés: cuatro cuadros de valor (zonas-año agrupadas, la cantidad de tipos, la mediana del IRCA urbano en 2023 y la proporción de zonas rurales muestreadas en los niveles alto o inviable), un mapa de los municipios de Colombia coloreados según el nivel del IRCA de su zona urbana, de claro para sin riesgo a oscuro para inviable, con un control deslizante de años, una tabla de los cuatro tipos con sus zonas-año y su mediana del IRCA, y una nota sobre los datos del mapa. Las pestañas llevan a las páginas Kinds, Outcomes, Method y Municipalities.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-water-dashboard-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/figures/water-dashboard.png" class="screenshot img-fluid figure-img" alt="La página Map del dashboard, en inglés: cuatro cuadros de valor (zonas-año agrupadas, la cantidad de tipos, la mediana del IRCA urbano en 2023 y la proporción de zonas rurales muestreadas en los niveles alto o inviable), un mapa de los municipios de Colombia coloreados según el nivel del IRCA de su zona urbana, de claro para sin riesgo a oscuro para inviable, con un control deslizante de años, una tabla de los cuatro tipos con sus zonas-año y su mediana del IRCA, y una nota sobre los datos del mapa. Las pestañas llevan a las páginas Kinds, Outcomes, Method y Municipalities.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-water-dashboard-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;14.4: La página del mapa del dashboard terminado. Renderizada desde <code>examples/water/dashboard.qmd</code>.
+</figcaption>
+</figure>
+</div>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Tres trampas, todas encontradas al construir el ejemplo. El archivo de límites sigue el estándar GeoJSON (anillos exteriores en sentido antihorario) y Plotly espera lo contrario, así que, si no se invierten los anillos, cada municipio se dibuja como “el mundo menos el municipio”, un rectángulo gris; el <code>load_geojson()</code> del script terminado los invierte. Los frames de la animación solo deben actualizar los colores (<code>z</code>): si cada año repite los 2.7 MB de límites, la página se infla. Y una celda de dashboard muestra cada expresión de primer nivel, no solo la última, así que un <code>fig.add_vline(…)</code> suelto dibuja el gráfico dos veces; asígnalo, <code>fig = fig.add_vline(…)</code>, y termina la celda con <code>fig</code>.</p>
+</div>
+</div>
+<p>La tabla con búsqueda necesita <code>maxBytes=0</code>, o <code>itables</code> descarta filas en silencio para mantener la página pequeña.</p>
+<p>Las mismas salidas también se pueden convertir en un artículo académico, como las de Londres (<a href="07-publish.html#sec-london-whitepaper" class="quarto-xref"><span>Sección 7.6</span></a>), ahora con ecuaciones numeradas (<code>$$ … $$ {#eq-kmeans}</code>, a las que se hace referencia como <code>@eq-kmeans</code>) y citas de los artículos detrás de cada método:</p>
+<div class="agent-box">
+<div class="prompt long" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>Crea whitepaper.qmd, en inglés, a partir de outputs/: A4 de Typst, "New Computer Modern"; un resumen (sin código en línea), Introduction, Methods con ecuaciones, Results y Conclusions numeradas, y luego References mediante `#set bibliography(title: [References])`. Cita las fuentes de data/README.md y los artículos de k-means, la silueta y el ARI en references.bib; abre cada DOI. Agrégalo a `render` y al menú "Downloads"; renderiza; revisa las ecuaciones y las citas. Las figuras tienen que ser vectoriales: fija `fig-format: svg` y comprueba que los archivos de `figure-typst/` terminen en .svg.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Abre cada DOI” está ahí por una razón: un asistente puede producir una referencia plausible que no existe. Un <em>DOI</em> es el identificador permanente de un documento, y <code>https://doi.org/</code> seguido de él abre la página de la editorial, así que es una prueba rápida de que una referencia existe. Pídele al asistente que descarte cualquier referencia que no pueda abrir en lugar de adivinar, y revisa tú la lista de referencias. El artículo terminado cita a Lloyd (1982) para k-means, a Rousseeuw (1987) para la silueta, a Hubert y Arabie (1985) para el índice de Rand ajustado y a Pedregosa et al.&nbsp;(2011) para scikit-learn, cada uno revisado contra la página de su editorial el <span class="nowrap">2026-11-01</span>.</p>
+</div>
+</div>
+<div id="fig-water-whitepaper" class="on-light scaled quarto-float quarto-figure quarto-figure-center anchored" alt="La primera página de un documento A4 en inglés, con una tipografía de estilo LaTeX, titulado Drinking-water quality and infant mortality in Colombian municipal zones, con el subtítulo A descriptive cluster analysis, 2016 to 2023, un resumen y el comienzo de una Introduction numerada con citas entre corchetes.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-water-whitepaper-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/figures/water-whitepaper-p1.png" class="on-light scaled img-fluid figure-img" style="width:70.0%" alt="La primera página de un documento A4 en inglés, con una tipografía de estilo LaTeX, titulado Drinking-water quality and infant mortality in Colombian municipal zones, con el subtítulo A descriptive cluster analysis, 2016 to 2023, un resumen y el comienzo de una Introduction numerada con citas entre corchetes.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-water-whitepaper-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;14.5: La primera página del documento técnico del agua terminado. Renderizada desde <code>examples/water/whitepaper.qmd</code>.
+</figcaption>
+</figure>
+</div>
+<div class="catchup">
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu asistente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/examples/water/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sec-water-stretch" class="level2" data-number="14.8">
+<h2 data-number="14.8" class="anchored" data-anchor-id="sec-water-stretch"><span class="header-section-number">14.8</span> Más desafíos</h2>
+<p>Estos no tienen puntos de control. Cada uno amplía el análisis con datos que ya están en el proyecto, o nombra uno que todavía no está disponible:</p>
+<ul>
+<li><strong>Cambios entre tipos.</strong> Cuenta cómo pasan las zonas de los municipios de un clúster a otro entre 2016 y 2023, y dibújalo como un diagrama de Sankey (el <code>go.Sankey</code> de Plotly).</li>
+<li><strong>Desviados positivos.</strong> Encuentra municipios cuya zona rural está en el tipo de riesgo alto y que, aun así, tienen una mortalidad infantil registrada baja, y revisa primero si eso se debe a números pequeños, a vacíos o al subregistro.</li>
+<li><strong>Otros agrupamientos.</strong> Un modelo de mezcla gaussiana le da a cada fila una probabilidad por clúster en lugar de una etiqueta fija; HDBSCAN encuentra grupos densos y deja sin agrupar los valores atípicos. ¿Sobreviven los tipos?</li>
+<li><strong>Una mejor variable de resultado.</strong> La enfermedad diarreica en menores de cinco años es la variable de resultado más directamente ligada al agua. Su incidencia no está en los datos abiertos del SIVIGILA, el sistema de vigilancia en salud pública de Colombia, que solo publican las muertes; el README de los datos la registra como una fuente para agregar cuando esté disponible.</li>
+</ul>
+</section>
+<section id="resumen" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="resumen">Resumen</h2>
+<div class="keyideas">
+<ul>
+<li>Cada publicación lee <code>outputs/</code> y ninguna calcula, así que un solo análisis le llega a cada lector en el formato que usa: Word y PDF para los funcionarios, diapositivas para un concejo, un sitio web para cualquiera.</li>
+<li>Word, PowerPoint, PDF y la mayoría de los lectores de libros electrónicos no pueden ejecutar JavaScript, así que sus figuras tienen que ser imágenes estáticas.</li>
+<li><code>pre-render</code> vuelve a ejecutar el análisis antes de cada renderizado y <code>freeze: false</code> vuelve a ejecutar cada página, así que nada queda viejo; <code>freeze: auto</code> es más rápido pero no puede ver <code>data/</code> ni <code>outputs/</code>, así que necesita una regla escrita para vaciar <code>_freeze/</code>.</li>
+<li>Una guarda convierte una oración que ya no coincide con los datos en un renderizado fallido en lugar de una falsedad silenciosa.</li>
+<li>El sitio en vivo es el último <code>_site/</code> que publicaste, y solo cambia cuando vuelves a publicar.</li>
+<li>Una opción que cambia llega a cada página que lee <code>outputs/</code> y a nada más: predícelo, reconstruye y compruébalo.</li>
+</ul>
+</div>
+<p>Ese último ejercicio contiene el diseño de la parte, y es el método del libro a tamaño completo. El epílogo lo lleva de vuelta a sus tres verbos, y a un proyecto tuyo.</p>
+</section>
+<section id="lecturas-adicionales" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="lecturas-adicionales">Lecturas adicionales</h2>
+<ul>
+<li>Quarto, <a href="https://quarto.org/docs/projects/scripts.html">project scripts</a>, <a href="https://quarto.org/docs/projects/code-execution.html#freeze">freeze</a> y <a href="https://quarto.org/docs/websites/website-listings.html">website listings</a> (consultados el <span class="nowrap">2026-10-30</span>).</li>
+<li>Quarto, <a href="https://quarto.org/docs/reference/formats/presentations/revealjs.html">Reveal.js options</a>, <a href="https://quarto.org/docs/presentations/powerpoint.html">PowerPoint</a> y <a href="https://quarto.org/docs/reference/formats/epub.html">EPUB options</a> (consultados el <span class="nowrap">2026-10-30</span>).</li>
+<li>Quarto, <a href="https://quarto.org/docs/dashboards/">Dashboards</a> (consultado el <span class="nowrap">2026-10-31</span>).</li>
+<li>Quarto, <a href="https://quarto.org/docs/authoring/cross-references.html">cross-references</a> y <a href="https://quarto.org/docs/authoring/citations.html">citations</a> (consultados el <span class="nowrap">2026-11-01</span>).</li>
+<li><code>examples/water/README.md</code> en el repositorio: la estructura del proyecto terminado, los pasos para reconstruirlo y las decisiones de diseño.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/quarto-workshop\/book\/es\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/13-causation.html" class="pagination-link" aria-label="Correlación no es causalidad">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Correlación no es causalidad</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/exercises-water.html" class="pagination-link" aria-label="Ejercicios de la Parte III">
+        <span class="nav-page-text">Ejercicios de la Parte III</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

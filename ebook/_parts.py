@@ -15,6 +15,55 @@ import _source as S
 
 e = lambda s: html.escape(str(s), quote=True)  # noqa: E731
 
+# The page's own words, by S.LANG ("es" for ebook/es/index.qmd).
+WORDS = {
+    "en": {
+        "download": "Download the EPUB", "read": "Read online, free", "inapp":
+        "In LinkedIn’s browser? If the download does not start, open this page in your phone’s "
+        "browser from LinkedIn’s menu.", "eyebrow": "A practitioner’s guide",
+        "byline": "Free · by {author} · PhD, Oxford", "editions": "Editions", "web": "Web",
+        "nosignup": "no sign-up", "scan": "Scan to open this page",
+        "loop": [("Prompt", "you ask"), ("Check", "you, always"), ("Publish", "Quarto")],
+        "mid": ("small steps,", "each one checked"), "pause": "Pause", "chapters": "Chapters",
+        "appendices": "Appendices", "alt": "Alt text:", "share": "Share on LinkedIn",
+        "copy": "Copy link", "source": "Source on GitHub", "page_source": "This page’s source",
+        "linkedin": "{author} on LinkedIn", "data": "Data and images.",
+        "data_marker": "**Data and images.**", "appendix": "Appendix", "sticky_download": "Download EPUB",
+        "sticky_read": "Read online", "switch": "Language",
+    },
+    "es": {
+        "download": "Descarga el EPUB", "read": "Léelo en línea, gratis", "inapp":
+        "¿Estás en el navegador de LinkedIn? Si la descarga no empieza, abre esta página en el "
+        "navegador de tu teléfono desde el menú de LinkedIn.", "eyebrow": "Una guía práctica",
+        "byline": "Gratis · de {author} · doctorado, Oxford", "editions": "Ediciones", "web": "Web",
+        "nosignup": "sin registro", "scan": "Escanea para abrir esta página",
+        "loop": [("Pide", "tú pides"), ("Revisa", "tú, siempre"), ("Publica", "Quarto")],
+        "mid": ("pasos pequeños,", "cada uno revisado"), "pause": "Pausa", "chapters": "Capítulos",
+        "appendices": "Apéndices", "alt": "Texto alternativo:", "share": "Compartir en LinkedIn",
+        "copy": "Copiar enlace", "source": "Fuente en GitHub", "page_source": "La fuente de esta página",
+        "linkedin": "{author} en LinkedIn", "data": "Datos e imágenes.",
+        "data_marker": "**Datos e imágenes.**", "appendix": "Apéndice", "sticky_download": "Descarga el EPUB",
+        "sticky_read": "Léelo en línea", "switch": "Idioma",
+    },
+}
+
+
+def w(key: str) -> str:
+    return WORDS[S.LANG][key]
+
+
+def lang_switch() -> str:
+    """EN | ES: this page in the other language, the current one marked."""
+    links = []
+    for lang, label, name in (("en", "EN", "English"), ("es", "ES", "Español")):
+        if lang == S.LANG:
+            links.append(f'<span lang="{lang}" aria-current="true" title="{name}">{label}</span>')
+        else:
+            href = "es/" if lang == "es" else "../"
+            links.append(f'<a href="{href}" hreflang="{lang}" lang="{lang}" title="{name}">{label}</a>')
+    return (f'<nav class="lang-switch" aria-label="{w("switch")}">'
+            + ' <span aria-hidden="true">|</span> '.join(links) + "</nav>")
+
 ICON = {
     "down": '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14"/></svg>',
     "right": '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6-6m6 6-6 6"/></svg>',
@@ -29,19 +78,23 @@ def raw(markup: str) -> None:
 
 
 def size(rel: str) -> tuple[int, int]:
-    with Image.open(S.ROOT / "ebook" / rel) as im:
+    """An image's size; rel is relative to the page's folder (../media/ for shared media)."""
+    with Image.open((S.ROOT / S.PAGE_DIR / rel).resolve()) as im:
         return im.size
 
 
 def cta_buttons(size_text: str, where: str) -> str:
     return f"""<div class="ctas">
-  <a class="btn primary" href="{S.EPUB_URL}" data-where="{where}">{ICON["down"]}<span>Download the EPUB</span><span class="size">{size_text}</span></a>
-  <a class="btn secondary" href="{S.BOOK_URL}">Read online, free{ICON["right"]}</a>
+  <a class="btn primary" href="{S.EPUB_URL}" data-where="{where}">{ICON["down"]}<span>{w("download")}</span><span class="size">{size_text}</span></a>
+  <a class="btn secondary" href="{S.BOOK_URL}">{w("read")}{ICON["right"]}</a>
 </div>"""
 
 
-INAPP = ('<p class="inapp" hidden>In LinkedIn’s browser? If the download does not start, open '
-         "this page in your phone’s browser from LinkedIn’s menu.</p>")
+def inapp() -> str:
+    return f'<p class="inapp" hidden>{w("inapp")}</p>'
+
+
+
 
 
 # ---- 1. hero -------------------------------------------------------------------------------
@@ -57,16 +110,17 @@ def hero(promise: str, size_text: str) -> str:
       alt="{e(S.cover_desc())}">
   </a>
   <div class="hero-head">
-    <p class="eyebrow">A practitioner’s guide</p>
+    {lang_switch()}
+    <p class="eyebrow">{w("eyebrow")}</p>
     <h1>{title}</h1>
   </div>
   <div class="hero-body">
     <p class="subtitle">{e(m["subtitle"])}</p>
     <p class="promise">{e(promise)}</p>
-    <p class="byline">Free · by {e(m["author"])} · PhD, Oxford</p>
+    <p class="byline">{e(w("byline").format(author=m["author"]))}</p>
     {cta_buttons(size_text, "hero")}
-    {INAPP}
-    <ul class="badges" aria-label="Editions"><li>EPUB</li><li>Web</li><li class="plain">no sign-up</li></ul>
+    {inapp()}
+    <ul class="badges" aria-label="{w("editions")}"><li>EPUB</li><li>{w("web")}</li><li class="plain">{w("nosignup")}</li></ul>
     {hero_qr()}
   </div>
 </div>
@@ -78,15 +132,17 @@ def hero_qr() -> str:
 
     It is the deck's 📖 Get the Book code, assets/ebook-qr.svg (scripts/deck_qr.py), inlined;
     the render stops if that code no longer opens this page."""
-    svg = S.read("assets/ebook-qr.svg").strip()
+    qr = "assets/ebook-qr.svg" if S.LANG == "en" else f"{S.PAGE_DIR}/media/qr.svg"
+    svg = S.read(qr).strip()
     if f"<title>QR code: {S.PAGE_URL}</title>" not in svg:
-        raise ValueError(f"assets/ebook-qr.svg does not open {S.PAGE_URL}: run scripts/deck_qr.py")
+        raise ValueError(f"{qr} does not open {S.PAGE_URL}: run scripts/deck_qr.py "
+                         "(or scripts/ebook_media.py qr for the Spanish page)")
     svg = svg.replace("<title>", '<title id="qr-title">', 1).replace(
         "<svg ", '<svg role="img" aria-labelledby="qr-title" ', 1)
     short = S.PAGE_URL.split("://", 1)[1].rstrip("/")
     return f"""<figure class="hero-qr">
       {svg}
-      <figcaption><strong>Scan to open this page</strong><span>{e(short)}</span></figcaption>
+      <figcaption><strong>{w("scan")}</strong><span>{e(short)}</span></figcaption>
     </figure>"""
 
 
@@ -96,9 +152,10 @@ def loop_svg() -> str:
     c = S.cover()
     fan = {f["name"]: f["colour"] for f in c["fan"]}
     cx, cy, r, nr = 220, 196, 136, 54
-    nodes = [("Prompt", -90, fan["html"], "you ask"),
-             ("Check", 30, fan["pdf"], "you, always"),
-             ("Publish", 150, fan["epub"], "Quarto")]
+    (p1, w1), (p2, w2), (p3, w3) = w("loop")
+    nodes = [(p1, -90, fan["html"], w1),
+             (p2, 30, fan["pdf"], w2),
+             (p3, 150, fan["epub"], w3)]
     ring = f"M{cx},{cy - r} A{r},{r} 0 0 1 {cx},{cy + r} A{r},{r} 0 0 1 {cx},{cy - r}"
     parts = [f'<path class="ring" d="{ring}" pathLength="300"/>',
              f'<path class="comet" d="{ring}" pathLength="300"/>']
@@ -113,12 +170,13 @@ def loop_svg() -> str:
         t = math.radians(a)
         x, y = cx + r * math.cos(t), cy + r * math.sin(t)
         ring2 = (f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{nr + 7}" class="halo" stroke="{colour}"/>'
-                 if label == "Check" else "")
+                 if i == 1 else "")
         parts.append(f'<g class="node n{i}">{ring2}<circle cx="{x:.1f}" cy="{y:.1f}" r="{nr}" '
                      f'stroke="{colour}"/><text x="{x:.1f}" y="{y + 2:.1f}" class="lbl">{label}</text>'
                      f'<text x="{x:.1f}" y="{y + 22:.1f}" class="who" fill="{colour}">{who}</text></g>')
-    parts.append(f'<text x="{cx}" y="{cy - 4}" class="mid">small steps,</text>'
-                 f'<text x="{cx}" y="{cy + 20}" class="mid">each one checked</text>')
+    mid1, mid2 = w("mid")
+    parts.append(f'<text x="{cx}" y="{cy - 4}" class="mid">{mid1}</text>'
+                 f'<text x="{cx}" y="{cy + 20}" class="mid">{mid2}</text>')
     return (f'<svg class="loop-svg" data-draw viewBox="0 0 440 400" aria-hidden="true" '
             f'focusable="false">{"".join(parts)}</svg>')
 
@@ -202,12 +260,12 @@ def fan(formats: list[dict]) -> str:
 
 def clip(name: str, gif: str) -> str:
     fig = S.gif_figure(gif)
-    w, h = size(f"media/{name}.webp")
+    width, height = size(f"{S.SHARED}{name}.webp")
     return f"""<figure class="clip">
   <div class="frame">
-    <img src="media/{name}.webp" loading="lazy" decoding="async" width="{w}" height="{h}" alt="{e(fig["alt"])}">
-    <video muted loop playsinline preload="none" data-src="media/{name}.mp4" width="{w}" height="{h}" aria-hidden="true" tabindex="-1"></video>
-    <button class="pause" type="button" hidden aria-pressed="false">Pause</button>
+    <img src="{S.SHARED}{name}.webp" loading="lazy" decoding="async" width="{width}" height="{height}" alt="{e(fig["alt"])}">
+    <video muted loop playsinline preload="none" data-src="{S.SHARED}{name}.mp4" width="{width}" height="{height}" aria-hidden="true" tabindex="-1"></video>
+    <button class="pause" type="button" hidden aria-pressed="false">{w("pause")}</button>
   </div>
   <figcaption>{e(fig["caption"])}</figcaption>
 </figure>"""
@@ -246,7 +304,7 @@ def toc(t: dict) -> str:
     blocks = [f'<ul class="toc-solo">{"".join(_entry(c, True) for c in t["front"][:1])}</ul>']
     for p in t["parts"]:
         numbered = [c for c in p["chapters"] if c["label"]]
-        span = f'Chapters {numbered[0]["label"]}–{numbered[-1]["label"]}'
+        span = f'{w("chapters")} {numbered[0]["label"]}–{numbered[-1]["label"]}'
         blocks.append(f"""<details>
   <summary><span class="pl">{e(p["label"])}</span><span class="pt">{e(p["title"])}</span><span class="pc">{span}</span></summary>
   <ul>{"".join(_entry(c) for c in p["chapters"])}</ul>
@@ -254,7 +312,7 @@ def toc(t: dict) -> str:
     blocks.append(f'<ul class="toc-solo">{"".join(_entry(c, True) for c in t["back"])}</ul>')
     a = t["appendices"]
     blocks.append(f"""<details>
-  <summary><span class="pl">{a[0]["label"]}–{a[-1]["label"]}</span><span class="pt">Appendices</span><span class="pc">{e(a[0]["title"])} … {e(a[-1]["title"])}</span></summary>
+  <summary><span class="pl">{a[0]["label"]}–{a[-1]["label"]}</span><span class="pt">{w("appendices")}</span><span class="pc">{e(a[0]["title"])} … {e(a[-1]["title"])}</span></summary>
   <ul>{"".join(_entry(c) for c in a)}</ul>
 </details>""")
     return f'<div class="toc">{"".join(blocks)}</div>'
@@ -265,10 +323,10 @@ def toc(t: dict) -> str:
 def inside(items: list[dict]) -> str:
     figs = []
     for it in items:
-        w, h = size(f"media/{it['img']}")
-        extra = f'<span class="alt"><b>Alt text:</b> {e(it["alt_shown"])}</span>' if it.get("alt_shown") else ""
+        width, height = size(f"media/{it['img']}")
+        extra = f'<span class="alt"><b>{w("alt")}</b> {e(it["alt_shown"])}</span>' if it.get("alt_shown") else ""
         figs.append(f"""<figure class="shot {it.get('cls', '')}">
-  <a href="{e(it['href'])}"><img src="media/{it['img']}" loading="lazy" decoding="async" width="{w}" height="{h}" alt="{e(it['alt'])}"></a>
+  <a href="{e(it['href'])}"><img src="media/{it['img']}" loading="lazy" decoding="async" width="{width}" height="{height}" alt="{e(it['alt'])}"></a>
   <figcaption>{it['caption']}{extra}</figcaption>
 </figure>""")
     return f'<div class="shots">{"".join(figs)}</div>'
@@ -279,8 +337,8 @@ def inside(items: list[dict]) -> str:
 def share_row() -> str:
     li = "https://www.linkedin.com/sharing/share-offsite/?url=" + urlquote(S.PAGE_URL, safe="")
     return f"""<div class="share">
-  <a class="btn ghost" href="{li}" target="_blank" rel="noopener">{ICON["share"]}Share on LinkedIn</a>
-  <button class="btn ghost" type="button" data-copy="{S.PAGE_URL}">{ICON["link"]}<span>Copy link</span></button>
+  <a class="btn ghost" href="{li}" target="_blank" rel="noopener">{ICON["share"]}{w("share")}</a>
+  <button class="btn ghost" type="button" data-copy="{S.PAGE_URL}">{ICON["link"]}<span>{w("copy")}</span></button>
   <span class="copied" role="status" aria-live="polite"></span>
 </div>"""
 
@@ -289,18 +347,18 @@ def footer() -> str:
     m, t = S.meta(), S.contents()
     g = next(a for a in t["appendices"] if a["label"] == "G")
     # The copyright page's credits, word for word; its cross-reference becomes a link.
-    credits = e(S.paragraph_after("book/copyright.qmd", "**Data and images.**")).replace(
-        "@sec-sources", f'<a href="{e(g["href"])}">Appendix G, {e(g["title"])}</a>')
+    credits = e(S.paragraph_after(f"{S.BOOK_DIR}/copyright.qmd", w("data_marker"))).replace(
+        "@sec-sources", f'<a href="{e(g["href"])}">{w("appendix")} G, {e(g["title"])}</a>')
     return f"""<footer class="foot">
 <div class="wrap">
-  <p>{e(m["rights"])} · <a href="{S.REPO}">Source on GitHub</a> · <a href="{S.REPO}/blob/main/ebook/index.qmd">This page’s source</a> · <a href="{e(S.author_linkedin())}">{e(m["author"])} on LinkedIn</a></p>
-  <p><b>Data and images.</b> {credits}</p>
+  <p>{e(m["rights"])} · <a href="{S.REPO}">{w("source")}</a> · <a href="{S.REPO}/blob/main/{S.PAGE_DIR}/index.qmd">{w("page_source")}</a> · <a href="{e(S.author_linkedin())}">{e(w("linkedin").format(author=m["author"]))}</a> · {lang_switch()}</p>
+  <p><b>{w("data")}</b> {credits}</p>
 </div>
 </footer>"""
 
 
 def sticky(size_text: str) -> str:
     return f"""<div class="sticky" hidden>
-  <a class="btn primary" href="{S.EPUB_URL}" data-where="sticky">{ICON["down"]}<span>Download EPUB</span><span class="size">{size_text}</span></a>
-  <a class="btn secondary" href="{S.BOOK_URL}">Read online</a>
+  <a class="btn primary" href="{S.EPUB_URL}" data-where="sticky">{ICON["down"]}<span>{w("sticky_download")}</span><span class="size">{size_text}</span></a>
+  <a class="btn secondary" href="{S.BOOK_URL}">{w("sticky_read")}</a>
 </div>"""

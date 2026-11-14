@@ -1,0 +1,401 @@
+---
+pagetitle: "Pide, revisa, publica: un libro electrónico gratuito de Ravi Kalia"
+# Quarto writes this into the share tags too; the setup cell checks it against book-es/_quarto.yml.
+description: "Libro electrónico gratuito. Una guía práctica de publicación reproducible: escribe una sola vez en Markdown, deja que un asistente de programación escriba el código, revisa su trabajo y reconstruye una sola fuente como página web, Word, PDF, diapositivas, libro electrónico, sitio web, blog y dashboard."
+lang: es
+# The Spanish landing page, for the Spanish edition (book-es/). Like the English page
+# (ebook/index.qmd), every number, the contents and the quotations are read from the book's
+# source by ../_source.py, here after S.use("es"). Its own media are in media/; fonts, icons and
+# clips are the English page's (../media/). `make ebook-media EDITION=es` remakes them.
+format:
+  html:
+    minimal: true
+    page-layout: custom
+    css: ../ebook.css
+    include-in-header: _head.html
+    include-after-body:
+      - text: '<script src="../ebook.js"></script>'
+execute:
+  echo: false
+resources:
+  - media/*
+---
+
+```{python}
+#| label: setup
+import re
+import sys
+
+sys.path.insert(0, "..")
+from IPython.display import Markdown
+
+import _source as S
+
+S.use("es")
+from _parts import raw  # noqa: E402
+import _parts as P  # noqa: E402
+
+
+def link(text: str, href: str) -> Markdown:
+    """A Markdown link for an inline expression (a link target cannot hold one)."""
+    return Markdown(f"[{text}]({href})")
+
+
+m = S.meta()
+formats = S.format_links()
+n_formats = S.words(len(formats))
+size = S.epub_size()
+toc = S.contents()
+london = S.london_top()
+water = S.water_span()
+cost, cost_checked = S.assistant_cost()
+accounts, accounts_checked = S.assistant_accounts()
+chart = S.cell_figure("book-es/chapters/05-compute.qmd", "fig-ldn-top10")
+appx = {a["label"]: a for a in toc["appendices"]}
+parts = toc["parts"]
+ch2, ch3 = S.chapter("02-assistant"), S.chapter("03-setup")
+
+# The page's <head> and its <title> must agree with the book (scripts/ebook_media.py writes it).
+S.check_head()
+header = S.read("ebook/es/index.qmd")
+if (re.search(r'^pagetitle: "(.+)"$', header, re.M).group(1),
+        re.search(r'^description: "(.+)"$', header, re.M).group(1)) != S.share_text():
+    raise ValueError("pagetitle or description no longer matches book-es/_quarto.yml (_source.share_text)")
+
+# Wording the page quotes, which must still be the book's.
+PREFACE = "book-es/index.qmd"
+LOOP = [
+    ("Pide", "Describe una pequeña tarea para un asistente de programación, con sus archivos y "
+             "columnas por su nombre."),
+    ("Revisa", "Lee lo que cambió, mira el resultado, compáralo con los datos. Un asistente puede ser "
+               "elocuente, rápido y estar equivocado, así que este paso nunca se salta, y siempre te "
+               "toca a ti."),
+    ("Publica", "Quarto reconstruye cada salida desde la fuente revisada, siempre de la misma manera."),
+]
+# What you need: the preface's list, one item per phrase it joins with commas and "y".
+NEEDS = ["Una computadora en la que puedas instalar software: Windows, Mac o Linux.",
+         "Una cuenta gratuita de [GitHub](https://github.com/signup).",
+         "Una cuenta con un asistente de programación."]
+NEEDS_QUOTED = ("una computadora en la que puedas instalar software (Windows, Mac o Linux), "
+                "una cuenta gratuita de GitHub y una cuenta con un asistente de programación")
+if len(re.split(r", (?![^()]*\))| y (?=una )", NEEDS_QUOTED)) != len(NEEDS):
+    raise ValueError("the preface's list of what you need no longer matches NEEDS")
+S.quote(PREFACE, "una pequeña tarea, con sus archivos y columnas por su nombre",
+        "lees lo que cambió, miras el resultado y lo comparas con los datos",
+        "Un asistente puede ser elocuente, rápido y estar equivocado, así que este paso nunca se salta, y siempre te toca a ti",
+        "reconstruye cada salida desde la fuente revisada, siempre de la misma manera",
+        "No se da por sentado que sepas programar",
+        NEEDS_QUOTED,
+        "el prompt exacto que le das a tu asistente, lo que probablemente ejecutará y las pocas cosas que solo tú puedes hacer",
+        "una página web, un informe en Word para los socios, un folleto impreso, un dashboard para la gerencia y un sitio web publicado",
+        "publicas el análisis como informe, diapositivas, entrada de blog y sitio web, todo desde un solo script de análisis")
+S.quote("book-es/about-author.qmd", "doctorado", "Universidad de Oxford", "edición escrita")
+HOURS = "seis horas"  # the workshop's length, as Appendix I words it
+S.quote("book-es/appendices/i-workshop.qmd", f"taller práctico de {HOURS}")
+S.quote("book-es/copyright.qmd", "se consultaron en las fechas que da el texto y van a cambiar")
+# The contents' introduction names the first and last appendices.
+if not (appx["A"]["title"].startswith("Windows") and appx["J"]["title"] == "Glosario"):
+    raise ValueError("the appendices changed: reword the contents' introduction")
+```
+
+```{python}
+#| output: asis
+raw(P.hero(f"Escribe una sola vez. Deja que un asistente escriba el código. Revísalo. Publica en {n_formats} formatos.", size))
+```
+
+::: {#main .page}
+
+::: {.band #loop}
+::: {.wrap}
+[El método]{.eyebrow}
+
+## Un ciclo, en cada paso {#the-loop}
+
+Tú pides, tú revisas, Quarto reconstruye. Cada paso práctico del libro da una vuelta a este
+ciclo, así que un error se detecta mientras todavía es pequeño.
+
+```{python}
+#| output: asis
+raw(P.loop(LOOP))
+```
+:::
+:::
+
+::: {.band .alt #formats}
+::: {.wrap}
+[Una sola fuente]{.eyebrow}
+
+## Un archivo `.qmd`, `{python} n_formats` salidas {#one-source}
+
+El abanico de la cubierta es la promesa del libro: una sola fuente de texto plano, reconstruida
+en cada formato con un solo comando. Cada línea de abajo lleva a un ejemplo real.
+
+```{python}
+#| output: asis
+raw(P.fan(formats))
+```
+:::
+:::
+
+::: {.band #build}
+::: {.wrap}
+[Dos proyectos reales]{.eyebrow}
+
+## Lo que vas a construir {#what-youll-build}
+
+Los dos usan datos reales y citados: nada de tablas de juguete que se hacen pasar por
+investigación.
+
+```{python}
+#| output: asis
+fan = {f["name"]: f["colour"] for f in formats}
+ch6 = S.chapter("06-audiences")["href"]
+ch11 = S.chapter("11-cluster")["href"]
+raw('<div class="cards">' + P.card(
+    fan["html"], f"{parts[1]['label']} · Londres", "Una guía para visitantes de Londres",
+    f"{london['visits']:,}",
+    f"visitas en {london['year']} al {london['name']}, la mayor cantidad entre las "
+    f"{S.words(london['n'])} atracciones miembro de ALVA más visitadas de Londres",
+    "Una sola guía se convierte en una página web, un informe en Word para los socios, un folleto "
+    "impreso, un dashboard para la gerencia y un sitio web publicado.",
+    P.clip("london-map", "london-map-orbit"),
+    [("Gira el mapa 3-D en vivo", f"{ch6}#sec-london-3d"), (f"Lee la {parts[1]['label']}", parts[1]["href"])],
+) + P.card(
+    fan["epub"], f"{parts[2]['label']} · Colombia", "El riesgo del agua potable en Colombia",
+    f"{water['codes']:,}",
+    f"municipios y áreas, cada una de las entradas de la DIVIPOLA del DANE, urbanas y rurales, "
+    f"{water['first']}–{water['last']}",
+    "Agrupa las zonas municipales en tipos con k-means, compara la salud y la educación entre ellos "
+    "y publica el análisis como informe, diapositivas, entrada de blog y sitio web, todo desde un "
+    "solo script de análisis.",
+    P.clip("colombia-relief", "colombia-relief-orbit"),
+    [("Recorre k-means paso a paso", f"{ch11}#sec-kmeans-steps"), (f"Lee la {parts[2]['label']}", parts[2]["href"])],
+) + "</div>")
+```
+
+::: {.made}
+### Esta página se construyó como enseña el libro {#how-this-page-was-made}
+
+Esta página es un documento de Quarto. Cuando se construye, el código lee los datos, la lista de
+capítulos y la cubierta del libro, así que cada número que aparece en ella, el contenido de más
+abajo y el abanico de formatos de más arriba salen de la fuente del libro, no de escribirlos a
+mano. Cambia los datos, reconstruye, y la página cambia con ellos. Esta es la función detrás de la
+cifra de Londres:
+
+```{python}
+#| output: asis
+raw(P.code(S.london_top))
+```
+
+[La fuente de esta página](https://github.com/project-delphi/quarto-workshop/blob/main/ebook/es/index.qmd){.arrow}
+[El código que lee el libro](https://github.com/project-delphi/quarto-workshop/blob/main/ebook/_source.py){.arrow}
+:::
+:::
+:::
+
+::: {.band .alt #who}
+::: {.wrap .two}
+::: {}
+[Para quién es]{.eyebrow}
+
+## No hace falta saber programar {#who-its-for}
+
+```{python}
+#| output: asis
+raw('<ul class="pills">' + "".join(f"<li>{a[0].upper() + a[1:]}</li>" for a in S.audiences())
+    + "</ul>")
+```
+
+Cualquiera que trabaje con datos o código y necesite compartir los resultados. No se da por
+sentado que sepas programar: el libro explica el Python que escribe el asistente, pero no tienes
+que escribirlo tú.
+:::
+
+::: {}
+[Lo que necesitas]{.eyebrow}
+
+## `{python} S.words(len(NEEDS)).capitalize()` cosas {#what-you-need}
+
+```{python}
+#| output: asis
+print("\n".join(f"{i}. {item}" for i, item in enumerate(NEEDS, 1)))
+```
+
+[Una nota honesta sobre el costo: `{python} cost` (consultado el `{python} cost_checked`).
+El `{python} link(ch3["name"], ch3["href"] + "#sec-before-setup")` enumera lo que necesita cada asistente.]{.note}
+:::
+:::
+:::
+
+::: {.band #contents}
+::: {.wrap .narrow}
+[Contenido]{.eyebrow}
+
+## `{python} S.words(toc["chapters"]).capitalize()` capítulos en `{python} S.words(len(toc["parts"]))` partes {#table-of-contents}
+
+Más `{python} S.words(len(toc["appendices"]))` apéndices, de la preparación en Windows a un
+glosario. Cada entrada abre en la edición web.
+
+```{python}
+#| output: asis
+raw(P.toc(toc))
+```
+:::
+:::
+
+::: {.band .alt #inside}
+::: {.wrap}
+[Dentro del libro]{.eyebrow}
+
+## Cómo es una página {#inside-the-book}
+
+```{python}
+#| output: asis
+ch4, ch5 = S.chapter("04-markdown"), S.chapter("05-compute")
+raw(P.inside([
+    {"img": "inside-box.webp", "href": f"{ch5['href']}#sec-yaml",
+     "alt": f"Un recuadro de tres partes del {ch5['name']}: Pídele a tu asistente, con el prompt; Probablemente ejecute; Tú haces.",
+     "caption": "Cada paso práctico es un recuadro de tres partes: el prompt exacto que le das a tu "
+                "asistente, lo que probablemente ejecutará y las pocas cosas que solo tú puedes hacer."},
+    {"img": "inside-catch-up.webp", "href": f"{ch4['href']}#sec-catch-up",
+     "alt": f"Un recuadro Pruébalo del {ch4['name']} que termina con un prompt de una línea para ponerse al día, que nombra el README de un punto de control.",
+     "caption": "¿Dos minutos sin avanzar? Una línea a tu asistente lleva el proyecto al punto de "
+                "control del capítulo, y sigues desde ahí."},
+    {"img": "inside-chart.webp", "href": f"{ch5['href']}#fig-ldn-top10", "alt": chart["alt"],
+     "caption": f"{chart['caption']} Cada gráfico tiene un pie de figura y un texto alternativo, que dicen cosas distintas.",
+     "alt_shown": chart["alt"]},
+    {"img": "inside-epub.webp", "href": S.EPUB_URL, "cls": "phone",
+     "alt": f"El EPUB en un teléfono en modo nocturno, abierto en el {ch5['name']}, que cita {london['visits']:,} visitas.",
+     "caption": f"El EPUB de noche en un teléfono. El {ch5['name']} abre con las mismas {london['visits']:,} "
+                "visitas, calculadas a partir del mismo archivo."},
+]))
+```
+:::
+:::
+
+::: {.band #workshop}
+::: {.wrap .narrow}
+[El taller]{.eyebrow}
+
+## Dalo como un taller de `{python} HOURS` {#the-workshop}
+
+El libro es la edición escrita de un taller práctico de `{python} HOURS`. Sus diapositivas, en
+inglés, están en línea, y sus ejemplos resueltos y sus puntos de control para ponerse al día están
+en el repositorio, así que puedes seguirlo por tu cuenta o enseñarlo.
+
+```{python}
+#| output: asis
+raw('<p class="links">' + "".join(
+    f'<a href="{P.e(h)}">{P.e(t)}{P.ICON["right"]}</a>' for t, h in [
+        ("Las diapositivas del taller", S.DECK_URL), ("El repositorio de GitHub", S.REPO),
+        ("Los puntos de control", f"{S.REPO}/tree/main/checkpoints"),
+        (f"Apéndice I: {appx['I']['title']}", appx["I"]["href"])]) + "</p>")
+```
+:::
+:::
+
+::: {.band .alt #author}
+::: {.wrap .narrow}
+[Sobre Ravi Kalia]{.eyebrow}
+
+## `{python} m["author"]` {#about-the-author}
+
+```{python}
+#| output: asis
+print(S.about_author())
+raw(f'<p><a class="arrow" href="{P.e(S.author_linkedin())}">{P.e(m["author"])} en LinkedIn{P.ICON["right"]}</a></p>')
+```
+:::
+:::
+
+::: {.band #faq}
+::: {.wrap .narrow}
+[Preguntas]{.eyebrow}
+
+## Antes de descargarlo {#faq-heading}
+
+<details>
+<summary>¿De verdad es gratis?</summary>
+
+Sí. Descarga el EPUB o lee la edición web: no hay que registrarse ni dar ningún correo.
+
+</details>
+
+<details>
+<summary>¿Qué asistente necesito?</summary>
+
+Un asistente de programación. `{python} accounts` (consultado el `{python} accounts_checked`).
+El `{python} link(ch2["name"], ch2["href"] + "#sec-choose")` explica cómo elegir, y
+`{python} link("cuánto cuesta una conversación", ch2["href"] + "#sec-cost")`.
+
+</details>
+
+<details>
+<summary>¿Funciona en Windows?</summary>
+
+Sí: Windows, Mac o Linux. En Windows primero instalas Ubuntu con WSL; el
+`{python} link("Apéndice A", appx["A"]["href"])` y la
+[página de Windows](../../windows-setup.html) del taller, en inglés, te guían, un paso revisado a
+la vez.
+
+</details>
+
+<details>
+<summary>¿Qué tan actualizado está?</summary>
+
+La primera edición en español, de `{python} S.month_year(m["date"])`, se revisó con Quarto
+`{python} S.checked_with()`. Los precios, las versiones, las pantallas y los planes llevan la fecha
+en que se consultaron, y van a cambiar.
+
+</details>
+
+<details>
+<summary>¿Puedo enseñar con él?</summary>
+
+Sí: enseña con el libro y las diapositivas gratuitos, enlázalos y sigue el
+`{python} link("Apéndice I", appx["I"]["href"])` para dar el taller. Para copiar o adaptar el
+material, [pide permiso antes](https://github.com/project-delphi/quarto-workshop/issues).
+
+</details>
+
+<details>
+<summary>¿Cómo se escribió?</summary>
+
+Con un asistente de programación con IA, como enseña el libro. De la declaración de uso de IA del
+libro:
+
+> `{python} S.ai_statement()`
+
+</details>
+
+<details>
+<summary>¿Hay una edición en inglés?</summary>
+
+Sí: este libro es la traducción de *Prompt, Check, Publish*, que tiene
+[su propia página](../), su edición web y su EPUB, con el mismo código, los mismos datos y los
+mismos números.
+
+</details>
+:::
+:::
+
+::: {.band .final #get}
+::: {.wrap .narrow}
+## Consigue el libro {#get-the-book}
+
+Gratis. El EPUB para tu lector de libros electrónicos, o la edición web con las escenas 3-D en
+vivo.
+
+```{python}
+#| output: asis
+raw(P.cta_buttons(size, "final") + P.inapp() + P.share_row())
+```
+:::
+:::
+
+:::
+
+```{python}
+#| output: asis
+raw(P.footer() + P.sticky(size))
+```

@@ -1,0 +1,456 @@
+# La pregunta, los datos y las reglas {#sec-water-question}
+
+```{python}
+#| label: ch8-setup
+from scripts import water as w
+from scripts.prose import number_words, spans, text_holds
+
+raw = w.raw()
+n_rows, n_cols = raw.shape
+n_codes = raw["divipola"].nunique()
+first, last = int(raw["year"].min()), int(raw["year"].max())
+n_entities = raw.drop_duplicates("divipola")["entity_type"].value_counts()
+n_munis = int(n_entities.get("municipality", 0))
+n_feat = len(w.A.FEATURES)
+n_out = len(w.A.OUTCOMES)
+WORD = number_words()
+pop = raw[raw["year"] == last].groupby("zone")["population"].sum()
+rural_pop, rural_share = pop["rural"] / 1e6, pop["rural"] / pop.sum()
+idf_last = int(raw.loc[raw["idf"].notna(), "year"].max())
+idf_new_first = int(raw.loc[raw["idf_new"].notna(), "year"].min())
+
+# The variables of Part III (@tbl-water-features, @tbl-water-outcomes). Meanings, units and
+# sources are from data/README.md; each variable's level and years are computed from the
+# municipalities' rows.
+munis = raw[raw["entity_type"] == "municipality"]
+
+
+def level(col: str) -> str:
+    """"zone" if a municipality's urban and rural rows ever differ, else "municipality"."""
+    p = munis.pivot_table(index=["divipola", "year"], columns="zone", values=col, aggfunc="first")
+    p = p.dropna()
+    return "zona" if (p["urban"] != p["rural"]).any() else "municipio"
+
+
+def static(col: str) -> bool:
+    """One value for each municipality and zone, repeated in every year."""
+    return bool(munis.groupby(["divipola", "zone"])[col].nunique().le(1).all())
+
+
+FEATURE_ROWS = [  # name, column, what it measures (unit); source
+    ("IRCA", "irca", "índice de riesgo del agua, de prestadores (0–100); INS"),
+    ("Acueducto", "water_coverage", "cobertura de acueducto (%); TerriData"),
+    ("Alcantarillado", "sewer_coverage", "cobertura de alcantarillado (%); TerriData"),
+    ("Pobreza", "ipm", "personas en pobreza multidimensional (%); censo de 2018"),
+    ("Proporción rural", "rural_share", "proporción rural de la población (0–1); DANE"),
+    ("Altitud", "altitude_m", "la altura de la cabecera (m); SRTM"),
+    ("Precipitación", "rainfall_mm", "lluvia sobre el municipio (mm al año); CHIRPS"),
+    ("MDM", "mdm", "puntaje de desempeño municipal (0–100); TerriData"),
+    ("SGP", "sgp_water_pc", "transferencias para agua (pesos corrientes por persona, en logaritmo); TerriData, DANE"),
+]
+OUTCOME_ROWS = [
+    ("Mortalidad infantil", "infant_mortality", "muertes de menores de un año por cada 1,000 nacidos vivos; TerriData"),
+    ("Saber 11", "saber11_mean", "puntaje medio del examen en los colegios de la zona (0–500); ICFES"),
+    ("Deserción escolar", "dropout_rate", "estudiantes de colegios públicos que se retiran durante el año (%); MEN"),
+]
+VAR_LEVEL = {c: level(c) for _, c, _ in FEATURE_ROWS + OUTCOME_ROWS}
+features_raw = [c for _, c, _ in FEATURE_ROWS]
+if features_raw != w.A.RAW_FEATURES or [c for _, c, _ in OUTCOME_ROWS] != list(w.A.OUTCOMES):
+    raise ValueError("the analysis's features or outcomes changed: rewrite @tbl-water-features")
+n_mun_feat = sum(VAR_LEVEL[c] == "municipio" for c in features_raw)
+# The prose names IRCA and coverage as zone variables, rainfall and infant mortality as municipal.
+text_holds(all(VAR_LEVEL[c] == "zona" for c in ("irca", "water_coverage", "sewer_coverage"))
+           and VAR_LEVEL["rainfall_mm"] == VAR_LEVEL["infant_mortality"] == "municipio",
+           "zone and municipal variables")
+
+
+def level_years(col: str) -> str:
+    lvl = VAR_LEVEL[col]
+    if static(col):
+        return f"{lvl}; un solo valor"
+    return f"{lvl}; {spans(munis.loc[munis[col].notna(), 'year'].unique())}"
+```
+
+En 2023, el informe nacional de Colombia sobre el agua para consumo humano le dio al agua de sus
+zonas urbanas un 5.7, en el nivel de riesgo bajo, y al agua de sus zonas rurales un 36.5, en el
+nivel de riesgo alto (@tbl-irca-bands). Las proyecciones del DANE ubican a
+`{python} f"{rural_pop:.1f}"` millones de personas, el `{python} f"{rural_share:.0%}"` de la
+población, en zonas rurales en `{python} last`. La gente bebe y cocina con esta agua, así que vale
+la pena saber dónde está el riesgo y qué lo acompaña.
+
+La pregunta de esta parte es, entonces: **¿qué tipos de zona municipal existen en Colombia, a
+juzgar por la calidad del agua, los servicios y el contexto, y en qué se diferencian entre ellos
+los resultados de salud y de educación?** Los números de la Parte II eran conteos simples; estos no.
+Cada paso tiene una forma de salir mal que un renderizado limpio no va a revelar: una variable que
+significa algo más estrecho que su nombre, un vacío que no es aleatorio, una comparación que parece
+causal y no lo es.
+
+::: opener
+- Explicar qué mide el IRCA, y por qué el IRCA de esta parte subestima el riesgo.
+- Identificar la unidad de análisis, y decir qué significa una celda vacía.
+- Distinguir las características de las variables de resultado, y explicar por qué agrupar según
+  una variable de resultado es circular.
+- Preparar los datos, las reglas y el entorno del proyecto del agua.
+
+Partes de
+: `~/quarto-workshop/`, clonado en el Capítulo 3. No hace falta la guía de Londres.
+
+Construyes
+: `~/water-quality/`, con `data/`, `AGENTS.md` y un entorno de uv.
+
+Punto de control
+: Ninguno aquí: el recuadro para ponerte al día al final del @sec-explore cubre los dos capítulos.
+:::
+
+## La pregunta y sus lectores {#sec-water-the-question}
+
+La pregunta se divide en dos, y el orden importa:
+
+1. **¿Qué tipos de zona municipal existen**, a juzgar por la calidad del agua, los servicios y el
+   contexto?
+2. **¿En qué se diferencian los resultados de salud y de educación** entre esos tipos?
+
+Los "tipos" van a ser *clústeres*: grupos de *zonas-año*, cada una la zona urbana o rural de un
+municipio en un año (@sec-water-data), que se parecen entre sí en las variables elegidas,
+encontrados por un algoritmo llamado k-means (@sec-cluster). Como la unidad es una zona en un año,
+las dos zonas de un municipio pueden pertenecer a tipos distintos, y una zona puede pasar de un tipo
+a otro con los años.
+
+La respuesta tiene dos lectores. Los funcionarios la van a leer como un informe, en Word o en PDF,
+y un concejo municipal la va a ver como una presentación corta (@sec-publish-many). Los dos van a
+buscar dónde actuar, y los dos van a tener la tentación de leer una diferencia entre tipos como un
+efecto del agua. Así que los límites se dicen desde ahora, cada uno con su razón. El puntaje del
+agua cubre solo los sistemas que opera un prestador (@sec-water-why). Muchas zonas rurales no tienen
+ningún puntaje, así que los resultados describen los sistemas que se
+muestrearon (@sec-water-bands). Y las comparaciones describen; no pueden establecer que el agua cause ninguna
+variable de resultado (@sec-causation).
+
+## Medir el riesgo del agua: el IRCA {#sec-water-why}
+
+Colombia mide la calidad del agua potable con el **IRCA**, el Índice de Riesgo de la Calidad del
+Agua para consumo humano, definido en la Resolución 2115 de 2007. Va de 0, todas las pruebas
+aprobadas, a 100, todas las pruebas reprobadas, y el artículo 15 divide la escala en cinco
+niveles (@tbl-irca-bands).
+
+| IRCA | Nivel | Cifras nacionales de 2023 que caen en él |
+|---|---|---|
+| 0–5 | sin riesgo | |
+| 5.1–14 | bajo | zonas urbanas 5.7; prestadores 7.4 |
+| 14.1–35 | medio | el país entero 16.4 |
+| 35.1–80 | alto | zonas rurales 36.5; autoabastecimiento 43.7 |
+| 80.1–100 | inviable sanitariamente | |
+
+: Los niveles de riesgo del IRCA (Resolución 2115 de 2007, art. 15) y dónde caen las cifras nacionales de 2023 (MinSalud, MinVivienda, INS y Superservicios, *INCA 2023*, Bogotá, enero de 2025, Tabla 4; ambos consultados el 2026-10-30). {#tbl-irca-bands}
+
+El promedio nacional cae en el nivel medio y esconde la brecha entre lo urbano y lo rural, y por
+eso los datos de esta parte mantienen separadas las dos zonas de cada municipio.
+
+::: why
+Las muestras de vigilancia del agua del grifo se analizan contra límites sanitarios. Cada
+característica analizada tiene un puntaje de riesgo: *Escherichia coli* 25, coliformes totales 15,
+turbiedad 15, cloro residual libre 15, color aparente 6 y pH 1.5, entre otras. El IRCA de una
+muestra es el puntaje de las características que no cumplen su límite, como porcentaje del puntaje
+de todas las analizadas, y el IRCA de un mes es la media de sus muestras (artículos 13 y 14). Por
+eso 0 significa que se aprobaron todas las pruebas y 100, que se reprobaron todas.
+:::
+
+::: pitfall
+El IRCA de los datos de esta parte no es la cifra nacional. La tabla abierta de la que viene (INS,
+datos.gov.co `nxt2-39c3`) contiene el IRCA *de prestadores*: muestras de sistemas que opera un
+prestador del servicio de agua. Una revisión del 2026-10-30, registrada en el README de los datos
+(advertencia 1), encontró que sus totales departamentales de 2023 coinciden con la columna de
+prestadores del INCA en 30 de 30 departamentos, y con la cifra total en solo 5. Los sistemas de
+autoabastecimiento, que no tienen prestador, puntúan mucho peor (43.7 frente a 7.4 en 2023), así
+que los datos subestiman el riesgo donde la gente depende del autoabastecimiento, y no dicen nada
+donde no existe un prestador. Llama a la variable "IRCA de prestadores" en todas partes donde
+aparezca.
+:::
+
+## Saber 11, y lo que cubre un promedio {#sec-water-measures}
+
+Una de las variables de resultado que compara el análisis (@sec-water-features) es una medida de
+educación, **Saber 11**, el examen nacional que presentan los estudiantes que terminan la educación
+media, a cargo del ICFES. Tiene cinco pruebas: lectura crítica, matemáticas, sociales y ciudadanas,
+ciencias naturales e inglés. El puntaje global es cinco veces la media ponderada de los puntajes de
+las cinco pruebas (cada uno de 0 a 100; inglés cuenta una vez y las demás, tres veces), de 0 a 500,
+y su media se fijó en 250 en la primera aplicación de 2014, para que los años se puedan comparar
+(ICFES, *Guía de orientación Saber 11.° 2017-1*, pp. 101 y 104, consultada el 2026-10-30).
+
+Las dos medidas son promedios, y un promedio describe solo aquello sobre lo que se promedió. El IRCA
+es un promedio de las muestras de agua tomadas, así que un sistema que nunca se muestrea no tiene
+ningún IRCA. La media de Saber 11 de los datos es un promedio de los estudiantes que presentaron el
+examen en colegios de ese municipio y esa zona, así que no dice nada de los estudiantes que habían
+dejado el colegio. Ten presentes los dos hechos en cada comparación que sigue.
+
+## De dónde vienen los datos {#sec-water-data}
+
+La mayoría de los datos son datos abiertos colombianos de cinco entidades públicas; la precipitación
+y la altitud vienen de dos conjuntos de datos científicos. Todos se *unen* por un solo código: unir
+dos tablas es emparejar sus filas por una columna que comparten, aquí el código que la lista de
+municipios del DANE, la **DIVIPOLA** (División Político-Administrativa), le asigna a cada municipio.
+Tiene cinco dígitos, dos para el departamento y tres para el municipio, así que `05001` es Medellín,
+en Antioquia (`05`). Las fuentes son:
+
+- **INS** (Instituto Nacional de Salud): los resultados de la vigilancia del IRCA.
+- **DANE** (Departamento Administrativo Nacional de Estadística): la lista de municipios y sus
+  códigos, las proyecciones de población y los límites municipales.
+- **ICFES** y **MEN** (Ministerio de Educación Nacional): los resultados de Saber 11 y las tasas de
+  deserción escolar.
+- **DNP** (Departamento Nacional de Planeación), a través de su portal TerriData: la cobertura de
+  acueducto y de alcantarillado, la pobreza multidimensional, el desempeño municipal, las
+  transferencias para agua y la mortalidad infantil.
+- **CHIRPS** (los datos de precipitación del Climate Hazards Center) y **SRTM de la NASA** (datos de
+  elevación): la precipitación y una altitud derivada para cada cabecera.
+
+Llegan como tres archivos, en `examples/water/data/` del repositorio del taller:
+`water_municipal.csv` (la tabla del análisis), `municipios.geojson` (los límites municipales para
+los mapas) y `README.md`, que documenta cada columna, fuente, licencia y advertencia (el
+@sec-sources las enumera todas).
+
+**Una fila es la zona urbana o rural de un municipio en un año**, una *zona-año*: esta es la unidad
+de análisis. La zona urbana es la cabecera municipal; la zona rural son los centros poblados más
+pequeños y el campo disperso. La tabla cubre cada una de las `{python} w.fmt(n_codes)` entradas de
+la DIVIPOLA del DANE, las dos zonas y cada año de `{python} first` a `{python} last`:
+`{python} w.fmt(n_rows)` filas y `{python} n_cols` columnas. De esas entradas,
+`{python} w.fmt(n_munis)` son municipios; el resto son la isla de San Andrés y áreas que no son
+municipios, cuyas filas están casi vacías. Como cada municipio tiene todas sus filas, un vacío es
+una celda vacía, nunca una fila que falta.
+
+::: think
+La zona rural de un municipio no tiene IRCA en un año. ¿Su agua era segura ese año?
+
+Los datos no pueden decirlo. El IRCA promedia las muestras tomadas de sistemas operados por
+prestadores, así que una celda vacía significa que no se publicó ningún puntaje de prestadores: puede
+que la zona no se haya muestreado, o que su agua sea de autoabastecimiento, que a nivel nacional
+puntúa mucho peor (@tbl-irca-bands). Un IRCA vacío es desconocido, nunca seguro y nunca cero.
+:::
+
+::: practice
+Lee `data/README.md` antes de analizar nada, y pídele al asistente que también lo lea primero. Sus
+advertencias son las trampas del análisis, por escrito: la fuente del IRCA de arriba; las capitales
+de departamento que no tienen una separación urbana y rural para la cobertura; un índice fiscal cuyo
+método cambia en `{python} idf_new_first`; la mortalidad infantil, cuyo método cambia en 2017;
+Saber 11 solo en algunos años; pesos que no están ajustados por inflación. Cada una aparece en los
+capítulos que siguen.
+:::
+
+## Características y variables de resultado {#sec-water-features}
+
+La decisión de diseño más importante de la Parte III es qué variables definen los tipos y cuáles
+solo los describen.
+
+Las **características**, que ve el agrupamiento, son `{python} WORD[n_feat]` variables sobre el
+agua, la gente y el lugar, y el gobierno. Las **variables de resultado**, que el análisis solo
+compara, son la mortalidad infantil, el puntaje de Saber 11 y la deserción escolar
+(@tbl-water-features, @tbl-water-outcomes). Tres características merecen un comentario. El Índice
+de Pobreza Multidimensional (IPM) es la proporción de las personas de una zona que son pobres en
+varios aspectos a la vez, según el censo de 2018. La MDM (Medición de Desempeño Municipal) es el
+puntaje del DNP sobre la gestión y los resultados de un municipio. Y el SGP (Sistema General de
+Participaciones) es el sistema de transferencias de la Nación a los municipios: la característica
+es su asignación para agua potable y saneamiento básico, por persona.
+
+Las dos tablas dan el nivel y los años de cada variable, calculados a partir de las filas de los
+municipios. Una variable de *zona* difiere entre las filas urbana y rural de un municipio; una
+*municipal* es igual en las dos; "un solo valor" se repite todos los años. Los significados, las
+unidades y las fuentes salen de `data/README.md` (TerriData es el portal de datos del DNP).
+
+```{python}
+#| label: tbl-water-features
+#| tbl-cap: "Las nueve características que ve el agrupamiento: tres sobre el agua, cuatro sobre la gente y el lugar, dos sobre el gobierno."
+#| output: asis
+def var_table(rows: list) -> None:
+    lines = ["| Variable | Mide (unidad); fuente | Nivel; años |", "|---|---|---|"]
+    lines += [f"| {name} (`{col}`) | {what} | {level_years(col)} |" for name, col, what in rows]
+    print("\n".join(lines))
+
+
+var_table(FEATURE_ROWS)
+```
+
+```{python}
+#| label: tbl-water-outcomes
+#| tbl-cap: "Las tres variables de resultado, que se comparan entre los tipos pero nunca se usan para agrupar. Nivel y años como en la @tbl-water-features."
+#| output: asis
+var_table(OUTCOME_ROWS)
+```
+
+La última columna importa en cada capítulo que sigue. Una variable de *zona* se mide por separado
+para las zonas urbana y rural de un municipio; una *municipal* es un solo valor para todo el
+municipio, repetido en sus dos filas. `{python} WORD[n_mun_feat].capitalize()` de las
+`{python} WORD[n_feat]` características son municipales, así que las dos filas de un municipio en un
+año difieren solo en las otras `{python} WORD[n_feat - n_mun_feat]`. Y una variable de resultado
+municipal, como la mortalidad infantil, debe contarse una vez por municipio, no una vez por fila.
+
+**Nunca agrupes según una variable de resultado.** Si la mortalidad infantil ayudara a definir los
+tipos, los tipos diferirían en mortalidad infantil por construcción, y la comparación de la segunda
+pregunta sería circular: encontraría exactamente lo que se puso. Dejar las variables de resultado
+fuera del agrupamiento es lo que permite que la comparación diga algo.
+
+::: think
+Alguien de tu equipo quiere agregar la mortalidad infantil a las características, "ya que es lo que
+nos importa". ¿Qué mostraría entonces la comparación de las variables de resultado entre los tipos?
+
+Que los tipos difieren en mortalidad infantil, lo que sería cierto por construcción: el algoritmo
+habría agrupado las zonas en parte según ese mismo número. La comparación encontraría lo que se puso.
+La mortalidad infantil sigue siendo una variable de resultado, que solo se compara después de
+encontrar los tipos.
+:::
+
+::: why
+El mismo cuidado explica por qué el índice fiscal `idf` no es una característica, aunque describe el
+gobierno municipal: su método cambia en `{python} idf_new_first` (`idf` hasta `{python} idf_last`,
+`idf_new` desde `{python} idf_new_first`, en escalas distintas), así que no puede formar una sola
+serie a lo largo de los años que usa el análisis. Una variable que cambia de significado a mitad de
+camino crearía tipos que son artefactos del cambio.
+:::
+
+## Calcular una vez, publicar muchas {#sec-compute-once}
+
+La Parte II calculaba en cada página. La Parte III calcula una vez (@fig-compute-once). Un solo
+script importable, `scripts/analysis.py`, hace todo el cálculo y escribe sus resultados en
+`outputs/`; cada página solo lee esos resultados y los dibuja. Una decisión de diseño, como cuántas
+filas descartar por valores faltantes, se toma en un solo lugar, y cada salida la sigue en el
+siguiente renderizado.
+
+![Calcular una vez, publicar muchas. Un solo script convierte los datos en resultados una vez; cada publicación lee los resultados, y ninguna los vuelve a calcular.](../media/diagrams/compute-once){#fig-compute-once .on-light fig-alt="El archivo de datos water_municipal.csv alimenta un solo script, scripts/analysis.py, que Quarto ejecuta antes de cada renderizado. El script prepara las características, elige k, ajusta k-means y calcula los perfiles de los clústeres y las comparaciones de las variables de resultado, y luego los escribe una vez en outputs/: clusters.parquet, cluster_profiles.csv, k_selection.csv, outcomes_by_year.csv, irca_infant.csv y summary.json. Cada página lee esos archivos y ninguna los vuelve a calcular: las páginas de exploración y de clústeres, el informe en html, docx, pdf y epub, las diapositivas para el concejo en revealjs y pptx, una entrada de blog y un dashboard. Juntas forman un sitio web, publicado en GitHub Pages."}
+
+La separación resuelve dos problemas de la Parte II. Un cálculo lento ya no hace lenta cada página
+ni cada formato, porque se ejecuta una vez. Y ninguna página puede contradecir a otra, porque hay un
+solo resultado. Los resultados se guardan como Parquet, que conserva los tipos de las columnas (un
+código como `05001` sigue siendo texto en lugar de convertirse en el número 5001), y como CSV donde
+la gente los va a abrir.
+
+Este libro sigue la misma regla: cada número de la Parte III se calcula cuando se construye el
+libro, importando el `analysis.py` del proyecto terminado y ejecutándolo en memoria.
+
+## Preparar el proyecto: datos, reglas y entorno {#sec-water-rules}
+
+El proyecto vive al lado del de Londres, para que los puntos de control del repositorio del taller
+estén siempre en `../quarto-workshop/checkpoints/`:
+
+```text
+~
+├── quarto-workshop/
+├── london-guide/
+└── water-quality/
+```
+
+En tu carpeta personal (`~`), `quarto-workshop/` es el clon del Capítulo 3, `london-guide/` es el
+proyecto de la Parte II y `water-quality/` es el de esta parte.
+
+Primero sal del asistente de la guía de Londres (`/exit`), para que el nuevo arranque en la carpeta
+nueva y la tome como su mundo (@sec-root-folder). Luego crea la carpeta, inicia el asistente en
+ella y copia los datos:
+
+::: {.you}
+```bash
+cd ~
+mkdir -p water-quality
+cd water-quality
+claude
+```
+:::
+
+::: {.prompt}
+```default
+Copia ../quarto-workshop/examples/water/data en esta carpeta como data/, y luego enumera los archivos de data/ con sus tamaños.
+```
+:::
+
+::: {.agent}
+copia la carpeta · enumera `README.md`, `municipios.geojson` y `water_municipal.csv` con sus
+tamaños
+:::
+
+Los datos están fuera de la carpeta nueva, en `../quarto-workshop/`, así que el asistente pregunta
+antes de leer ahí: apruébalo, como con la guía de Londres (@sec-brief).
+
+Luego escribe las reglas. Si nunca agrupaste nada, la preocupación es justa: el asistente puede
+escribir un análisis que se ejecuta, se renderiza y está equivocado. No te proteges de eso
+escribiendo tú el código. Te proteges revisando, y una revisión necesita algo contra lo cual
+revisar.
+
+::: {.prompt}
+```default
+Lee data/README.md y luego crea AGENTS.md para este proyecto, en inglés. Alcance: describir la calidad del agua municipal y la mortalidad infantil en Colombia solo a partir de data/. Reglas: deja data/ sin cambios, llama al IRCA IRCA de prestadores (utility-supplied, prestadores), nunca agrupes según variables de resultado, y di que las comparaciones son descriptivas, no causales. Muéstrame el archivo.
+```
+:::
+
+::: {.agent}
+lee `data/README.md` · escribe `AGENTS.md`: alcance, reglas, las advertencias de los datos
+:::
+
+::: {.you}
+apruebas · compruebas que `AGENTS.md` tenga las cuatro reglas
+:::
+
+Las cuatro reglas son este capítulo en miniatura: las entradas son evidencia y quedan sin cambios; el
+IRCA se llama por lo que es; las variables de resultado describen los clústeres, pero nunca los
+definen; y las comparaciones entre clústeres no establecen efectos causales de la calidad del agua.
+Pedirle al asistente que lea primero el README le permite agregar por su cuenta las advertencias de
+los datos a las reglas.
+
+::: {.prompt}
+```default
+Dale a este proyecto su propio entorno de Python con `uv`: ejecuta `uv init --bare` y luego `uv add ipykernel nbclient nbformat pyyaml pandas numpy matplotlib plotly scikit-learn pyarrow itables tabulate`. Ejecuta `quarto` y `python` a través de `uv run`, y agrega esa regla a AGENTS.md. Muéstrame la línea de Python de `uv run quarto check jupyter`.
+```
+:::
+
+::: {.agent}
+`uv init --bare` · `uv add …` · escribe `pyproject.toml`, `uv.lock` y `.venv/` · agrega la
+regla de `uv run` a `AGENTS.md` · `uv run quarto check jupyter`
+:::
+
+Deberías ver un Python cuya ruta pasa por el `.venv` de esta carpeta, como con la guía de
+Londres (@sec-environments). La receta es la de la guía de Londres, con los paquetes del análisis
+agregados: `scikit-learn` para k-means, `pyarrow` para Parquet, `itables` para la tabla con
+búsqueda del dashboard y `tabulate` para las tablas escritas como Markdown. Los paquetes que
+comparte con la Parte II vienen del caché de uv.
+
+::: tryit
+Copia los datos, escribe las reglas y crea el entorno.
+
+::: done
+`AGENTS.md` dice el alcance del análisis y sus reglas, y `uv run quarto check jupyter` muestra el
+Python del `.venv` de este proyecto.
+:::
+
+Aquí no hay recuadro para ponerte al día. Si te trabas, el del final del @sec-explore restaura el
+trabajo de este capítulo y el del siguiente juntos.
+:::
+
+## Resumen {.unnumbered}
+
+::: keyideas
+- Primero, encontrar tipos de zona municipal a partir del agua, los servicios y el contexto; luego,
+  comparar las variables de resultado entre ellos.
+- El IRCA de los datos es de prestadores, así que subestima el riesgo donde la gente depende del
+  autoabastecimiento.
+- Una fila es una zona-año y todas las filas existen, así que una celda vacía significa que no se
+  midió, nunca que es segura.
+- Las variables de zona difieren entre las dos filas de un municipio; las municipales se cuentan una
+  vez.
+- Las características definen los tipos y las variables de resultado solo los describen: agrupar
+  según una variable de resultado es circular.
+- Un solo script calcula cada resultado una vez, y `AGENTS.md` guarda los límites para el
+  asistente.
+:::
+
+Lo que las reglas no pueden decir es lo que contiene la tabla: dónde está vacía, y dónde una serie
+se mueve por razones que no tienen que ver con el agua. Esa es la pregunta del capítulo siguiente.
+
+## Lecturas adicionales {.unnumbered}
+
+- Ministerio de la Protección Social y MAVDT,
+  [Resolución 2115 de 2007](https://normas.cra.gov.co/gestor/docs/resolucion_minproteccion_2115_2007.htm)
+  (consultada el 2026-10-30).
+- MinSalud, MinVivienda, INS y Superservicios,
+  [*Informe Nacional de Calidad del Agua para Consumo Humano INCA 2023*](https://www.minvivienda.gov.co/sites/default/files/documentos/informe-nacional-de-calidad-del-agua-para-consumo-humano-inca-2023.pdf)
+  (consultado el 2026-10-30).
+- ICFES, [*Guía de orientación Saber 11.° 2017-1*](https://www.icfes.gov.co/wp-content/uploads/2024/11/Guia-de-orientacion-saber-11-2017-1.pdf)
+  (consultada el 2026-10-30).
+- [datos.gov.co](https://www.datos.gov.co/) y [TerriData](https://terridata.dnp.gov.co/) del DNP,
+  los portales de las fuentes; cada tabla, licencia y fecha de corte está en
+  `examples/water/data/README.md` y en el @sec-sources.
+- Quarto, [project scripts](https://quarto.org/docs/projects/scripts.html): ejecutar un script
+  antes de cada renderizado (consultado el 2026-10-30).

@@ -1,0 +1,48 @@
+# Parte III: Un análisis, muchas publicaciones {#part-iii-one-analysis-many-publications .unnumbered .part}
+
+```{python}
+#| label: part3-setup
+from scripts import water as w
+
+raw = w.raw()
+last = int(raw["year"].max())
+scored = raw[raw["year"] == last].dropna(subset=["irca"])
+high = w.A.irca_band(scored["irca"]).isin(["High", "Unfit"]).groupby(scored["zone"]).mean()
+rural_now = raw[(raw["year"] == last) & (raw["zone"] == "rural")]
+rural_pop = rural_now["population"].sum() / 1e6
+unscored_pop = rural_now.loc[rural_now["irca"].isna(), "population"].sum() / 1e6
+```
+
+Donde se analiza el agua del grifo en Colombia, la del campo tiene mucho más riesgo que la de las
+cabeceras. En `{python} last`, de las zonas rurales (el campo de un municipio, fuera de su
+cabecera) con un puntaje de riesgo del agua de prestadores, el `{python} f"{high['rural']:.0%}"`
+quedó en los niveles de riesgo alto o inviable sanitariamente, frente al
+`{python} f"{high['urban']:.0%}"` de las urbanas. Y buena parte del agua rural no tiene ningún
+puntaje: ese año, `{python} f"{unscored_pop:.1f}"` millones de los `{python} f"{rural_pop:.1f}"`
+millones de personas de las zonas rurales vivían donde los datos abiertos no registran ninguno.
+
+Esta parte pregunta qué tipos de zona municipal existen, a juzgar por la calidad del agua, los
+servicios y el contexto, y en qué se diferencian la mortalidad infantil, los puntajes de los
+exámenes y la deserción escolar entre esos tipos. Cada fila de sus datos es una *zona-año*: la
+zona urbana (la cabecera) o la zona rural de un municipio en un año. El análisis agrupa esas
+filas, así que las dos zonas de un municipio pueden ser de tipos distintos. Tú haces el análisis.
+Tus lectores son funcionarios, que necesitan un informe, y un concejo municipal, que necesita
+diapositivas, y ambos merecen una respuesta que diga con claridad lo que los datos no pueden
+mostrar:
+
+- El @sec-water-question precisa qué se pregunta, qué significan los datos y qué no puede hacer el
+  asistente.
+- El @sec-explore encuentra dónde los datos están vacíos o engañan, y presenta a Tunja, el
+  municipio que sigue esta parte.
+- El @sec-prepare convierte la tabla en características que un agrupamiento puede usar, y cuenta
+  lo que cuesta.
+- El @sec-cluster deja que un algoritmo agrupe las zonas-año y decide cuántos grupos hay.
+- El @sec-interpret les pone nombre a los tipos y compara sus variables de resultado.
+- El @sec-causation pregunta si una peor agua va de la mano con más muertes infantiles, y por qué
+  eso no es una causa.
+- El @sec-publish-many convierte un solo conjunto de resultados en un informe, diapositivas, una
+  entrada de blog y un sitio web.
+
+Los ejercicios al final de la parte comprueban si puedes hacerlo sin los prompts.
+
+![Dónde estamos: Parte III.](media/roadmaps/part-3){.on-light fig-alt="Dónde estamos: la Parte III, Un análisis, muchas publicaciones, resaltada entre las tres partes del libro. Sus capítulos: 8, La pregunta, los datos y las reglas, donde preparas la carpeta del proyecto, sus datos y sus reglas; 9, Mira antes de modelar, donde construyes explore.qmd y terminas en el punto de control 05; 10, De la tabla a las características, prepare() y nueve características comparables, punto de control 06; 11, Encontrar tipos de lugares: k-means, k-means y la página de los clústeres, punto de control 07; 12, Interpretar los clústeres, clústeres con nombre y sus variables de resultado, punto de control 08; 13, Correlación no es causalidad, la comprobación dentro de cada clúster, punto de control 09; 14, Publicar en muchos formatos, el informe, las diapositivas, el sitio web y el blog, puntos de control 10 a 13; luego los ejercicios de la Parte III."}

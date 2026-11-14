@@ -35,13 +35,41 @@ DECK_URL = "../"
 OG_IMAGE = "media/og-image.png"
 OG_SIZE = (1200, 627)
 
+# The Spanish page (ebook/es/index.qmd) calls use("es") first: it reads the Spanish edition's
+# source (book-es/) and links to the Spanish book and EPUB. English is the default.
+LANG = "en"
+BOOK_DIR = "book"             # whose source the page reads
+PAGE_DIR = "ebook"            # where the page and its own media live
+SHARED = "media/"             # fonts, icons and clips, which both pages share
+HEAD = "ebook/_head.html"
+PAGES = {"en": SITE + "ebook/", "es": SITE + "ebook/es/"}
+
 NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
                 "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
                 "seventeen", "eighteen", "nineteen", "twenty"]
+NUMBER_WORDS_ES = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve",
+                   "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete",
+                   "dieciocho", "diecinueve", "veinte"]
+MONTHS_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+             "septiembre", "octubre", "noviembre", "diciembre"]
+
+
+def use(lang: str) -> None:
+    """Point the page at one edition: "en" (book/) or "es" (book-es/)."""
+    global LANG, BOOK, BOOK_DIR, PAGE_DIR, SHARED, HEAD, PAGE_URL, EPUB_NAME, EPUB_URL, BOOK_URL, DECK_URL
+    if lang != "es":
+        return
+    LANG, BOOK_DIR, BOOK = "es", "book-es", ROOT / "book-es"
+    PAGE_DIR, SHARED, HEAD = "ebook/es", "../media/", "ebook/es/_head.html"
+    PAGE_URL = PAGES["es"]
+    EPUB_NAME = "prompt-check-publish-es.epub"
+    EPUB_URL = f"{REPO}/releases/latest/download/{EPUB_NAME}"
+    BOOK_URL, DECK_URL = "../../book/es/", "../../"
 
 
 def words(n: int) -> str:
-    return NUMBER_WORDS[n] if 0 <= n < len(NUMBER_WORDS) else f"{n:,}"
+    table = NUMBER_WORDS_ES if LANG == "es" else NUMBER_WORDS
+    return table[n] if 0 <= n < len(table) else f"{n:,}"
 
 
 def read(rel: str) -> str:
@@ -60,7 +88,7 @@ def quote(rel: str, *phrases: str) -> None:
 
 @cache
 def config() -> dict:
-    return yaml.safe_load(read("book/_quarto.yml"))
+    return yaml.safe_load(read(f"{BOOK_DIR}/_quarto.yml"))
 
 
 def meta() -> dict:
@@ -85,12 +113,14 @@ def first_sentence(text: str) -> str:
 
 def month_year(iso: str) -> str:
     import datetime
-    return datetime.date.fromisoformat(iso).strftime("%B %Y")
+    d = datetime.date.fromisoformat(iso)
+    return f"{MONTHS_ES[d.month - 1]} de {d.year}" if LANG == "es" else d.strftime("%B %Y")
 
 
 def epub_size() -> str:
     """The published EPUB's size, from git's index (a full render empties docs/ meanwhile)."""
-    out = subprocess.run(["git", "cat-file", "-s", f":docs/book/{EPUB_NAME}"], cwd=ROOT,
+    folder = "docs/book/es" if LANG == "es" else "docs/book"
+    out = subprocess.run(["git", "cat-file", "-s", f":{folder}/{EPUB_NAME}"], cwd=ROOT,
                          capture_output=True, text=True, check=True)
     return f"{int(out.stdout) / 1e6:.1f} MB"
 
@@ -100,7 +130,7 @@ def epub_size() -> str:
 @cache
 def cover() -> dict:
     """The cover's colours and its fan of formats, parsed from book/media/cover.svg."""
-    svg = read("book/media/cover.svg")
+    svg = read(f"{BOOK_DIR}/media/cover.svg")
     paths = re.findall(r'<path d="(M[^"]+)" stroke="(#[0-9a-f]{6})"', svg)
     dots = re.findall(r'<circle cx="(\d+)" cy="(\d+)" r="(\d+)" fill="(#[0-9a-f]{6})"', svg)
     labels = re.findall(r'<text x="(\d+)" y="(\d+)" fill="(#[0-9a-f]{6})">([a-z]+)</text>', svg)
@@ -139,13 +169,30 @@ FORMAT_LINKS = {
 }
 
 
+def format_table() -> dict:
+    """FORMAT_LINKS in the page's language, with this edition's EPUB and book."""
+    if LANG != "es":
+        return FORMAT_LINKS
+    return {
+        "html": ("Esta página", "HTML de Quarto, construido desde ebook/es/index.qmd", f"{REPO}/blob/main/ebook/es/index.qmd"),
+        "pdf": ("El informe del agua", "{14-publish-many}, en Word y PDF", "chapters/14-publish-many.html#sec-water-report"),
+        "docx": ("La guía de Londres", "{05-compute}, como archivo de Word", "chapters/05-compute.html#sec-formats"),
+        "epub": ("Este libro", "el EPUB que puedes descargar", EPUB_URL),
+        "slides": ("Las diapositivas del taller", "Reveal.js, en vivo (en inglés)", DECK_URL),
+        "website": ("La edición web", "este libro, en vivo", BOOK_URL),
+        "blog": ("El blog del agua", "{14-publish-many}, un sitio web con entradas", "chapters/14-publish-many.html#sec-water-website"),
+        "dashboard": ("El dashboard del agua", "{14-publish-many}", "chapters/14-publish-many.html#sec-water-dashboard"),
+    }
+
+
 def format_links() -> list[dict]:
     fan = cover()["fan"]
-    if [f["name"] for f in fan] != list(FORMAT_LINKS):
+    table = format_table()
+    if [f["name"] for f in fan] != list(table):
         raise ValueError("the cover's formats changed: update FORMAT_LINKS in ebook/_source.py")
     out = []
     for f in fan:
-        title, note, href = FORMAT_LINKS[f["name"]]
+        title, note, href = table[f["name"]]
         note = re.sub(r"\{([^}]+)\}", lambda m: chapter(m.group(1))["name"], note)
         if not href.startswith(("http", "../")):
             href = BOOK_URL + href
@@ -158,14 +205,14 @@ def format_links() -> list[dict]:
 def heading(rel: str) -> tuple[str, bool]:
     """A chapter file's title and whether Quarto numbers it, from its first level-1 heading."""
     fence = False
-    for line in read(f"book/{rel}").splitlines():
+    for line in read(f"{BOOK_DIR}/{rel}").splitlines():
         if line.startswith(("```", "~~~")):
             fence = not fence
         elif not fence and line.startswith("# "):
             m = re.match(r"# (.+?)\s*(\{([^}]*)\})?\s*$", line)
             attrs = (m.group(3) or "").split()
             return m.group(1), ".unnumbered" not in attrs
-    raise ValueError(f"book/{rel} has no level-1 heading")
+    raise ValueError(f"{BOOK_DIR}/{rel} has no level-1 heading")
 
 
 def href(rel: str) -> str:
@@ -208,7 +255,8 @@ def chapter(stem: str) -> dict:
              if Path(c["file"]).stem == stem and c["label"]]
     if len(found) != 1:
         raise ValueError(f"book/_chapters.yml has no numbered chapter {stem}")
-    return {**found[0], "name": f"Chapter {found[0]['label']}"}
+    word = "Capítulo" if LANG == "es" else "Chapter"
+    return {**found[0], "name": f"{word} {found[0]['label']}"}
 
 
 # ---- the two projects --------------------------------------------------------------------
@@ -262,13 +310,14 @@ def cell_figure(rel: str, label: str) -> dict:
 
 def cover_desc() -> str:
     """The cover's own description (its SVG <desc>), used as its alt text."""
-    return re.search(r"<desc[^>]*>(.+?)</desc>", read("book/media/cover.svg"), re.S).group(1)
+    return re.search(r"<desc[^>]*>(.+?)</desc>", read(f"{BOOK_DIR}/media/cover.svg"), re.S).group(1)
 
 
 def audiences() -> list[str]:
     """Who the preface says the book is for."""
-    m = re.search(r"I wrote this book for (.+?): anyone", " ".join(read("book/index.qmd").split()))
-    return re.split(r", | and ", m.group(1))
+    pattern = r"Escribí este libro para (.+?): cualquiera" if LANG == "es" else r"I wrote this book for (.+?): anyone"
+    m = re.search(pattern, " ".join(read(f"{BOOK_DIR}/index.qmd").split()))
+    return re.split(r", | y " if LANG == "es" else r", | and ", m.group(1))
 
 
 # ---- text the page quotes ------------------------------------------------------------------
@@ -290,32 +339,39 @@ def author_linkedin() -> str:
 
 def about_author() -> str:
     """The About the Author page's paragraphs, as Markdown."""
-    body = read("book/about-author.qmd").split("\n", 1)[1].strip()
+    body = read(f"{BOOK_DIR}/about-author.qmd").split("\n", 1)[1].strip()
     return body
 
 
 def ai_statement() -> str:
-    return paragraph_after("book/copyright.qmd", "**AI usage statement.**")
+    marker = "**Declaración de uso de IA.**" if LANG == "es" else "**AI usage statement.**"
+    return paragraph_after(f"{BOOK_DIR}/copyright.qmd", marker)
 
 
 def checked_with() -> str:
     """The Quarto version the copyright page says the book was checked with."""
-    return re.search(r"Checked with Quarto ([\d.]+)", read("book/copyright.qmd")).group(1)
+    return re.search(r"(?:Checked with|Revisado con) Quarto ([\d.]+)", read(f"{BOOK_DIR}/copyright.qmd")).group(1)
 
 
 def assistant_cost() -> tuple[str, str]:
     """The preface's sentence on what Claude Code needs, and the date it was checked."""
-    m = re.search(r"(Claude Code, for one, needs [^(]+?)\s*\(checked (\d{4}-\d{2}-\d{2})",
-                  " ".join(read("book/index.qmd").split()))
+    pattern = (r"(Claude Code, por ejemplo, necesita [^(]+?)\s*\(consultado el (\d{4}-\d{2}-\d{2})"
+               if LANG == "es" else r"(Claude Code, for one, needs [^(]+?)\s*\(checked (\d{4}-\d{2}-\d{2})")
+    m = re.search(pattern, " ".join(read(f"{BOOK_DIR}/index.qmd").split()))
     return m.group(1), m.group(2)
 
 
 def assistant_accounts() -> tuple[str, str]:
     """Chapter 3's list of what each assistant's account needs, and its checked date."""
-    text = " ".join(read("book/chapters/03-setup.qmd").split())
-    m = re.search(r"(Claude Code needs a [^;]+); (Codex a [^(]+?) \(for pay-per-use billing, "
-                  r"@sec-choose\); (Antigravity a Google account) \(checked (\d{4}-\d{2}-\d{2})\)",
-                  text)
+    text = " ".join(read(f"{BOOK_DIR}/chapters/03-setup.qmd").split())
+    if LANG == "es":
+        m = re.search(r"(Claude Code necesita una [^;]+); (Codex, [^(]+?) \(para facturación por uso, "
+                      r"@sec-choose\); (Antigravity, una cuenta de Google) \(consultado el (\d{4}-\d{2}-\d{2})\)",
+                      text)
+    else:
+        m = re.search(r"(Claude Code needs a [^;]+); (Codex a [^(]+?) \(for pay-per-use billing, "
+                      r"@sec-choose\); (Antigravity a Google account) \(checked (\d{4}-\d{2}-\d{2})\)",
+                      text)
     return f"{m.group(1)}; {m.group(2)}; {m.group(3)}", m.group(4)
 
 
@@ -324,6 +380,9 @@ def assistant_accounts() -> tuple[str, str]:
 def share_text() -> tuple[str, str]:
     """The page's title and description, for its <title>, search results and share cards."""
     m = meta()
+    if LANG == "es":
+        return (f"{m['title']}: un libro electrónico gratuito de {m['author']}",
+                "Libro electrónico gratuito. " + first_sentence(m["description"]))
     return (f"{m['title']}: a free e-book by {m['author']}",
             "Free e-book. " + first_sentence(m["description"]))
 
@@ -336,7 +395,9 @@ def head_html() -> str:
     m = meta()
     title, desc = share_text()
     image = PAGE_URL + OG_IMAGE
-    alt = (f"The cover of {m['title']}, beside its title, subtitle and author, and the words "
+    alt = (f"La cubierta de {m['title']}, al lado de su título, su subtítulo y su autoría, y las palabras "
+           "Libro electrónico gratuito, EPUB y edición web." if LANG == "es" else
+           f"The cover of {m['title']}, beside its title, subtitle and author, and the words "
            "Free e-book, EPUB and website edition.")
     ld = {
         "@context": "https://schema.org",
@@ -362,9 +423,11 @@ def head_html() -> str:
     e = lambda s: html.escape(s, quote=True)  # noqa: E731
     w, h = OG_SIZE
     lines = [
-        "<!-- Generated by scripts/ebook_media.py from book/_quarto.yml (ebook/_source.py); do not edit. -->",
+        f"<!-- Generated by scripts/ebook_media.py from {BOOK_DIR}/_quarto.yml (ebook/_source.py); do not edit. -->",
         f'<meta name="author" content="{e(m["author"])}">',
         f'<link rel="canonical" href="{PAGE_URL}">',
+        *[f'<link rel="alternate" hreflang="{lang}" href="{url}">' for lang, url in PAGES.items()],
+        f'<link rel="alternate" hreflang="x-default" href="{PAGES["en"]}">',
         '<meta name="theme-color" content="#13202e">',
         '<meta name="color-scheme" content="dark">',
         '<meta property="og:type" content="book">',
@@ -385,11 +448,11 @@ def head_html() -> str:
         f'<meta name="twitter:description" content="{e(desc)}">',
         f'<meta name="twitter:image" content="{image}">',
         f'<meta name="twitter:image:alt" content="{e(alt)}">',
-        '<link rel="icon" href="media/favicon.svg" type="image/svg+xml">',
-        '<link rel="icon" href="media/favicon-32.png" type="image/png" sizes="32x32">',
-        '<link rel="apple-touch-icon" href="media/apple-touch-icon.png">',
-        '<link rel="preload" href="media/fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin>',
-        '<link rel="preload" href="media/fonts/nunito-sans.woff2" as="font" type="font/woff2" crossorigin>',
+        f'<link rel="icon" href="{SHARED}favicon.svg" type="image/svg+xml">',
+        f'<link rel="icon" href="{SHARED}favicon-32.png" type="image/png" sizes="32x32">',
+        f'<link rel="apple-touch-icon" href="{SHARED}apple-touch-icon.png">',
+        f'<link rel="preload" href="{SHARED}fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin>',
+        f'<link rel="preload" href="{SHARED}fonts/nunito-sans.woff2" as="font" type="font/woff2" crossorigin>',
         '<script type="application/ld+json">',
         json.dumps(ld, indent=1, ensure_ascii=False),
         "</script>",
@@ -398,5 +461,6 @@ def head_html() -> str:
 
 
 def check_head() -> None:
-    if read("ebook/_head.html") != head_html():
-        raise ValueError("ebook/_head.html is stale: run `make ebook-media STEPS=head`")
+    if read(HEAD) != head_html():
+        raise ValueError(f"{HEAD} is stale: run `make ebook-media STEPS=head`"
+                         + (" EDITION=es" if LANG == "es" else ""))

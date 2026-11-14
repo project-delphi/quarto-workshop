@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ravi Kalia">
+<meta name="keywords" content="Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means">
+<meta name="description" content="Una guía práctica de publicación reproducible: escribe una sola vez en Markdown, deja que un asistente de programación escriba el código, revisa su trabajo y reconstruye una sola fuente como página web, Word, PDF, diapositivas, libro electrónico, sitio web, blog y dashboard. Dos proyectos reales recorren el libro: una guía para visitantes de Londres y un estudio del riesgo del agua potable en los municipios de Colombia.">
+
+<title>Pide, revisa, publica</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./copyright.html" rel="next">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No hay resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+
+<!-- lang-switch --><link rel="alternate" hreflang="en" href="https://project-delphi.github.io/quarto-workshop/book/"><link rel="alternate" hreflang="es" href="https://project-delphi.github.io/quarto-workshop/book/es/"><link rel="alternate" hreflang="x-default" href="https://project-delphi.github.io/quarto-workshop/book/"><!-- /lang-switch --></head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Prefacio: cómo usar este libro</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <!-- lang-switch --><nav class="lang-switch lang-switch-top" aria-label="Language / Idioma"><a href="../index.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch --><button type="button" class="btn quarto-search-button" aria-label="Buscar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Pide, revisa, publica</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://project-delphi.github.io/quarto-workshop/ebook/es/" title="La página del libro" class="quarto-navigation-tool px-1" aria-label="La página del libro"><i class="bi bi-book"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/releases/latest/download/prompt-check-publish-es.epub" title="Descarga el EPUB" class="quarto-navigation-tool px-1" aria-label="Descarga el EPUB"><i class="bi bi-download"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book-es/" title="Ejecutar el código" class="quarto-navigation-tool px-1" aria-label="Ejecutar el código"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Alternar modo oscuro"><i class="bi"></i></a>
+</div><!-- lang-switch --><nav class="lang-switch lang-switch-sidebar" aria-label="Language / Idioma"><a href="../index.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch -->
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Buscar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Prefacio: cómo usar este libro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./copyright.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Derechos de autor</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedicatoria</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sobre Ravi Kalia</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./part-1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte I: Fundamentos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/01-quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/02-assistant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un asistente de programación</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/03-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Preparar tu computadora</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./part-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte II: Una guía, muchos públicos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/04-markdown.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Markdown, renderizado y reglas del proyecto</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/05-compute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Documentos que calculan</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/06-audiences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Una guía, cinco públicos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/07-publish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Publicar y demostrar la reconstrucción</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/exercises-london.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte II</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./part-3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte III: Un análisis, muchas publicaciones</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/08-water-question.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">La pregunta, los datos y las reglas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/09-explore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Mira antes de modelar</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/10-prepare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/11-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Encontrar tipos de lugares: k-means</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/12-interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Interpretar los clústeres</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/13-causation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Correlación no es causalidad</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/14-publish-many.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/exercises-water.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte III</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./afterword.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Epílogo: lo que construiste y cómo seguir</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Apéndices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/a-windows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Windows: prepara Ubuntu</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/b-terminal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Teclas y hábitos de la terminal</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/c-cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Hoja de referencia</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/d-troubleshooting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Solución de problemas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/e-checkpoints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Los puntos de control de un vistazo, y respuestas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/f-translation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Leer en otro idioma</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/g-sources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Fuentes de datos, licencias y créditos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/h-how-built.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">H</span>&nbsp; <span class="chapter-title">Cómo está hecho este libro</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/i-workshop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Darlo como taller</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glosario</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Tabla de contenidos</h2>
+   
+  <ul>
+  <li><a href="#preface-how-to-use-this-book" id="toc-preface-how-to-use-this-book" class="nav-link active" data-scroll-target="#preface-how-to-use-this-book">Prefacio: cómo usar este libro</a>
+  <ul class="collapse">
+  <li><a href="#prompt-check-publish" id="toc-prompt-check-publish" class="nav-link" data-scroll-target="#prompt-check-publish">Pide, revisa, publica</a></li>
+  <li><a href="#who-this-book-is-for" id="toc-who-this-book-is-for" class="nav-link" data-scroll-target="#who-this-book-is-for">Para quién es este libro</a></li>
+  <li><a href="#the-two-running-examples" id="toc-the-two-running-examples" class="nav-link" data-scroll-target="#the-two-running-examples">Los dos ejemplos del libro</a></li>
+  <li><a href="#how-the-book-is-organised" id="toc-how-the-book-is-organised" class="nav-link" data-scroll-target="#how-the-book-is-organised">Cómo está organizado el libro</a></li>
+  <li><a href="#how-the-hands-on-parts-work" id="toc-how-the-hands-on-parts-work" class="nav-link" data-scroll-target="#how-the-hands-on-parts-work">Cómo es un paso práctico</a></li>
+  <li><a href="#two-ways-through" id="toc-two-ways-through" class="nav-link" data-scroll-target="#two-ways-through">Dos maneras de recorrerlo</a></li>
+  <li><a href="#when-you-fall-behind" id="toc-when-you-fall-behind" class="nav-link" data-scroll-target="#when-you-fall-behind">Cuando te trabes</a></li>
+  <li><a href="#two-editions" id="toc-two-editions" class="nav-link" data-scroll-target="#two-editions">Dos ediciones</a></li>
+  <li><a href="#versions-and-dates" id="toc-versions-and-dates" class="nav-link" data-scroll-target="#versions-and-dates">Versiones y fechas</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Pide, revisa, publica</h1>
+<p class="subtitle lead">Publicación reproducible de datos con Quarto y asistentes de programación con IA</p>
+</div>
+
+<div>
+  <div class="description">
+    Una guía práctica de publicación reproducible: escribe una sola vez en Markdown, deja que un asistente de programación escriba el código, revisa su trabajo y reconstruye una sola fuente como página web, Word, PDF, diapositivas, libro electrónico, sitio web, blog y dashboard. Dos proyectos reales recorren el libro: una guía para visitantes de Londres y un estudio del riesgo del agua potable en los municipios de Colombia.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Autor/a</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ravi Kalia </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Fecha de publicación</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">14 de noviembre de 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Palabras clave</div>
+    <p>Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means</p>
+  </div>
+</div>
+
+</header>
+
+
+<section id="preface-how-to-use-this-book" class="level1 unnumbered" epub:type="preface">
+<h1 class="unnumbered">Prefacio: cómo usar este libro</h1>
+<p>Cambia un número en un conjunto de datos: ¿cuántos documentos quedan mal? Si ese número se copió a mano en un informe, una diapositiva, un correo y una página web, nadie lo sabe sin ponerse a buscar. Este libro enseña una forma de publicar en la que no hay nada que buscar: escribes una sola vez, en texto plano, y una página web, un documento de Word, un PDF, diapositivas, un libro electrónico, un sitio web, un blog y un dashboard se reconstruyen todos desde esa única fuente con un solo comando. El programa que los reconstruye es Quarto.</p>
+<p>Quarto es una de tres piezas. Junto con <em>git</em>, que registra cada versión de la fuente, y un servicio de alojamiento como GitHub Pages, que pone el resultado en la web, le permite a una sola persona producir trabajo reproducible y con calidad de publicación para muchos contextos y formatos: una página que se lee en el teléfono, un informe impreso para una reunión, diapositivas en un proyector, un libro electrónico, un dashboard interactivo. Los asistentes de programación aceleran todo esto. Los comandos crípticos y la configuración frágil que antes se interponían entre un análisis y su forma publicada e interactiva ya no son el cuello de botella: tú describes el paso, el asistente escribe los comandos y tú revisas el resultado.</p>
+<section id="prompt-check-publish" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="prompt-check-publish">Pide, revisa, publica</h2>
+<p>El título nombra el método, un ciclo que recorres en cada paso de los dos proyectos. Le <strong>pides</strong> algo a un <em>asistente de programación</em>, un programa que escribe archivos y ejecuta comandos cuando se lo pides, y le describes una pequeña tarea, con sus archivos y columnas por su nombre. <strong>Revisas</strong> lo que hizo: lees lo que cambió, miras el resultado y lo comparas con los datos. Un asistente puede ser elocuente, rápido y estar equivocado, así que este paso nunca se salta, y siempre te toca a ti. Luego Quarto <strong>publica</strong>: reconstruye cada salida desde la fuente revisada, siempre de la misma manera. El Capítulo 1 explica por qué puedes confiar en el último paso, y el Capítulo 2, cómo hacer confiables los dos primeros.</p>
+<p>Cada paso práctico de las partes II y III da una vuelta al ciclo de la <a href="#fig-loop" class="quarto-xref">Figura&nbsp;<span>1</span></a>.</p>
+<div id="fig-loop" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="El ciclo. Pide: le pides a un asistente de programación un paso pequeño, nombras los archivos y terminas con una comprobación; Capítulo 2. El asistente hace el trabajo: escribe archivos y ejecuta comandos. Revisa: lees lo que cambió, abres el resultado y lo comparas con los datos; Capítulo 2. Si no está bien, corriges el prompt y das otra vuelta. La fuente revisada pasa a Publica: quarto render, de Quarto, reconstruye cada salida, siempre de la misma manera; Capítulo 1. Luego el siguiente paso empieza con un prompt nuevo. Pasos pequeños, cada uno revisado, y cada salida reconstruida desde una sola fuente.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="media/diagrams/loop.svg" class="on-light img-fluid figure-img" alt="El ciclo. Pide: le pides a un asistente de programación un paso pequeño, nombras los archivos y terminas con una comprobación; Capítulo 2. El asistente hace el trabajo: escribe archivos y ejecuta comandos. Revisa: lees lo que cambió, abres el resultado y lo comparas con los datos; Capítulo 2. Si no está bien, corriges el prompt y das otra vuelta. La fuente revisada pasa a Publica: quarto render, de Quarto, reconstruye cada salida, siempre de la misma manera; Capítulo 1. Luego el siguiente paso empieza con un prompt nuevo. Pasos pequeños, cada uno revisado, y cada salida reconstruida desde una sola fuente.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;1: Pide, revisa, publica: el ciclo que enseña este libro, con quién actúa en cada paso.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="who-this-book-is-for" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="who-this-book-is-for">Para quién es este libro</h2>
+<p>Escribí este libro para personas investigadoras, profesionales del software, especialistas en datos y estudiantes: cualquiera que trabaje con datos o código y necesite compartir los resultados. Muestra cómo publicar desde una sola fuente de texto plano (prosa y código) usando Quarto. Quarto es software libre, de código abierto y tradicional, así que cada informe, presentación y página web es reproducible, interactivo y con calidad de publicación. Con un asistente de programación, un trabajo que antes llevaba días ahora lleva minutos. En el camino, explico los conceptos, los argumentos y las decisiones detrás de cada paso.</p>
+<p>La reproducibilidad es la razón por la que escribí este libro. Un trabajo que otras personas pueden reconstruir se gana su confianza, justifica las decisiones que se toman con él y les da algo sobre lo cual construir, que es como avanzan la ciencia, la tecnología y el entendimiento. Más automatización significa menos errores y una mejor experiencia, para quienes hacen el trabajo y para quienes lo leen.</p>
+<p>Publicar es la mitad del trabajo; la otra mitad es que te lean. El contenido funciona solo si le llega a la gente para la que es, así que el libro trata cada salida como algo que usará un lector concreto, y la revisa como la revisaría ese lector. Mi esperanza es que mejore las interacciones, y los resultados, de todas las personas que trabajan con datos, software y aplicaciones de IA y tienen que comunicarlos.</p>
+<p>Puede que Quarto, los asistentes de programación o ambos sean nuevos para ti. No se da por sentado que sepas programar: explico el Python que escribe el asistente, pero no tienes que escribirlo tú. Si la terminal es nueva para ti, el Capítulo 3 te enseña lo poco que necesitas, un paso revisado a la vez.</p>
+<p>Necesitarás una computadora en la que puedas instalar software (Windows, Mac o Linux), una cuenta gratuita de GitHub y una cuenta con un asistente de programación (la <a href="chapters/03-setup.html#sec-before-setup" class="quarto-xref"><span>Antes de empezar</span></a> enumera lo que necesita cada uno).</p>
+</section>
+<section id="the-two-running-examples" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="the-two-running-examples">Los dos ejemplos del libro</h2>
+<p>Cada concepto está ligado a uno de dos proyectos, ambos construidos con datos reales y citados.</p>
+<p><strong>Una guía para visitantes de Londres</strong> (Parte II). Para la oficina de turismo de la ciudad, escribes una sola guía que se convierte en una página web, un informe en Word para los socios, un folleto impreso, un dashboard para la gerencia y un sitio web publicado. Cada cifra de visitantes que contiene, desde las 7,116,929 visitas al Natural History Museum (South Kensington) en 2025 hacia abajo, se calcula a partir de los conteos que publica la Association of Leading Visitor Attractions (ALVA).</p>
+<p><strong>El riesgo del agua potable en los municipios de Colombia</strong> (Parte III). Agrupas las zonas municipales de Colombia en tipos según la calidad del agua, los servicios y el contexto, de 2016 a 2023, comparas resultados de salud y educación entre los tipos y publicas el análisis como informe, diapositivas, entrada de blog y sitio web, todo desde un solo script de análisis. La mayoría de los datos son datos abiertos colombianos, unidos por los códigos oficiales de los municipios; la precipitación viene de los datos CHIRPS del Climate Hazards Center y la altitud, de los datos de elevación SRTM de la NASA (<a href="appendices/g-sources.html" class="quarto-xref"><span>Apéndice G — Fuentes de datos, licencias y créditos</span></a>).</p>
+</section>
+<section id="how-the-book-is-organised" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="how-the-book-is-organised">Cómo está organizado el libro</h2>
+<p>La <strong>Parte I</strong> cubre lo que necesitas primero: qué hace Quarto (<a href="chapters/01-quarto.html" class="quarto-xref"><span>1&nbsp; Publicar algo que se reconstruye solo</span></a>), cómo trabajar con un asistente de programación de forma segura (<a href="chapters/02-assistant.html" class="quarto-xref"><span>2&nbsp; Trabajar con un asistente de programación</span></a>) y cómo preparar tu computadora (<a href="chapters/03-setup.html" class="quarto-xref"><span>3&nbsp; Preparar tu computadora</span></a>). La cuenta de GitHub que pide es gratuita; la de un asistente puede no serlo. Claude Code, por ejemplo, necesita un plan de pago o facturación por uso (consultado el <span class="nowrap">2026-11-03</span>; la <a href="chapters/03-setup.html#sec-before-setup" class="quarto-xref"><span>Antes de empezar</span></a> enumera lo que necesita cada asistente). Las <strong>partes II y III</strong> construyen los dos proyectos, explicando la estadística en el camino, y cada una termina cambiando un dato de entrada y explicando qué cambió en la reconstrucción. Los apéndices contienen la preparación en Windows, una hoja de referencia, la solución de problemas, todos los puntos de control, las fuentes de datos y cómo está hecho este libro.</p>
+<p>Al terminar el libro podrás:</p>
+<ul>
+<li>explicar cómo Quarto convierte una sola fuente en muchos formatos, y por qué cada reconstrucción da el mismo resultado;</li>
+<li>dirigir un asistente de programación de forma segura: una carpeta propia, reglas escritas y un paso por prompt, cada uno terminado en una comprobación;</li>
+<li>construir y publicar los dos proyectos, la guía de Londres y el sitio web sobre el riesgo del agua, cada uno en varios formatos;</li>
+<li>predecir qué salidas actualizará un dato de entrada que cambia, y comprobar que la reconstrucción hizo exactamente eso.</li>
+</ul>
+</section>
+<section id="how-the-hands-on-parts-work" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="how-the-hands-on-parts-work">Cómo es un paso práctico</h2>
+<p>Cada paso es un recuadro de tres partes, explicado en la <a href="chapters/02-assistant.html#sec-boxes" class="quarto-xref"><span>Cómo leer los recuadros del asistente</span></a>: el prompt exacto que le das a tu asistente, lo que probablemente ejecutará y las pocas cosas que solo tú puedes hacer. Los prompts son ejemplos, no transcripciones: los asistentes varían, así que revisa el resultado y no la redacción. Cinco tipos de recuadro se salen del texto principal; aquí va uno de cada uno.</p>
+<div class="why callout callout-style-default callout-note callout-titled" title="Por qué funciona">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Por qué funciona
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Un número calculado a partir de los datos no puede contradecir a los datos. Los recuadros como este explican el mecanismo detrás de un paso, para que puedas adaptarlo a tu propio proyecto.</p>
+</div>
+</div>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Un renderizado que empieza mientras una vista previa en vivo está renderizando el mismo archivo choca con ella. Los recuadros como este describen fallas que se ven en la práctica, y cómo evitarlas.</p>
+</div>
+</div>
+<div class="practice callout callout-style-default callout-tip callout-titled" title="En la práctica">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>En la práctica
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Pide un paso por prompt: un cambio pequeño se revisa rápido, y cuando algo se rompe sabes qué paso lo rompió. Los recuadros como este reúnen criterios y hábitos.</p>
+</div>
+</div>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>El asistente informa que el renderizado terminó sin errores. ¿Está revisado el trabajo?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>Todavía no: un renderizado limpio demuestra que el código se ejecutó, no que sus números sean correctos. Los recuadros como este hacen una pregunta para que la respondas antes de seguir leyendo; la respuesta viene después.</p>
+</div>
+</div>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Importante</span>Pruébalo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Los recuadros como este son ejercicios. Piensa en un documento que produces más de una vez y anota de dónde sale cada uno de sus números.</p>
+<div class="done">
+<p><strong>Terminaste cuando</strong> puedes decir cuáles de sus números se escriben a mano y cuáles salen de un archivo.</p>
+</div>
+</div>
+</div>
+<p>Los pasos marcados como <em>opcionales</em> son para quienes llevan ventaja; nada de lo que sigue depende de ellos.</p>
+</section>
+<section id="two-ways-through" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="two-ways-through">Dos maneras de recorrerlo</h2>
+<p><strong>A tu ritmo.</strong> Lee en orden. Los capítulos 2 y 3 se pueden leer y hacer de una sentada antes de la Parte II; cada capítulo de las partes II y III termina en un punto de control o en el ejemplo terminado, donde puedes parar y retomar más tarde.</p>
+<p><strong>Al ritmo del taller.</strong> El libro nació de un taller de seis horas y conserva su forma, a la vez que explica lo que en el taller solo había tiempo de mostrar: por qué funciona cada paso, dónde falla y cuándo no conviene darlo. El <a href="appendices/i-workshop.html" class="quarto-xref"><span>Apéndice I — Darlo como taller</span></a> tiene la agenda del día y los capítulos que cubre cada bloque (<a href="appendices/i-workshop.html#tbl-agenda" class="quarto-xref">Tabla&nbsp;<span>I.1</span></a> y <a href="appendices/i-workshop.html#tbl-agenda-water" class="quarto-xref">Tabla&nbsp;<span>I.2</span></a>).</p>
+</section>
+<section id="when-you-fall-behind" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="when-you-fall-behind">Cuando te trabes</h2>
+<p>Te vas a trabar: una instalación falla, un prompt sale mal, un renderizado se detiene con un error que nunca habías visto. Es lo esperable, y el libro está hecho para eso. Cada bloque práctico termina en un <em>punto de control</em>, una carpeta del repositorio del taller (<code>checkpoints/</code>), la copia de los archivos del taller que descargas durante la preparación (<a href="chapters/03-setup.html#sec-step-check" class="quarto-xref"><span>Paso 5: ejecuta la comprobación de la preparación</span></a>). Contiene el proyecto tal como debería estar en ese punto, con un README que enumera los pasos para ponerte al día. La regla es simple: <strong>dos minutos sin avanzar, ponte al día</strong>. Donde el libro llega a un punto de control, un recuadro para ponerte al día te da la línea que debes pegar en tu asistente (<a href="#fig-catch-up" class="quarto-xref">Figura&nbsp;<span>2</span></a>).</p>
+<div id="fig-catch-up" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="Después de dos minutos sin avanzar, pegas en el asistente la línea Catch me up: follow ../quarto-workshop/checkpoints/NN/README.md. El asistente sigue cuatro pasos. Uno, respalda la carpeta de tu proyecto, todo menos su entorno .venv, en una carpeta nueva con fecha y hora, al lado. Dos, copia el punto de control y, en el proyecto del agua, los datos si faltan. Tres, renderiza y revisa una salida con nombre. Cuatro, sigues leyendo desde el recuadro para ponerte al día: el proyecto ahora coincide con el libro en ese punto.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-catch-up-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="media/diagrams/catch-up.svg" class="on-light img-fluid figure-img" alt="Después de dos minutos sin avanzar, pegas en el asistente la línea Catch me up: follow ../quarto-workshop/checkpoints/NN/README.md. El asistente sigue cuatro pasos. Uno, respalda la carpeta de tu proyecto, todo menos su entorno .venv, en una carpeta nueva con fecha y hora, al lado. Dos, copia el punto de control y, en el proyecto del agua, los datos si faltan. Tres, renderiza y revisa una salida con nombre. Cuatro, sigues leyendo desde el recuadro para ponerte al día: el proyecto ahora coincide con el libro en ese punto.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-catch-up-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2: Ponerse al día desde un punto de control. Primero se respalda tu trabajo, así que nada se pierde.
+</figcaption>
+</figure>
+</div>
+<p>El último paso del README nombra la diapositiva del taller donde reincorporarse. En el libro, ese lugar es el propio recuadro para ponerte al día, así que después de ponerte al día sigues leyendo desde el recuadro. Si te trabaste a mitad de un bloque, ve directo a su recuadro: el punto de control ya contiene los pasos entre donde te detuviste y el recuadro. El <a href="appendices/e-checkpoints.html" class="quarto-xref"><span>Apéndice E — Los puntos de control de un vistazo, y respuestas</span></a> enumera todos los puntos de control.</p>
+</section>
+<section id="two-editions" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="two-editions">Dos ediciones</h2>
+<p>Este libro viene como libro electrónico (EPUB) y como sitio web, construidos desde la misma fuente: es su propio primer ejemplo del método. La <a href="https://project-delphi.github.io/quarto-workshop/book/es/">edición web</a> ejecuta todo lo interactivo: las escenas 3-D del mapa de Londres, los pasos de k-means, los clústeres y el relieve de Colombia, y dos exploradores de datos. El libro electrónico muestra cada una como animación o imagen fija, con un enlace a la versión en vivo (la primera, el mapa de Londres, también tiene un código QR). Los lectores que no pueden reproducir animaciones muestran el primer cuadro, pensado como una imagen fija útil, y el sitio web respeta tu preferencia de movimiento reducido.</p>
+</section>
+<section id="versions-and-dates" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="versions-and-dates">Versiones y fechas</h2>
+<p>El libro se construyó y revisó con Quarto 1.10.20 (con su Typst 0.15 integrado), Python 3.12 y uv, en noviembre de 2026. Los datos que cambian, como el precio de un modelo, las pantallas de un asistente o los límites de un plan gratuito de alojamiento, llevan la fecha en que se consultaron, como en “(consultado el <span class="nowrap">2026-11-06</span>)”. Algunos habrán cambiado cuando los leas; los principios a su alrededor no deberían haber cambiado.</p>
+<p>El Capítulo 1 no necesita nada instalado: empieza por ahí.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/quarto-workshop\/book\/es\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./copyright.html" class="pagination-link" aria-label="Derechos de autor">
+        <span class="nav-page-text">Derechos de autor</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

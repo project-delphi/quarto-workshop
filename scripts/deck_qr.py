@@ -27,8 +27,8 @@ def field(key: str, name: str) -> str:
     return m.group(1)
 
 
-for key in KEYS:
-    url, out = field(key, "url"), Path(field(key, "image"))
+def qr_svg(url: str):
+    """The code for url as SVG text, and the segno code (scripts/ebook_media.py uses it too)."""
     qr = segno.make(url, error="m", micro=False)
     size = qr.symbol_size(scale=1, border=4)[0]
     buf = io.BytesIO()
@@ -37,6 +37,13 @@ for key in KEYS:
     svg = buf.getvalue().decode()
     if "viewBox" not in svg:
         svg = svg.replace("<svg ", f'<svg viewBox="0 0 {size} {size}" ', 1)
-    out.write_text(svg + "\n")
-    print(f"{out}: {url}, version {qr.version}, error level {qr.error}, "
-          f"{size} modules with the quiet zone")
+    return svg + "\n", qr, size
+
+
+if __name__ == "__main__":
+    for key in KEYS:
+        url, out = field(key, "url"), Path(field(key, "image"))
+        svg, qr, size = qr_svg(url)
+        out.write_text(svg)
+        print(f"{out}: {url}, version {qr.version}, error level {qr.error}, "
+              f"{size} modules with the quiet zone")

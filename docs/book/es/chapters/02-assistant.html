@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="keywords" content="Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means">
+<meta name="description" content="Una guía práctica de publicación reproducible: escribe una sola vez en Markdown, deja que un asistente de programación escriba el código, revisa su trabajo y reconstruye una sola fuente como página web, Word, PDF, diapositivas, libro electrónico, sitio web, blog y dashboard. Dos proyectos reales recorren el libro: una guía para visitantes de Londres y un estudio del riesgo del agua potable en los municipios de Colombia.">
+
+<title>2&nbsp; Trabajar con un asistente de programación – Pide, revisa, publica</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/03-setup.html" rel="next">
+<link href="../chapters/01-quarto.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No hay resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+
+<!-- lang-switch --><link rel="alternate" hreflang="en" href="https://project-delphi.github.io/quarto-workshop/book/chapters/02-assistant.html"><link rel="alternate" hreflang="es" href="https://project-delphi.github.io/quarto-workshop/book/es/chapters/02-assistant.html"><link rel="alternate" hreflang="x-default" href="https://project-delphi.github.io/quarto-workshop/book/chapters/02-assistant.html"><!-- /lang-switch --></head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-1.html">Parte I: Fundamentos</a></li><li class="breadcrumb-item"><a href="../chapters/02-assistant.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un asistente de programación</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <!-- lang-switch --><nav class="lang-switch lang-switch-top" aria-label="Language / Idioma"><a href="../../chapters/02-assistant.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch --><button type="button" class="btn quarto-search-button" aria-label="Buscar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Pide, revisa, publica</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://project-delphi.github.io/quarto-workshop/ebook/es/" title="La página del libro" class="quarto-navigation-tool px-1" aria-label="La página del libro"><i class="bi bi-book"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/releases/latest/download/prompt-check-publish-es.epub" title="Descarga el EPUB" class="quarto-navigation-tool px-1" aria-label="Descarga el EPUB"><i class="bi bi-download"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book-es/" title="Ejecutar el código" class="quarto-navigation-tool px-1" aria-label="Ejecutar el código"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Alternar modo oscuro"><i class="bi"></i></a>
+</div><!-- lang-switch --><nav class="lang-switch lang-switch-sidebar" aria-label="Language / Idioma"><a href="../../chapters/02-assistant.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch -->
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Buscar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefacio: cómo usar este libro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../copyright.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Derechos de autor</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedicatoria</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sobre Ravi Kalia</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte I: Fundamentos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-assistant.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un asistente de programación</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Preparar tu computadora</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte II: Una guía, muchos públicos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-markdown.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Markdown, renderizado y reglas del proyecto</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-compute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Documentos que calculan</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-audiences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Una guía, cinco públicos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-publish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Publicar y demostrar la reconstrucción</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-london.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte II</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte III: Un análisis, muchas publicaciones</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-water-question.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">La pregunta, los datos y las reglas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-explore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Mira antes de modelar</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-prepare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Encontrar tipos de lugares: k-means</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Interpretar los clústeres</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-causation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Correlación no es causalidad</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-publish-many.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-water.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte III</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../afterword.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Epílogo: lo que construiste y cómo seguir</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Apéndices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-windows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Windows: prepara Ubuntu</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-terminal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Teclas y hábitos de la terminal</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Hoja de referencia</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/d-troubleshooting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Solución de problemas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/e-checkpoints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Los puntos de control de un vistazo, y respuestas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/f-translation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Leer en otro idioma</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/g-sources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Fuentes de datos, licencias y créditos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/h-how-built.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">H</span>&nbsp; <span class="chapter-title">Cómo está hecho este libro</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/i-workshop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Darlo como taller</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glosario</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Tabla de contenidos</h2>
+   
+  <ul>
+  <li><a href="#sec-model-harness" id="toc-sec-model-harness" class="nav-link active" data-scroll-target="#sec-model-harness"><span class="header-section-number">2.1</span> Modelo más harness</a></li>
+  <li><a href="#sec-choose" id="toc-sec-choose" class="nav-link" data-scroll-target="#sec-choose"><span class="header-section-number">2.2</span> Elegir un asistente y un modelo</a>
+  <ul class="collapse">
+  <li><a href="#pick-a-model-by-task-not-by-rank" id="toc-pick-a-model-by-task-not-by-rank" class="nav-link" data-scroll-target="#pick-a-model-by-task-not-by-rank"><span class="header-section-number">2.2.1</span> Elige un modelo por la tarea, no por el ranking</a></li>
+  <li><a href="#one-prompt-four-models-three-efforts" id="toc-one-prompt-four-models-three-efforts" class="nav-link" data-scroll-target="#one-prompt-four-models-three-efforts"><span class="header-section-number">2.2.2</span> Un prompt, cuatro modelos, tres esfuerzos</a></li>
+  </ul></li>
+  <li><a href="#sec-cost" id="toc-sec-cost" class="nav-link" data-scroll-target="#sec-cost"><span class="header-section-number">2.3</span> Cuánto cuesta una conversación</a></li>
+  <li><a href="#sec-root-folder" id="toc-sec-root-folder" class="nav-link" data-scroll-target="#sec-root-folder"><span class="header-section-number">2.4</span> La carpeta raíz es el mundo del asistente</a></li>
+  <li><a href="#sec-agents-md" id="toc-sec-agents-md" class="nav-link" data-scroll-target="#sec-agents-md"><span class="header-section-number">2.5</span> Reglas que perduran: <code>AGENTS.md</code></a></li>
+  <li><a href="#sec-prompting" id="toc-sec-prompting" class="nav-link" data-scroll-target="#sec-prompting"><span class="header-section-number">2.6</span> Cómo pedir trabajo</a>
+  <ul class="collapse">
+  <li><a href="#a-web-chat-can-draft-your-prompt" id="toc-a-web-chat-can-draft-your-prompt" class="nav-link" data-scroll-target="#a-web-chat-can-draft-your-prompt"><span class="header-section-number">2.6.1</span> Un chat web puede redactar tu prompt</a></li>
+  </ul></li>
+  <li><a href="#sec-boxes" id="toc-sec-boxes" class="nav-link" data-scroll-target="#sec-boxes"><span class="header-section-number">2.7</span> Cómo leer los recuadros del asistente</a></li>
+  <li><a href="#sec-ai-policy" id="toc-sec-ai-policy" class="nav-link" data-scroll-target="#sec-ai-policy"><span class="header-section-number">2.8</span> Usar IA en una investigación: decláralo y hazte cargo</a></li>
+  <li><a href="#resumen" id="toc-resumen" class="nav-link" data-scroll-target="#resumen">Resumen</a></li>
+  <li><a href="#lecturas-adicionales" id="toc-lecturas-adicionales" class="nav-link" data-scroll-target="#lecturas-adicionales">Lecturas adicionales</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-1.html">Parte I: Fundamentos</a></li><li class="breadcrumb-item"><a href="../chapters/02-assistant.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un asistente de programación</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="sec-assistant" class="quarto-section-identifier"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un asistente de programación</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Palabras clave</div>
+    <p>Quarto, publicación reproducible, asistentes de programación, Markdown, Python, EPUB, análisis de datos, k-means</p>
+  </div>
+</div>
+
+</header>
+
+
+<p>Simon Willison, un desarrollador, les ha hecho a casi todos los modelos nuevos importantes la misma pregunta desde 2024: “Generate an SVG of a pelican riding a bicycle” (“genera un SVG de un pelícano en bicicleta”; un SVG es un dibujo escrito como texto, así que un modelo lo escribe igual que escribe código). Cuatro modelos de Claude, cada uno con tres niveles de <em>esfuerzo</em> (cuánto razona el modelo antes de responder), le respondieron con 12 dibujos, y en todos se reconoce un pelícano en bicicleta. El más caro costó 13.09 centavos de dólar, unas 93 veces lo que costó el más barato que fue suficiente, de 0.14 centavos (<a href="#fig-pelicans" class="quarto-xref">Figura&nbsp;<span>2.2</span></a>).</p>
+<p>Elegir entre esos dibujos es el primero de muchos criterios que enseña este capítulo. Un <em>asistente de programación</em> es un programa que escribe y edita archivos y ejecuta comandos cuando se lo pides: tú escribes el prompt (<em>Pide</em>), él teclea, y tú <em>revisas</em> si el resultado está bien. Puede producir en un minuto lo que a mano llevaría una hora, y puede producir con la misma rapidez un trabajo plausible, seguro de sí y equivocado. ¿Cómo obtienes lo primero sin dejarte engañar por lo segundo?</p>
+<div class="opener">
+<div class="box-label">
+<strong>En este capítulo</strong>
+</div>
+<ul>
+<li>Explicar cómo se reparten el trabajo un modelo y un harness, y qué mitad cambiar cuando un asistente decepciona.</li>
+<li>Elegir un modelo y un nivel de esfuerzo para una tarea, y mantener bajo el costo de una sesión con <code>/model</code>, <code>/clear</code> y <code>/exit</code>.</li>
+<li>Decidir dónde iniciar un asistente, qué comandos suyos aprobar y qué reglas van en <code>AGENTS.md</code>.</li>
+<li>Escribir un prompt que nombre sus archivos, pida un solo paso y termine en una comprobación, y declarar el uso de un asistente en una investigación.</li>
+</ul>
+</div>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Importante</span>Pruébalo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>No hace falta instalar nada. Pega el prompt de Simon Willison, <code>Generate an SVG of a pelican riding a bicycle</code>, en un chat web en tu navegador (Claude, ChatGPT y Gemini tienen cada uno un plan gratuito, consultado el <span class="nowrap">2026-11-12</span>), luego pégalo otra vez en una conversación nueva y compara las respuestas.</p>
+<div class="done">
+<p><strong>Terminaste cuando</strong> las dos respuestas son distintas, aunque el prompt fue el mismo. Quarto, con la misma fuente, nunca hace eso (<a href="01-quarto.html#sec-not-ai" class="quarto-xref"><span>Sección 1.3</span></a>).</p>
+</div>
+</div>
+</div>
+<section id="sec-model-harness" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="sec-model-harness"><span class="header-section-number">2.1</span> Modelo más harness</h2>
+<p>Un asistente de programación son dos programas que trabajan juntos (<a href="#fig-agent-loop" class="quarto-xref">Figura&nbsp;<span>2.1</span></a>).</p>
+<p>El <strong>modelo</strong> es un modelo de lenguaje grande, como Claude de Anthropic, GPT de OpenAI o Gemini de Google. Corre en los servidores del proveedor. Lee texto y escribe texto, y puede responder con una solicitud estructurada para usar una herramienta: “lee este archivo”, “ejecuta este comando”.</p>
+<p>El <strong>harness</strong> es el programa en tu computadora que envuelve al modelo. Claude Code, Codex y Antigravity son harnesses. El harness le da al modelo sus herramientas (leer y escribir archivos, ejecutar comandos, buscar), lleva a cabo las solicitudes de herramientas del modelo, te pregunta antes de hacer cualquier cosa con consecuencias y le devuelve los resultados al modelo. Ese ciclo se repite hasta que el modelo responde con una respuesta en lugar de otra solicitud.</p>
+<div id="fig-agent-loop" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="Tú le das un prompt al harness, y este te muestra los resultados y te pide aprobar comandos. El harness (Claude Code, Codex o Antigravity) le envía la conversación y los resultados de las herramientas al modelo (Claude, GPT o Gemini), que corre en los servidores del proveedor y responde con texto o con una solicitud para usar una herramienta. El harness lleva a cabo las solicitudes de herramientas en la carpeta del proyecto, su raíz: primero lee AGENTS.md y luego lee y edita archivos y ejecuta comandos ahí. El modelo decide, el harness hace, y tú diriges y revisas.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-agent-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/diagrams/agent-loop.svg" class="on-light img-fluid figure-img" alt="Tú le das un prompt al harness, y este te muestra los resultados y te pide aprobar comandos. El harness (Claude Code, Codex o Antigravity) le envía la conversación y los resultados de las herramientas al modelo (Claude, GPT o Gemini), que corre en los servidores del proveedor y responde con texto o con una solicitud para usar una herramienta. El harness lleva a cabo las solicitudes de herramientas en la carpeta del proyecto, su raíz: primero lee AGENTS.md y luego lee y edita archivos y ejecuta comandos ahí. El modelo decide, el harness hace, y tú diriges y revisas.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-agent-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2.1: Cómo funciona un asistente de programación. El harness en tu computadora le pasa al modelo la conversación y los resultados de cada herramienta, y el modelo responde con texto o con una solicitud para usar una herramienta; el harness actúa en la carpeta del proyecto y te pregunta antes de ejecutar comandos.
+</figcaption>
+</figure>
+</div>
+<p>Una forma corta de recordar la división: <strong>el modelo decide, el harness hace, tú diriges y revisas.</strong> Tiene una consecuencia práctica. Muchos harnesses pueden usar varios modelos, así que el mismo harness se comporta distinto con otro modelo, y el mismo modelo se comporta distinto dentro de otro harness. Cuando un asistente te decepciona, la causa puede ser cualquiera de las dos mitades, y el arreglo es distinto: un modelo más fuerte si el razonamiento se queda corto, mejores reglas o permisos si el harness hace lo que no debe.</p>
+<div class="why callout callout-style-default callout-note callout-titled" title="Por qué funciona">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Por qué funciona
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>El modelo no puede tocar tu computadora. Todo lo que “hace” es una solicitud que lleva a cabo el harness, y el harness puede mostrarte cada solicitud antes de actuar. Esa es la base de cada hábito de seguridad de este capítulo: apruebas comandos que leíste y revisas los archivos después de que cambian.</p>
+</div>
+</div>
+</section>
+<section id="sec-choose" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="sec-choose"><span class="header-section-number">2.2</span> Elegir un asistente y un modelo</h2>
+<p>Este libro cubre tres asistentes. Cada uno viene de la misma empresa que sus modelos por defecto:</p>
+<div id="tbl-assistants" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;2.1: Los asistentes que cubre este libro. Antigravity reemplazó a Gemini CLI para los usuarios del nivel gratuito y de Google One el 18 de junio de 2026 (página de instalación de Gemini CLI, consultada el <span class="nowrap">2026-11-12</span>).
+</figcaption>
+<div aria-describedby="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Asistente</th>
+<th>Escribes</th>
+<th>Lo hace</th>
+<th>Modelos por defecto</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Claude Code</td>
+<td><code>claude</code></td>
+<td>Anthropic</td>
+<td>Claude</td>
+</tr>
+<tr class="even">
+<td>Codex</td>
+<td><code>codex</code></td>
+<td>OpenAI</td>
+<td>GPT</td>
+</tr>
+<tr class="odd">
+<td>Antigravity</td>
+<td><code>agy</code></td>
+<td>Google</td>
+<td>Gemini</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Lo que significa “cubre” no es igual para los tres. Para los tres, el comando de instalación, la cuenta que necesita y cómo lee las reglas del proyecto se revisaron contra la documentación del proveedor (con fecha en el <a href="03-setup.html" class="quarto-xref"><span>Capítulo 3</span></a> y en la <a href="#sec-agents-md" class="quarto-xref"><span>Sección 2.5</span></a>). Las primeras pantallas de Claude Code y de Codex se capturaron para el taller el <span class="nowrap">2026-11-07</span>; las de Antigravity, no. Existen otros asistentes; este libro no los revisa, así que no los enumera. Cada prompt del libro está escrito para funcionar en cualquiera de los tres. La combinación de harness y modelo de un mismo proveedor es la más fácil de configurar, pero no es automáticamente la que mejor se ajusta a una tarea: el asistente y el modelo son elecciones separadas.</p>
+<section id="pick-a-model-by-task-not-by-rank" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="pick-a-model-by-task-not-by-rank"><span class="header-section-number">2.2.1</span> Elige un modelo por la tarea, no por el ranking</h3>
+<p>Cada proveedor ofrece una familia de modelos, de pequeños y baratos a grandes y capaces. No son simplemente versiones mejores y peores de una misma cosa. Los modelos más grandes y recientes suelen seguir mejor instrucciones largas, planear trabajo de varios pasos y recuperarse de sus propios errores. Los modelos pequeños son más rápidos y baratos, y a menudo bastan para ediciones cortas y bien especificadas, como corregir una errata o reformatear una tabla. Unir dos conjuntos de datos o depurar un renderizado fallido recompensa al modelo más fuerte.</p>
+<p>Los prompts de este libro son cortos y específicos, así que basta un modelo mediano con un esfuerzo moderado: Sonnet de Claude con esfuerzo medio, o Haiku para ediciones pequeñas, o Sol de OpenAI en bajo. Para trabajo difícil y desconocido, los propios proveedores recomiendan empezar más arriba: Anthropic sugiere empezar con Opus 5.5 para la mayoría de las cargas de trabajo, y OpenAI con GPT-6 Astra para razonamiento complejo y programación. Empieza por lo pequeño y sube solo cuando una tarea siga fallando.</p>
+<p>Los modelos se cobran por <em>token</em>, un fragmento de texto de unos pocos caracteres, con una tarifa para el texto que se le envía al modelo (entrada) y otra para el texto que escribe (salida). Los precios que siguen son precios de <em>API</em>: lo que paga un programa por token cuando le envía solicitudes al modelo directamente, a través de la interfaz de programación del proveedor (la API), en lugar de hacerlo con una suscripción mensual.</p>
+<div class="practice callout callout-style-default callout-tip callout-titled" title="En la práctica">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>En la práctica
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Los precios cambian cada mes; el principio, no.</strong> Los precios de lista de la <a href="#tbl-prices" class="quarto-xref">Tabla&nbsp;<span>2.2</span></a> eran correctos el <span class="nowrap">2026-11-12</span> y no lo serán por mucho tiempo. Léelos como una foto de la diferencia entre modelos, no como números para planificar.</p>
+</div>
+</div>
+<div id="tbl-prices" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-prices-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;2.2: Precios de lista de ocho modelos, en dólares por millón de tokens de entrada y de salida, consultados el <span class="nowrap">2026-11-12</span>. Las descripciones de los proveedores están traducidas del inglés.
+</figcaption>
+<div aria-describedby="tbl-prices-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Modelo</th>
+<th>Para qué dice el proveedor que sirve</th>
+<th>Entrada / salida, $ por millón de tokens</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Claude Haiku 5.5</td>
+<td>“tareas de alto volumen y sensibles a la latencia, como clasificación, extracción y enrutamiento”</td>
+<td>0.10 / 0.50</td>
+</tr>
+<tr class="even">
+<td>Claude Sonnet 5.5</td>
+<td>“la mejor combinación de velocidad e inteligencia”</td>
+<td>2 / 10</td>
+</tr>
+<tr class="odd">
+<td>Claude Opus 5.5</td>
+<td>“programación agéntica de larga duración y trabajo de conocimiento”</td>
+<td>4 / 20</td>
+</tr>
+<tr class="even">
+<td>Claude Fable 5.2</td>
+<td>“razonamiento exigente y trabajo agéntico de largo horizonte”</td>
+<td>8 / 40</td>
+</tr>
+<tr class="odd">
+<td>GPT-6 Luna</td>
+<td>“tareas focalizadas y de alto volumen”</td>
+<td>0.10 / 0.50</td>
+</tr>
+<tr class="even">
+<td>GPT-6.1 Terra</td>
+<td>“razonamiento visual, uso preciso de la computadora y escritura clara y natural”</td>
+<td>1 / 5</td>
+</tr>
+<tr class="odd">
+<td>GPT-6.1 Sol</td>
+<td>“rendimiento cercano a Astra para trabajo complejo a menor costo”</td>
+<td>2 / 10</td>
+</tr>
+<tr class="even">
+<td>GPT-6 Astra</td>
+<td>“el trabajo más exigente”</td>
+<td>10 / 50</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>El precio de Haiku es para prompts de hasta 100,000 tokens; los más largos cuestan cinco veces más. Las pruebas de los pelícanos de más abajo usaron el predecesor de Fable 5.2, Fable 5.1, con un precio de lista de 10 / 50. Las suscripciones cuentan el uso de otra manera que los precios de API, y los modelos que puedes elegir dependen de tu plan y de la versión del asistente. Fuentes: las páginas de modelos y de precios de Anthropic y las páginas de modelos de OpenAI (consultadas el <span class="nowrap">2026-11-12</span>).</p>
+<p>El costo de un nivel fijo de capacidad ha bajado rápido. Midiendo el modelo más barato que alcanza un puntaje dado en un benchmark, la firma de capital de riesgo a16z encontró que el precio bajaba unas diez veces por año, mil veces en los tres años desde noviembre de 2021, y Epoch AI encontró caídas de entre 9 y 900 veces por año según el benchmark (ambos consultados el <span class="nowrap">2026-11-07</span>). Los dos advierten que el ritmo puede bajar, y ninguno mide la frontera, donde el precio del trabajo más capaz puede bajar más despacio. La lección práctica es la misma en cualquier caso: elige por lo que necesita la tarea, no por el precio de hoy.</p>
+</section>
+<section id="one-prompt-four-models-three-efforts" class="level3" data-number="2.2.2">
+<h3 data-number="2.2.2" class="anchored" data-anchor-id="one-prompt-four-models-three-efforts"><span class="header-section-number">2.2.2</span> Un prompt, cuatro modelos, tres esfuerzos</h3>
+<p>Los pelícanos con los que empezó este capítulo hacen concreta la disyuntiva. La <a href="#fig-pelicans" class="quarto-xref">Figura&nbsp;<span>2.2</span></a> muestra una ejecución de cada uno de cuatro modelos de Claude con tres niveles de esfuerzo, con el costo de cada respuesta a precios de lista de la API.</p>
+<div id="fig-pelicans" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pelicans-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Modelo</th>
+<th>esfuerzo bajo</th>
+<th>esfuerzo medio</th>
+<th>esfuerzo alto</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Haiku 5.5</strong></td>
+<td><img src="../media/deck/pelicans/haiku-low.svg" class="img-fluid figure-img" width="160"> 0.09¢</td>
+<td><img src="../media/deck/pelicans/haiku-medium.svg" class="img-fluid figure-img" width="160"> 0.14¢, suficiente</td>
+<td><img src="../media/deck/pelicans/haiku-high.svg" class="img-fluid figure-img" width="160"> 0.25¢</td>
+</tr>
+<tr class="even">
+<td><strong>Sonnet 5.5</strong></td>
+<td><img src="../media/deck/pelicans/sonnet-low.svg" class="img-fluid figure-img" width="160"> 1.63¢</td>
+<td><img src="../media/deck/pelicans/sonnet-medium.svg" class="img-fluid figure-img" width="160"> 1.80¢, suficiente</td>
+<td><img src="../media/deck/pelicans/sonnet-high.svg" class="img-fluid figure-img" width="160"> 2.34¢</td>
+</tr>
+<tr class="odd">
+<td><strong>Opus 5.5</strong></td>
+<td><img src="../media/deck/pelicans/opus-low.svg" class="img-fluid figure-img" width="160"> 3.79¢</td>
+<td><img src="../media/deck/pelicans/opus-medium.svg" class="img-fluid figure-img" width="160"> 5.89¢</td>
+<td><img src="../media/deck/pelicans/opus-high.svg" class="img-fluid figure-img" width="160"> 6.74¢</td>
+</tr>
+<tr class="even">
+<td><strong>Fable 5.1</strong></td>
+<td><img src="../media/deck/pelicans/fable-low.svg" class="img-fluid figure-img" width="160"> 10.02¢</td>
+<td><img src="../media/deck/pelicans/fable-medium.svg" class="img-fluid figure-img" width="160"> 9.91¢</td>
+<td><img src="../media/deck/pelicans/fable-high.svg" class="img-fluid figure-img" width="160"> 13.09¢</td>
+</tr>
+</tbody>
+</table>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pelicans-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2.2: Un prompt, cuatro modelos, tres esfuerzos: “Generate an SVG of a pelican riding a bicycle”. Imágenes de la serie de pelícanos de Simon Willison, una ejecución por celda; el costo son los tokens de cada respuesta a precios de lista de la API (consultados el <span class="nowrap">2026-11-06</span>).
+</figcaption>
+</figure>
+</div>
+<p>Lee la cuadrícula en dos direcciones. Hacia abajo, el modelo crece y sube el precio por token, así que los costos van de fracciones de centavo a más de diez centavos. De izquierda a derecha, sube el esfuerzo: el modelo razona más y escribe más, así que el costo suele subir mientras el dibujo gana detalles en lugar de volverse correcto. Haiku con esfuerzo bajo tiene el cuadro más débil; de esfuerzo medio para arriba, los cuadros son sólidos, lo que concuerda con el consejo del libro de usar esfuerzo medio, aunque no lo demuestra.</p>
+<p>Mantén la evidencia en proporción. Es una ejecución por celda de una tarea pequeña y autónoma, no un benchmark: si lo vuelves a ejecutar obtienes otros pájaros, y Fable con esfuerzo medio incluso costó menos que Fable con esfuerzo bajo. Más esfuerzo tampoco es siempre mejor: con su esfuerzo máximo, Sonnet 5.5 y Opus 5.5 gastaron cada uno 128,000 tokens razonando, el límite de salida de los modelos, y no devolvieron ningún dibujo (transcripciones de Simon Willison, consultadas el <span class="nowrap">2026-11-12</span>). Un dibujo dice poco de un trabajo largo que une conjuntos de datos y se recupera de errores, que es donde los modelos más fuertes se ganan su precio. Si una diferencia de 93 veces en el precio vale la pena depende por completo de la tarea.</p>
+</section>
+</section>
+<section id="sec-cost" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="sec-cost"><span class="header-section-number">2.3</span> Cuánto cuesta una conversación</h2>
+<p>Pagues por suscripción o por API, el uso se cuenta en tokens. Tres cosas suben el costo de una sesión:</p>
+<ol type="1">
+<li><strong>Un modelo más grande</strong> cuesta más por token.</li>
+<li><strong>Un nivel de esfuerzo más alto</strong> hace que el modelo escriba más tokens de razonamiento por respuesta.</li>
+<li><strong>Una conversación más larga</strong> cuesta más en cada turno, porque el modelo no guarda memoria entre solicitudes: el harness vuelve a enviar la conversación entera cada vez. Todo lo que se envía con una solicitud (la conversación hasta ahí, los archivos leídos, las reglas del proyecto) es el <em>contexto</em> del modelo. El caché de prompts abarata la parte repetida, pero no la hace gratis, y los cachés vencen.</li>
+</ol>
+<p>Los hábitos que siguen son simples: un modelo mediano con esfuerzo moderado, una tarea por conversación y una conversación nueva en cuanto termina una tarea. Tres comandos, que se escriben en el propio asistente y no se ejecutan en la terminal (<a href="03-setup.html#sec-two-places" class="quarto-xref"><span>Sección 3.4.1</span></a>), los cubren:</p>
+<div id="tbl-slash" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-slash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;2.3: Tres comandos que controlan el costo y el contexto (referencia de comandos de Claude Code y referencia de Codex CLI, consultadas el <span class="nowrap">2026-11-12</span>). Escribe <code>/</code> solo para ver la lista de comandos de tu asistente.
+</figcaption>
+<div aria-describedby="tbl-slash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Comando</th>
+<th>Claude Code</th>
+<th>Codex</th>
+<th>Úsalo cuando</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/model</code></td>
+<td>cambia el modelo; las flechas ajustan el nivel de esfuerzo si el modelo lo admite</td>
+<td>elige el modelo y el esfuerzo de razonamiento</td>
+<td>un prompt sigue fallando (sube) o el trabajo es rutinario (baja)</td>
+</tr>
+<tr class="even">
+<td><code>/clear</code></td>
+<td>empieza una conversación nueva con el contexto vacío; la anterior se puede retomar</td>
+<td>limpia la terminal y empieza un chat nuevo</td>
+<td>terminó una tarea y empieza otra sin relación</td>
+</tr>
+<tr class="odd">
+<td><code>/exit</code></td>
+<td>sale; <code>/quit</code> hace lo mismo</td>
+<td>sale; <code>/quit</code> hace lo mismo</td>
+<td>terminaste, o necesitas pasar a otra carpeta</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><code>/clear</code> importa tanto para la calidad como para el costo. Las instrucciones viejas y los archivos leídos antes siguen orientando al modelo mientras estén en la conversación; una conversación nueva los descarta. Nada cambia en el disco, y el archivo de reglas del proyecto se vuelve a leer.</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Una tarea terminó y empieza otra sin relación. ¿Qué comando va primero y qué conserva?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p><code>/clear</code>. La tarea nueva no necesita nada de la conversación anterior, y arrastrarla cuesta tokens en cada turno y puede confundir al modelo. Tus archivos quedan como están, y el archivo de reglas del proyecto se vuelve a leer.</p>
+</div>
+</div>
+</section>
+<section id="sec-root-folder" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="sec-root-folder"><span class="header-section-number">2.4</span> La carpeta raíz es el mundo del asistente</h2>
+<p>Un asistente trata la carpeta en la que lo inicias como su <em>raíz</em>: lee y edita archivos ahí y en las carpetas de abajo, y ejecuta comandos desde ahí. La primera vez que inicias uno en una carpeta nueva, te pregunta si confías en ella. El aviso de Claude Code, capturado el <span class="nowrap">2026-11-07</span>, advierte que “Claude Code’ll be able to read, edit, and execute files here” (Claude Code podrá leer, editar y ejecutar archivos aquí); Codex hace la misma pregunta en una carpeta que es un repositorio de Git, y dice que puede leer, editar y ejecutar archivos “subject to your permission settings” (según tu configuración de permisos).</p>
+<p>Esa pregunta merece una respuesta de verdad. Confía solo en una carpeta que creaste para el trabajo. Nunca inicies un asistente en tu carpeta personal, en Documentos ni en ningún lugar que contenga proyectos de otras personas, documentos privados o claves (como <code>~/.ssh</code>). Las instrucciones de proyecto de una carpeta de confianza también se leen y se siguen, lo que es otra razón para confiar solo en tus propias carpetas.</p>
+<p>Empezar en una carpeta de proyecto pequeña tiene tres ventajas prácticas. Las rutas de los prompts quedan cortas (<code>data/attractions.csv</code>), se encuentra el archivo de reglas del proyecto y un error queda dentro de una sola carpeta que puedes restaurar. Pero no es una frontera garantizada: un comando igual puede nombrar una ruta fuera de la carpeta, así que lee cada comando antes de aprobarlo.</p>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Dos asistentes que escriben los mismos archivos, o que renderizan en una misma carpeta a la vez, chocan; la <a href="06-audiences.html#sec-sub-agents" class="quarto-xref"><span>Sección 6.2</span></a> muestra la forma segura de repartir el trabajo. Para trabajar en otro proyecto, sal con <code>/exit</code>, cambia de carpeta e inicia el asistente otra vez ahí.</p>
+</div>
+</div>
+</section>
+<section id="sec-agents-md" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="sec-agents-md"><span class="header-section-number">2.5</span> Reglas que perduran: <code>AGENTS.md</code></h2>
+<p>Todo lo que le dices a un asistente en la conversación se olvida cuando la conversación termina. Las reglas que deben valer en cada sesión van en un archivo: <code>AGENTS.md</code>, un archivo de Markdown simple en la parte de arriba de la carpeta del proyecto que el asistente lee al comienzo de cada sesión. Uno bueno tiene tres partes:</p>
+<ul>
+<li><strong>Alcance:</strong> qué es el proyecto y qué no es.</li>
+<li><strong>Reglas:</strong> lo que siempre debe cumplirse (“every number comes from a cited file in <code>data/</code>”: cada número sale de un archivo citado en <code>data/</code>).</li>
+<li><strong>Comandos:</strong> cómo construir y revisar el proyecto.</li>
+</ul>
+<p>Los tres asistentes de este libro lo leen (consultado el <span class="nowrap">2026-10-30</span>). Codex lee los archivos <code>AGENTS.md</code> antes de hacer cualquier trabajo. Antigravity lee <code>AGENTS.md</code> o <code>GEMINI.md</code> en las carpetas del proyecto. Claude Code lee <code>AGENTS.md</code> cuando no hay un <code>CLAUDE.md</code> en la carpeta de trabajo ni más arriba, desde la versión 2.1.277; un <code>CLAUDE.md</code> que contenga la línea <code>@AGENTS.md</code> lo importa, así que un solo archivo puede servirles a los tres (documentación de memoria de Claude Code, consultada el <span class="nowrap">2026-11-12</span>). El repositorio detrás de este libro funciona exactamente así: su <code>CLAUDE.md</code> importa su <code>AGENTS.md</code>.</p>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>AGENTS.md</code> es contexto, no una imposición. El asistente lee las reglas y suele seguirlas, pero igual puede equivocarse. Escribe reglas lo bastante concretas como para revisarlas (“call ALVA counts ‘ALVA member attractions’”: llama a los conteos de ALVA “ALVA member attractions”), y revísalas.</p>
+</div>
+</div>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Ayer le dijiste al asistente, en la conversación, que dijera “ALVA member attractions”. Hoy escribe “top attractions”. ¿Por qué, y cuál es el arreglo duradero?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>La instrucción terminó con la conversación de ayer: el modelo no guarda memoria entre sesiones. Pon la regla en <code>AGENTS.md</code>, que se lee al comienzo de cada sesión, y aun así revisa que se cumpla, porque las reglas son contexto, no una imposición.</p>
+</div>
+</div>
+<p>La Parte II escribe las reglas de la guía de Londres en el <a href="04-markdown.html" class="quarto-xref"><span>Capítulo 4</span></a>, y la Parte III escribe las del análisis del agua en el <a href="08-water-question.html" class="quarto-xref"><span>Capítulo 8</span></a>.</p>
+</section>
+<section id="sec-prompting" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="sec-prompting"><span class="header-section-number">2.6</span> Cómo pedir trabajo</h2>
+<p>Un <em>prompt</em> es la solicitud que le escribes al asistente. Cuatro hábitos hacen que los prompts sean confiables:</p>
+<p><strong>Especifica.</strong> Nombra los archivos, las columnas, el tipo de gráfico y la salida. “Haz un gráfico” invita a adivinar; “agrega un gráfico de barras horizontales de <code>visits_2025</code> por <code>attraction</code> desde <code>data/attractions.csv</code>”, no.</p>
+<p><strong>Un paso a la vez.</strong> Una tarea por prompt mantiene cada cambio lo bastante pequeño como para revisarlo, y te dice qué paso se rompió cuando algo se rompe.</p>
+<p><strong>Pídele que ejecute y compruebe.</strong> Termina con una comprobación que el asistente pueda hacer: “renderízalo y dime qué archivo escribió”, “comprueba que el PDF tenga una página”. Un asistente que verifica su propio trabajo detecta muchos de sus propios errores.</p>
+<p><strong>Revisa lo que cambió.</strong> La responsabilidad por el resultado es tuya. Lee los archivos que cambiaron (la mayoría de los asistentes pueden mostrarte un <em>diff</em>, las líneas agregadas y eliminadas) antes de seguir.</p>
+<p>Los prompts de este libro se diseñaron con ayuda de IA y se afinaron para reducir errores, pero no son magia, y los asistentes varían. Cuando un prompt menciona algo que no entiendes (una clave de YAML, una construcción de Markdown, una llamada de Python), pregunta antes de pegarlo:</p>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Explica qué es una tabla de Markdown y cuándo conviene usarla. Luego dime qué página de la documentación oficial puedo consultar para verificar tu respuesta.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p>Pedir la página de la documentación importa: convierte la respuesta en algo que puedes revisar.</p>
+<section id="a-web-chat-can-draft-your-prompt" class="level3" data-number="2.6.1">
+<h3 data-number="2.6.1" class="anchored" data-anchor-id="a-web-chat-can-draft-your-prompt"><span class="header-section-number">2.6.1</span> Un chat web puede redactar tu prompt</h3>
+<p>Si sabes lo que quieres pero no cómo pedirlo, un chat web gratuito (Claude, ChatGPT o Gemini en el navegador) puede convertir una idea a medias en un prompt. Describe el objetivo con palabras simples, nombra tus herramientas y pide un prompt de una a cuatro líneas, con una sola tarea, nombres de archivo concretos y una comprobación (<a href="#fig-chat-prompt" class="quarto-xref">Figura&nbsp;<span>2.3</span></a>). El chat no puede ver tus archivos, así que adivina; el asistente sí puede verlos, así que comprueba. Lee el prompt redactado antes de pegarlo, y corrige cualquier nombre de archivo que no coincida con tu carpeta.</p>
+<div id="fig-chat-prompt" class="anim quarto-float quarto-figure quarto-figure-center anchored" alt="Un ejemplo animado en cinco pasos, en inglés. Un chat web gratuito recibe una solicitud escrita con palabras simples: una guía de una página para visitantes de Londres, y un prompt para un asistente de programación, que nombre las herramientas Quarto y Markdown, de una a cuatro líneas, con una sola tarea, nombres de archivo concretos y una comprobación. El chat responde con un prompt: usa Quarto y Markdown, crea london.md con el título Visit London, un título de nivel 1 y una bienvenida de dos oraciones, agrega un título Top sights con tres viñetas que nombren cada una un lugar y por qué visitarlo, ejecuta quarto render london.md y luego enumera los títulos de london.html y cualquier error. El prompt se copia y se pega en un asistente de programación en la terminal, que escribe london.md, lo renderiza, enumera los títulos e informa que no hay errores.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-chat-prompt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<picture><source srcset="../media/stills/chat-prompt.png" media="(prefers-reduced-motion: reduce)"><img src="../media/gifs/chat-prompt.gif" alt="Un ejemplo animado en cinco pasos, en inglés. Un chat web gratuito recibe una solicitud escrita con palabras simples: una guía de una página para visitantes de Londres, y un prompt para un asistente de programación, que nombre las herramientas Quarto y Markdown, de una a cuatro líneas, con una sola tarea, nombres de archivo concretos y una comprobación. El chat responde con un prompt: usa Quarto y Markdown, crea london.md con el título Visit London, un título de nivel 1 y una bienvenida de dos oraciones, agrega un título Top sights con tres viñetas que nombren cada una un lugar y por qué visitarlo, ejecuta quarto render london.md y luego enumera los títulos de london.html y cualquier error. El prompt se copia y se pega en un asistente de programación en la terminal, que escribe london.md, lo renderiza, enumera los títulos e informa que no hay errores." class="anim img-fluid figure-img" loading="lazy"></picture>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-chat-prompt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2.3: Un chat web redacta un prompt, tú lo lees y el asistente de programación lo ejecuta. Una ilustración dibujada para el taller, no una grabación: las respuestas reales varían. La animación está en inglés.
+</figcaption>
+</figure>
+</div>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Pega solo lo que publicarías sin problema. Los chats web y los asistentes le envían tu texto al proveedor: nada de contraseñas, claves, datos sin publicar ni información personal.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="sec-boxes" class="level2" data-number="2.7">
+<h2 data-number="2.7" class="anchored" data-anchor-id="sec-boxes"><span class="header-section-number">2.7</span> Cómo leer los recuadros del asistente</h2>
+<p>Cada paso práctico de este libro usa el mismo recuadro de tres partes. Esta es una versión más simple del primero que vas a encontrar en la Parte II:</p>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu asistente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Crea london.md con un título de nivel 1 "Visit London" y un párrafo de bienvenida.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Probablemente ejecute</strong>
+</div>
+<p>escribe <code>london.md</code> · puede ejecutar <code>quarto render london.md</code></p>
+</div>
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>Tú haces</strong>
+</div>
+<p>apruebas sus comandos · abres <code>london.html</code> en tu navegador</p>
+</div>
+</div>
+<p><strong>Pídele a tu asistente</strong> contiene el prompt exacto que debes pegar en el asistente (en la edición HTML, con un botón para copiarlo). <strong>Probablemente ejecute</strong> enumera lo que el asistente probablemente hará, para que lo reconozcas cuando te pida aprobación; esto no lo escribes tú. <strong>Tú haces</strong> enumera las pocas cosas que solo tú puedes hacer: iniciar el asistente, iniciar sesión en las cuentas, aprobar comandos, ejecutar una vista previa en vivo, abrir los resultados. El asistente ocupa la pestaña de la terminal en la que corre, así que los comandos de un recuadro <strong>Tú haces</strong> van en una segunda pestaña de la terminal abierta en la misma carpeta (<a href="03-setup.html#sec-two-places" class="quarto-xref"><span>Sección 3.4.1</span></a>).</p>
+<p>Juntos, los recuadros son una vuelta del ciclo del título del libro. <strong>Pídele a tu asistente</strong> es el paso <em>Pide</em>. <strong>Probablemente ejecute</strong> y <strong>Tú haces</strong> son donde <em>revisas</em>: reconoces cada comando antes de aprobarlo y abres el resultado por tu cuenta. El renderizado es el paso <em>Publica</em>. Cada ejercicio cierra el ciclo con <strong>Terminaste cuando</strong>: la comprobación, escrita de manera que puedas ver si se cumplió.</p>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Aprobar un comando sin leerlo. La mayoría de los comandos de este libro ejecutan una herramienta que nombró el prompt (<code>quarto</code>, <code>uv</code>, <code>git</code>, <code>gh</code>) sobre archivos de la carpeta del proyecto. Detente y pregúntale al asistente qué hace un comando antes de aprobar uno que borre archivos (<code>rm</code>), que se ejecute como administrador (<code>sudo</code>) o que toque una carpeta fuera del proyecto que el prompt no nombró.</p>
+</div>
+</div>
+<p>Los prompts son ejemplos, no transcripciones. Los asistentes varían de una versión a otra y de una ejecución a otra, así que los archivos que escriban van a diferir en detalles de los que se muestran. Lo que no debería variar es el resultado que revisas. La <a href="#fig-agent-session" class="quarto-xref">Figura&nbsp;<span>2.4</span></a> muestra cómo se ve una sesión.</p>
+<div id="fig-agent-session" class="anim quarto-float quarto-figure quarto-figure-center anchored" alt="La reproducción en una terminal de una sesión con un asistente de programación, en inglés y marcada como ilustración. El prompt pide london.md con un título de nivel 1 Visit London y un párrafo de bienvenida. El asistente dice que va a crear el archivo y muestra las líneas que escribe: el título y una oración de bienvenida sobre museos gratuitos, historia de la realeza y paseos junto al río. Dice que va a renderizar el archivo para comprobarlo, muestra el comando quarto render london.md y pregunta Allow this command (permitir este comando), con Yes seleccionado. La salida dice Output created: london.html, y el asistente informa que london.md tiene el título y un párrafo de bienvenida y que el renderizado no tuvo errores.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-agent-session-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<picture><source srcset="../media/stills/agent-session.png" media="(prefers-reduced-motion: reduce)"><img src="../media/gifs/agent-session.gif" alt="La reproducción en una terminal de una sesión con un asistente de programación, en inglés y marcada como ilustración. El prompt pide london.md con un título de nivel 1 Visit London y un párrafo de bienvenida. El asistente dice que va a crear el archivo y muestra las líneas que escribe: el título y una oración de bienvenida sobre museos gratuitos, historia de la realeza y paseos junto al río. Dice que va a renderizar el archivo para comprobarlo, muestra el comando quarto render london.md y pregunta Allow this command (permitir este comando), con Yes seleccionado. La salida dice Output created: london.html, y el asistente informa que london.md tiene el título y un párrafo de bienvenida y que el renderizado no tuvo errores." class="anim img-fluid figure-img" loading="lazy"></picture>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-agent-session-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2.4: Cómo se ve la ejecución del primer prompt: el asistente escribe el archivo, pregunta antes de ejecutar un comando, renderiza e informa. Una ilustración (una reproducción guionada de una sesión típica), no una grabación: las pantallas de tu asistente se verán distintas. La animación está en inglés.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="sec-ai-policy" class="level2" data-number="2.8">
+<h2 data-number="2.8" class="anchored" data-anchor-id="sec-ai-policy"><span class="header-section-number">2.8</span> Usar IA en una investigación: decláralo y hazte cargo</h2>
+<p>Si tu trabajo es de investigación, usar un asistente trae obligaciones que van más allá de que el código esté bien. Las revistas y los financiadores difieren en los detalles, así que lee la política de tu revista, pero el International Committee of Medical Journal Editors (ICMJE), cuyas recomendaciones siguen muchas revistas, plantea un núcleo común (consultado el <span class="nowrap">2026-11-12</span>; citas traducidas del inglés):</p>
+<ul>
+<li><strong>Una herramienta de IA nunca es autora.</strong> Los chatbots y otras herramientas asistidas por IA “no deben figurar como autores porque no pueden ser responsables de la exactitud, la integridad y la originalidad del trabajo”.</li>
+<li><strong>Tú eres responsable de lo que produjo.</strong> Las personas son responsables de cualquier material enviado que haya usado tecnologías asistidas por IA, y deben revisar y editar lo que produce la IA, que “puede ser incorrecto, incompleto o sesgado”. Eso incluye las referencias: el material generado por IA no es una fuente primaria aceptable.</li>
+<li><strong>Declara el uso.</strong> Los autores describen su uso de tecnologías asistidas por IA al enviar el trabajo, en la carta de presentación y en la sección correspondiente del trabajo.</li>
+</ul>
+<p>Hay dos reglas más que se desprenden de la ética de investigación corriente más que de una política en particular. Mantén los manuscritos sin publicar, los datos de participantes y otro material confidencial fuera de las herramientas públicas de IA. Y nunca dejes que una herramienta genere o altere datos primarios o imágenes: presentar datos generados como observados es fabricación.</p>
+<p>Una declaración útil nombra la herramienta y su versión, las tareas que hizo y las comprobaciones que hiciste tú. La declaración de este libro, en su página de derechos de autor, está escrita así. Dónde va depende del uso: el código y el análisis van en los Métodos, con detalle suficiente para reproducirlos, lo que en un proyecto de Quarto significa el código mismo y el <code>AGENTS.md</code> del proyecto.</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>¿Qué necesita una declaración: corregir una errata o calcular una tabla?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>Calcular una tabla es análisis: descríbelo en los Métodos, con detalle suficiente para reproducirlo. Las revistas difieren en si la corrección de estilo necesita una declaración; las recomendaciones del ICMJE no hacen ninguna excepción para ella, así que, ante la duda, decláralo.</p>
+</div>
+</div>
+</section>
+<section id="resumen" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="resumen">Resumen</h2>
+<div class="keyideas">
+<ul>
+<li>El modelo decide, el harness hace, y tú diriges y revisas; cuando un asistente decepciona, cualquiera de las dos mitades puede ser la causa.</li>
+<li>Elige un modelo por la tarea, no por el ranking: como mostraron los pelícanos, un modelo más barato con esfuerzo medio suele bastar para un paso pequeño y bien especificado.</li>
+<li>El costo crece con el tamaño del modelo, el esfuerzo y el largo de la conversación, porque la conversación entera se vuelve a enviar en cada turno, así que empieza una conversación nueva para cada tarea sin relación.</li>
+<li>Inicia un asistente solo en una carpeta que creaste para el trabajo, y lee cada comando antes de aprobarlo.</li>
+<li>Las reglas que deben durar van en <code>AGENTS.md</code>, que es contexto, no una imposición, así que escríbelas de forma lo bastante concreta como para revisarlas.</li>
+<li>Los buenos prompts son específicos, piden un solo paso y terminan en una comprobación; en una investigación el asistente nunca es autor, y su uso se declara.</li>
+</ul>
+</div>
+<p>Todo esto da por sentado una computadora en la que un asistente, Quarto y Python están instalados y funcionan juntos. ¿La tuya lo está? El <a href="03-setup.html" class="quarto-xref"><span>Capítulo 3</span></a> la deja así en seis pasos revisados.</p>
+</section>
+<section id="lecturas-adicionales" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="lecturas-adicionales">Lecturas adicionales</h2>
+<ul>
+<li>Claude Code, <a href="https://code.claude.com/docs/en/commands">referencia de comandos</a> y <a href="https://code.claude.com/docs/en/memory">memoria y <code>AGENTS.md</code></a> (consultados el <span class="nowrap">2026-11-12</span>).</li>
+<li>OpenAI, <a href="https://learn.chatgpt.com/docs/codex/cli">Codex CLI</a> y <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md"><code>AGENTS.md</code></a> (consultados el <span class="nowrap">2026-11-12</span> y el <span class="nowrap">2026-10-30</span>).</li>
+<li>Google, <a href="https://antigravity.google/docs/rules">reglas de Antigravity</a> (consultado el <span class="nowrap">2026-10-30</span>).</li>
+<li>Anthropic, <a href="https://platform.claude.com/docs/en/about-claude/models/overview">panorama de los modelos</a> y <a href="https://platform.claude.com/docs/en/about-claude/pricing">precios</a>; OpenAI, <a href="https://developers.openai.com/api/docs/models">modelos</a> (consultados el <span class="nowrap">2026-11-12</span>).</li>
+<li>Planes gratuitos de los chats web: <a href="https://claude.com/pricing">Claude</a>, <a href="https://chatgpt.com/pricing">ChatGPT</a> y <a href="https://gemini.google/subscriptions/">Gemini</a> (consultados el <span class="nowrap">2026-11-12</span>).</li>
+<li>Gemini CLI, <a href="https://geminicli.com/docs/get-started/installation">instalación</a>, sobre su reemplazo por Antigravity CLI (consultado el <span class="nowrap">2026-11-12</span>).</li>
+<li>Guido Appenzeller, <a href="https://a16z.com/llmflation-llm-inference-cost/">LLMflation</a>, a16z, 2024; Epoch AI, <a href="https://epoch.ai/data-insights/llm-inference-price-trends">LLM inference price trends</a>, 2025 (consultados el <span class="nowrap">2026-11-07</span>).</li>
+<li>Simon Willison, serie <a href="https://simonwillison.net/tags/pelican-riding-a-bicycle/">pelican riding a bicycle</a> (consultada el <span class="nowrap">2026-11-06</span>).</li>
+<li>ICMJE, <a href="https://www.icmje.org/recommendations/browse/artificial-intelligence/ai-use-by-authors.html">Use of AI by authors</a> (consultado el <span class="nowrap">2026-11-12</span>).</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/quarto-workshop\/book\/es\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/01-quarto.html" class="pagination-link" aria-label="Publicar algo que se reconstruye solo">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/03-setup.html" class="pagination-link" aria-label="Preparar tu computadora">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Preparar tu computadora</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

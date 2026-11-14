@@ -1,0 +1,164 @@
+# Los puntos de control de un vistazo, y respuestas {#sec-checkpoints}
+
+```{python}
+#| label: appE-setup
+# The water rebuild's model answer, computed: run the finished analysis again with
+# MAX_MISSING = 1 instead of its setting, in memory, and compare, following Tunja and the
+# department capitals' rural zones through the change.
+from scripts import water as w
+from scripts.prose import number_words, text_holds
+
+NUM = number_words(zero="no")
+A = w.A
+full = w.res()
+before = full["summary"]
+original = A.MAX_MISSING
+A.MAX_MISSING = 1
+try:
+    stricter = A.run()
+finally:
+    A.MAX_MISSING = original
+after = stricter["summary"]
+c0, c1 = full["clusters"], stricter["clusters"]
+keys = ["divipola", "zone", "year"]
+gone = c0.merge(c1[keys], on=keys, how="left", indicator=True)
+gone = gone[gone["_merge"] == "left_only"]             # the rows the stricter rule drops
+capital = gone["department_capital"] == 1
+n_cap_rural = int((capital & (gone["zone"] == "rural")).sum())
+n_cap_urban = int((capital & (gone["zone"] == "urban")).sum())
+n_other = len(gone) - n_cap_rural
+cap_rural0 = c0[(c0["department_capital"] == 1) & (c0["zone"] == "rural")]
+tj0, tj1 = c0[c0["divipola"] == "15001"], c1[c1["divipola"] == "15001"]
+tj_rural0 = int((tj0["zone"] == "rural").sum())
+tj_c = int(tj0["cluster"].iloc[0])
+kept = c0.merge(c1, on=keys, suffixes=("_0", "_1"))
+same = (kept["cluster_0"] == kept["cluster_1"]).mean()
+# The rows reach the rule before imputation, so the flags show which values they were missing.
+text_holds(original == 2 and gone[["water_coverage_imputed", "sewer_coverage_imputed"]].eq(1).all().all()
+           and n_cap_rural == len(cap_rural0) > 0 and len(gone) == len(c0) - len(c1)
+           and len(gone) == after["dropped_too_many_missing"] - before["dropped_too_many_missing"]
+           and set(tj1["zone"]) == {"urban"} and tj1["cluster"].eq(tj_c).all()
+           and len(tj1) == (tj0["zone"] == "urban").sum() and tj0["cluster"].eq(tj_c).all()
+           and after["k"] == before["k"] == 4                 # the post's `assert k == 4`
+           and list(stricter["profiles"]["name"]) == list(full["profiles"]["name"]),
+           "the MAX_MISSING rebuild")
+```
+
+## Todos los puntos de control {#every-checkpoint .unnumbered}
+
+Cada punto de control es una carpeta de `quarto-workshop/checkpoints/` que contiene un proyecto tal como
+queda al final de un bloque práctico, con un README que enumera los pasos para ponerse al día: respalda
+tu carpeta (todo menos `.venv/`) en una carpeta nueva con fecha y hora, al lado; copia el punto de
+control (y, en el proyecto del agua, `data/` si falta); renderiza y revisa una salida con nombre. Pega
+`Catch me up: follow ../quarto-workshop/<path>/README.md` en tu asistente, o sigue el README a mano, y
+luego continúa desde la sección cuyo recuadro para ponerte al día usaste. El README nombra la
+diapositiva del taller en el mismo punto. No hay punto de control 03.
+
+| Ruta | Recuadro para ponerte al día | Contiene |
+|---|---|---|
+| `checkpoints/01-london-markdown` | @sec-environments | `london.md` con cada construcción de Markdown, las reglas, el entorno, `data/` e `images/` |
+| `checkpoints/02-london-qmd` | @sec-render-mechanics | `london.qmd` con encabezado YAML, una oración y un gráfico calculados, y seis formatos |
+| `checkpoints/04-london-audiences` | @sec-audiences-do | el dashboard, el informe en Word y su correo, y el folleto A5 |
+| `examples/london` | @sec-london-social, @sec-london-publish | el proyecto de Londres terminado: sitio web, anuncio cuadrado y documento técnico |
+
+: Los puntos de control de Londres, la sección cuyo recuadro para ponerte al día te lleva a cada uno, y lo que contiene. {#tbl-checkpoints}
+
+| Ruta | Recuadro para ponerte al día | Contiene |
+|---|---|---|
+| `checkpoints/05-water-explore` | @sec-explore-do | las reglas, el entorno y `explore.qmd` |
+| `checkpoints/06-water-prepare` | @sec-prepare-do | `scripts/analysis.py` con `prepare()` |
+| `checkpoints/07-water-cluster` | @sec-cluster-page | k-means en el script y `clusters.qmd` |
+| `checkpoints/08-water-interpret` | @sec-interpret-do | las reglas de las variables de resultado, los perfiles con nombre, y el mapa de calor y las variables de resultado en la página |
+| `checkpoints/09-water-causation` | @sec-causation-do | la comprobación dentro de cada clúster en la página |
+| `checkpoints/10-water-report` | @sec-water-report | `report.qmd` en HTML, Word y PDF de Typst |
+| `checkpoints/11-water-slides` | @sec-water-slides | `slides.qmd` en Reveal.js y PowerPoint |
+| `checkpoints/12-water-epub` | @sec-water-epub | el EPUB opcional del informe |
+| `checkpoints/13-water-website` | @sec-water-website, @sec-water-ship | el sitio web, su entrada de blog y el listado |
+| `examples/water` | @sec-water-dashboard | el proyecto del agua terminado, con el dashboard y el documento técnico |
+
+: Los puntos de control del agua, la sección cuyo recuadro para ponerte al día te lleva a cada uno, y lo que contiene. Solo contienen fuentes: ponerte al día copia los datos. {#tbl-checkpoints-water}
+
+## Respuesta: cambiar un dato de entrada de Londres {#sec-answer-london .unnumbered}
+
+```{python}
+#| label: appE-london
+# The white paper copies ALVA's UK rank from the file: the Tower's rank there.
+import pandas as pd
+
+ldn_att = pd.read_csv("../examples/london/data/attractions.csv")
+tower_rank_uk = int(ldn_att.loc[ldn_att["attraction"] == "Tower of London", "rank_uk"].iloc[0])
+ORDINALS = ["cero", "primer", "segundo", "tercer", "cuarto", "quinto", "sexto", "séptimo",
+            "octavo", "noveno", "décimo"]
+```
+
+La tarea (@sec-london-change): cambiar el `visits_2025` de la Tower of London a 8,000,000.
+
+**Qué cambia.** Cada página que carga `attractions.csv` (@tbl-london-deps) se reconstruye con el conteo
+nuevo, y lo que muestra depende de su código. La guía, en cada formato que escribe (página web, Word y
+PDF, y PowerPoint, diapositivas y EPUB si se hicieron), los cuadros de valor y el gráfico de barras del
+dashboard, y el informe para socios (`london-email.docx`) encuentran la atracción más visitada con
+`idxmax()` y el total con `.sum()`, así que la Tower of London pasa a ser la atracción más visitada y el
+total sube. El anuncio cuadrado, si se hizo, usa solo `idxmax()`, así que también nombra a la Tower. El
+documento técnico no nombra ninguna atracción más visitada: sus sumas por tipo de entrada cambian, pero su
+tabla conserva la columna `rank_uk` de ALVA tomada del archivo, así que seguiría ubicando a la Tower en el
+`{python} ORDINALS[tower_rank_uk]` puesto del Reino Unido al lado de la mayor cantidad de visitas de las
+diez. Una columna copiada también queda vieja.
+
+**Qué no cambia.** El folleto, que copia sus datos y no cita ningún conteo de visitas; el correo de
+presentación (`london-email-message.md`), que no cita ningún número y no se renderiza; el gráfico de
+líneas del dashboard y el mapa 3-D, que leen `visits.csv` y no `attractions.csv`; cualquier salida que no
+se reconstruyó; y el sitio en vivo, hasta que se vuelva a publicar.
+
+**Por qué.** Cada renderizado vuelve a ejecutar el código de cada página (`freeze: false`), y cada salida
+que cambió está conectada con el dato de entrada por una línea de código que lo carga. Una respuesta
+sólida nombra esa línea.
+
+**Preguntas de seguimiento que vale la pena hacerse.** ¿Dónde aparecería el cambio si el número se hubiera
+escrito a mano en la prosa en lugar de calcularse? (En ninguna parte: el número escrito a mano
+contradiría en silencio al gráfico.) ¿Qué cambiaría si en cambio se editara `visits.csv`? (El gráfico de
+líneas del dashboard, el mapa 3-D y la tendencia del documento técnico.) ¿Por qué el renderizado vuelve a
+ejecutar cada celda? (Porque nada está en caché; ver la @sec-water-website.)
+
+## Respuesta: cambiar una opción del agua {#sec-answer-water .unnumbered}
+
+La tarea (@sec-water-change): fijar `MAX_MISSING = 1` en lugar de 2 en `scripts/analysis.py`. Calculado
+aquí ejecutando el análisis terminado de las dos maneras:
+
+| | `MAX_MISSING = 2` | `MAX_MISSING = 1` |
+|---|--:|--:|
+| filas descartadas por características faltantes | `{python} w.fmt(before["dropped_too_many_missing"])` | `{python} w.fmt(after["dropped_too_many_missing"])` |
+| filas conservadas | `{python} w.fmt(before["kept"])` | `{python} w.fmt(after["kept"])` |
+| municipios | `{python} w.fmt(before["municipalities"])` | `{python} w.fmt(after["municipalities"])` |
+| k | `{python} before["k"]` | `{python} after["k"]` |
+
+: El análisis del agua con cada opción. {#tbl-answer-water}
+
+**La predicción.** Se va cada fila a la que le falta más de una de las nueve características. Las
+capitales de departamento no tienen cobertura por zona, así que sus zonas rurales llegan a esa regla con
+los dos valores de cobertura faltantes (la imputación viene después de la regla): se van todas sus
+zonas-año rurales, entre ellas las `{python} NUM[tj_rural0]` de Tunja, mientras que la zona urbana de
+Tunja, que toma el total municipal, se queda.
+
+**Lo que muestra la reconstrucción.** La opción más estricta descarta `{python} w.fmt(len(gone))` filas
+más, a todas les faltan los dos valores de cobertura: las `{python} w.fmt(n_cap_rural)` zonas-año rurales
+de las capitales y otras `{python} w.fmt(n_other)` zonas-año a las que les falta la separación de la
+cobertura ese año, `{python} NUM[n_cap_urban]` de ellas zonas urbanas de capitales sin un total municipal
+tampoco. No se va nada más. La zona urbana de Tunja se queda en el clúster `{python} tj_c` en todos los
+años. k sigue siendo `{python} after["k"]`, así que el `assert k == 4` de la entrada de blog sigue pasando
+(una opción que cambiara k haría fallar el renderizado de la entrada, por diseño), los nombres se
+mantienen y el `{python} f"{same:.0%}"` de las filas que quedan conserva su clúster.
+
+**Qué cambia.** `pre-render` vuelve a ejecutar `scripts/analysis.py`, que reescribe cada archivo de
+`outputs/` (`clusters.parquet`, `cluster_profiles.csv`, `k_selection.csv`, `stability.csv`,
+`outcomes_by_year.csv`, `irca_infant.csv`, `irca_infant_bins.csv` y `summary.json`), y `freeze: false`
+vuelve a ejecutar cada página, así que cambia cada página que lee `outputs/` (@tbl-water-deps): la página
+de los clústeres, el informe en cada formato, las diapositivas, la entrada de blog, el dashboard y el
+documento técnico, que además cita la opción misma.
+
+**Qué no cambia.** `data/`, las fuentes de las páginas, el título de la entrada (k sigue siendo
+`{python} after["k"]`) y, hasta que se vuelva a publicar, el sitio en vivo. Tampoco la página de
+exploración: se vuelve a ejecutar, pero lee solo `data/water_municipal.csv`.
+
+**Por qué.** Calcular una vez, publicar muchas: una opción en un script, leída por cada publicación. Las
+respuestas sólidas nombran el mecanismo (`pre-render`, `outputs/`, `freeze: false`) y revisan al menos dos
+salidas contra los nuevos conteos de filas. Deshaz el cambio con `git restore scripts/analysis.py`.

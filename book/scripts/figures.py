@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import os
 from contextlib import contextmanager
+from functools import cache
 
 import matplotlib.pyplot as plt
 
@@ -85,7 +86,110 @@ def figsize(w: float, h: float, rows: int = 1, epub: tuple[float, float] | None 
     return min(w, EPUB_WIDTH), h * rows
 
 
+# The Spanish edition (book-es/, translation/glossary.md): the charts' own words, which the
+# cells take from data keys ("urban", "High") as well as from literals, are translated where
+# the chart is shown, so every cell's code stays the English edition's. Exact texts first, then
+# patterns for texts that carry a number.
+TERMS_ES = {
+    "urban": "urbana", "rural": "rural", "both": "ambas",
+    "No IRCA": "Sin IRCA", "No risk": "Sin riesgo", "Low": "Bajo", "Medium": "Medio",
+    "High": "Alto", "Unfit": "Inviable sanitariamente",
+    "Share of rows (%)": "Proporción de filas (%)", "Median IRCA": "Mediana del IRCA",
+    "IRCA, utility-supplied": "IRCA de prestadores",
+    "Aqueduct coverage (%)": "Cobertura de acueducto (%)", "new method": "método nuevo",
+    "Infant mortality (per 1,000 live births)": "Mortalidad infantil (por 1,000 nacidos vivos)",
+    "raw units": "unidades originales", "z-scores": "puntajes z",
+    "Share of squared distance (%)": "Proporción de la distancia al cuadrado (%)",
+    "random start": "inicio al azar", "first assignment": "primera asignación",
+    "halfway": "a mitad de camino", "stable": "estable",
+    "Inertia (thousands)": "Inercia (miles)", "Silhouette": "Silueta",
+    "cluster": "clúster",
+    "Utility-supplied IRCA (0–100)": "IRCA de prestadores (0–100)",
+    "Infant mortality\nper 1,000": "Mortalidad infantil\npor 1,000",
+}
+PATTERNS_ES: list[tuple[str, str]] = [
+    (r"^Cluster (\d+)$", r"Clúster \1"),
+    (r"^PC(\d) \((\d+%) of variance\)$", r"PC\1 (\2 de la varianza)"),
+]
+
+
+# English function words: chart text containing one and left untranslated is reported.
+import re as _re
+ENGLISH = _re.compile(r"\b(the|of|and|per|in|by|with|from|to|share|visits|rows)\b", _re.I)
+
+
+@cache
+def _proper_names() -> frozenset[str]:
+    """Names that stay English in any edition: the London attractions, as the charts write them."""
+    import csv
+    try:
+        with open("../examples/london/data/attractions.csv", newline="") as f:
+            names = {r["attraction"] for r in csv.DictReader(f)}
+    except OSError:
+        return frozenset()
+    return frozenset(names | {n.replace(" (South Kensington)", "") for n in names})
+
+
+def _translate(text: str) -> str:
+    import re
+    if text in TERMS_ES:
+        return TERMS_ES[text]
+    for pattern, repl in PATTERNS_ES:
+        if re.match(pattern, text):
+            return re.sub(pattern, repl, text)
+    return text
+
+
+def translate_figures() -> None:
+    """Put the open figures' texts and tick labels in Spanish (only called for lang: es)."""
+    from matplotlib.category import StrCategoryFormatter
+    from matplotlib.text import Text
+    from matplotlib.ticker import FixedFormatter, FuncFormatter
+
+    import warnings
+    for num in plt.get_fignums():
+        fig = plt.figure(num)
+        for text in fig.findobj(Text):
+            new = _translate(text.get_text())
+            if new != text.get_text():
+                text.set_text(new)
+            elif ENGLISH.search(new) and new not in _proper_names():
+                # Shown as a render warning, so a label added to an English chapter without its
+                # Spanish twin in TERMS_ES is noticed rather than published in English.
+                warnings.warn(f"chart text with no Spanish in TERMS_ES: {new!r}")
+        for ax in fig.axes:
+            for axis in (ax.xaxis, ax.yaxis):
+                fmt = axis.get_major_formatter()
+                # Only formatters that can give words (set_ticks with labels makes a FuncFormatter);
+                # numeric ones such as ScalarFormatter need their own set_locs, so stay as they are.
+                if (isinstance(fmt, (StrCategoryFormatter, FixedFormatter, FuncFormatter))
+                        and not getattr(fmt, "translated", False)):
+                    wrapped = FuncFormatter(lambda x, pos, f=fmt: _translate(f(x, pos)))
+                    wrapped.translated = True
+                    axis.set_major_formatter(wrapped)
+
+
 @contextmanager
 def style():
-    with plt.rc_context(RC):
-        yield
+    from matplotlib.figure import Figure
+
+    from scripts.prose import language
+
+    spanish = language() == "es"
+    show, savefig = plt.show, Figure.savefig
+    if spanish:
+        def translated_show(*args, **kwargs):
+            translate_figures()
+            return show(*args, **kwargs)
+
+        def translated_savefig(self, *args, **kwargs):
+            translate_figures()
+            return savefig(self, *args, **kwargs)
+        plt.show, Figure.savefig = translated_show, translated_savefig
+    try:
+        with plt.rc_context(RC):
+            yield
+    finally:
+        if spanish:
+            translate_figures()
+            plt.show, Figure.savefig = show, savefig

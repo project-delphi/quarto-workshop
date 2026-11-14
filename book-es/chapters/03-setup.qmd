@@ -1,0 +1,509 @@
+# Preparar tu computadora {#sec-setup}
+
+Este capítulo termina con un número: 42, impreso en una página web y en un PDF que construyó tu
+propia computadora. Llegar ahí demuestra que el asistente, Python, Quarto y Typst funcionan
+juntos. Eso es todo lo que necesitan las partes II y III, porque todo lo que pasa en ellas ocurre
+en tu máquina: el asistente escribe archivos en tus carpetas, Quarto los renderiza ahí y tú abres
+los resultados en tu propio navegador y en tu procesador de texto. Son seis pasos, y cada uno
+termina con una comprobación que puedes ver, así que siempre sabes si un paso funcionó antes de
+seguir.
+
+Haz la preparación en un lugar tranquilo, con buena conexión, y calcula una hora. Si usas Mac o
+Linux, puedes seguir este capítulo de corrido. Si usas Windows, primero instalas Ubuntu, una
+versión de Linux, dentro de Windows con WSL, el Subsistema de Windows para Linux; el
+@sec-windows lo explica paso a paso, y a partir de ahí sigues este capítulo dentro de Ubuntu.
+
+::: opener
+- Instalar Git, un asistente de programación, Quarto, uv y `gh`, revisando cada paso antes del
+  siguiente.
+- Moverte por la terminal, y distinguir, al escribir, la terminal del asistente.
+- Ejecutar la comprobación de la preparación y leer su informe.
+- Renderizar un documento de prueba en HTML y en PDF, y confirmar que los dos dicen 42.
+
+Partes de
+: una computadora en la que puedes instalar software, una buena conexión y las cuentas que
+  enumera la @sec-before-setup; en Windows, Ubuntu preparado con el @sec-windows.
+
+Construyes
+: las herramientas, instaladas y con la sesión iniciada; `~/quarto-workshop`, los archivos del
+  taller con sus puntos de control; y una carpeta desechable, `~/quarto-test`, cuyos
+  `hello.html` y `hello.pdf` dicen 42.
+
+Punto de control
+: ninguno, porque la preparación no construye ningún proyecto con el que ponerse al día. El
+  @sec-markdown empieza desde una carpeta vacía, y sus puntos de control llegan con los archivos
+  del taller en el paso 5.
+:::
+
+## Antes de empezar {#sec-before-setup}
+
+**Una conexión estable y rápida.** Casi cada paso descarga algo: en Windows, la imagen de Ubuntu
+(varios cientos de megabytes), y luego Quarto, uv (que administra Python para cada proyecto) y
+los paquetes de Python, el asistente mismo y los proyectos de ejemplo con sus datos. El asistente
+además le envía cada solicitud a su modelo por internet, así que una conexión débil se nota como
+pausas largas, tiempos de espera agotados e instalaciones a medias, que es fácil confundir con
+errores tuyos. Usa una conexión por cable o un Wi-Fi fuerte, evita las VPN cuando puedas y cuenta
+con que las redes de empresa con proxy bloqueen algunas descargas.
+
+**Dos cuentas.** Una [cuenta gratuita de GitHub](https://github.com/signup), que se usa para
+publicar en las partes II y III, y una cuenta con acceso a un asistente de programación. Claude
+Code necesita una cuenta Pro, Max, Team, Enterprise o Console; Codex, iniciar sesión con ChatGPT
+o una clave de API (para facturación por uso, @sec-choose); Antigravity, una cuenta de Google
+(consultado el 2026-11-03). El registro y la verificación del correo pueden tardar horas, así que
+hazlos primero.
+
+**Un plan para cuando un paso falle.** Los errores durante la preparación son normales: cada paso
+depende de tu sistema, de tu red y de las versiones de esa semana, así que un error no significa
+que hayas fallado. Te dice qué corregir:
+
+1. Busca el mensaje en el @sec-troubleshooting, cuya tabla de la preparación enumera fallas
+   vistas en la práctica, con soluciones probadas.
+2. Si no está ahí, pregúntale a un chat web en tu navegador (Claude, ChatGPT y Gemini tienen
+   cada uno un plan gratuito, consultado el 2026-11-12), no al asistente: las instalaciones
+   pueden fallar antes de que funcione, y a veces lo que falla es el asistente. Pega el comando
+   que ejecutaste y el mensaje de error *completo*, con una oración que diga tu sistema ("Mac", o
+   "Windows con Ubuntu en WSL") y en qué paso estás.
+3. Prueba una solución sugerida a la vez, y lee cada comando sugerido antes de ejecutarlo. Nunca
+   pegues contraseñas, claves ni datos privados.
+4. Si fallan dos sugerencias, pregúntale a una persona: el canal de ayuda de tu grupo o alguien
+   de tu equipo.
+
+Los seis pasos, y cómo sabes que cada uno funcionó:
+
+| Paso | Haz esto | Funcionó cuando |
+|:-:|---|---|
+| 1 | Deja lista la computadora (@sec-step-ready) | `git --version` imprime una versión |
+| 2 | Muévete por la terminal (@sec-step-terminal) | después de `cd ~`, el indicador muestra `~` |
+| 3 | Instala un asistente de programación (@sec-step-assistant) | arranca, con la sesión iniciada, y responde |
+| 4 | Deja que el asistente instale las herramientas (@sec-step-tools) | imprime todas las versiones |
+| 5 | Ejecuta la comprobación de la preparación (@sec-step-check) | cada comprobación informa OK |
+| 6 | Haz la prueba (@sec-step-test) | `hello.pdf` dice 42 |
+
+: Los pasos de la preparación y sus comprobaciones. {#tbl-setup-map}
+
+## Paso 1: deja lista la computadora {#sec-step-ready}
+
+Los pasos siguientes dan por sentado dos programas pequeños: `git`, para el control de versiones,
+y `curl`, para descargar. Abre una terminal, la ventana para escribir comandos que explica el
+paso 2 (en una Mac: Comando-Espacio, escribe `Terminal`, Enter; en Ubuntu: Ctrl+Alt+T), y
+ejecuta la línea de tu sistema.
+
+En una **Mac**, instala las Command Line Tools de Apple, que incluyen `git`:
+
+```bash
+xcode-select --install
+```
+
+Un cuadro de diálogo te pide instalarlas: haz clic en Install y espera. Hacerlo a propósito ahora
+importa, porque si no, el cuadro aparece la primera vez que algo usa `git`, que sería en medio del
+paso 4, mientras el asistente espera. Si dice que ya están instaladas ("already installed"), está
+bien.
+
+En **Ubuntu o Debian** (incluido Ubuntu en Windows):
+
+```bash
+sudo apt update && sudo apt install -y curl git
+```
+
+`sudo` ejecuta un comando como administrador y te pide tu contraseña de Linux, que no se ve
+mientras la escribes. En otras distribuciones de Linux, instala `curl` y `git` con tu gestor de
+paquetes de siempre. En **Windows**, sigue primero el @sec-windows: termina con este mismo
+comando, ejecutado dentro de Ubuntu.
+
+::: tryit
+Ejecuta `git --version` en la terminal.
+
+::: done
+imprime un número de versión. En Windows, estás en Ubuntu y `wsl -l -v`, ejecutado en
+PowerShell, muestra Ubuntu con VERSION 2.
+:::
+:::
+
+## Paso 2: muévete por la terminal {#sec-step-terminal}
+
+El resto del libro ocurre en una *terminal*, una ventana en la que escribes comandos en lugar de
+hacer clic. Cuando está lista para un comando, muestra un *indicador*, una línea que termina en
+`$` (o en `%` en una Mac) y que te dice quién eres y dónde estás (en inglés se le llama *prompt*,
+pero no hay que confundirlo con el prompt que le das a un asistente):
+
+```text
+ana@laptop:~/demo$
+```
+
+`ana` es el usuario, `laptop` la computadora y `~/demo` la carpeta actual: `~` es tu *carpeta
+personal*, así que esta es una carpeta llamada `demo` dentro de ella. Ocho comandos bastan para
+moverte:
+
+| Comando | Hace |
+|---|---|
+| `pwd` | imprime la carpeta en la que estás (*print working directory*) |
+| `date` | imprime la fecha y la hora |
+| `ls` | enumera lo que hay en esta carpeta |
+| `mkdir name` | crea una carpeta |
+| `cd name` | entra en una carpeta |
+| `cd ..` | sube una carpeta |
+| `cd ~` | va directo a tu carpeta personal, desde cualquier lugar |
+| `rmdir name` | elimina una carpeta vacía (se niega si hay algo adentro) |
+
+: Moverse por la terminal. {#tbl-terminal}
+
+La @fig-terminal-basics los ejecuta en orden. Escríbelos tú en lugar de pegarlos: las manos
+recuerdan.
+
+![Moverse por la terminal: cada comando y lo que responde la terminal. Una grabación real, hecha con una cuenta de demostración cuya carpeta personal es `/tmp/home/ana`; la tuya es `/home/<you>` en Linux y Windows, o `/Users/<you>` en una Mac.](../media/gifs/terminal-basics.gif){#fig-terminal-basics .anim fig-alt="Una sesión de terminal con el indicador ana@laptop. pwd imprime la carpeta personal. date imprime la fecha y la hora. mkdir demo crea una carpeta, y ls la muestra. cd demo entra, y el indicador ahora termina en virgulilla barra demo. mkdir notes y cd notes bajan una carpeta más, y pwd imprime la ruta completa que termina en demo barra notes. cd punto punto sube un nivel, cd virgulilla va directo a la carpeta personal y rmdir demo barra notes demo elimina las dos carpetas vacías."}
+
+Dos teclas evitan la mayoría de los errores de tipeo: **Tab** completa el nombre de un archivo o
+de una carpeta, y la **flecha hacia arriba** trae de vuelta el comando anterior. Copiar y pegar
+funciona distinto en una terminal: selecciona el texto, y luego **Ctrl+Shift+C** copia y
+**Ctrl+Shift+V** pega (Comando-C y Comando-V en una Mac), porque **Ctrl+C** solo detiene el
+programa que está corriendo (@tbl-terminal-keys). Los capítulos siguientes usan seguido un
+comando compuesto:
+
+```bash
+mkdir -p london-guide && cd london-guide
+```
+
+`-p` hace que `mkdir` acepte sin quejarse una carpeta que ya existe, y `&&` significa "y luego,
+si eso funcionó". El @sec-terminal tiene más teclas y hábitos.
+
+::: tryit
+Desde tu carpeta personal, escribe los comandos de la @tbl-terminal en el orden que muestra
+la @fig-terminal-basics.
+
+::: done
+`rmdir` no dio ningún error, y el indicador muestra `~`.
+:::
+:::
+
+## Paso 3: instala un asistente de programación {#sec-step-assistant}
+
+Elige un asistente y ejecuta su instalador, el comando documentado por el propio proveedor
+(consultado el 2026-10-30):
+
+```bash
+# Claude Code
+curl -fsSL https://claude.ai/install.sh | bash
+# Codex
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
+# Antigravity
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+```
+
+`curl … | bash` descarga un pequeño script de instalación y lo ejecuta de inmediato. Es lo normal
+con estas herramientas, y también es exactamente por qué solo deberías hacerlo con enlaces de
+confianza, como el comando documentado de cada proveedor.
+
+Luego **abre una pestaña nueva de la terminal** (Ctrl+Shift+T en Ubuntu, Comando-T en una Mac,
+Ctrl+Shift+D en Windows Terminal). Una terminal aprende dónde están los programas cuando arranca,
+a partir de su *PATH*, la lista de carpetas en las que busca programas, así que no puede encontrar
+uno que se instaló hace un momento, que es la causa habitual de `command not found` justo después
+de una instalación. En una Mac, una pestaña nueva no alcanza para Claude Code: su instalador lo
+pone en `~/.local/bin`, una carpeta que el PATH no incluye, e imprime la solución bajo "Setup
+notes". Pega esa solución en la terminal, presiona Enter y luego abre la pestaña nueva (Claude
+Code, [solución de problemas de instalación](https://code.claude.com/docs/en/troubleshoot-install),
+consultado el 2026-11-06).
+
+Inicia el asistente en una carpeta nueva:
+
+```bash
+mkdir -p ~/setup && cd ~/setup
+claude          # or: codex, or: agy
+```
+
+El primer arranque pasa por tres pantallas. Las de Claude Code se muestran abajo tal como se
+capturaron el 2026-11-07 (versión 2.1.319, en una carpeta vacía, con los nombres de carpeta
+cambiados); las pantallas cambian entre versiones, así que las tuyas pueden decir otra cosa. Antes
+de ellas, Claude Code te pide un estilo de texto: presiona Enter para quedarte con el
+seleccionado. Las pantallas están en inglés.
+
+**Inicia sesión.** Elige la opción de tu cuenta: la primera para una suscripción, la segunda para
+una cuenta de Anthropic Console que se factura por uso de la API. El asistente abre tu navegador;
+donde no hay uno, como en WSL, imprime un enlace para copiar en tu navegador, y luego un código
+para pegar de vuelta en la terminal. La primera pantalla de Codex (versión 0.167.0, capturada el
+mismo día) ofrece "Sign in with ChatGPT", que funciona igual, y "Sign in with Device Code", un
+código de un solo uso para cuando falla el inicio de sesión en el navegador.
+
+::: transcript
+```text
+ Select login method:
+
+ ❯ 1. Claude account with subscription · Individual, Team, or Enterprise
+   2. Anthropic Console account · API usage billing
+   3. 3rd-party platform · Amazon Bedrock, Microsoft Foundry, Google Vertex AI
+```
+:::
+
+**Confía en la carpeta.** El cursor empieza en "No, exit", así que si presionas Enter de
+inmediato, sales. Presiona primero la flecha hacia abajo, hasta "Yes, I trust this folder". Salir
+por error no hace daño: vuelve a escribir `claude`. Codex no pregunta nada en una carpeta simple
+como `~/setup`; hace la misma pregunta más adelante, en un proyecto que es un repositorio de Git.
+
+::: transcript
+```text
+ Accessing workspace:
+
+ /home/ana/setup
+
+ Quick safety check: Is this a project you created or one you trust?
+ (Like your own code, a well-known open source project, or work from
+ your team). If not, take a moment to review what's in this folder first.
+
+ Claude Code'll be able to read, edit, and execute files here.
+
+ ❯ No, exit
+   Yes, I trust this folder
+
+ Enter to confirm · Esc to cancel
+```
+:::
+
+**Listo.** El asistente muestra su versión, el modelo y el plan de la cuenta con la que iniciaste
+sesión, y la carpeta, y luego espera un prompt en la línea marcada con `❯`. En esta captura se
+omitió el logo junto a las primeras líneas, y el modelo y el plan son los de la cuenta que la
+capturó; la tuya muestra los tuyos.
+
+::: transcript
+```text
+ Claude Code v2.1.319
+ Opus 5.5 with xhigh effort
+ Claude Max
+ ~/setup
+────────────────────────────────────────────────────
+❯ Try "write a test for <filepath>"
+────────────────────────────────────────────────────
+```
+:::
+
+::: tryit
+Instala un asistente, inícialo en `~/setup`, inicia sesión y confía en la carpeta.
+
+::: done
+el asistente responde cuando escribes `hello`. Luego escribe `/exit`.
+:::
+:::
+
+### Dos lugares para escribir {#sec-two-places}
+
+Ahora que hay un asistente instalado, hay dos lugares para escribir, y confundirlos le cuesta a
+quien empieza más tiempo que cualquier otra cosa.
+
+```text
+ana@laptop:~/setup$ pwd                  <- the terminal: commands
+❯ Which tools are missing?                <- the assistant: requests in plain language
+```
+
+La primera línea es la terminal, donde van los comandos; la segunda es el asistente, donde van
+las solicitudes en lenguaje natural. El asistente toma el control de la pestaña de la terminal en
+la que corre: lo que escribes ahí le llega al asistente, no a la *shell*, el programa detrás de
+la terminal que ejecuta tus comandos, hasta que sales con `/exit`. Los comandos de los recuadros
+**Tú haces** de este libro, como `quarto preview`, van en la terminal; los prompts de los
+recuadros **Pídele a tu asistente** van al asistente. Cuando el asistente está ocupado y
+necesitas la terminal, abre una segunda pestaña, como después de la instalación.
+
+Escribir en el lugar equivocado suele ser inofensivo: un prompt escrito después de `$` da
+`command not found`, y un comando escrito en el asistente se lee como una solicitud. Mira en qué
+línea estás e inténtalo otra vez.
+
+::: think
+El asistente está corriendo y el libro dice que escribas `gh auth login`, el inicio de sesión en
+GitHub del paso 5. ¿Dónde lo escribes?
+
+En una segunda pestaña de la terminal: `gh auth login` es un inicio de sesión interactivo que te
+necesita a ti, y el asistente está usando la primera pestaña. Salir del asistente con `/exit`
+también funciona, pero termina la conversación.
+:::
+
+## Paso 4: deja que el asistente instale las herramientas {#sec-step-tools}
+
+Las herramientas que faltan son el propio Quarto, uv, Git y la herramienta de línea de comandos de
+GitHub, `gh`. Cada una tiene su propio método oficial de instalación para cada sistema, que es
+exactamente el tipo de detalle que un asistente maneja bien. Inícialo otra vez en la carpeta de la
+preparación (con `codex` o `agy` en lugar de `claude` si ese es tu asistente, aquí y en los pasos
+siguientes):
+
+::: {.you}
+```bash
+mkdir -p ~/setup && cd ~/setup && claude    # or: codex, or: agy
+```
+:::
+
+::: {.prompt .long}
+```default
+Revisa cuáles de `git`, `curl`, `uv`, `quarto` (1.10 o más reciente) y la CLI de GitHub `gh` faltan en esta computadora. Instala solo esos, con el método oficial de cada herramienta para mi sistema. Nunca ejecutes por tu cuenta `sudo` ni un instalador que pida una contraseña: imprime cada uno de esos comandos solo, en un bloque de código, con rutas completas, y espera hasta que te diga listo. Luego imprime todas las versiones.
+```
+:::
+
+::: {.agent}
+instala uv con su instalador oficial · Quarto desde su página de versiones (o con Homebrew en una Mac) · `gh` desde el repositorio de paquetes de GitHub · imprime las versiones
+:::
+
+Antes de cada comando que quiere ejecutar, el asistente se detiene y pregunta, como en la
+@fig-agent-session: lee el comando (el recuadro de error frecuente de la @sec-boxes dice qué
+buscar) y luego apruébalo.
+
+El prompt está escrito en torno a una limitación: un asistente no puede escribir tu contraseña.
+Por eso le pide al asistente que te devuelva cualquier comando que la necesite, con rutas
+completas, porque la segunda pestaña en la que lo pegas empieza en tu carpeta personal. Copia el
+comando (Ctrl+Shift+C, o Comando-C en una Mac), pégalo en una segunda pestaña, escribe tu
+contraseña cuando `sudo` la pida (no se ve) y luego escribe `listo` en la pestaña del asistente.
+En una Mac, la contraseña es la de tu sesión.
+
+::: why
+Quarto no tiene un paquete de Ubuntu en los repositorios estándar, y GitHub desaconseja el
+paquete `gh` propio de Ubuntu, así que un `apt install` genérico instalaría mal una herramienta y
+le faltaría la otra. La frase del prompt "el método oficial de cada herramienta" manda al
+asistente a la fuente correcta para cada una (la página de descarga de Quarto y las instrucciones
+de instalación de GitHub para Linux, consultadas el 2026-10-30).
+:::
+
+::: think
+El asistente instaló uv. En una pestaña de la terminal que abriste antes de eso, escribes
+`uv --version` y la terminal responde `command not found`. ¿Falló la instalación?
+
+Probablemente no. El instalador de uv lo pone en `~/.local/bin`, que una terminal agrega a su PATH
+solo cuando arranca, así que una pestaña abierta antes no lo encuentra. Abre una pestaña nueva e
+inténtalo otra vez; solo si falla ahí, la culpa es de la instalación.
+:::
+
+::: tryit
+Pega el prompt, aprueba los comandos que leíste y ejecuta en una segunda pestaña cualquier comando
+con `sudo` que te devuelva.
+
+::: done
+imprime una versión de las cinco herramientas. Luego escribe `/exit`: uv y Quarto solo los
+encuentra una terminal que arrancó después de que se instalaron.
+:::
+:::
+
+## Paso 5: ejecuta la comprobación de la preparación {#sec-step-check}
+
+Abre una pestaña nueva e inicia otra vez el asistente, para que vea las herramientas recién
+instaladas:
+
+::: {.you}
+```bash
+cd ~/setup && claude    # or: codex, or: agy
+```
+:::
+
+::: {.prompt .long}
+```default
+Imprime las versiones de `quarto` (1.10 o más reciente), `uv`, `gh` y de este asistente, y ejecuta `quarto check` (si todavía no hay Jupyter ni LaTeX, está bien: cuéntalo como OK). Si `git config --global user.name` o `user.email` no están configurados, pídeme mi nombre y mi correo de GitHub y configúralos. Clona https://github.com/project-delphi/quarto-workshop.git en `~/quarto-workshop` (si ya existe, haz `git pull` solo si su árbol de trabajo está limpio) y enumera su `checkpoints/`. Ejecuta `gh auth status`. Ejecuta todas las comprobaciones aunque alguna falle, y luego informa cada una como OK o no.
+```
+:::
+
+Tres partes de esta comprobación merecen un comentario.
+
+`quarto check` informa sobre los componentes propios de Quarto, incluidos Pandoc y Typst. Sus
+líneas de Python y Jupyter pueden decir que faltan, y no pasa nada: cada proyecto de este libro
+recibe su propio entorno de Python de uv, así que no hay nada que instalar para Python por ahora.
+Tampoco hace falta LaTeX, porque los PDF se hacen con el motor Typst que viene con Quarto.
+
+Un Git recién instalado no tiene identidad, y `git commit` se niega a ejecutarse sin una. El
+prompt hace que el asistente te pida tu nombre y tu correo, así que los escribes tú; revisa que lo
+que configuró sea tuyo y no un valor de relleno.
+
+*Clonar* es copiar un repositorio, con su historial, a tu computadora: en este caso el del taller,
+en `~/quarto-workshop`. Contiene los ejemplos terminados, el conjunto de datos del agua y los
+*puntos de control*: instantáneas de cada proyecto al final de cada bloque práctico, que vas a
+usar para ponerte al día si te quedas atrás.
+
+::: {.you}
+si `gh` no dice "Logged in": en una **segunda pestaña**, `gh auth login` → GitHub.com → HTTPS → Yes → inicia sesión con un navegador web; copia el código de un solo uso en github.com/login/device; luego pídele al asistente que vuelva a revisar `gh`
+:::
+
+::: tryit
+Ejecuta la comprobación de la preparación.
+
+::: done
+el asistente informa cada comprobación como OK, incluido `gh` "Logged in".
+:::
+:::
+
+## Paso 6: la prueba {#sec-step-test}
+
+La comprobación de la preparación demuestra que las herramientas están instaladas. La prueba
+demuestra que funcionan juntas: el asistente puede escribir un archivo y ejecutar los comandos que
+apruebas, uv puede construir el entorno de un proyecto, Quarto puede ejecutar Python a través de
+él y Typst puede escribir un PDF.
+
+::: {.you}
+```bash
+mkdir -p ~/quarto-test && cd ~/quarto-test
+claude          # or: codex, or: agy
+```
+:::
+
+::: {.prompt}
+```default
+Ejecuta `uv init --bare` y `uv add ipykernel nbclient nbformat pyyaml`. Crea hello.qmd (formatos html y typst): una celda de Python que calcule `6 * 7` y una oración con código en línea que lo muestre. Renderízalo con `uv run quarto render hello.qmd`; comprueba que hello.html y hello.pdf digan 42.
+```
+:::
+
+::: {.agent}
+`uv init --bare` · `uv add …` · escribe `hello.qmd` · `uv run quarto render hello.qmd` → `hello.html`, `hello.pdf`
+:::
+
+::: {.you}
+`/exit`, luego abre la carpeta: `open .` (Mac), `xdg-open .` (Linux) o `explorer.exe .` (WSL), y abre los dos archivos
+:::
+
+La prueba usa cosas que explican los capítulos siguientes, la configuración en YAML, una celda de
+código y código en línea, a propósito: es una comprobación de caja negra de que las herramientas
+funcionan juntas, no una lección. Si te da curiosidad, `hello.qmd` es el archivo que se muestra
+en la @sec-what-quarto.
+
+::: pitfall
+Cada renderizado imprime una línea como `[IPKernelApp] WARNING | Kernel is running over TCP
+without encryption`. Es inofensiva: Quarto habla con el *kernel* de Python, el proceso de Python
+en ejecución que ejecuta las celdas, a través de una conexión local en tu propia computadora, y
+en cada prueba la advertencia vino con un renderizado exitoso y no cambió nada en la salida.
+:::
+
+::: tryit
+Haz la prueba y abre las dos salidas.
+
+::: done
+`hello.html` y `hello.pdf` dicen 42. La carpeta es desechable: borra `~/quarto-test`
+después. Si falta un archivo o dice otra cosa, mira la tabla de Python y Jupyter
+del @sec-troubleshooting.
+:::
+:::
+
+## Resumen {.unnumbered}
+
+::: keyideas
+- Todo lo de las partes II y III ocurre en tu propia máquina, así que la preparación demuestra
+  que el asistente, Python, Quarto y Typst funcionan juntos ahí.
+- Cada paso termina con una comprobación que puedes ver; sigue adelante solo cuando se cumple.
+- Los comandos van en el indicador de la terminal y las solicitudes, al asistente; cuando el
+  asistente está ocupado, abre una segunda pestaña.
+- Una terminal solo encuentra los programas que conocía cuando arrancó, así que, después de una
+  instalación, abre una pestaña nueva antes de sospechar de la instalación.
+- El asistente no puede escribir tu contraseña: te devuelve los comandos que la necesitan, y tú
+  lees cada comando antes de aprobarlo.
+- Cuando un paso falla, busca en el @sec-troubleshooting, luego pregúntale a un chat web con el
+  comando y el error completo, una solución a la vez, y nunca pegues secretos.
+:::
+
+La prueba fue una caja negra: un archivo que no escribiste, una configuración que todavía no
+conoces, código que no leíste. La Parte II la abre. Desde una carpeta vacía, escribes la guía de
+Londres para la oficina de turismo, una construcción de Markdown a la vez, y al final del
+@sec-markdown es una página web con reglas escritas para el asistente.
+
+## Lecturas adicionales {.unnumbered}
+
+- Quarto, [Get Started](https://quarto.org/docs/get-started/) y
+  [página de descarga](https://quarto.org/docs/download/) (consultados el 2026-10-30).
+- Astral, [Installing uv](https://docs.astral.sh/uv/getting-started/installation/) (consultado
+  el 2026-10-30).
+- GitHub, [GitHub CLI](https://cli.github.com/) e
+  [instalación en Linux](https://github.com/cli/cli/blob/trunk/docs/install_linux.md)
+  (consultados el 2026-10-30).
+- [Preparación de Claude Code](https://code.claude.com/docs/en/setup),
+  [Codex CLI](https://learn.chatgpt.com/docs/codex/cli) y
+  [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli) (consultados el
+  2026-10-30).
+- Scott Chacon y Ben Straub, *Pro Git*,
+  [Installing Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (consultado el
+  2026-11-06).

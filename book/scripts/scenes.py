@@ -19,6 +19,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from scripts.prose import language
+
+
+def _t(en: str, es: str) -> str:
+    """A scene's words in the document's language (the Spanish edition, book-es/)."""
+    return es if language() == "es" else en
+
 # The cluster cloud's check of how well clusters separate: the share of each zone-year's
 # nearest neighbours (this many) in its own cluster. Chapter 11 quotes it.
 NEIGHBOURS = 15
@@ -36,13 +43,13 @@ def scene_html(scene: str, data: dict, alt: str, extra: str = "", fallback: str 
     out.append(f'<div class="deck-3d" data-scene="{scene}" style="height: {height};" role="img" '
                f'aria-label="{html.escape(alt)}">'
                f'<script type="application/json">{json.dumps(data, separators=(",", ":"))}</script>'
-               f'{extra}<p class="fallback" hidden>This 3-D view needs WebGL. {html.escape(fallback)}</p></div>')
+               f'{extra}<p class="fallback" hidden>{_t("This 3-D view needs WebGL.", "Esta vista 3-D necesita WebGL.")} {html.escape(fallback)}</p></div>')
     if views:
         buttons = "".join(
             f'<button type="button" data-view="{v}" aria-pressed="{str(i == 0).lower()}"'
             f'{" class=\"visible\"" if i == 0 else ""}>{html.escape(label)}</button>'
             for i, (v, label) in enumerate(views))
-        out.append(f'<div class="view-buttons" role="group" aria-label="Views">{buttons}</div>')
+        out.append(f'<div class="view-buttons" role="group" aria-label="{_t("Views", "Vistas")}">{buttons}</div>')
     if load_bundle:
         out.append('<script src="../assets/deck-host.js"></script>')
         out.append('<script src="../assets/deck-3d.min.js"></script>')
@@ -143,8 +150,9 @@ def london_map() -> dict:
     shown = sorted(b for b, ps in fills.items()
                    if sum(map(area, ps)) >= 0.01 * (x1 - x0) * (y1 - y0))
     exag = 0.25  # metres of column per 1,000 visits: a million visits stand 250 m tall
-    kinds = [(0, "#86cce8", "free sight"), (1, "#e9b86e", "paid sight"),
-             (2, "#b9a0ed", "church · no count, marker only")]
+    kinds = [(0, "#86cce8", _t("free sight", "atracción gratuita")),
+             (1, "#e9b86e", _t("paid sight", "atracción de pago")),
+             (2, "#b9a0ed", _t("church · no count, marker only", "iglesia · sin conteo, solo marcador"))]
     cols = [(*m(r.lon, r.lat), r.visits, int(r.paid)) for r in sights.itertuples()]
     cols += [(*m(r.lon, r.lat), 0, 2) for r in churches.itertuples()]
     sxy = np.array([c[:2] for c in cols[:5]])
@@ -160,17 +168,21 @@ def london_map() -> dict:
     labels = "".join(f'<span class="place-label" translate="no">{html.escape(p)}</span>'
                      for p in [*sights["place"], *churches["place"]])
     legend = "".join(f'<span><span style="color:{c}">■</span> {t}</span>'
-                     for _, c, t in [*kinds, (None, water, "the Thames")])
-    alt = (f"3-D map of central London: the {len(shown)} boroughs in view, each in a muted tone "
-           f"that differs from its neighbours', with the Thames in blue between them. Five columns "
-           f"stand at the five sights, as tall as their {year} visits: "
-           + "; ".join(f"{r.place} {r.visits / 1e6:.1f} million" for r in sights.itertuples())
-           + ". Ten short markers show the cathedrals and churches on Visit London's list.")
+                     for _, c, t in [*kinds, (None, water, _t("the Thames", "el Támesis"))])
+    alt = _t(f"3-D map of central London: the {len(shown)} boroughs in view, each in a muted tone "
+             f"that differs from its neighbours', with the Thames in blue between them. Five columns "
+             f"stand at the five sights, as tall as their {year} visits: ",
+             f"Mapa 3-D del centro de Londres: los {len(shown)} distritos a la vista, cada uno en un tono "
+             f"apagado distinto del de sus vecinos, con el Támesis en azul entre ellos. Cinco columnas "
+             f"se levantan en las cinco atracciones, tan altas como sus visitas de {year}: ") \
+        + "; ".join(f"{r.place} {r.visits / 1e6:.1f} {_t('million', 'millones')}" for r in sights.itertuples()) \
+        + _t(". Ten short markers show the cathedrals and churches on Visit London's list.",
+             ". Diez marcadores bajos muestran las catedrales e iglesias de la lista de Visit London.")
     top, paid = sights.iloc[0], sights[sights["paid"]]
     return {
         "data": data, "alt": alt, "year": year, "exaggeration": exag,
         "extra": f'<div class="legend">{legend}</div>{labels}',
-        "fallback": f"{year} visits: " + "; ".join(f"{r.place} {r.visits:,}" for r in sights.itertuples()) + ".",
+        "fallback": _t(f"{year} visits: ", f"Visitas en {year}: ") + "; ".join(f"{r.place} {r.visits:,}" for r in sights.itertuples()) + ".",
         "sights": sights, "churches": churches, "shown": shown,
         "top": top, "paid": paid,
     }
@@ -197,6 +209,8 @@ def tunja(raw: pd.DataFrame) -> dict:
         ("saber11_mean", "Saber 11 mean (points)", "Saber 11 mean (points)"),
         ("dropout_rate", "school dropout (%)", "school dropout (%)"),
     ]
+    if language() == "es":
+        tvars = [(k, *TUNJA_ES[k]) for k, _, _ in tvars]
     cav = {
         "water_coverage_total": {"note": "hollow = reported as 0, probably “not reported” (data README, caveat 2)"},
         "sewer_coverage_total": {"note": "hollow = reported as 0, probably “not reported” (data README, caveat 2)"},
@@ -206,6 +220,8 @@ def tunja(raw: pd.DataFrame) -> dict:
                                      "the 2017 drop is not an improvement (data README, caveat 8)",
                              "breaks": [[2017, "new method"], [2020, "2020: other source"], [2021, ""]]},
     }
+    if language() == "es":
+        cav = TUNJA_CAVEATS_ES
     piv = {k: tj.pivot(index="year", columns="zone", values=k) for k, _, _ in tvars}
 
     def lvl(p):
@@ -252,18 +268,51 @@ def tunja(raw: pd.DataFrame) -> dict:
         '<div class="tunja">'
         f'<script type="application/json">{json.dumps(data, separators=(",", ":"))}</script>'
         '<div class="tj-bar">'
-        '<label>view <select name="view"><option value="table">data</option><option value="summary">summary</option>'
-        '<option value="distribution">distribution</option><option value="series">time series</option>'
-        '<option value="scatter">scatter</option></select></label>'
-        f'<label class="tj-x"><span class="tj-xl">variable</span> <select name="x">{opts}</select></label>'
+        + _t('<label>view <select name="view"><option value="table">data</option><option value="summary">summary</option>'
+             '<option value="distribution">distribution</option><option value="series">time series</option>'
+             '<option value="scatter">scatter</option></select></label>',
+             '<label>vista <select name="view"><option value="table">datos</option><option value="summary">resumen</option>'
+             '<option value="distribution">distribución</option><option value="series">serie de tiempo</option>'
+             '<option value="scatter">dispersión</option></select></label>')
+        + f'<label class="tj-x"><span class="tj-xl">variable</span> <select name="x">{opts}</select></label>'
         f'<label class="tj-y" hidden>y <select name="y">{opts}</select></label>'
-        '<label>zone <select name="zone"><option value="both">both zones</option><option value="urban">urban</option>'
-        '<option value="rural">rural</option></select></label></div>'
+        + _t('<label>zone <select name="zone"><option value="both">both zones</option><option value="urban">urban</option>'
+             '<option value="rural">rural</option></select></label></div>',
+             '<label>zona <select name="zone"><option value="both">las dos zonas</option><option value="urban">urbana</option>'
+             '<option value="rural">rural</option></select></label></div>')
+        +
         '<div class="tj-out"></div><p class="tj-note"></p></div>',
         '<script src="../assets/tunja-explorer.js"></script>',
         "```"])
     return {"html": block, "rows": tj, "pivot": piv}
 
+
+# The Tunja explorer's labels and caveats in Spanish (the explorer's own script,
+# assets/tunja-explorer.js, keeps its few words in English).
+TUNJA_ES = {
+    "irca": ("IRCA de prestadores (0–100 %)", "IRCA (0–100 %)"),
+    "water_coverage_total": ("cobertura de acueducto, municipio (%)", "cobertura de acueducto (%)"),
+    "sewer_coverage_total": ("cobertura de alcantarillado, municipio (%)", "cobertura de alcantarillado (%)"),
+    "population": ("población (personas)", "personas"),
+    "ipm": ("pobreza multidimensional IPM, censo de 2018 (%)", "IPM, censo de 2018 (%)"),
+    "mdm": ("desempeño municipal MDM (puntos)", "MDM (puntos)"),
+    "idf": ("desempeño fiscal, método anterior (puntos)", "IDF, método anterior (puntos)"),
+    "idf_new": ("desempeño fiscal, método nuevo (puntos)", "IDF, método nuevo (puntos)"),
+    "sgp_water_pc": ("SGP agua, pesos corrientes por persona", "SGP agua (pesos por persona)"),
+    "rainfall_mm": ("precipitación (mm al año)", "precipitación (mm al año)"),
+    "infant_mortality": ("mortalidad infantil (por 1000 nacidos vivos)", "muertes infantiles por 1000 nacidos vivos"),
+    "saber11_mean": ("media de Saber 11 (puntos)", "media de Saber 11 (puntos)"),
+    "dropout_rate": ("deserción escolar (%)", "deserción escolar (%)"),
+}
+TUNJA_CAVEATS_ES = {
+    "water_coverage_total": {"note": "hueco = reportado como 0, probablemente “no reportado” (README de los datos, advertencia 2)"},
+    "sewer_coverage_total": {"note": "hueco = reportado como 0, probablemente “no reportado” (README de los datos, advertencia 2)"},
+    "population": {"note": "retroproyección del DANE hasta 2017, una serie más nueva desde 2018 (README de los datos, advertencia 9)",
+                   "breaks": [[2018, "serie nueva"]]},
+    "infant_mortality": {"note": "modelada hasta 2016, tasas observadas desde 2017, 2020 de otra fuente: "
+                                 "la caída de 2017 no es una mejora (README de los datos, advertencia 8)",
+                         "breaks": [[2017, "método nuevo"], [2020, "2020: otra fuente"], [2021, ""]]},
+}
 
 GLYPH = {"o": "●", "s": "■", "^": "▲", "D": "◆", "v": "▼", "P": "✚", "X": "✖", "*": "★"}
 
@@ -305,16 +354,20 @@ def kmeans_toy(cluster_colors: list[str]) -> dict:
     def note(state, last, prev):
         c, lab, kind = state
         if kind == "drop":
-            return f"1. drop {K} centres at random points"
+            return _t(f"1. drop {K} centres at random points", f"1. coloca {K} centros en puntos al azar")
         if kind == "move":
             far = np.linalg.norm(c - prev, axis=1).max()
-            return f"3. each centre moves to the mean of its points · farthest move {far:.2f}"
+            return _t(f"3. each centre moves to the mean of its points · farthest move {far:.2f}",
+                      f"3. cada centro se mueve a la media de sus puntos · mayor desplazamiento {far:.2f}")
         i = inertia(c, lab)
         if not last:
-            return f"2. each point joins its nearest centre · inertia {i:.1f}"
+            return _t(f"2. each point joins its nearest centre · inertia {i:.1f}",
+                      f"2. cada punto se une a su centro más cercano · inercia {i:.1f}")
         if i <= best + 1e-6:
-            return f"4. nothing changes: stable · inertia {i:.1f}, the lowest of the three starts"
-        return f"4. stable, but stuck · inertia {i:.1f} vs {best:.1f}: a bad start gives a worse answer"
+            return _t(f"4. nothing changes: stable · inertia {i:.1f}, the lowest of the three starts",
+                      f"4. nada cambia: estable · inercia {i:.1f}, la más baja de los tres inicios")
+        return _t(f"4. stable, but stuck · inertia {i:.1f} vs {best:.1f}: a bad start gives a worse answer",
+                  f"4. estable, pero atascado · inercia {i:.1f} frente a {best:.1f}: un mal inicio da una peor respuesta")
 
     data = {
         "k": K, "scale": SK, "colors": list(cluster_colors[:K]), "pts": ints(toy),
@@ -324,16 +377,23 @@ def kmeans_toy(cluster_colors: list[str]) -> dict:
             for i, (c, lab, kind) in enumerate(r)]} for r in runs],
         "states": [{} for _ in range(N)],
     }
-    alt = (f"Turning 3-D scatter of {len(toy)} synthetic toy points in three groups. Three centres "
-           "drop in, each point takes the colour of its nearest centre, the centres move to their "
-           "points' mean, leaving a trail, and the steps repeat until nothing changes.")
-    steps = "".join(f'<button data-state="{i}" aria-pressed="false" aria-label="Step {i + 1}">{i + 1}</button>'
+    alt = _t(f"Turning 3-D scatter of {len(toy)} synthetic toy points in three groups. Three centres "
+             "drop in, each point takes the colour of its nearest centre, the centres move to their "
+             "points' mean, leaving a trail, and the steps repeat until nothing changes.",
+             f"Diagrama de dispersión 3-D giratorio de {len(toy)} puntos sintéticos de juguete en tres grupos. "
+             "Aparecen tres centros, cada punto toma el color de su centro más cercano, los centros se mueven "
+             "a la media de sus puntos, dejando un rastro, y los pasos se repiten hasta que nada cambia.")
+    step, start = _t("Step", "Paso"), _t("Random start", "Inicio al azar")
+    steps = "".join(f'<button data-state="{i}" aria-pressed="false" aria-label="{step} {i + 1}">{i + 1}</button>'
                     for i in range(N))
-    starts = "".join(f'<button data-cluster="{i}" aria-pressed="false" aria-label="Random start {i + 1}">start {i + 1}</button>'
+    starts = "".join(f'<button data-cluster="{i}" aria-pressed="false" aria-label="{start} {i + 1}">'
+                     f'{_t("start", "inicio")} {i + 1}</button>'
                      for i in range(len(runs)))
-    extra = ('<div class="legend"><span>● point</span><span>◉ centre</span><span>━ its path</span></div>'
-             f'<div class="t-picker" role="group" aria-label="Step"><button class="t-play" aria-pressed="true">⏸ fix</button>{steps}</div>'
-             f'<div class="c-picker" role="group" aria-label="Random start">{starts}</div>')
+    extra = (_t('<div class="legend"><span>● point</span><span>◉ centre</span><span>━ its path</span></div>',
+                '<div class="legend"><span>● punto</span><span>◉ centro</span><span>━ su recorrido</span></div>')
+             + f'<div class="t-picker" role="group" aria-label="{step}"><button class="t-play" aria-pressed="true">'
+             f'{_t("⏸ fix", "⏸ fijar")}</button>{steps}</div>'
+             f'<div class="c-picker" role="group" aria-label="{start}">{starts}</div>')
     return {"data": data, "alt": alt, "extra": extra, "toy": toy, "runs": runs, "inertia": inertia,
             "best": best, "n_steps": N, "first_note": data["runs"][0]["states"][0]["note"]}
 
@@ -370,8 +430,9 @@ def cloud(res: dict, A) -> dict:
     pc3_text = ("−" if pc3[f1] < 0 else "") + word(f1) + (" + " if pc3[f2] > 0 else " − ") + word(f2)
     means = pd.Series(xyz[:, 2]).groupby(lab).mean()
     others = means.drop(focus)
-    side = ("sits below the others" if means[focus] < others.min()
-            else "sits above the others" if means[focus] > others.max() else "moves apart")
+    side = (_t("sits below the others", "queda por debajo de los demás") if means[focus] < others.min()
+            else _t("sits above the others", "queda por encima de los demás") if means[focus] > others.max()
+            else _t("moves apart", "se separa"))
     data = {
         "scale": 100, "xyz": np.round(xyz * 100).astype(int).ravel().tolist(), "cluster": lab.tolist(),
         "focus": focus,
@@ -380,11 +441,14 @@ def cloud(res: dict, A) -> dict:
         "clusters": [{"id": int(c), "color": colors[c], "marker": A.CLUSTER_MARKERS[c - 1]} for c in sorted(colors)],
     }
     legend = "".join(f'<span><span style="color:{c["color"]}">{GLYPH.get(c["marker"], "●")}</span> '
-                     f'Cluster {c["id"]}</span>' for c in data["clusters"])
+                     f'{_t("Cluster", "Clúster")} {c["id"]}</span>' for c in data["clusters"])
     axes = "".join(f'<span class="axis-label">PC{a + 1} · {var3[a]:.0%}</span>' for a in range(3))
-    alt = (f"Turning 3-D scatter of {len(lab):,} zone-years on the first three principal components, "
-           f"coloured and shaped by cluster. Face on it is the 2-D picture; turned upright on PC3, "
-           f"cluster {focus} {side}.")
+    alt = _t(f"Turning 3-D scatter of {len(lab):,} zone-years on the first three principal components, "
+             f"coloured and shaped by cluster. Face on it is the 2-D picture; turned upright on PC3, "
+             f"cluster {focus} {side}.",
+             f"Diagrama de dispersión 3-D giratorio de {len(lab):,} zonas-año sobre las tres primeras "
+             f"componentes principales, con color y forma según el clúster. De frente es la imagen 2-D; "
+             f"girado en vertical sobre PC3, el clúster {focus} {side}.")
     return {"data": data, "alt": alt, "extra": f'<div class="legend">{legend}</div>{axes}',
             "var3": var3, "own2": own2, "own3": own3, "focus": focus, "pc3": pc3, "pc3_top": top,
             "pc3_text": pc3_text, "side": side, "same2": same2, "same3": same3}
@@ -474,18 +538,26 @@ def relief(res: dict, raw: pd.DataFrame, A) -> dict:
     data["cities"] = [int(v) for c in codes for v in (*(round(t) for t in km(*centroid[c])),
                                                       round(col_of.loc[c, "altitude_m"]), col_of.loc[c, "cluster"])]
     labels = "".join(f'<span class="place-label" translate="no">{html.escape(city(c))}</span>' for c in codes)
-    medians = {c: (f"{alt_med[c]:,.0f} m" if c in alt_med else f"no {year} urban zones") for c in sorted(colors)}
-    legend = "".join(f'<span><span style="color:{colors[c]}">■</span> Cluster {c} · {m}</span>'
+    medians = {c: (f"{alt_med[c]:,.0f} m" if c in alt_med
+                   else _t(f"no {year} urban zones", f"sin zonas urbanas en {year}")) for c in sorted(colors)}
+    legend = "".join(f'<span><span style="color:{colors[c]}">■</span> {_t("Cluster", "Clúster")} {c} · {m}</span>'
                      for c, m in medians.items())
-    alt = (f"3-D map of mainland Colombia with one column for each of the {len(rel)} clustered urban "
-           f"zones in {year}, at its municipality's centroid, as tall as its head town's altitude and "
-           f"coloured by cluster. Cluster {high}'s columns are the tallest (median {alt_med[high]:,.0f} m); "
-           f"cluster {low}'s are the shortest ({alt_med[low]:,.0f} m). Labels name the ten most populous "
-           "department capitals and Tunja.")
+    alt = _t(f"3-D map of mainland Colombia with one column for each of the {len(rel)} clustered urban "
+             f"zones in {year}, at its municipality's centroid, as tall as its head town's altitude and "
+             f"coloured by cluster. Cluster {high}'s columns are the tallest (median {alt_med[high]:,.0f} m); "
+             f"cluster {low}'s are the shortest ({alt_med[low]:,.0f} m). Labels name the ten most populous "
+             "department capitals and Tunja.",
+             f"Mapa 3-D de la Colombia continental con una columna por cada una de las {len(rel)} zonas "
+             f"urbanas agrupadas en {year}, en el centroide de su municipio, tan alta como la altitud de su "
+             f"cabecera y con el color de su clúster. Las columnas del clúster {high} son las más altas "
+             f"(mediana de {alt_med[high]:,.0f} m); las del clúster {low}, las más bajas "
+             f"({alt_med[low]:,.0f} m). Las etiquetas nombran las diez capitales de departamento más "
+             "pobladas y Tunja.")
     region_top = {c: rel.loc[rel["cluster"] == c, "region"].value_counts(normalize=True) for c in (high, low)}
     return {"data": data, "alt": alt, "extra": f'<div class="legend">{legend}</div>{labels}',
-            "fallback": f"Median head-town altitude, {year} urban zones: "
-                        + "; ".join(f"cluster {c}: {m}" for c, m in medians.items()) + ".",
+            "fallback": _t(f"Median head-town altitude, {year} urban zones: ",
+                           f"Mediana de la altitud de las cabeceras, zonas urbanas de {year}: ")
+                        + "; ".join(f"{_t('cluster', 'clúster')} {c}: {m}" for c, m in medians.items()) + ".",
             "year": year, "n": len(rel), "filled": filled, "exag": exag, "alt_med": alt_med,
             "high": high, "low": low, "region_top": region_top,
             "cities": [city(c) for c in codes], "tunja_alt": col_of.loc["15001", "altitude_m"]}

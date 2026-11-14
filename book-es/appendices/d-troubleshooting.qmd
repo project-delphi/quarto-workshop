@@ -1,0 +1,63 @@
+# Solución de problemas {#sec-troubleshooting}
+
+Problemas vistos al construir y dar el taller, con soluciones que se probaron. Para la preparación en
+Windows, mira también [la tabla de Windows para cuando te trabas](a-windows.qmd#sec-windows-stuck). Para
+cualquier cosa que no esté en la lista: copia el comando y el error completo en un chat web con el nombre
+de tu sistema, prueba una solución sugerida a la vez y nunca pegues contraseñas ni claves.
+
+## Preparación {#setup .unnumbered}
+
+| Problema | Solución |
+|---|---|
+| Mac: una ventana emergente pide instalar las "command line developer tools" | Es lo esperado la primera vez que se ejecuta `git`. Haz clic en Install y espera (o ejecuta antes `xcode-select --install`); si el asistente está esperando, dile `listo` |
+| `command not found` para `uv`, `claude`, `codex` o `agy` justo después de instalarlos | Abre una pestaña nueva de la terminal. En una Mac, el instalador de Claude Code imprime una línea que hay que agregar bajo "Setup notes": pégala y luego abre la pestaña |
+| `quarto: command not found` en Ubuntu, aunque funciona en PowerShell | Los instaladores de Windows ponen las herramientas donde Ubuntu no puede usarlas: instala Quarto dentro de Ubuntu (@sec-step-tools) |
+| El indicador muestra `/mnt/c/...` | Estás en una carpeta de Windows: `cd ~`, y guarda ahí los proyectos |
+| `gh auth login` o el asistente no pueden abrir un navegador | Es lo esperado en WSL: copia en tu navegador de Windows el enlace o el código que imprime (para `gh`: github.com/login/device). Codex: `codex login --device-auth` |
+| Las descargas o `git clone` fallan en una red de empresa | Un proxy puede bloquear `curl`, `git` y `uv`: prueba con otra red |
+| `git commit` dice "Please tell me who you are" | Configura tu nombre y tu correo con las dos líneas `git config --global` de la comprobación de la preparación |
+| `not a valid Python environment` | Un `.venv` viejo: bórralo (`rm -rf .venv`); `uv run` lo reconstruye |
+
+: Problemas de la preparación. {#tbl-trouble-setup}
+
+## Renderizado y vista previa {#rendering-and-preview .unnumbered}
+
+| Problema | Causa y solución |
+|---|---|
+| `readfile 'london.quarto_ipynb'`, o un archivo bloqueado | Se ejecutó un renderizado mientras `quarto preview` renderizaba el mismo archivo. Deja que renderice la vista previa, o detenla (Ctrl+C) antes de renderizar varios formatos, y luego vuelve a iniciarla (@sec-render-mechanics) |
+| El PDF de Typst falla: `cannot parse length '60px'` | Typst no acepta píxeles de CSS en los tamaños de imagen: escribe `{height=60}` o `{width="30%"}` |
+| Un gráfico de Plotly aparece dos veces en una tarjeta del dashboard | La celda llama a `fig.show()` (o a un `fig.add_…()` suelto) y además devuelve la figura: asígnala y termina la celda con `fig` |
+| `itables` descarta filas de una tabla del dashboard | Su límite de tamaño por defecto: `show(df, maxBytes=0)` |
+| Un mapa de Plotly es un rectángulo gris | Los anillos del GeoJSON giran en el sentido contrario al que espera Plotly: inviértelos (`load_geojson()` en el script del proyecto del agua) |
+| Una página muestra números viejos después de que cambiaron los datos | `freeze: auto` reutiliza los resultados hasta que cambia la fuente propia de la página: borra `_freeze/` y vuelve a renderizar (@sec-water-website) |
+
+: Problemas de renderizado. {#tbl-trouble-render}
+
+## Python y Jupyter {#python-and-jupyter .unnumbered}
+
+| Mensaje | Significado |
+|---|---|
+| `quarto check` dice que Jupyter no está disponible | Inofensivo durante la preparación: cada proyecto recibe su propio entorno de uv, y Quarto ejecuta Python a través de `uv run` |
+| `Kernel is running over TCP without encryption`, después de `[IPKernelApp] WARNING` | Inofensivo: la conexión es entre Quarto y un proceso de Python en tu propia computadora |
+| `There is an unactivated Python environment in .venv` | Ejecuta Quarto a través de `uv run`, que activa el entorno del proyecto |
+| Un punto de control del agua no tiene datos | Los puntos de control del agua solo contienen fuentes: `cp -R ../quarto-workshop/examples/water/data .` |
+
+: Mensajes de Python y Jupyter. {#tbl-trouble-python}
+
+Los respaldos que copian `.venv/` son lentos e inútiles, porque `uv run` lo reconstruye. El comando de
+respaldo de los puntos de control lo deja fuera, y funciona en macOS, Linux y WSL:
+
+```bash
+b="../project-backup-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclude=.venv . | tar -xf - -C "$b"
+```
+
+## Publicación {.unnumbered}
+
+| Problema | Solución |
+|---|---|
+| La primera publicación falla: "the remote origin does not have a branch named gh-pages" | El primer `quarto publish gh-pages` tiene que ser interactivo: ejecuta `uv run quarto publish gh-pages` y presiona Enter en la pregunta. `--no-prompt` funciona una vez que existe la rama |
+| Un push falla con `HTTP 400`, "RPC failed" | `git config http.postBuffer 524288000`, y luego vuelve a hacer push |
+| Un 404 justo después de publicar | GitHub Pages tarda de 20 a 60 segundos en desplegar: espera un minuto y recarga (Cmd+Shift+R en una Mac, Ctrl+F5 en los demás sistemas) |
+| Un verificador de enlaces informa `403 Forbidden` para el sitio de un museo | Algunos sitios bloquean las solicitudes automáticas: abre el enlace en un navegador |
+
+: Problemas de publicación. {#tbl-trouble-publish}

@@ -259,6 +259,24 @@ explorers run. `book/README.md` has the tools, build targets, media pipeline and
   `docs/book/` exactly; a plain `quarto render` restores only its committed or staged version
   (`scripts/keep-book.ts`). `make site` renders the deck, then the book.
 
+## Spanish edition
+
+`book-es/` is the book in Spanish (*Pide, revisa, publica*), a sibling project of `book/` at the
+same depth, so every cell path is the English edition's; it shares `book/`'s scripts, filters,
+styles and most media through symlinks, and its chapter list is `book/_chapters.yml`. It publishes
+to `docs/book/es/` (`make book-es book-es-publish`), and its landing page is `ebook/es/index.qmd`
+(`make ebook-media EDITION=es`, `make ebook-check EDITION=es`). `translation/` holds the plan,
+the glossary and the checks. Keep these rules:
+
+- Translate prose, captions, alt text, prompts and on-page strings; keep code, IDs, labels,
+  URLs and literals. `python3 translation/compare.py` must report no mismatches, and lists every
+  changed code string in `translation/code-strings.md`; `translation/lint.py` checks the glossary.
+- When an English chapter changes, change its Spanish twin in the same branch. Shared scripts
+  take their words from the document's `lang` (`scripts/prose.py`, `figures.py`, `scenes.py`,
+  `water.py`, `filters/book.lua`, `epub_postprocess.py`); English output must not change.
+- The Spanish EPUB passes EPUBCheck like the English one, and `translation/english_scan.py`
+  finds no English sentence left in the Spanish output.
+
 ## E-book landing page
 
 `ebook/index.qmd` is the book's landing page, served at `/quarto-workshop/ebook/` and rendered by

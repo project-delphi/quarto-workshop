@@ -11,7 +11,8 @@ EPUBCHECK_JAR := $(EPUBCHECK_DIR)/epubcheck-$(EPUBCHECK_VERSION)/epubcheck.jar
 QUARTO_BOOK := cd $(BOOK) && JUPYTER_PATH="$$PWD/.venv/share/jupyter" uv run quarto
 
 .PHONY: book book-sync book-html book-epub book-fresh epubcheck media book-shots book-publish deck site \
-	ebook-media ebook-check book-release
+	ebook-media ebook-check book-release book-es book-es-sync book-es-html book-es-epub book-es-fresh \
+	book-es-publish epubcheck-es
 
 ## book: render the HTML and EPUB editions, post-process the EPUB, run epubcheck, check the
 ## EPUB's links into the website edition, and check the live scenes' data against the deck's
@@ -28,6 +29,7 @@ book-sync:
 book-html: book-sync
 	$(QUARTO_BOOK) render --profile html --to html
 	@if grep -rl '<ol class="example"' $(BOOK)/_book/html; then echo "book-html: a line starting '@label.' became an example list in the file(s) above; rewrap it" >&2; exit 1; fi
+	cd $(BOOK) && uv run python scripts/lang_switch.py
 
 book-epub: book-sync
 	$(QUARTO_BOOK) render --profile epub --to epub
@@ -39,9 +41,10 @@ book-fresh:
 	rm -rf $(BOOK)/_freeze
 	$(MAKE) book
 
-## epubcheck: validate the EPUB; the report is saved beside it
+## epubcheck: validate the EPUB; the report is saved beside it. `set -o pipefail` is in the recipe
+## because macOS's make 3.81 ignores .SHELLFLAGS, so tee would otherwise hide a failure.
 epubcheck: $(EPUBCHECK_JAR)
-	java -jar $(EPUBCHECK_JAR) --failonwarnings $(EPUB) 2>&1 | tee $(BOOK)/_book/epubcheck.txt
+	set -o pipefail; java -jar $(EPUBCHECK_JAR) --failonwarnings $(EPUB) 2>&1 | tee $(BOOK)/_book/epubcheck.txt
 
 $(EPUBCHECK_JAR):
 	mkdir -p $(EPUBCHECK_DIR)
@@ -62,11 +65,12 @@ book-shots:
 ## book-publish: copy the HTML edition and the EPUB into docs/book/ for GitHub Pages
 ## (build both first: it stops before touching docs/book/ if either is missing). Quarto copies
 ## every frozen figure folder into the HTML edition; the EPUB's (figure-epub/) are left out.
+## The Spanish edition in docs/book/es/ is protected (make book-es-publish writes it).
 book-publish:
 	@test -f $(BOOK)/_book/html/index.html -a -f $(EPUB) \
 	  || { echo "book-publish: build both editions first (make book)" >&2; exit 1; }
 	rsync -a --delete --delete-excluded --exclude $(notdir $(EPUB)) --exclude 'figure-epub/' \
-	  $(BOOK)/_book/html/ docs/book/
+	  --filter 'P /es/' $(BOOK)/_book/html/ docs/book/
 	cp $(EPUB) docs/book/
 
 ## deck: render the workshop decks into docs/, keeping docs/book/ exactly as it was (a full
@@ -81,28 +85,80 @@ site:
 	$(MAKE) deck
 	$(MAKE) book
 	$(MAKE) book-publish
+	$(MAKE) book-es
+	$(MAKE) book-es-publish
 
 ## ebook-media: remake the landing page's media and <head> (ebook/media/, ebook/_head.html).
-## STEPS picks steps of scripts/ebook_media.py: fonts cover og icons clips inside head
+## STEPS picks steps of scripts/ebook_media.py: fonts cover og icons clips inside head.
+## EDITION=es makes the Spanish page's own media (cover og inside head qr) in ebook/es/media/.
 ebook-media:
 	uv run --no-project --python 3.12 --with fonttools --with brotli --with pillow --with pyyaml \
-	  --with playwright python scripts/ebook_media.py $(STEPS)
+	  --with playwright --with segno python scripts/ebook_media.py $(if $(filter es,$(EDITION)),--es) $(STEPS)
 
 ## ebook-check: check the rendered landing page (render it first with `make deck`): screenshots,
 ## the first screen on a phone, links, contents numbers, share card and JSON-LD, into _ebook-check/
 ebook-check:
-	uv run --no-project --python 3.12 --with playwright --with pillow python scripts/ebook_check.py
+	uv run --no-project --python 3.12 --with playwright --with pillow python scripts/ebook_check.py $(if $(filter es,$(EDITION)),--es)
+
+## ---- The Spanish edition (book-es/, translation/PLAN.md) --------------------------------------
+## It shares book/'s environment, scripts, filters and styles, and its chapter list.
+BOOK_ES := book-es
+EPUB_ES := $(BOOK_ES)/_book/epub/prompt-check-publish-es.epub
+QUARTO_BOOK_ES := cd $(BOOK_ES) && JUPYTER_PATH="$$PWD/../$(BOOK)/.venv/share/jupyter" uv run --project ../$(BOOK) quarto
+
+## book-es: render the Spanish HTML and EPUB editions, post-process and check the EPUB, check its
+## links into the Spanish website edition, compare every file with its English original, lint
+## the glossary and scan the output for English left untranslated
+book-es: book-es-html book-es-epub
+	cd $(BOOK) && uv run python scripts/check_live_links.py ../$(EPUB_ES) --edition ../$(BOOK_ES)
+	python3 translation/compare.py
+	python3 translation/lint.py
+	python3 translation/english_scan.py
+
+## book-es-sync: the Spanish chapter lists (from book/_chapters.yml), the deck assets and copies of
+## the animations and stills, which Quarto's resource globs cannot reach through a symlink
+book-es-sync: book-sync
+	cd $(BOOK) && uv run python scripts/sync_chapters.py --book ../$(BOOK_ES)
+	rsync -a --delete $(BOOK)/media/gifs/ $(BOOK_ES)/media/gifs/
+	rsync -a --delete $(BOOK)/media/stills/ $(BOOK_ES)/media/stills/
+
+book-es-html: book-es-sync
+	$(QUARTO_BOOK_ES) render --profile html --to html
+	@if grep -rl '<ol class="example"' $(BOOK_ES)/_book/html; then echo "book-es-html: a line starting '@label.' became an example list in the file(s) above; rewrap it" >&2; exit 1; fi
+	cd $(BOOK) && uv run python scripts/lang_switch.py
+
+book-es-epub: book-es-sync
+	$(QUARTO_BOOK_ES) render --profile epub --to epub
+	cd $(BOOK) && uv run python scripts/epub_postprocess.py ../$(EPUB_ES)
+	$(MAKE) epubcheck-es
+
+## book-es-fresh: re-execute every Spanish chapter
+book-es-fresh:
+	rm -rf $(BOOK_ES)/_freeze
+	$(MAKE) book-es
+
+epubcheck-es: $(EPUBCHECK_JAR)
+	set -o pipefail; java -jar $(EPUBCHECK_JAR) --failonwarnings $(EPUB_ES) 2>&1 | tee $(BOOK_ES)/_book/epubcheck.txt
+
+## book-es-publish: copy the Spanish HTML edition and its EPUB into docs/book/es/
+book-es-publish:
+	@test -f $(BOOK_ES)/_book/html/index.html -a -f $(EPUB_ES) \
+	  || { echo "book-es-publish: build both Spanish editions first (make book-es)" >&2; exit 1; }
+	rsync -a --delete --delete-excluded --exclude $(notdir $(EPUB_ES)) --exclude 'figure-epub/' \
+	  $(BOOK_ES)/_book/html/ docs/book/es/
+	cp $(EPUB_ES) docs/book/es/
 
 ## book-release: attach the committed EPUB in docs/book/ to a new GitHub release, which the
 ## landing page's download buttons link to (releases/latest/download/). Run by the author, after
 ## the book is published and pushed: make book-release TAG=book-2026-11-13
 book-release:
 	@test -n "$(TAG)" || { echo "book-release: name the release, e.g. TAG=book-2026-11-13" >&2; exit 1; }
-	git ls-files --error-unmatch docs/book/prompt-check-publish.epub >/dev/null \
-	  && git diff --quiet HEAD -- docs/book/prompt-check-publish.epub \
-	  || { echo "book-release: commit docs/book/prompt-check-publish.epub first" >&2; exit 1; }
+	for f in docs/book/prompt-check-publish.epub docs/book/es/prompt-check-publish-es.epub; do \
+	  git ls-files --error-unmatch $$f >/dev/null && git diff --quiet HEAD -- $$f \
+	  || { echo "book-release: commit $$f first" >&2; exit 1; }; done
 	git fetch --quiet origin main && git merge-base --is-ancestor HEAD origin/main \
 	  || { echo "book-release: merge this commit into main first" >&2; exit 1; }
-	gh release create $(TAG) docs/book/prompt-check-publish.epub --latest \
+	gh release create $(TAG) docs/book/prompt-check-publish.epub \
+	  docs/book/es/prompt-check-publish-es.epub --latest \
 	  --title "Prompt, Check, Publish ($(TAG))" \
-	  --notes "The EPUB edition of Prompt, Check, Publish. Read online: https://project-delphi.github.io/quarto-workshop/book/"
+	  --notes "The EPUB edition of Prompt, Check, Publish, and of its Spanish edition, Pide, revisa, publica. Read online: https://project-delphi.github.io/quarto-workshop/book/ (Spanish: https://project-delphi.github.io/quarto-workshop/book/es/)"
