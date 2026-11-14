@@ -98,7 +98,7 @@ ebook-media:
 ## ebook-check: check the rendered landing page (render it first with `make deck`): screenshots,
 ## the first screen on a phone, links, contents numbers, share card and JSON-LD, into _ebook-check/
 ebook-check:
-	uv run --no-project --python 3.12 --with playwright --with pillow python scripts/ebook_check.py
+	uv run --no-project --python 3.12 --with playwright --with pillow python scripts/ebook_check.py $(if $(filter es,$(EDITION)),--es)
 
 ## ---- The Spanish edition (book-es/, translation/PLAN.md) --------------------------------------
 ## It shares book/'s environment, scripts, filters and styles, and its chapter list.
@@ -155,6 +155,7 @@ book-release:
 	  || { echo "book-release: commit docs/book/prompt-check-publish.epub first" >&2; exit 1; }
 	git fetch --quiet origin main && git merge-base --is-ancestor HEAD origin/main \
 	  || { echo "book-release: merge this commit into main first" >&2; exit 1; }
-	gh release create $(TAG) docs/book/prompt-check-publish.epub --latest \
+	gh release create $(TAG) docs/book/prompt-check-publish.epub \
+	  $(wildcard docs/book/es/prompt-check-publish-es.epub) --latest \
 	  --title "Prompt, Check, Publish ($(TAG))" \
-	  --notes "The EPUB edition of Prompt, Check, Publish. Read online: https://project-delphi.github.io/quarto-workshop/book/"
+	  --notes "The EPUB edition of Prompt, Check, Publish, and of its Spanish edition, Pide, revisa, publica. Read online: https://project-delphi.github.io/quarto-workshop/book/ (Spanish: https://project-delphi.github.io/quarto-workshop/book/es/)"

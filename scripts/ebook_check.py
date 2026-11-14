@@ -19,7 +19,10 @@ _ebook-check/, ignored by git):
 - the share card, drawn as LinkedIn lays it out from the page's Open Graph tags, and the
   JSON-LD, parsed and checked for the fields a Book needs.
 
-It exits non-zero if any check fails.
+It exits non-zero if any check fails. With --es it checks the Spanish page (ebook/es/) against
+the Spanish website edition (book/es/) instead:
+
+    make ebook-check EDITION=es
 """
 from __future__ import annotations
 
@@ -44,6 +47,12 @@ DOCS = ROOT / "docs"
 SITE_PATH = "/quarto-workshop/"
 PUBLIC = "https://project-delphi.github.io/quarto-workshop/"
 PAGE = "ebook/"
+PAGE_FILE = "ebook/index.html"
+BOOK = "book/"                 # the website edition the page lists
+SPANISH = "--es" in sys.argv
+if SPANISH:
+    sys.argv.remove("--es")
+    PAGE, PAGE_FILE, BOOK = "ebook/es/", "ebook/es/index.html", "book/es/"
 RELEASE = "https://github.com/project-delphi/quarto-workshop/releases/latest/download/"
 REPO_FILES = ("https://github.com/project-delphi/quarto-workshop/blob/main/",
               "https://github.com/project-delphi/quarto-workshop/tree/main/")
@@ -128,12 +137,19 @@ def release_link(url: str) -> None:
         print(f"  PENDING (no release yet) {url}")
         return
     code = external_status(url)
+    if code != 200 and url.endswith("-es.epub"):
+        print(f"  PENDING (release {release.get('tag_name', '?')} has no Spanish EPUB yet: "
+              f"the next make book-release attaches it) {url}")
+        return
     if code != 200:
         fail(f"{url} answered {code}, though release {release.get('tag_name', '?')} exists")
         return
     name = url.rsplit("/", 1)[1]
     asset = next((a for a in release.get("assets", []) if a["name"] == name), None)
-    committed = subprocess.run(["git", "cat-file", "-s", f":docs/book/{name}"], cwd=ROOT,
+    if asset is None and code != 200:
+        return
+    folder = "docs/book/es" if name.endswith("-es.epub") else "docs/book"
+    committed = subprocess.run(["git", "cat-file", "-s", f":{folder}/{name}"], cwd=ROOT,
                                capture_output=True, text=True)
     if asset and committed.returncode == 0 and asset["size"] != int(committed.stdout):
         print(f"  STALE: release {release['tag_name']}'s {name} is {asset['size']:,} bytes, the "
@@ -181,15 +197,15 @@ def check_links(where: str, base: str, hrefs: list[str]) -> None:
 
 
 def page_links() -> None:
-    s = (DOCS / "ebook/index.html").read_text()
+    s = (DOCS / PAGE_FILE).read_text()
     hrefs = re.findall(r'<a [^>]*href="([^"]+)"', s)
-    print(f"landing page: {len(hrefs)} links")
-    check_links("ebook/index.html", PUBLIC + PAGE, hrefs)
-    srcs = re.findall(r'(?:src|srcset|href)="((?:media/|ebook\.)[^" ,]+)', s)  # src= matches data-src=
-    srcs += re.findall(r'(media/[^ ,"]+) \d+w', s)  # every candidate in a srcset
+    print(f"landing page ({PAGE}): {len(hrefs)} links")
+    check_links(PAGE_FILE, PUBLIC + PAGE, hrefs)
+    srcs = re.findall(r'(?:src|srcset|href)="((?:\.\./)?(?:media/|ebook\.)[^" ,]+)', s)  # src= matches data-src=
+    srcs += re.findall(r'((?:\.\./)?media/[^ ,"]+) \d+w', s)  # every candidate in a srcset
     for p in set(srcs):
-        if not (DOCS / "ebook" / p).exists():
-            fail(f"ebook/index.html: {p} is missing from docs/ebook/")
+        if not (DOCS / PAGE / p).resolve().exists():
+            fail(f"{PAGE_FILE}: {p} is missing from docs/{PAGE}")
     for m in re.findall(r'<meta property="og:image" content="([^"]+)"', s):
         if not local_target(m).exists():
             fail(f"og:image {m} is missing")
@@ -244,7 +260,7 @@ def short_link() -> None:
 
 
 def book_links() -> None:
-    s = (DOCS / "book/index.html").read_text()
+    s = (DOCS / BOOK / "index.html").read_text()
     i = s.find('class="sidebar-tools-main')
     tools = s[i:s.find("</div>", i)] if i >= 0 else ""
     hrefs = re.findall(r'href="([^"]+)"', tools)
@@ -253,16 +269,17 @@ def book_links() -> None:
         fail("the website edition's sidebar has no link to the landing page")
     if not any(h.endswith(".epub") for h in hrefs):
         fail("the website edition's sidebar has no EPUB download")
-    check_links("book/index.html", PUBLIC + "book/", hrefs)
+    check_links(BOOK + "index.html", PUBLIC + BOOK, hrefs)
 
 
 def contents_numbers() -> None:
     """The page's chapter numbers must be the website edition's."""
-    side = (DOCS / "book/index.html").read_text()
+    side = (DOCS / BOOK / "index.html").read_text()
     book = dict(re.findall(r'<a href="\./(chapters/[^"]+|appendices/[^"]+)" class="sidebar-[^"]*">\s*'
                            r'<span class="menu-text"><span class="chapter-number">([^<]+)</span>', side))
-    page = (DOCS / "ebook/index.html").read_text()
-    mine = dict(re.findall(r'<a href="\.\./book/((?:chapters|appendices)/[^"]+)"><span class="n">([^<]*)</span>', page))
+    page = (DOCS / PAGE_FILE).read_text()
+    prefix = re.escape("../../book/es/" if SPANISH else "../book/")
+    mine = dict(re.findall(prefix + r'((?:chapters|appendices)/[^"]+)"><span class="n">([^<]*)</span>', page))
     diff = {k: (v, book.get(k, "")) for k, v in mine.items() if v != book.get(k, "")}
     if not book or not mine:
         fail(f"contents: matched {len(mine)} page and {len(book)} sidebar entries: "
@@ -278,7 +295,7 @@ def contents_numbers() -> None:
 # ---- share card and structured data --------------------------------------------------------------
 
 def share_card(out: Path, browser) -> None:
-    s = (DOCS / "ebook/index.html").read_text()
+    s = (DOCS / PAGE_FILE).read_text()
     og = {k: html.unescape(v) for k, v in re.findall(r'<meta property="(og:[^"]+)" content="([^"]*)"', s)}
     need = ["og:title", "og:description", "og:url", "og:type", "og:image", "og:image:width",
             "og:image:height"]
@@ -321,7 +338,7 @@ img {{ display: block; width: 552px; aspect-ratio: 1200/627; object-fit: cover; 
 
 
 def json_ld() -> None:
-    s = (DOCS / "ebook/index.html").read_text()
+    s = (DOCS / PAGE_FILE).read_text()
     m = re.search(r'<script type="application/ld\+json">(.+?)</script>', s, re.S)
     if not m:
         return fail("no JSON-LD")
@@ -438,9 +455,9 @@ def browse(base: str, out: Path) -> None:
 
 
 def main() -> None:
-    out = Path(sys.argv[1] if len(sys.argv) > 1 else ROOT / "_ebook-check").resolve()
+    out = Path(sys.argv[1] if len(sys.argv) > 1 else ROOT / ("_ebook-check/es" if SPANISH else "_ebook-check")).resolve()
     out.mkdir(parents=True, exist_ok=True)
-    if not (DOCS / "ebook/index.html").exists():
+    if not (DOCS / PAGE_FILE).exists():
         raise SystemExit("render the site first: make deck")
     base, srv = serve()
     print(f"serving docs/ at {base}")
