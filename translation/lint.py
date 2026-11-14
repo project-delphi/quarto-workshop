@@ -53,11 +53,18 @@ STRIP = [
 ]
 
 
+# A line that starts "@label." or "(@label)" becomes a Pandoc example list (book/README.md).
+EXAMPLE_LIST = re.compile(r"^\s*(\(@[A-Za-z][\w-]*\)|@[A-Za-z][\w-]*\.)(\s|$)")
+
+
 def lint(path: Path) -> list[str]:
+    raw_lines = path.read_text().split("\n")
+    early = [f"{path.relative_to(ROOT)}:{n}: a line starting with a cross-reference becomes an example list: rewrap it"
+             for n, line in enumerate(raw_lines, 1) if EXAMPLE_LIST.match(line)]
     text = path.read_text()
     for pattern in STRIP:
         text = pattern.sub(lambda m: "\n" * m.group(0).count("\n"), text)
-    hits = []
+    hits = list(early)
     references = False  # reading lists quote English titles
     for n, line in enumerate(text.split("\n"), 1):
         if line.startswith("#"):
