@@ -1,0 +1,496 @@
+# Correlación no es causalidad {#sec-causation}
+
+```{python}
+#| label: ch13-setup
+import textwrap
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import FixedLocator, ScalarFormatter
+
+from scripts import water as w
+from scripts.figures import ACCENT, INK, figsize, grid, is_epub, style
+from scripts.prose import alt_text_holds, number_words, spans, text_holds
+
+A = w.A
+res = w.res()
+k = res["k"]
+names, colors = w.names(), w.colors()
+kind = {c: n.rsplit(", ", 1)[0] for c, n in names.items()}
+rho = res["irca_infant"].set_index("cluster")
+bins = res["irca_infant_bins"]
+bins = bins[bins["n"] >= 20]
+rho_lo, rho_hi = rho["spearman_rho"].min(), rho["spearman_rho"].max()
+pooled_rho = rho["all_clusters_rho"].iloc[0]
+pooled_n = int(rho["all_clusters_n"].iloc[0])
+
+
+def sgn(x):
+    return f"{x:+.2f}".replace("-", "−")
+```
+
+```{python}
+#| label: ch13-checks
+# Values for the prose, and guards for its sentences whose words depend on the data.
+NUM = number_words(zero="no")
+WORD = number_words()
+
+
+IM_YEARS = spans(A.OUTCOME_YEARS["infant_mortality"])
+text_holds(IM_YEARS == "2017–2019 y 2021–2023", "the years in the captions of fig-wat-pooled and fig-wat-within")
+c_lo, c_hi = int(rho["spearman_rho"].idxmin()), int(rho["spearman_rho"].idxmax())
+text_holds(pooled_rho > 0 and rho["spearman_rho"].abs().max() < 0.2
+           and abs(rho_hi - pooled_rho) < 0.01, "weak associations, one as large as the pooled one")
+cl = res["clusters"]
+
+# @tbl-within-spread: how much four features still vary inside each cluster (z-scores have a
+# standard deviation of 1 over all kept zone-years).
+SPREAD = {"z_ipm": "Pobreza", "z_rural_share": "Proporción rural", "z_water_coverage": "Cobertura de acueducto",
+          "z_altitude_m": "Altitud"}
+zsd = cl.groupby("cluster")[list(SPREAD)].std()
+z_c, z_f = zsd.stack().idxmax()                  # (cluster, feature) that varies most
+z_c = int(z_c)
+text_holds((zsd < 1).all().all() and zsd.stack().max() > 0.9,
+           "places more alike within clusters, some only just")
+
+# The check's units, as irca_vs_infant() builds them: one municipality-year, the unweighted mean
+# IRCA of its scored zones (in the cluster, or over all of them for the pooled figure).
+rows = cl[cl["year"].isin(A.INFANT_YEARS)].dropna(subset=["infant_mortality"])
+agg = dict(irca=("irca", "mean"), infant_mortality=("infant_mortality", "first"))
+units = rows.groupby(["cluster", "divipola", "year"]).agg(**agg)
+pooled_units = rows.groupby(["divipola", "year"]).agg(**agg, zones=("zone", "nunique"))
+text_holds(len(pooled_units) == pooled_n, "the pooled units")
+one_zone = (pooled_units["zones"] == 1).mean()
+
+# Range: the clusters were formed partly on IRCA, so it varies less inside some of them. A narrow
+# range tends to weaken a rank correlation, but the four values do not follow the ranges.
+sd_all = pooled_units["irca"].std()
+sd_c = units.groupby(level="cluster")["irca"].std()
+narrow, wide = [int(c) for c in sd_c.index if sd_c[c] < sd_all], [int(c) for c in sd_c.index if sd_c[c] >= sd_all]
+c_flat = int(sd_c.idxmax())                     # where IRCA varies most
+text_holds(narrow and wide and c_hi in narrow and (sd_c[narrow] < 0.7 * sd_all).all()
+           and rho["spearman_rho"].abs().idxmin() == c_flat, "IRCA's spread within the clusters")
+
+# Chance: how far ρ could move with another draw of places. Resample municipalities with
+# replacement, keeping each one's years together (they are not independent draws), recompute ρ,
+# and keep the middle 95% of B draws. A fixed seed makes it the same on every render.
+B = 1000
+rng = np.random.default_rng(A.SEED)
+
+
+def interval(d):
+    d = d.reset_index()
+    groups = list(d.groupby("divipola").indices.values())
+    draws = []
+    for _ in range(B):
+        pick = rng.integers(0, len(groups), len(groups))
+        s = d.iloc[np.concatenate([groups[i] for i in pick])]
+        draws.append(s["irca"].corr(s["infant_mortality"], method="spearman"))
+    return np.percentile(draws, [2.5, 97.5])
+
+
+ci_all = interval(pooled_units)
+ci = {c: interval(units.loc[c]) for c in rho.index}
+hw = {c: (hi - lo) / 2 for c, (lo, hi) in ci.items()}
+zero_in = [c for c, (lo, hi) in ci.items() if lo < 0 < hi]
+steps = np.diff(np.sort(rho["spearman_rho"].to_numpy()))
+text_holds(all(np.isclose(units.loc[c].corr(method="spearman").loc["irca", "infant_mortality"],
+                          rho.loc[c, "spearman_rho"]) for c in rho.index), "the check's units")
+text_holds(ci_all[0] > 0 and min(hw.values()) > steps.max() and c_hi not in zero_in
+           and 0 < len(zero_in) < k, "the intervals of @tbl-rho")
+
+# Blank rates: the series has no zeros, so a blank may be a recorded zero.
+my = cl[cl["year"].isin(A.INFANT_YEARS)].drop_duplicates(["divipola", "year"])
+blank = my["infant_mortality"].isna().mean()
+pop = w.raw().groupby(["divipola", "year"])["population"].sum()
+my_pop = my.join(pop.rename("muni_pop"), on=["divipola", "year"])
+text_holds(w.raw()["infant_mortality"].eq(0).sum() == 0
+           and my_pop.loc[my_pop["infant_mortality"].isna(), "muni_pop"].median()
+           < my_pop.loc[my_pop["infant_mortality"].notna(), "muni_pop"].median(),
+           "a series without zeros, blank in smaller places")
+
+
+def clusters_text(cs):
+    return f"el clúster {cs[0]}" if len(cs) == 1 else "los clústeres " + ", ".join(map(str, cs[:-1])) + f" y {cs[-1]}"
+
+
+# fig-wat-within's alt text: how far the band medians move within a cluster.
+band_move = bins.groupby("cluster")["median"].agg(lambda m: m.max() - m.min()).max()
+alt_text_holds(f"{band_move:.1f}" == "3.1" and sgn(rho_lo) == "−0.04" and sgn(rho_hi) == "+0.10",
+               "fig-wat-within")
+# fig-wat-pooled's alt text: about four thousand points, most at low IRCA, a handful above 100.
+high_rates = int((pooled_units["infant_mortality"] > 100).sum())
+alt_text_holds(round(pooled_n, -3) == 4000 and (pooled_units["irca"] <= 14).mean() > 0.5
+               and 0 < high_rates < 20 and 0 < pooled_rho < 0.2, "fig-wat-pooled")
+
+# Tunja (@sec-tunja-kind) in this check: one municipality-year, the mean IRCA of its zones.
+tj = cl[(cl["divipola"] == "15001") & cl["year"].isin(A.INFANT_YEARS)].dropna(subset=["infant_mortality"])
+tj_c = int(tj["cluster"].iloc[0])
+tj_mean = tj.groupby("year")["irca"].mean()
+tj_u = tj[tj["zone"] == "urban"].set_index("year")["irca"]
+tj_r = tj[tj["zone"] == "rural"].set_index("year")["irca"]
+tj_share = tj["rural_share"].max()
+tj_yr = int((tj_r - tj_u).idxmax())             # the year its zones' water differed most
+text_holds(tj["municipio"].eq("TUNJA").all() and tj["cluster"].eq(tj_c).all()
+           and list(tj_u.index) == list(tj_r.index) == list(tj_mean.index) and (tj_u < tj_r).all(),
+           "Tunja's averaged zones")
+```
+
+El análisis se construyó para preguntar si los lugares con peor agua tienen peores resultados, y la
+tentación, una vez que hay un gráfico, es leer la respuesta como un efecto: el agua peor causa más
+muertes infantiles. Los datos no pueden sostener esa oración, y este capítulo muestra por qué, con
+los propios números del análisis.
+
+Una comparación más, la asociación entre la calidad del agua y la mortalidad infantil *dentro* de
+cada tipo de lugar, sale débil en todos los tipos, y en uno tan grande como en todos juntos. Pero ni
+una asociación fuerte ni una débil podrían zanjar aquí la pregunta causal, y las razones deciden cómo
+hay que escribir los resultados. Esa última parte no es una formalidad: la oración que cita un lector
+es la que tú publicas.
+
+::: opener
+- Explicar qué mide la ρ de Spearman, y leerla sobre todos los lugares y dentro de cada tipo.
+- Explicar por qué comparar dentro de un clúster mantiene fijas la pobreza, lo rural y la cobertura
+  solo en parte, y por qué los cuatro valores no se pueden ordenar.
+- Nombrar los caminos que pueden crear o esconder una asociación aquí, y decir hacia dónde podría
+  empujar cada uno.
+- Escribir un resultado con verbos de asociación, las filas comparadas, sus límites y lo que no
+  muestra.
+
+Partes de
+: tu carpeta `water-quality` en el punto de control 08, con los clústeres con nombre en la página de
+  los clústeres.
+
+Construyes
+: la comprobación dentro de cada clúster en `scripts/analysis.py`, y una sección de `clusters.html`
+  con ρ y n por clúster y una oración que dice que la comprobación es descriptiva.
+
+Punto de control
+: `checkpoints/09-water-causation/`
+:::
+
+## ¿Peor agua, más muertes infantiles? {#sec-water-within}
+
+La medida es la $\rho$ (rho) *de Spearman*, que pregunta si dos variables suben y bajan juntas en
+orden de rango: ordena los lugares según cada variable y mira si los dos órdenes coinciden. Va de −1
+(perfectamente opuestas) a +1 (perfectamente juntas), pasando por 0, que significa que no hay
+ninguna relación *monótona*, una en la que una variable tiende a subir cuando la otra sube, aunque no
+necesariamente a lo largo de una línea recta. Como usa rangos, no se deja llevar por los valores
+extremos, lo que importa con las tasas ruidosas de los municipios pequeños.
+
+Sobre todos los municipios-año con los dos valores en `{python} IM_YEARS`, la $\rho$ entre el IRCA de
+prestadores y la mortalidad infantil es `{python} sgn(pooled_rho)` (n = `{python} w.fmt(pooled_n)`, la
+cantidad de municipios-año comparados). La @fig-wat-pooled muestra cómo se ve una asociación tan
+débil: una nube sin pendiente visible.
+
+```{python}
+#| label: fig-wat-pooled
+#| fig-cap: "Cada municipio-año con los dos valores, 2017–2019 y 2021–2023: el IRCA de prestadores, la media de sus zonas con puntaje, frente a la mortalidad infantil (escala logarítmica). Solo descriptivo."
+#| fig-alt: "Una nube densa de unos cuatro mil puntos, uno por municipio-año, con el IRCA de prestadores de 0 a 100 en horizontal y la mortalidad infantil en escala logarítmica en vertical. La mayoría de los puntos están en IRCA bajos, la nube no muestra una pendiente clara y un puñado de tasas supera 100 por 1,000. La correlación de Spearman impresa es débil y positiva."
+#| classes: on-light
+with style():
+    fig, ax = plt.subplots(figsize=figsize(7.0, 3.4))
+    ax.scatter(pooled_units["irca"], pooled_units["infant_mortality"], s=6, alpha=0.25, color=ACCENT,
+               linewidths=0)
+    ax.set_yscale("log")
+    ax.yaxis.set_major_locator(FixedLocator([2, 5, 10, 20, 50, 100, 200]))
+    ax.yaxis.set_major_formatter(ScalarFormatter())
+    ax.yaxis.set_minor_locator(FixedLocator([]))
+    ax.set_xlim(-2, 102)
+    ax.set_xlabel("Utility-supplied IRCA (0–100)")
+    ax.set_ylabel("Infant mortality\nper 1,000")
+    ax.text(0.98, 0.95, f"ρ = {sgn(pooled_rho)}\nn = {w.fmt(pooled_n)}", transform=ax.transAxes,
+            ha="right", va="top", color=INK)
+    fig.tight_layout()
+    plt.show()
+```
+
+Una pequeña asociación positiva sobre todos los lugares podría venir del agua, o de todo lo que
+difiere entre los lugares con agua segura e insegura. Los clústeres ofrecen un *control* parcial,
+una forma de comparar lo comparable: dentro de un clúster, los lugares se parecen más en pobreza, en
+lo rural, en cobertura y en altitud que en todo el país, aunque lejos de ser iguales
+(@tbl-within-spread).
+
+```{python}
+#| label: tbl-within-spread
+#| tbl-cap: "Cuánto siguen variando cuatro características dentro de cada clúster: la desviación estándar de sus puntajes z, frente a 1 en todas las zonas-año conservadas."
+#| output: asis
+print("| Característica | " + " | ".join(str(c) for c in zsd.index) + " |")
+print("|---|" + "--:|" * len(zsd.index))
+for col, label in SPREAD.items():
+    print(f"| {label} | " + " | ".join(f"{zsd.loc[c, col]:.2f}" for c in zsd.index) + " |")
+```
+
+Cada valor está por debajo de 1, pero algunos apenas: dentro del clúster `{python} z_c`, la
+`{python} SPREAD[z_f].lower()` varía casi tanto como en todas las zonas-año conservadas. Así que la
+comprobación repite la comparación dentro de cada clúster (@fig-wat-within), donde algunas de las
+diferencias entre lugares son más pequeñas.
+
+```{python}
+#| label: fig-wat-within
+#| fig-cap: "Mediana de la mortalidad infantil por nivel del IRCA de prestadores, dentro de cada clúster; 2017–2019 y 2021–2023 juntos. No se dibujan los niveles con menos de 20 municipios-año. Solo descriptivo."
+#| fig-alt: "Cuatro paneles pequeños, uno por clúster, cada uno titulado con el número y el tipo del clúster. Cada uno muestra la mediana de la mortalidad infantil a lo largo de los niveles de riesgo del IRCA, marcados S, B, M, A e I por sin riesgo, bajo, medio, alto e inviable sanitariamente. Dentro de cualquier clúster, las medianas difieren entre niveles en a lo sumo 3.1 por 1,000, y las correlaciones de Spearman impresas en los paneles están entre −0.04 y +0.10."
+#| classes: on-light
+nr, nc = grid(k)
+small = nr == 1                                 # the HTML edition's panels in a row
+fs = 8 if small else 10
+with style():
+    fig, axes = plt.subplots(nr, nc, figsize=figsize(7.2, 2.9, rows=nr), sharey=True, squeeze=False)
+    for i, (ax, (c, g)) in enumerate(zip(axes.flat, bins.groupby("cluster"))):
+        pos = [A.IRCA_BANDS.index(b) for b in g["irca_band"]]
+        ax.plot(pos, g["median"], marker=A.CLUSTER_MARKERS[c - 1], ms=5, color=colors[c])
+        ax.set_title(textwrap.fill(f"{c} · {kind[c]}", 16 if small else 20, break_on_hyphens=False),
+                     fontsize=fs, loc="left", fontweight="bold", color=colors[c])
+        ax.text(0.05, 0.06, f"ρ = {sgn(rho.loc[c, 'spearman_rho'])}\nn = {rho.loc[c, 'n']:,}",
+                transform=ax.transAxes, fontsize=fs, color=INK)
+        ax.set_xticks(range(5), ["S", "B", "M", "A", "I"], fontsize=fs)
+        ax.tick_params(axis="y", labelsize=fs)
+        if i % nc == 0:
+            ax.set_ylabel("Infant mortality\nper 1,000", fontsize=fs)
+    axes.flat[0].set_ylim(0, bins["median"].max() * 1.3)
+    fig.supxlabel("Nivel del IRCA: S sin riesgo · B bajo · M medio · A alto · I inviable"
+                  if small else "Nivel del IRCA: S sin riesgo · B bajo · M medio\nA alto · I inviable", fontsize=fs)
+    fig.tight_layout()
+    plt.show()
+```
+
+Dentro de los clústeres, la $\rho$ va de `{python} sgn(rho_lo)` en el clúster `{python} c_lo` a
+`{python} sgn(rho_hi)` en el clúster `{python} c_hi`, donde es tan grande como sobre todos los
+lugares (@tbl-rho). Estas cifras no se pueden ordenar entre sí, ni poner al lado de la de todos los
+lugares, tal como están, por tres razones.
+
+```{python}
+#| label: tbl-rho
+#| tbl-cap: "La ρ de Spearman entre el IRCA de prestadores y la mortalidad infantil, con su intervalo del 95% y la dispersión del IRCA, sobre todos los lugares y dentro de cada clúster. Una fila: un municipio-año."
+#| output: asis
+print("| | n | ρ | Intervalo del 95% | DE del IRCA |")
+print("|---|--:|--:|:-:|--:|")
+
+
+def ci_text(lo, hi):
+    return f"{sgn(lo)} a {sgn(hi)}"
+
+
+print(f"| Todos los lugares | {w.fmt(pooled_n)} | {sgn(pooled_rho)} | {ci_text(*ci_all)} | {sd_all:.1f} |")
+for c in rho.index:
+    print(f"| Clúster {c} | {w.fmt(int(rho.loc[c, 'n']))} | {sgn(rho.loc[c, 'spearman_rho'])} "
+          f"| {ci_text(*ci[c])} | {sd_c[c]:.1f} |")
+```
+
+La primera es el rango. Los clústeres se formaron en parte según el IRCA, así que dentro de
+`{python} clusters_text(narrow)` varía mucho menos que sobre todos los lugares, y dentro de
+`{python} clusters_text(wide)`, más. Un rango más estrecho tiende a debilitar una correlación de
+rangos, pero eso no explica estas cuatro: la $\rho$ es más grande en el clúster `{python} c_hi`,
+donde el IRCA varía poco, y más cercana a cero en el clúster `{python} c_flat`, donde más varía.
+
+La segunda es el azar. Para ver cuánto podría moverse la $\rho$ con otra muestra de lugares, el libro
+vuelve a sacar los municipios de cada conjunto `{python} w.fmt(B)` veces, con reemplazo y manteniendo
+juntos los años de cada municipio, y recalcula la $\rho$ cada vez; el 95% central de esos valores es
+el intervalo de la @tbl-rho. El intervalo de cada clúster se extiende entre
+`{python} f"{min(hw.values()):.2f}"` y `{python} f"{max(hw.values()):.2f}"` a cada lado de su $\rho$,
+más que las brechas entre valores vecinos, así que estos datos no pueden ordenar los cuatro. Los
+intervalos de `{python} clusters_text(zero_in)` incluyen el cero; el de todos los lugares, no.
+
+La tercera es la unidad, porque la unidad sigue a la variable de resultado. La mortalidad infantil se
+mide para todo el municipio, así que cada municipio-año cuenta una vez, con el IRCA medio de sus
+zonas: todas ellas para la cifra de todos los lugares, solo las del clúster para la de un clúster.
+Esa media no está ponderada, y cubre solo las zonas con puntaje: en el `{python} f"{one_zone:.0%}"`
+de los municipios-año del conjunto completo, solo una zona tiene puntaje. Así que el IRCA al lado de
+una tasa es el puntaje de una zona o la media simple de dos, no lo que bebe el habitante promedio.
+
+Sería fácil leer esto como "el agua no importa". Esa lectura está tan poco sustentada como la
+primera.
+
+::: think
+Dentro del clúster `{python} c_flat`, la $\rho$ es cercana a cero. Escribe la oración que un concejal
+podría sacar equivocadamente de ella, y una honesta.
+
+Equivocada: "En los lugares del tipo «`{python} kind[c_flat].lower()`», la calidad del agua no hace
+ninguna diferencia en las muertes infantiles." Honesta: "Dentro del tipo
+«`{python} kind[c_flat].lower()`», los municipios-año con un IRCA de prestadores más alto no tuvieron
+una mortalidad infantil registrada notablemente más alta (`{python} IM_YEARS`). Esto no muestra que el
+agua no tenga ningún efecto: el subregistro, las tasas vacías y el desajuste entre la zona y el
+municipio podrían esconder uno."
+:::
+
+## Qué más podría explicarlo {#sec-confounders}
+
+La @fig-confounders dibuja los caminos entre el agua y la mortalidad infantil que los datos no pueden
+separar.
+
+![Qué más podría explicarlo. La flecha discontinua es la pregunta; cada uno de los otros caminos puede crear una asociación sin un efecto, o esconder un efecto que existe.](../media/diagrams/confounders){#fig-confounders .on-light fig-alt="La pregunta es si el agua insegura aumenta la mortalidad infantil, una flecha discontinua de la calidad del agua a las muertes infantiles. Otros caminos conectan las dos. La pobreza y lo rural hacen el agua menos segura y también hacen más probables las muertes infantiles, una variable de confusión. La pobreza también limita el acceso a los servicios de salud, que afecta las muertes infantiles, y debilita la calidad del registro, que se interpone entre las muertes reales y las registradas: un registro débil esconde muertes, y las tasas vacías quedan fuera de los datos. Y el IRCA se mide por zona mientras que las muertes infantiles se miden por municipio, así que un patrón entre lugares no tiene por qué valer para las personas que viven en ellos."}
+
+**La pobreza y lo rural** son probables *variables de confusión*. Una variable de confusión es una
+tercera variable que afecta tanto a la exposición, aquí la calidad del agua, como a la variable de
+resultado, aquí las muertes infantiles, así que las dos se mueven juntas aunque una no tenga ningún
+efecto sobre la otra. Los lugares más pobres y más rurales tienden a tener agua menos segura y, por
+otras razones, más muertes infantiles, así que pueden producir una asociación entre el agua y la
+mortalidad sin ningún efecto del agua. **El acceso a los servicios de salud** lleva parte de ese
+camino: los lugares más pobres y más apartados tienen menos, y menos acceso significa más muertes
+infantiles.
+
+**La calidad del registro** es un problema de medición, y funciona al revés: los lugares con un
+registro débil de nacimientos y defunciones registran menos muertes infantiles de las que ocurren, y
+si esos son también los lugares con agua insegura, el subregistro puede *esconder* un efecto real.
+Los vacíos agregan un segundo problema. La serie no tiene ceros, así que una tasa vacía puede
+significar que no se registró ninguna muerte, y el `{python} f"{blank:.0%}"` de los municipios-año
+agrupados de estos años está vacío. Dejarlos fuera descarta lo que pueden ser ceros registrados, lo
+que sube sobre todo los promedios de los lugares pequeños: una selección según la propia variable de
+resultado (@sec-outcomes).
+
+Luego está el **nivel ecológico**. El IRCA se mide para una zona urbana o rural; la mortalidad
+infantil, para todo el municipio. Un patrón entre lugares no tiene por qué valer para las personas que
+viven en ellos: los bebés que murieron no tienen por qué ser los que bebían la peor agua. Sacar
+conclusiones individuales de datos agregados se conoce como la *falacia ecológica*.
+
+Tunja muestra el desajuste en un solo lugar. En esta comprobación, cada uno de sus
+`{python} NUM[len(tj_mean)]` municipios-año cuenta una vez en el clúster `{python} tj_c`, con el IRCA
+medio de sus dos zonas: en `{python} tj_yr`, por ejemplo, `{python} f"{tj_mean[tj_yr]:.2f}"`, a mitad
+de camino entre el `{python} f"{tj_u[tj_yr]:.1f}"` de su agua urbana y el `{python} f"{tj_r[tj_yr]:.1f}"`
+de su agua rural, un valor que no tuvo ninguna de las dos zonas. La media pesa igual las dos zonas,
+aunque a lo sumo el `{python} f"{tj_share:.0%}"` de la gente de Tunja vive en la rural, y la
+mortalidad infantil a su lado es la de todo el municipio.
+
+Los clústeres achican algunas de estas diferencias sin eliminarlas: dentro de un clúster, los lugares
+siguen difiriendo en pobreza y en acceso (@tbl-within-spread). Y los municipios pequeños producen
+tasas extremas, que agregan un ruido que aplana cualquier línea.
+
+::: think
+Elige uno de estos caminos. ¿Podría esconder un efecto real, o crear uno falso?
+
+La pobreza puede crear uno falso: si los lugares más pobres tienden a tener a la vez agua menos segura
+y, por otras razones, más muertes infantiles, las dos se mueven juntas sin que el agua haga nada. La
+calidad del registro puede esconder uno real: si los lugares con agua insegura subregistran las
+muertes, sus tasas medidas son demasiado bajas, y un efecto real parece más pequeño de lo que es.
+Solo el primero es una variable de confusión; el segundo es un problema de medición. Cada camino
+empuja hacia un lado, pero varios actúan a la vez y no se conoce su tamaño, así que el sesgo neto
+podría ir en cualquier dirección, y por eso una correlación no puede zanjar la pregunta.
+:::
+
+La @tbl-problems ordena los caminos según el tipo de problema que es cada uno.
+
+| Problema | Aquí | ¿Puede crear un vínculo falso? | ¿Puede esconder uno real? |
+|---|---|---|---|
+| Confusión | pobreza, lo rural, acceso a los servicios de salud | sí | sí |
+| Medición | registro débil de las defunciones | sí | sí |
+| Selección | tasas vacías que quedan fuera | sí | sí |
+| Nivel | IRCA por zona, muertes por municipio | sí | sí |
+| Ruido | las tasas extremas de los lugares pequeños | no | sí |
+
+: Qué podría explicar la asociación, o esconder una, según el tipo de problema. Hacia dónde empuja cada uno depende de cómo esté ligado a la calidad del agua. Comparar dentro de los clústeres achica solo el primero, y solo en parte. {#tbl-problems}
+
+Una afirmación causal necesita un diseño que se ocupe de estos caminos, no un gráfico mejor: por
+ejemplo, comparar los lugares antes y después de un cambio en el tratamiento del agua, frente a
+lugares comparables sin el cambio, un diseño conocido como *diferencias en diferencias*. Ese es otro
+estudio, con otros datos; Hernán y Robins, en las lecturas adicionales, tratan esos diseños.
+
+## Escribirlo con honestidad {#sec-honest-writing}
+
+Cada salida de este análisis dice lo mismo con las mismas palabras, porque las reglas del proyecto lo
+exigen: las comparaciones entre clústeres son descriptivas y no establecen un efecto causal de la
+calidad del agua. En la práctica, eso significa unos pocos hábitos:
+
+- Describe qué se comparó, y sobre qué filas: "dentro de cada clúster, `{python} IM_YEARS`,
+  municipios-año con los dos valores".
+- Usa verbos de asociación ("es más alto en", "varía con"), no de efecto ("aumenta", "reduce",
+  "lleva a").
+- Nombra los límites de los datos al lado del resultado: el IRCA de prestadores, el cambio de método
+  de la mortalidad infantil, el desajuste entre la zona y el municipio.
+- Di lo que el resultado *no* muestra, en una oración que un lector pueda citar.
+
+::: pitfall
+La oración causal suele llegar en el último paso: el título de una diapositiva, el titular de una
+entrada de blog, un resumen para un concejo. Pídele al asistente que revise cada título y cada resumen
+contra las reglas del proyecto, y léelos tú. "El riesgo del agua de prestadores (IRCA) y la mortalidad
+infantil en los municipios de Colombia" es un título justo; "Cómo el agua insegura mata a los bebés"
+no lo es, por mucho que lo sospeches.
+:::
+
+## Construir la comprobación {#sec-causation-do}
+
+La ruta normal copia la comprobación terminada:
+
+::: {.prompt}
+```default
+Copia ../quarto-workshop/checkpoints/09-water-causation/scripts/analysis.py sobre scripts/analysis.py (guarda el mío como scripts/analysis-before-09.py), ejecútalo con `uv run python scripts/analysis.py` e imprime la rho de Spearman y n por clúster desde outputs/irca_infant.csv.
+```
+:::
+
+::: {.agent}
+copia · ejecuta · escribe `outputs/irca_infant.csv` y `outputs/irca_infant_bins.csv`
+:::
+
+Debería imprimir `{python} WORD[k]` filas, una por clúster, con una $\rho$ de `{python} sgn(rho_lo)` a
+`{python} sgn(rho_hi)` y un n de `{python} w.fmt(int(rho["n"].min()))` a
+`{python} w.fmt(int(rho["n"].max()))`, como en la @tbl-rho.
+
+Para construirla (opcional):
+
+::: {.prompt}
+```default
+En scripts/analysis.py, para 2017–2019 y 2021–2023, arma una fila por municipio-año dentro de cada clúster: su infant_mortality y el IRCA medio de sus zonas en ese clúster. Guarda e imprime la rho de Spearman y n por clúster, y la mediana de infant_mortality por nivel del IRCA. Ejecútalo.
+```
+:::
+
+Las dos rutas la muestran luego en la página de los clústeres:
+
+::: {.prompt}
+```default
+Agrega a clusters.qmd una sección, en inglés, que lea esas salidas: la mediana de infant_mortality por nivel del IRCA en cada clúster, con rho y n, y una oración que diga que esto es descriptivo y no establece un efecto causal de la calidad del agua. Renderízalo.
+```
+:::
+
+::: tryit
+Ejecuta la comprobación y agrégala a la página.
+
+::: done
+`clusters.html` muestra la $\rho$ y n por clúster, y puedes decir cómo una variable de confusión
+podría sesgarla.
+:::
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/09-water-causation/README.md
+```
+:::
+:::
+
+## Resumen {.unnumbered}
+
+::: keyideas
+- La $\rho$ de Spearman mide si dos variables suben y bajan juntas en orden de rango; sobre todos los
+  lugares, el IRCA de prestadores y la mortalidad infantil están solo débilmente asociados ($\rho$ =
+  `{python} sgn(pooled_rho)`).
+- Dentro de los clústeres, donde los lugares se parecen más pero están lejos de ser iguales, la
+  $\rho$ va de `{python} sgn(rho_lo)` a `{python} sgn(rho_hi)`; el rango, el azar y una unidad distinta
+  hacen que estos valores no se puedan ordenar ni poner al lado del de todos los lugares tal como
+  están.
+- La pobreza y lo rural son probables variables de confusión que pueden crear una asociación sin un
+  efecto, mientras que el registro débil y las tasas vacías pueden esconder uno real.
+- El IRCA se mide por zona y la mortalidad infantil por municipio, y leer un patrón entre lugares como
+  si hablara de las personas que viven en ellos es la falacia ecológica, como muestran las zonas
+  promediadas de Tunja.
+- Ni una asociación fuerte ni una débil zanjan la pregunta causal; eso necesita un diseño, como las
+  comparaciones de antes y después con lugares comparables.
+- Escribe sobre la asociación: nombra las filas comparadas, usa verbos de asociación, pon los límites
+  al lado del resultado y di lo que no muestra.
+:::
+
+Revisa cada título y cada resumen contra esa regla antes de que salga. El @sec-publish-many lleva los
+resultados, y esas oraciones, a los funcionarios y al concejo, en cada formato que necesitan.
+
+## Lecturas adicionales {.unnumbered}
+
+- C. Spearman, "The proof and measurement of association between two things", *The American Journal
+  of Psychology* 15(1) (1904), doi:[10.2307/1412159](https://doi.org/10.2307/1412159), donde se
+  presentó la correlación de rangos; citado en `examples/water/references.bib` y revisado contra la
+  página de su editorial (2026-11-01).
+- W. S. Robinson, "Ecological correlations and the behavior of individuals", *American Sociological
+  Review* 15(3), 351–357 (1950), doi:[10.2307/2087176](https://doi.org/10.2307/2087176), la
+  descripción clásica de la falacia ecológica; citado en `examples/water/references.bib` y revisado
+  contra la página de su editorial (2026-11-01; páginas de la reimpresión de 2009 del artículo en el
+  *International Journal of Epidemiology*, consultada el 2026-11-12).
+- Miguel A. Hernán y James M. Robins, [*Causal Inference: What If*](https://miguelhernan.org/whatifbook)
+  (Boca Raton: Chapman & Hall/CRC, 2020; gratis en línea), sobre la confusión y los diseños para
+  preguntas causales (consultado el 2026-11-12).
+- SciPy, [`spearmanr`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html),
+  la correlación de rangos y sus supuestos (consultado el 2026-11-12).

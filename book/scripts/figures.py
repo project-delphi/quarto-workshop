@@ -103,6 +103,8 @@ TERMS_ES = {
     "halfway": "a mitad de camino", "stable": "estable",
     "Inertia (thousands)": "Inercia (miles)", "Silhouette": "Silueta",
     "cluster": "clúster",
+    "Utility-supplied IRCA (0–100)": "IRCA de prestadores (0–100)",
+    "Infant mortality\nper 1,000": "Mortalidad infantil\npor 1,000",
 }
 PATTERNS_ES: list[tuple[str, str]] = [
     (r"^Cluster (\d+)$", r"Clúster \1"),
