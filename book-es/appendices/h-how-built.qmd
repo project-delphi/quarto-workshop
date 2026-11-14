@@ -1,0 +1,90 @@
+# Cómo está hecho este libro {#sec-how-built}
+
+Este libro es un proyecto de libro de Quarto en la carpeta `book/` del repositorio del taller, construido
+en dos ediciones a partir de un solo conjunto de archivos de capítulos: un libro electrónico EPUB y un
+sitio web. Es un ejemplo resuelto del propio tema del libro, y vale la pena registrar sus problemas,
+porque la mayoría fueron invisibles hasta que se revisó el EPUB en la pantalla de un teléfono o con un
+validador.
+
+## Una sola fuente, dos ediciones {.unnumbered}
+
+Los capítulos son archivos `.qmd`. Sus celdas de Python calculan cada número a partir de los datos del
+repositorio, leyendo los archivos de Londres e importando el `analysis.py` del proyecto del agua, así que
+el libro cita exactamente lo que calculan los proyectos. Los resultados se guardan en caché con
+`freeze: auto`, para que el EPUB se reconstruya rápido y siempre de la misma manera; la regla para vaciar
+el caché, escrita en la configuración y en el README, es ejecutar `make book-fresh` después de cualquier
+cambio en los datos o en el análisis de los ejemplos.
+
+El contenido pensado para una sola edición se marca para ella. Las escenas 3-D en vivo y los
+exploradores de datos van envueltos en `::: {.content-visible when-format="html:js"}`, y sus sustitutos
+para el EPUB, animaciones con un enlace (y, para el mapa de Londres, un código QR), en
+`when-format="epub"`. La edición HTML ejecuta el propio paquete de three.js del taller, sin cambios, a
+través de un pequeño script que imita el framework de diapositivas que el paquete espera.
+
+Esta edición en español es un segundo proyecto, `book-es/`, al lado de `book/` y a la misma profundidad,
+así que cada ruta del código es la de la edición en inglés. Comparte con ella los scripts, los filtros,
+los estilos y la mayoría de los medios; sus diagramas son propios. Las celdas son las mismas: los
+scripts compartidos leen el `lang` del documento y escriben en español las etiquetas de los recuadros,
+las palabras de los números, los nombres de los clústeres y el texto de los gráficos.
+`translation/compare.py` comprueba cada par de archivos: el mismo código, salvo los textos que llegan a
+la página, y las mismas etiquetas, referencias cruzadas y URL.
+
+## Lo que necesitó el EPUB {.unnumbered}
+
+| Problema | Solución |
+|---|---|
+| Quarto 1.10.20 elimina del EPUB las partes de un libro, y el contenido de las páginas de las partes | En el EPUB, las páginas de las partes son capítulos comunes; un script posterior al renderizado anida los capítulos de cada parte debajo de ella en la tabla de contenidos |
+| La lista de capítulos de un perfil se suma a la lista base, no la reemplaza | Una sola lista maestra (`_chapters.yml`) genera una lista de capítulos para cada edición |
+| `when-format="html"` también coincide con el EPUB | El contenido solo para HTML usa `when-format="html:js"` |
+| Renderizar una edición vacía la carpeta de salida de la otra | Cada edición tiene su propia carpeta de salida |
+| El envoltorio de las figuras de Quarto lleva un atributo `alt` que el XHTML del EPUB prohíbe | El script posterior al renderizado lo quita (la imagen conserva su texto alternativo) |
+| No hay puntos de referencia (landmarks) para la página de derechos de autor ni para el comienzo del texto | Los agrega el script posterior al renderizado, que además pone la página de derechos de autor antes del prefacio |
+| Los títulos de los recuadros y el código tienen fondos claros fijos y texto oscuro, invisibles con el tema nocturno de un lector | La hoja de estilos deja pasar los colores del lector |
+| Las líneas de código no se ajustan en un teléfono, y las salidas de las celdas se desplazan de lado | La hoja de estilos hace que las líneas largas se ajusten y que las salidas quepan |
+| Los diagramas anchos son ilegibles en un teléfono | Los diagramas se dibujan en vertical, de 700 píxeles de ancho con texto de al menos 19 píxeles, y se entregan como PNG al doble de resolución |
+
+: Problemas encontrados al construir la edición EPUB, y sus soluciones. {#tbl-epub-fixes}
+
+El EPUB terminado pasa EPUBCheck 5.4.0, el validador del W3C, sin errores y sin advertencias.
+
+## Medios {.unnumbered}
+
+Todos los medios los reconstruye un solo script, `media/build.py`, que ejecuta `make media`:
+
+- **Los diagramas** son archivos SVG con un estilo compartido, rasterizados a PNG por Chrome. El sitio web
+  usa el SVG y el EPUB el PNG, elegidos por la opción `default-image-extension` de Quarto para cada
+  edición.
+- **Las animaciones 3-D** se graban a partir de las escenas en vivo de la edición web: un script abre la
+  página en Chrome, recorre las vistas y los arrastres de la escena, captura cuadros y arma un GIF con los
+  filtros de paleta de ffmpeg.
+- **Las animaciones de terminal** se graban con VHS a partir de cintas con guion que ejecutan comandos
+  reales con una cuenta de demostración, para que no aparezca ninguna ruta personal; la sesión del agente
+  es una ilustración con guion, porque las reglas del repositorio descartan las sesiones de asistentes de
+  pago para el material didáctico.
+- **Cada GIF abre en su último cuadro**, mantenido dos segundos, porque los lectores electrónicos que no
+  animan muestran el primer cuadro de un GIF. Cada uno tiene además un PNG fijo, que el sitio web muestra
+  a quienes le piden a su sistema movimiento reducido. Los GIF se mantienen por debajo de 2 MB.
+
+## Leer el EPUB {.unnumbered}
+
+| Función | Dónde funciona |
+|---|---|
+| GIF animados | los lectores que animan imágenes los reproducen; los demás muestran el primer cuadro, pensado como imagen fija |
+| Temas nocturno y sepia | la hoja de estilos no fija colores de página; las figuras dibujadas con tinta oscura van sobre un panel claro |
+| Matemáticas | escritas como MathML; los lectores sin soporte para MathML pueden mostrarlas como texto simple |
+| Escenas 3-D en vivo y exploradores | solo en la edición web, enlazados desde el EPUB; el mapa de Londres también tiene código QR |
+
+: Cómo se comportan las funciones del EPUB en distintos lectores. El `book/README.md` del repositorio registra qué lectores se probaron, y cuándo. {#tbl-reading}
+
+## Construirlo {.unnumbered}
+
+Desde la carpeta raíz del repositorio:
+
+```bash
+make book          # both editions, the EPUB post-processing and EPUBCheck
+make book-fresh    # the same, re-executing every chapter
+make media         # re-record and rebuild every image and animation (slow)
+```
+
+`book/README.md` enumera las herramientas que necesita cada paso y cómo volver a grabar una sola
+animación. La edición en español se construye con `make book-es`.
