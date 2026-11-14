@@ -99,6 +99,7 @@ def tokens(code: str):
 
 
 def norm_url(u: str) -> str:
+    u = u.rstrip(".,:;")
     return u.replace("quarto-workshop/book/es/", "quarto-workshop/book/").replace(
         "quarto-workshop/ebook/es/", "quarto-workshop/ebook/").replace(
         "prompt-check-publish-es.epub", "prompt-check-publish.epub")

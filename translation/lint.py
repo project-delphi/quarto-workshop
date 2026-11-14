@@ -36,7 +36,6 @@ RULES = [
     (r"arn[eé]s", "harness"),
     (r"sub-agentes?", "subagente"),
     (r"prestar|rendir", "renderizar"),
-    (r"guion|guiones", "script"),
     (r"zona-años", "zonas-año"),
     # The reader's gender is never assumed (glossary, conventions).
     (r"tú mism[oa]s?|est(ás|és|arás) (list[oa]|segur[oa]|atascad[oa]|perdid[oa]|preparad[oa])", "a neutral phrasing"),

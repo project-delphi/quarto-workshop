@@ -3,7 +3,8 @@
 A draft names each fence it keeps unchanged by a line `@@CODE n@@` (n counts the English
 file's fences from 1, executable cells and display fences alike); this writes the draft
 with every such line replaced by that fence, opening and closing lines included, so no code is
-retyped. Fences the translation changes (prompts) are written out in the draft itself.
+retyped. Fences the translation changes (prompts) are written out in the draft itself, and a
+cell with translated strings can be prepared in a file and placed with `@@INCLUDE path@@`.
 
     python3 translation/fill.py chapters/01-quarto.qmd < draft.qmd   # writes book-es/<file>
     python3 translation/fill.py --list chapters/01-quarto.qmd        # numbers the fences
@@ -51,6 +52,8 @@ def main(args: list[str]) -> None:
         return en[n - 1]
 
     out = re.sub(r"^@@CODE (\d+)@@$", put, draft, flags=re.M)
+    # A cell whose page-facing strings are translated (decision D3) is prepared in a file.
+    out = re.sub(r"^@@INCLUDE (\S+)@@$", lambda m: Path(m.group(1)).read_text().rstrip("\n"), out, flags=re.M)
     (ROOT / "book-es" / rel).write_text(out)
     print(f"wrote book-es/{rel}: {len(used)} of {len(en)} English fences kept verbatim")
 
