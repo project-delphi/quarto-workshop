@@ -4,12 +4,14 @@ The deck's coloured progress bar becomes, for each part of the book, a static ro
 of the three parts with this one highlighted, then this part's chapters in order, each with
 what the reader reads about or builds there and the checkpoint it ends at. Titles come from the chapter files
 listed in _chapters.yml, so the roadmaps follow the book. Run from book/ (media/build.py
-roadmaps), then rasterise with the diagrams step.
+roadmaps), then rasterise with the diagrams step. With --book ../book-es it draws the Spanish
+edition's roadmaps from that folder's chapter titles, into its media/roadmaps/.
 """
 from __future__ import annotations
 
 import html
 import re
+import sys
 import textwrap
 from pathlib import Path
 
@@ -17,6 +19,7 @@ import yaml
 
 BOOK = Path(__file__).resolve().parents[1]
 OUT = BOOK / "media" / "roadmaps"
+SOURCE, LANG = BOOK, "en"   # whose chapter titles to draw (main() reads --book)
 COLORS = ["#2f72b0", "#b07a14", "#7c5cdb", "#2f9e77", "#c2416b", "#3d7fd9", "#8a7f1e", "#c8662a"]
 # What the reader comes away with from each chapter (what they read about, or what they
 # build), and the checkpoint its hands-on work ends at; "" where a chapter has none.
@@ -40,6 +43,30 @@ META = {
 }
 
 
+META_ES = {
+    "01-quarto": ("Lees: por qué una sola fuente es mejor que las copias", ""),
+    "02-assistant": ("Lees: cómo pedir trabajo y revisarlo", ""),
+    "03-setup": ("Construyes: una computadora que renderiza la prueba", ""),
+    "04-markdown": ("Construyes: london.md, sus reglas y su entorno", "termina en el punto de control 01"),
+    "05-compute": ("Construyes: london.qmd como HTML, Word y PDF", "termina en el punto de control 02"),
+    "06-audiences": ("Construyes: un dashboard, un informe en Word, un folleto", "termina en el punto de control 04"),
+    "07-publish": ("Construyes: un sitio web publicado, una reconstrucción explicada", "termina en examples/london"),
+    "exercises-london": ("Practicas: cinco ejercicios y luego tus propios prompts", ""),
+    "08-water-question": ("Construyes: la carpeta del proyecto, sus datos y sus reglas", ""),
+    "09-explore": ("Construyes: explore.qmd, una primera mirada a los datos", "termina en el punto de control 05"),
+    "10-prepare": ("Construyes: prepare(), nueve características comparables", "termina en el punto de control 06"),
+    "11-cluster": ("Construyes: k-means y la página de los clústeres", "termina en el punto de control 07"),
+    "12-interpret": ("Construyes: clústeres con nombre y sus variables de resultado", "termina en el punto de control 08"),
+    "13-causation": ("Construyes: la comprobación dentro de cada clúster", "termina en el punto de control 09"),
+    "14-publish-many": ("Construyes: informe, diapositivas, sitio web y blog", "termina en los puntos de control 10–13"),
+    "exercises-water": ("Practicas: ejercicios y luego tus propios prompts", ""),
+}
+WORDS = {"en": {"where": "Where we are", "alt": "Where we are: {part}, highlighted among the book's {n} parts. "
+                "Its chapters in order: "},
+         "es": {"where": "Dónde estamos", "alt": "Dónde estamos: {part}, resaltada entre las {n} partes del "
+                "libro. Sus capítulos en orden: "}}
+
+
 def title_of(qmd: Path) -> str:
     line = next(l for l in qmd.read_text().splitlines() if l.startswith("# "))
     return re.sub(r"\s*\{.*\}\s*$", "", line[2:]).strip()
@@ -55,17 +82,17 @@ def svg(part_index: int, parts: list[dict], first_number: int) -> str:
     for i, p in enumerate(parts):
         x = 20 + i * (pw + 12)
         on = i == part_index
-        label = title_of(BOOK / p["file"]).split(":")[0]
+        label = title_of(SOURCE / p["file"]).split(":")[0]
         strip.append(f'<rect x="{x:.0f}" y="20" width="{pw:.0f}" height="48" rx="24" '
                      f'fill="{"#24313f" if on else "none"}" stroke="#5b6b7b" stroke-width="2"/>'
                      f'<text x="{x + pw / 2:.0f}" y="51" text-anchor="middle" '
                      f'class="{"s on" if on else "s"}">{label}</text>')
-    name = title_of(BOOK / part["file"]).split(":", 1)[1].strip()
+    name = title_of(SOURCE / part["file"]).split(":", 1)[1].strip()
     head = f'<text x="20" y="112" class="h">{html.escape(name)}</text>'
     for k, ch in enumerate(part["chapters"]):
         stem = Path(ch).stem
-        title = title_of(BOOK / ch)
-        gain, cp = META.get(stem, ("", ""))
+        title = title_of(SOURCE / ch)
+        gain, cp = (META_ES if LANG == "es" else META).get(stem, ("", ""))
         numbered = not stem.startswith("exercises")
         color = COLORS[k % len(COLORS)]
         lines = textwrap.wrap(title, 36)
@@ -84,11 +111,10 @@ def svg(part_index: int, parts: list[dict], first_number: int) -> str:
         y += h
         number += numbered
     height = y + 10
-    alt = (f"Where we are: {html.escape(title_of(BOOK / part['file']))}, highlighted among the book's "
-           f"{len(parts)} parts. Its chapters in order: "
-           + "; ".join(html.escape(title_of(BOOK / c)) for c in part["chapters"]) + ".")
+    alt = (WORDS[LANG]["alt"].format(part=html.escape(title_of(SOURCE / part['file'])), n=len(parts))
+           + "; ".join(html.escape(title_of(SOURCE / c)) for c in part["chapters"]) + ".")
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {height}" role="img" aria-labelledby="t d">
-<title id="t">Where we are</title>
+<title id="t">{WORDS[LANG]["where"]}</title>
 <desc id="d">{alt}</desc>
 <style>
   text {{ font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #24313f; }}
@@ -108,6 +134,10 @@ def svg(part_index: int, parts: list[dict], first_number: int) -> str:
 
 
 def main() -> None:
+    global SOURCE, OUT, LANG
+    if "--book" in sys.argv:
+        SOURCE = (Path.cwd() / sys.argv[sys.argv.index("--book") + 1]).resolve()
+        OUT, LANG = SOURCE / "media" / "roadmaps", "es"
     spec = yaml.safe_load((BOOK / "_chapters.yml").read_text())
     parts = spec["parts"]
     OUT.mkdir(parents=True, exist_ok=True)
