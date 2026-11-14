@@ -41,6 +41,8 @@ RULES = [
     (r"tú mism[oa]s?|est(ás|és|arás) (list[oa]|segur[oa]|atascad[oa]|perdid[oa]|preparad[oa])", "a neutral phrasing"),
     (r"(sé|seas) (específic[oa]|concret[oa]|cuidados[oa])", "a neutral phrasing"),
 ]
+# Words the glossary rules out but a file must quote, such as a machine translation's mistakes.
+ALLOW = {("book-es/appendices/f-translation.qmd", "Prestar")}
 STRIP = [
     re.compile(r"^(\s*)(`{3,}).*?^\1\2\s*$", re.S | re.M),  # fences
     re.compile(r"`[^`\n]+`"),                                # inline code
@@ -64,6 +66,8 @@ def lint(path: Path) -> list[str]:
             continue
         for pattern, instead in RULES:
             for m in re.finditer(rf"(?<![\w-])(?:{pattern})(?![\w-])", line, re.I):
+                if (str(path.relative_to(ROOT)), m.group(0)) in ALLOW:
+                    continue
                 hits.append(f"{path.relative_to(ROOT)}:{n}: {m.group(0)!r} -> {instead}")
     return hits
 

@@ -132,6 +132,12 @@ def headings(prose_parts):
 # Differences a translation needs and the checks would otherwise reject, each with its reason.
 # Keyed by file, then by check, then by the exact item; reported as accepted, not as errors.
 EXCEPTIONS = {
+    "appendices/f-translation.qmd": {
+        "URLs": {
+            "https://project-delphi.github.io/quarto-workshop/book/": "the brief asked appendix F to "
+            "say that this Spanish edition exists; the note links its website edition",
+        },
+    },
     "chapters/09-explore.qmd": {
         "inline {python}": {
             "{python} rural_med_band": "an English band name (\"low\") inside a sentence; the "
