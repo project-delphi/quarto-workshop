@@ -128,6 +128,28 @@ def auto_id(text: str) -> str:
     return text or "section"
 
 
+def repeated_auto_ids() -> set[str]:
+    """English headings without an explicit ID whose automatic ID recurs across the book (such
+    as #summary). A single-document EPUB numbers repeats (summary-1, ...), which an explicit ID
+    cannot do, so their Spanish twins keep Pandoc's automatic IDs, and any ID is accepted."""
+    from collections import Counter
+    seen, explicit = Counter(), set()
+    for pattern in ("*.qmd", "chapters/*.qmd", "appendices/*.qmd"):
+        for path in EN.glob(pattern):
+            blocks_ = [b[1] for b in blocks(path.read_text()) if b[0] == "prose"]
+            for text in blocks_:
+                explicit |= set(ID.findall(" ".join(re.findall(r"\{[^{}\n]*\}", text))))
+                for line in text.split("\n"):
+                    m = HEADING.match(line)
+                    if m and not any(a.startswith("#") for a in (m.group(3) or "{}")[1:-1].split()):
+                        seen[auto_id(m.group(2))] += 1
+    # Repeated, or taken by an explicit ID elsewhere (Pandoc then numbers the automatic one).
+    return {k for k, v in seen.items() if v > 1 or k in explicit}
+
+
+REPEATED: set[str] = set()
+
+
 def headings(prose_parts):
     """(level, effective ID, other attributes) per heading: an explicit #id, else Pandoc's."""
     hs = []
@@ -138,7 +160,7 @@ def headings(prose_parts):
                 attrs = (m.group(3) or "{}")[1:-1].split()
                 ids = [a[1:] for a in attrs if a.startswith("#")]
                 rest = tuple(a for a in attrs if not a.startswith("#"))
-                hs.append((len(m.group(1)), ids[0] if ids else auto_id(m.group(2)), rest))
+                hs.append((len(m.group(1)), ids[0] if ids else auto_id(m.group(2)), rest, bool(ids)))
     return hs
 
 
@@ -202,8 +224,15 @@ def compare(rel: str, strings: list) -> tuple[list[str], list[str]]:
                 errors.append(f"prompt in fence {n}: literals missing from the Spanish: {missing}")
         elif a[2] != b[2]:
             errors.append(f"fence {n} ({a[1] or 'plain'}): body differs")
-    if headings(pe) != headings(ps):
-        he, hs = headings(pe), headings(ps)
+    he, hs = headings(pe), headings(ps)
+    if not REPEATED:
+        REPEATED.update(repeated_auto_ids())
+    # A Spanish heading may keep its own automatic ID only where the English one is automatic
+    # and repeated (see repeated_auto_ids); an explicit English ID must always be kept.
+    hs = [(lvl, en[1] if en[1] in REPEATED and not en[3] and not sx else sid, rest, en[3])
+          for (lvl, sid, rest, sx), en in zip(hs, he + [(None, None, None, False)] * len(hs))]
+    he = [(lvl, eid, rest, ex) for lvl, eid, rest, ex in he]
+    if [h[:3] for h in he] != [h[:3] for h in hs]:
         errors.append(f"headings differ: {len(he)} vs {len(hs)}; first difference "
                       f"{next(((x, y) for x, y in zip(he, hs) if x != y), None)}")
     joined_e, joined_s = "\n".join(pe), "\n".join(ps)
@@ -212,8 +241,8 @@ def compare(rel: str, strings: list) -> tuple[list[str], list[str]]:
     label = lambda t: set(re.findall(r"^#\|\s*label:\s*(\S+)", t, re.M))
     attrs = lambda t: " ".join(re.findall(r"\{[^{}\n]*\}", t))
     checks = {
-        "IDs": (set(ID.findall(attrs(joined_e))) | label(cells_e) | {h[1] for h in headings(pe)},
-                set(ID.findall(attrs(joined_s))) | label(cells_s) | {h[1] for h in headings(ps)}),
+        "IDs": (set(ID.findall(attrs(joined_e))) | label(cells_e) | {h[1] for h in he},
+                set(ID.findall(attrs(joined_s))) | label(cells_s) | {h[1] for h in hs}),
         "cross-references": ({r.lower() for r in REF.findall(joined_e + cells_e)},
                              {r.lower() for r in REF.findall(joined_s + cells_s)}),
         "URLs": ({norm_url(u) for u in URL.findall(en)}, {norm_url(u) for u in URL.findall(es)}),

@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "translation"))
-from compare import EN, ES, HEADING, blocks  # noqa: E402
+from compare import EN, ES, HEADING, blocks, repeated_auto_ids  # noqa: E402
 
 ID_IN = re.compile(r"(?<![\w&])#([A-Za-z][\w:.-]*)")
 
@@ -62,7 +62,7 @@ def english_html_ids(rel: str) -> list[str] | None:
 
 
 def main() -> int:
-    changed = 0
+    changed, repeated = 0, repeated_auto_ids()
     for pattern in ("*.qmd", "chapters/*.qmd", "appendices/*.qmd"):
         for es_path in sorted(ES.glob(pattern)):
             rel = str(es_path.relative_to(ES))
@@ -79,6 +79,8 @@ def main() -> int:
                 if ID_IN.search(es_attrs):
                     continue
                 want = pandoc_id(text)
+                if want in repeated:  # numbered by Pandoc in the EPUB; see compare.repeated_auto_ids
+                    continue
                 if html_ids is not None and level > 1 and want not in html_ids:  # an h1 is the page title
                     print(f"{rel}: computed #{want} for {text!r} is not in the English HTML")
                     return 1

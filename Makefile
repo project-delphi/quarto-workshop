@@ -41,9 +41,10 @@ book-fresh:
 	rm -rf $(BOOK)/_freeze
 	$(MAKE) book
 
-## epubcheck: validate the EPUB; the report is saved beside it
+## epubcheck: validate the EPUB; the report is saved beside it. `set -o pipefail` is in the recipe
+## because macOS's make 3.81 ignores .SHELLFLAGS, so tee would otherwise hide a failure.
 epubcheck: $(EPUBCHECK_JAR)
-	java -jar $(EPUBCHECK_JAR) --failonwarnings $(EPUB) 2>&1 | tee $(BOOK)/_book/epubcheck.txt
+	set -o pipefail; java -jar $(EPUBCHECK_JAR) --failonwarnings $(EPUB) 2>&1 | tee $(BOOK)/_book/epubcheck.txt
 
 $(EPUBCHECK_JAR):
 	mkdir -p $(EPUBCHECK_DIR)
@@ -133,7 +134,7 @@ book-es-fresh:
 	$(MAKE) book-es
 
 epubcheck-es: $(EPUBCHECK_JAR)
-	java -jar $(EPUBCHECK_JAR) --failonwarnings $(EPUB_ES) 2>&1 | tee $(BOOK_ES)/_book/epubcheck.txt
+	set -o pipefail; java -jar $(EPUBCHECK_JAR) --failonwarnings $(EPUB_ES) 2>&1 | tee $(BOOK_ES)/_book/epubcheck.txt
 
 ## book-es-publish: copy the Spanish HTML edition and its EPUB into docs/book/es/
 book-es-publish:
