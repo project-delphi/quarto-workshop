@@ -84,8 +84,8 @@ def main() -> int:
                 if html_ids is not None and level > 1 and want not in html_ids:  # an h1 is the page title
                     print(f"{rel}: computed #{want} for {text!r} is not in the English HTML")
                     return 1
-                if es_attrs:
-                    new_attrs = es_attrs[:-1].rstrip() + f" #{want}" + "}"
+                if es_attrs:  # the ID first: Pandoc reads no #id after a key=value pair
+                    new_attrs = "{#" + want + " " + es_attrs[1:]
                 else:
                     new_attrs = "{#" + want + "}"
                 line = es_lines[j]

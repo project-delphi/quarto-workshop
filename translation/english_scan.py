@@ -22,7 +22,7 @@ EPUB = ROOT / "book-es" / "_book" / "epub" / "prompt-check-publish-es.epub"
 
 EN = set("the and of to is are was were with that this for from by on in it its be been has have "
          "you your which what when where how why not can will would should into than then they "
-         "their there these those an a as at or if but so do does did each every one".split())
+         "their there these those an as at or if but so do does did each every one".split())
 ES = set("el la los las de del y que en un una es son con por para se su sus al lo como más "
          "pero ya o si no le les este esta esto estos estas cada sin sobre entre cuando donde "
          "hay está están fue ser muy también tu tus te".split())
@@ -52,6 +52,8 @@ KEPT = [
     "Drinking-water quality and infant mortality", "Visits to London's leading", "How the kinds differ",
     "Pandemic loss and recovery", "A descriptive cluster analysis", "Water quality, services",
     "Known gaps and caveats", "User's Guide", "cannot parse length", "unexpected argument",
+    "LLMflation", "book a free timed ticket", "with 7,116,929 visits", "a graphical aid",
+    "Reproducible Data Publishing with Quarto and AI Coding Assistants",
 ]
 
 
