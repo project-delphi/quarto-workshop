@@ -234,26 +234,32 @@ def fix_ncx(text: str, kinds: dict[str, str]) -> str:
     return '<?xml version="1.0" encoding="UTF-8"?>\n' + out + "\n"
 
 
+def take_itemref(text: str, name: str) -> tuple[str, str, int]:
+    """Remove a chapter file's spine itemref, with the whitespace before it. Returns the text,
+    the removed itemref ("" if there is none) and where it was."""
+    idref = Path(name).name.replace(".", "_")
+    m = re.search(rf'\s*<itemref idref="{re.escape(idref)}"[^>]*/>', text)
+    if not m:
+        return text, "", -1
+    return text[:m.start()] + text[m.end():], m.group(0), m.start()
+
+
 def fix_spine(text: str, kinds: dict[str, str]) -> str:
     """Move the copyright and dedication pages' itemrefs to just after the title page, and the
     back cover's to the end."""
     for name in (n for n, k in kinds.items() if k == "backcover"):
-        idref = Path(name).name.replace(".", "_")
-        m = re.search(rf'\s*<itemref idref="{re.escape(idref)}"[^>]*/>', text)
-        if m:
-            text = text[:m.start()] + text[m.end():]
-            end = text.index("</spine>")
-            text = text[:end] + m.group(0).strip() + "\n  " + text[end:]
+        text, ref, _ = take_itemref(text, name)
+        if not ref:  # nest() has already left it out of the contents: never ship it mid-book
+            sys.exit(f"epub_postprocess: no spine itemref for the back cover {name}")
+        end = text.rfind("\n", 0, text.index("</spine>"))
+        text = text[:end] + ref + text[end:]
     after = re.search(r'<itemref idref="title_page_xhtml"[^>]*/>', text).end()
     for kind in FRONT:
         for name in (n for n, k in kinds.items() if k == kind):
-            idref = Path(name).name.replace(".", "_")
-            m = re.search(rf'\s*<itemref idref="{re.escape(idref)}"[^>]*/>', text)
-            if not m:
+            text, ref, start = take_itemref(text, name)
+            if not ref:
                 continue
-            ref = m.group(0)
-            text = text[:m.start()] + text[m.end():]
-            if m.start() < after:
+            if start < after:
                 after -= len(ref)
             text = text[:after] + ref + text[after:]
             after += len(ref)
@@ -343,10 +349,10 @@ def fix_chapter(text: str, kind: str, front: bool) -> str:
                                text, 1)
         text = text.replace('<body epub:type="bodymatter">', '<body epub:type="backmatter">', 1)
         text = re.sub(r'<section ([^>]*class="level1[^"]*")>', r'<section \1 epub:type="appendix">', text, 1)
-    elif kind in ("end", "backcover"):
+    elif kind == "backcover":
         text = text.replace('<body epub:type="bodymatter">', '<body epub:type="backmatter">', 1)
-        if kind == "backcover":
-            return text
+    elif kind == "end":
+        text = text.replace('<body epub:type="bodymatter">', '<body epub:type="backmatter">', 1)
         text = re.sub(r'<section ([^>]*class="level1[^"]*")>', r'<section \1 epub:type="afterword">', text, 1)
     elif front:
         text = text.replace('<body epub:type="bodymatter">', '<body epub:type="frontmatter">', 1)
