@@ -188,6 +188,32 @@ COVER = [
 ]
 
 
+BACK_COVER = [
+    ("<title id=\"t\">Prompt, Check, Publish: back cover</title>", "<title id=\"t\">Pide, revisa, publica: contracubierta</title>"),
+    ("Back cover. Write once. Check every step. Publish everywhere. Change one number in a dataset, and every document built from it should change too. This book shows how: you write prose and code once, in plain text, and Quarto rebuilds a web page, Word, PDF, slides, an e-book, a website, a blog and a dashboard from that one source. A coding agent writes the code at a speed that was out of reach until recently; you direct it one small step at a time and check its work against the data. Two real projects: a London visitor guide, with cited figures, maps and openly licensed photographs; and drinking-water risk in Colombia, with public data for every municipality, explored and clustered. No programming is assumed. Ravi Kalia.",
+     "Contracubierta. Escribe una vez. Revisa cada paso. Publica en todas partes. Cambia un número en un conjunto de datos, y cada documento hecho con él debería cambiar también. Este libro enseña cómo: escribes prosa y código una vez, en texto plano, y Quarto reconstruye una página web, Word, PDF, diapositivas, un libro electrónico, un sitio web, un blog y un dashboard desde esa fuente. Un agente de programación escribe el código a una velocidad impensable hace poco; tú lo diriges paso a paso y lo revisas con los datos. Dos proyectos reales: una guía de Londres para visitantes, con cifras citadas, mapas y fotos con licencia abierta; y el riesgo del agua potable en Colombia, con datos públicos de cada municipio, explorados y agrupados. No se da por sentado que sepas programar. Ravi Kalia."),
+    (">PROMPT, CHECK, PUBLISH<", ">PIDE, REVISA, PUBLICA<"),
+    (">Write once.<", ">Escribe una vez.<"), (">Check every step.<", ">Revisa cada paso.<"),
+    (">Publish everywhere.<", ">Publica en todas partes.<"),
+    (">Change one number in a dataset, and every<", ">Cambia un número en un conjunto de datos, y<"),
+    (">document built from it should change too.<", ">cada documento hecho con él debería cambiar<"),
+    (">This book shows how: you write prose and<", ">también. Este libro enseña cómo: escribes<"),
+    (">code once, in plain text, and Quarto rebuilds<", ">prosa y código una vez, en texto plano, y<"),
+    (">a web page, Word, PDF, slides, an e-book,<", ">Quarto reconstruye una página web, Word, PDF,<"),
+    (">a website, a blog and a dashboard from that<", ">diapositivas, un libro electrónico, un sitio<"),
+    (">one source. A coding agent writes the code<", ">web, un blog y un dashboard desde esa fuente.<"),
+    (">at a speed that was out of reach until<", ">Un agente de programación escribe el código<"),
+    (">recently; you direct it one small step at<", ">a una velocidad impensable hace poco; tú lo<"),
+    (">a time and check its work against the data.<", ">diriges paso a paso y lo revisas con los datos.<"),
+    (">TWO REAL PROJECTS<", ">DOS PROYECTOS REALES<"),
+    (">A London visitor guide<", ">Una guía de Londres para visitantes<"),
+    (">cited figures, maps and openly licensed photographs<", ">cifras citadas, mapas y fotos con licencia abierta<"),
+    (">Drinking-water risk in Colombia<", ">El riesgo del agua potable en Colombia<"),
+    (">public data for every municipality, explored and clustered<", ">datos públicos de cada municipio, explorados y agrupados<"),
+    (">No programming is assumed.<", ">No se da por sentado que sepas programar.<"),
+]
+
+
 def translate(src: Path, dest: Path, pairs) -> None:
     text = src.read_text(encoding="utf-8")
     for pair in pairs:
@@ -205,12 +231,13 @@ def main() -> None:
     for name, pairs in DIAGRAMS.items():
         translate(EN / "diagrams" / name, ES / "diagrams" / name, pairs)
     translate(EN / "cover.svg", ES / "cover.svg", COVER)
+    translate(EN / "back-cover.svg", ES / "back-cover.svg", BACK_COVER)
     import subprocess
     subprocess.run([sys.executable, str(ROOT / "book" / "scripts" / "roadmaps.py"), "--book", "../book-es"],
                    cwd=ROOT / "book", check=True)
     build.BOOK = ROOT / "book-es"   # for rasterise()'s messages
     build.rasterise(sorted([*(ES / "diagrams").glob("*.svg"), *(ES / "roadmaps").glob("*.svg")]), scale=2)
-    build.rasterise([ES / "cover.svg"], scale=1, transparent=False)
+    build.rasterise([ES / "cover.svg", ES / "back-cover.svg"], scale=1, transparent=False)
     import segno
     url = build.LIVE + "es/chapters/06-audiences.html#sec-london-3d"
     (ES / "qr").mkdir(exist_ok=True)

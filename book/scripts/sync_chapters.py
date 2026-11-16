@@ -6,7 +6,8 @@ So the base _quarto.yml has no chapter list, and this script writes one per prof
 
 - _quarto-html.yml: chapters grouped under `part:` pages, for the HTML sidebar;
 - _quarto-epub.yml: one flat list in which the part pages are ordinary chapters
-  (scripts/epub_postprocess.py nests the EPUB table of contents under them).
+  (scripts/epub_postprocess.py nests the EPUB table of contents under them), ending with
+  `epub_end` (the back cover), which only the EPUB has.
 
 Run from book/:  uv run python scripts/sync_chapters.py [--check] [--book ../book-es]
 --check exits with status 1 if a profile on disk differs from what it would write.
@@ -31,7 +32,7 @@ def profiles(spec: dict) -> dict[str, dict]:
         grouped.append({"part": part["file"], "chapters": part["chapters"]})
         flat += [part["file"], *part["chapters"]]
     grouped += spec["back"]
-    flat += spec["back"]
+    flat += [*spec["back"], *spec.get("epub_end", [])]
     return {
         "html": {"project": {"output-dir": "_book/html"},
                  "book": {"chapters": grouped, "appendices": spec["appendices"]}},
@@ -59,7 +60,7 @@ def main() -> int:
     if stale:
         print("stale (run scripts/sync_chapters.py):", ", ".join(stale), file=sys.stderr)
         return 1
-    missing = [f for f in [*spec["front"], *spec["back"], *spec["appendices"],
+    missing = [f for f in [*spec["front"], *spec["back"], *spec.get("epub_end", []), *spec["appendices"],
                            *(p["file"] for p in spec["parts"]),
                            *(c for p in spec["parts"] for c in p["chapters"])]
                if not (target / f).exists()]

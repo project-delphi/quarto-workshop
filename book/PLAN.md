@@ -139,7 +139,7 @@ Part page: the question, the unit of analysis (municipality × zone × year) and
 | | Title | Sources |
 |---|---|---|
 | A | **Windows: Get Ubuntu Ready** (nine steps, "you should see" after each, the stuck table; WSL ↔ Windows) | `windows-setup.qmd`, `#wsl-windows`, `assets/windows-steps/*.svg`, `assets/windows-session.gif` |
-| B | **Terminal Keys and Habits** | `#terminal-keys`, `#terminal-basics` |
+| B | **Keys, Symbols and Terminal Habits** (keyboard basics and the symbols code uses, for readers new to both) | `#terminal-keys`, `#terminal-basics` |
 | C | **Cheatsheet** | `CHEATSHEET.md` |
 | D | **Troubleshooting** | `TROUBLESHOOTING.md` |
 | E | **Checkpoints at a Glance, and Answers** (every checkpoint: contents, catch-up line, rejoin point; model answers to the two rebuild tasks) | checkpoint READMEs, notes of `#london-change` and `#water-change` |
