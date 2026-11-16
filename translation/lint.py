@@ -33,6 +33,7 @@ RULES = [
     (r"la commit|una commit", "el commit"),
     (r"checkpoints?|puntos? de chequeo", "punto de control"),
     (r"agentes? de código", "agente de programación"),
+    (r"asistentes?( de programación)?", "agente (de programación)"),
     (r"arn[eé]s", "harness"),
     (r"sub-agentes?", "subagente"),
     (r"prestar|rendir", "renderizar"),

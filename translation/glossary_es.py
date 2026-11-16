@@ -23,7 +23,7 @@ E = [
 ("clúster", "Un grupo de zonas-año que se parecen entre sí en las variables elegidas, encontrado por k-means. Ver @sec-water-the-question."),
 ("celda de código", "Un bloque de código delimitado cuyo lenguaje está entre llaves, como `{python}`; se ejecuta cuando se renderiza el documento. Ver @sec-what-quarto y @sec-qmd-basics."),
 ("bloque de código delimitado", "Tres comillas invertidas que abren y cierran un bloque de código; la palabra que las sigue nombra el lenguaje, y el texto de adentro se muestra exactamente como se escribió. Ver @sec-md-code-fence."),
-("agente de programación", "Un programa que escribe archivos y ejecuta comandos cuando se lo pides, y actúa en un ciclo hasta terminar el paso, donde un chat web solo responde. Ver @fig-loop y @sec-model-harness."),
+("agente de programación", "Un programa que escribe archivos y ejecuta comandos cuando se lo pides, y actúa en la carpeta de tu proyecto en un ciclo hasta terminar el paso, donde un chat web te entrega texto para copiar. Ver @fig-loop y @sec-model-harness."),
 ("programa de línea de comandos", "Un programa que ejecutas escribiendo un comando en una terminal. Ver @sec-what-quarto."),
 ("commit", "Un estado registrado de los archivos del proyecto, con un mensaje que dice por qué cambió. Ver @sec-git."),
 ("CommonMark", "Una especificación precisa de Markdown, que GFM amplía. Ver @sec-md-basics."),
