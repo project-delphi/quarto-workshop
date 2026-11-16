@@ -1,6 +1,6 @@
-"""Draw assets/chat-prompt.gif: a free web chat writes a prompt for a coding assistant.
+"""Draw assets/chat-prompt.gif: a free web chat writes a prompt for a coding agent.
 
-A picture only: nothing here calls a chat service or an assistant. The reply is an
+A picture only: nothing here calls a chat service or an agent. The reply is an
 illustration of what such a chat can return; real replies vary. Needs Pillow and
 macOS's Menlo font:
 
@@ -30,10 +30,10 @@ TERM_BG, TERM_BAR, TERM_TEXT, TERM_MUTED = (22, 24, 30), (42, 47, 55), (235, 235
 GREEN, AMBER = (138, 226, 52), (255, 190, 90)
 NOTEBG, NOTEFG = (255, 255, 255), (20, 30, 50)
 
-ASK = ("I am new to coding assistants. I use Quarto and Markdown. I want a one-page "
-       "London visitor guide. Write me a prompt for my coding assistant: 1 to 4 lines, "
+ASK = ("I am new to coding agents. I use Quarto and Markdown. I want a one-page "
+       "London visitor guide. Write me a prompt for my coding agent: 1 to 4 lines, "
        "one task, concrete file names, and ask it to check its work.")
-INTRO = "Here is a prompt to paste into your coding assistant:"
+INTRO = "Here is a prompt to paste into your coding agent:"
 PROMPT = ('Use Quarto and Markdown. Create london.md with the title "Visit London", a '
           'level-1 heading and a two-sentence welcome. Add a heading "Top sights" with '
           "three bullets, each naming a place and why to visit. Run `quarto render "
@@ -101,11 +101,11 @@ def web(note, typed="", reply=0, copied=False):
 
 
 def term(note, typed=None, out=0):
-    """The coding assistant. typed: characters of PROMPT after the ❯; out: lines of REPLY_OUT shown."""
+    """The coding agent. typed: characters of PROMPT after the ❯; out: lines of REPLY_OUT shown."""
     im = Image.new("RGB", (W, H), TERM_BG)
     d = ImageDraw.Draw(im)
     d.rectangle([0, 0, W, BAR], fill=TERM_BAR)
-    d.text((PAD, 8), "Your coding assistant · in the terminal", font=SMALL, fill=TERM_MUTED)
+    d.text((PAD, 8), "Your coding agent · in the terminal", font=SMALL, fill=TERM_MUTED)
     y = BAR + 18
     shown = PROMPT if typed is None else PROMPT[:typed]
     lines = textwrap.wrap(shown, 66) or [""]
@@ -131,7 +131,7 @@ add(web(n2, "SENT", 1), 1100)
 add(web(n2, "SENT", 2), 2600)
 n3 = "3. Press Copy. Read the prompt first: is it what you want?"
 add(web(n3, "SENT", 2, copied=True), 1800)
-n4 = "4. Paste it into your coding assistant (not into the web chat)."
+n4 = "4. Paste it into your coding agent (not into the web chat)."
 add(term(n4, 0), 900)
 for i in range(0, len(PROMPT) + 1, 6):
     add(term(n4, i), 60)

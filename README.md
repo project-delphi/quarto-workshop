@@ -6,7 +6,7 @@
 workshop as a book. Download the EPUB, or read it online with the live 3-D scenes.
 
 AI-assisted reproducible publishing with Quarto. In a hands-on
-6-hour day (including two 15-minute breaks and a 30-minute meal), participants direct a coding assistant (Claude Code, Codex or Antigravity)
+6-hour day (including two 15-minute breaks and a 30-minute meal), participants direct a coding agent (Claude Code, Codex or Antigravity)
 that writes the computations, check its work, and turn plain-text Markdown into **docx, pdf,
 pptx, revealjs slides, a website, a blog and a dashboard** (and, optionally, epub and academic white papers). Each part ends with a task that has no supplied prompt: change an input, rebuild, and explain which outputs update. The slides are the course resource: everything needed to follow along alone is
 on them.
@@ -30,11 +30,11 @@ Quick links: 📖 Book ([free e-book](https://project-delphi.github.io/quarto-wo
 1. **Install tools**: Install [Quarto](https://quarto.org/docs/get-started/) (≥ 1.10 for the white-paper examples; 1.10.20 validated),
    [uv](https://docs.astral.sh/uv/getting-started/installation/) (it brings Python automatically), Git,
    an editor, the [GitHub CLI](https://cli.github.com/) (run `gh auth login`), and one
-   coding assistant ([Claude Code](https://code.claude.com/docs/en/setup),
+   coding agent ([Claude Code](https://code.claude.com/docs/en/setup),
    [Codex](https://github.com/openai/codex) or Google's
    [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli), `agy`).
-   *Windows users:* follow the [Windows setup page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) first: it installs Ubuntu (WSL) step by step, and everything afterwards happens inside Ubuntu. Mac users run `xcode-select --install` first, so the Command Line Tools pop-up does not interrupt the assistant later; Ubuntu and Debian users run `sudo apt update && sudo apt install -y curl git`.
-   Install one coding assistant first, then ask it (the deck has the prompt) to install the other tools.
+   *Windows users:* follow the [Windows setup page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) first: it installs Ubuntu (WSL) step by step, and everything afterwards happens inside Ubuntu. Mac users run `xcode-select --install` first, so the Command Line Tools pop-up does not interrupt the agent later; Ubuntu and Debian users run `sudo apt update && sudo apt install -y curl git`.
+   Install one coding agent first, then ask it (the deck has the prompt) to install the other tools.
 
 2. **Clone the repository**: Clone this repository beside your project workspace folders to get the data and checkpoints:
    ```bash
@@ -50,23 +50,23 @@ Quick links: 📖 Book ([free e-book](https://project-delphi.github.io/quarto-wo
    git config --global user.name "Your Name"
    git config --global user.email "you@example.com"
    ```
-   Jupyter "not available" from `quarto check` is fine: uv handles Python per project. With another assistant, run `codex --version` or `agy --version` instead. Skip the `git config` lines if they are already set.
+   Jupyter "not available" from `quarto check` is fine: uv handles Python per project. With another agent, run `codex --version` or `agy --version` instead. Skip the `git config` lines if they are already set.
 
 4. **Do the 🧪 test run** ([slide](https://project-delphi.github.io/quarto-workshop/#/test-run)):
-   In a terminal, create a test directory and launch your coding assistant:
+   In a terminal, create a test directory and launch your coding agent:
    ```bash
    mkdir -p ~/quarto-test && cd ~/quarto-test
    claude
    ```
    Or `codex` / `agy` instead of `claude`.
-   Paste this prompt into your assistant:
+   Paste this prompt into your agent:
    ```default
    Run `uv init --bare` and `uv add ipykernel nbclient nbformat pyyaml`. Create hello.qmd (html and typst formats): a Python cell computing `6 * 7` and an inline-code sentence showing it. Render it with `uv run quarto render hello.qmd`; check hello.html and hello.pdf both say 42.
    ```
    Once `hello.html` and `hello.pdf` both output 42, tell the organizer it succeeded!
 
 5. **Read the 📖 Read Before the Day slides** ([slide](https://project-delphi.github.io/quarto-workshop/#/read-before)):
-   how the assistant works, what models cost, using AI in research, and
+   how the agent works, what models cost, using AI in research, and
    [Markdown in Y minutes](https://learnxinyminutes.com/markdown/) (5 min).
 
 PDFs use Quarto's bundled Typst engine, so no LaTeX install is needed. Each project creates its own
@@ -81,13 +81,13 @@ Hands-on slides use three coloured boxes:
 
 | Box | Meaning |
 |---|---|
-| 🤖 **Ask your coding assistant** (violet) | The exact prompt to paste |
-| 👀 **Expect it to run** (amber) | Commands the assistant will probably run for you |
-| ⌨️ **You type** (green) | The few things only you can do: start the assistant, sign in, approve its commands, run `quarto preview`, open results |
+| 🤖 **Ask your coding agent** (violet) | The exact prompt to paste |
+| 👀 **Expect it to run** (amber) | Commands the agent will probably run for you |
+| ⌨️ **You type** (green) | The few things only you can do: start the agent, sign in, approve its commands, run `quarto preview`, open results |
 
 Every exercise shows a ⏱️ time box and a ✅ "you're done when…" check. 🏠 slides are
 pre-work and ⭐ slides are optional and self-paced. Stuck for two minutes? Copy the
-exercise's 😰 **Catch me up** prompt into your assistant, for example:
+exercise's 😰 **Catch me up** prompt into your agent, for example:
 
 ```text
 Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
@@ -108,7 +108,7 @@ block's finished `scripts/analysis.py` from its checkpoint and spends the time o
 the ⭐ challenge route writes the analysis with the ⭐ prompts. Both write the same
 `outputs/`, so everyone builds the same report, slides and blog (and, optionally, dashboard).
 
-Prompts are examples, not transcripts: assistants vary, so check the rendered result and read
+Prompts are examples, not transcripts: agents vary, so check the rendered result and read
 the diff.
 
 ### Agenda

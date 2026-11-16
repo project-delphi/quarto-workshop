@@ -1,7 +1,7 @@
 """media/gifs/quarto-preview-reload.gif: a real `quarto preview` reloading on each save (Ch. 4).
 
 Starts `quarto preview london.md` in a scratch folder, shows the file's source beside the live
-page, saves three edits one after another (the edits the assistant makes in Chapter 4), and
+page, saves three edits one after another (the edits the agent makes in Chapter 4), and
 captures the page as the preview re-renders it. Plain Markdown needs no Python. The result
 starts on its final frame (media/build.py poster_first), so the first frame is a usable still.
 Run from book/: uv run --with playwright python media/capture/preview_reload.py
@@ -51,7 +51,7 @@ iframe {{ border: 0; width: 100%; height: 100%; background: #fff; }}
 .note {{ position: absolute; left: 0; bottom: 0; width: 330px; box-sizing: border-box; padding: 8px 12px;
   font-size: 13px; color: #13202e; background: #79d4b2; }}
 </style></head><body>
-<div class="src"><div class="bar"><b>london.md</b> · saved by the assistant</div><pre id="src"></pre></div>
+<div class="src"><div class="bar"><b>london.md</b> · saved by the agent</div><pre id="src"></pre></div>
 <div class="page"><div class="bar">localhost · quarto preview</div><iframe id="view" src="{url}"></iframe></div>
 <div class="note" id="note">quarto preview london.md</div>
 </body></html>"""

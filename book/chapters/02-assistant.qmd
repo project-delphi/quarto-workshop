@@ -1,4 +1,4 @@
-# Working With a Coding Assistant {#sec-assistant}
+# Working With a Coding Agent {#sec-assistant}
 
 ```{python}
 #| label: ch2-setup
@@ -35,7 +35,7 @@ a pelican on a bicycle. The dearest cost `{python} f"{dearest:.2f}"` cents, abou
 `{python} f"{cheapest_ok:.2f}"` cents (@fig-pelicans).
 
 Choosing between those drawings is the first of many judgements this chapter teaches. A
-*coding assistant* is a program that writes and edits files and runs commands at your
+*coding agent* is a program that writes and edits files and runs commands at your
 request: you write the *Prompt*, it does the typing, and you *Check* whether the result is
 right. It can produce in a minute what would take an hour by hand, and it can produce
 plausible, confident, wrong work just as quickly. How do you get the first kind of work
@@ -43,13 +43,13 @@ without being fooled by the second?
 
 ::: opener
 - Explain how a model and a harness divide the work, and which half to change when an
-  assistant disappoints.
+  agent disappoints.
 - Choose a model and effort level for a task, and keep a session's cost down with `/model`,
   `/clear` and `/exit`.
-- Decide where to start an assistant, which of its commands to approve and which rules belong
+- Decide where to start an agent, which of its commands to approve and which rules belong
   in `AGENTS.md`.
 - Write a prompt that names its files, asks for one step and ends in a check, and disclose an
-  assistant's use in research.
+  agent's use in research.
 :::
 
 ::: tryit
@@ -66,7 +66,7 @@ never does that (@sec-not-ai).
 
 ## Model plus harness {#sec-model-harness}
 
-A coding assistant is two programs working together (@fig-agent-loop).
+A coding agent is two programs working together (@fig-agent-loop).
 
 The **model** is a large language model, such as Anthropic's Claude, OpenAI's GPT or
 Google's Gemini. It runs on the vendor's servers. It reads text and writes text, and it can
@@ -76,14 +76,16 @@ The **harness** is the program on your computer that surrounds the model. Claude
 Codex and Antigravity are harnesses. The harness gives the model its tools (reading and
 writing files, running commands, searching), carries out the model's tool requests, asks you
 before it does anything consequential, and sends the results back to the model. That loop
-repeats until the model replies with an answer instead of another request.
+repeats until the model replies with an answer instead of another request. That loop, run on
+your own files and commands, is what makes it an *agent*: it acts in your project folder, one
+tool request after another, until the step is done, where a web chat hands you text to copy.
 
-![How a coding assistant works. The harness on your computer passes the conversation and the results of each tool to the model, which replies with text or a request to use a tool; the harness acts in the project folder and asks you before it runs commands.](../media/diagrams/agent-loop){#fig-agent-loop .on-light fig-alt="You give the harness a prompt, and it shows you results and asks you to approve commands. The harness (Claude Code, Codex or Antigravity) sends the conversation and tool results to the model (Claude, GPT or Gemini), which runs on the vendor's servers and replies with text or a request to use a tool. The harness carries out tool requests in the project folder, its root: it reads AGENTS.md first, then reads and edits files and runs commands there. The model decides, the harness does, and you direct and check."}
+![How a coding agent works. The harness on your computer passes the conversation and the results of each tool to the model, which replies with text or a request to use a tool; the harness acts in the project folder and asks you before it runs commands.](../media/diagrams/agent-loop){#fig-agent-loop .on-light fig-alt="You give the harness a prompt, and it shows you results and asks you to approve commands. The harness (Claude Code, Codex or Antigravity) sends the conversation and tool results to the model (Claude, GPT or Gemini), which runs on the vendor's servers and replies with text or a request to use a tool. The harness carries out tool requests in the project folder, its root: it reads AGENTS.md first, then reads and edits files and runs commands there. The model decides, the harness does, and you direct and check."}
 
 A short way to remember the split: **the model decides, the harness does, you direct and
 check.** It has a practical consequence. Many harnesses can run several models, so the same
 harness behaves differently with a different model, and the same model behaves differently
-inside a different harness. When an assistant disappoints you, the cause can be either half,
+inside a different harness. When an agent disappoints you, the cause can be either half,
 and the fix is different: a stronger model for reasoning that falls short, better rules or
 permissions for a harness that does the wrong thing.
 
@@ -94,26 +96,26 @@ basis of every safety habit in this chapter: you approve commands you have read,
 review files after they change.
 :::
 
-## Choosing an assistant and a model {#sec-choose}
+## Choosing an agent and a model {#sec-choose}
 
-This book covers three assistants. Each comes from the same company as its default models:
+This book covers three agents. Each comes from the same company as its default models:
 
-| Assistant | You type | Made by | Default models |
+| Agent | You type | Made by | Default models |
 |---|---|---|---|
 | Claude Code | `claude` | Anthropic | Claude |
 | Codex | `codex` | OpenAI | GPT |
 | Antigravity | `agy` | Google | Gemini |
 
-: The assistants this book covers. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked 2026-11-12). {#tbl-assistants}
+: The agents this book covers. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked 2026-11-12). {#tbl-assistants}
 
 What "covers" means differs between them. For all three, the install command, the account it
 needs and how it reads project rules were checked against the vendor's documentation (dated in
 @sec-setup and @sec-agents-md). The first screens of Claude Code and Codex were captured for
-the workshop on 2026-11-07; Antigravity's were not. Other assistants exist; this book does not
+the workshop on 2026-11-07; Antigravity's were not. Other agents exist; this book does not
 check them, so it does not list them. Every prompt in the book is written to work in any of
 the three. A vendor's own pairing of harness and
 model is the easiest to set up, but it is not automatically the best fit for a task: the
-assistant and the model are separate choices.
+harness and the model are separate choices.
 
 ### Pick a model by task, not by rank
 
@@ -159,7 +161,7 @@ plan with.
 Haiku's price is for prompts up to 100,000 tokens; longer ones cost five times as much. The
 pelican runs below used Fable 5.2's predecessor, Fable 5.1, listed at 10 / 50.
 Subscriptions count usage differently from API prices, and which models you can choose
-depends on your plan and the assistant's version. Sources: Anthropic's models overview and
+depends on your plan and the agent's version. Sources: Anthropic's models overview and
 pricing pages and OpenAI's models pages (checked 2026-11-12).
 
 The cost of a fixed level of capability has been falling fast. Measuring the cheapest model
@@ -225,7 +227,7 @@ cost of a session:
 
 The habits that follow are simple: a mid-sized model at moderate effort, one task per
 conversation, and a fresh conversation as soon as a task is done. Three commands, typed into
-the assistant itself rather than run in the terminal (@sec-two-places), cover them:
+the agent itself rather than run in the terminal (@sec-two-places), cover them:
 
 | Command | Claude Code | Codex | Use it when |
 |---|---|---|---|
@@ -233,7 +235,7 @@ the assistant itself rather than run in the terminal (@sec-two-places), cover th
 | `/clear` | starts a new conversation with empty context; the old one can be resumed | clears the terminal and starts a fresh chat | a task is finished and an unrelated one starts |
 | `/exit` | exits; `/quit` is the same | exits; `/quit` is the same | you are done, or need to move to another folder |
 
-: Three commands that control cost and context (Claude Code commands reference and Codex CLI reference, checked 2026-11-12). Type `/` alone to list your assistant's commands. {#tbl-slash}
+: Three commands that control cost and context (Claude Code commands reference and Codex CLI reference, checked 2026-11-12). Type `/` alone to list your agent's commands. {#tbl-slash}
 
 `/clear` matters for quality as well as cost. Old instructions and files read earlier keep
 steering the model while they remain in the conversation; a fresh conversation drops them.
@@ -247,9 +249,9 @@ tokens on every turn and can mislead the model. Your files stay as they are, and
 project's rules file is read again.
 :::
 
-## The root folder is the assistant's world {#sec-root-folder}
+## The root folder is the agent's world {#sec-root-folder}
 
-An assistant treats the folder you start it in as its *root*: it reads and edits files there
+An agent treats the folder you start it in as its *root*: it reads and edits files there
 and in the folders below, and runs commands from there. The first time you start one in a
 new folder, it asks whether you trust it. Claude Code's prompt, captured on 2026-11-07,
 warns that "Claude Code'll be able to read, edit, and execute files here"; Codex asks the same
@@ -257,7 +259,7 @@ question in a folder that is a Git repository, and says it can read, edit and ru
 "subject to your permission settings".
 
 That question deserves a real answer. Trust only a folder you created for the work. Never
-start an assistant in your home folder, in Documents, or anywhere that holds other people's
+start an agent in your home folder, in Documents, or anywhere that holds other people's
 projects, private documents or keys (such as `~/.ssh`). Project instructions in a trusted
 folder are read and followed too, which is another reason to trust only your own folders.
 
@@ -267,23 +269,23 @@ folder that you can restore. It is not a guaranteed boundary, though: a command 
 name a path outside the folder, so read each command before you approve it.
 
 ::: pitfall
-Two assistants writing the same files, or rendering in one folder at once, will collide;
+Two agents writing the same files, or rendering in one folder at once, will collide;
 @sec-sub-agents shows the safe split. To work on another project, leave with `/exit`, change
-folder, and start the assistant again there.
+folder, and start the agent again there.
 :::
 
 ## Rules that persist: `AGENTS.md` {#sec-agents-md}
 
-Everything you tell an assistant in conversation is forgotten when the conversation ends.
+Everything you tell an agent in conversation is forgotten when the conversation ends.
 Rules that must hold in every session go in a file: `AGENTS.md`, a plain Markdown file at the
-top of the project folder that the assistant reads at the start of each session. A good one
+top of the project folder that the agent reads at the start of each session. A good one
 has three parts:
 
 - **Scope:** what the project is, and what it is not.
 - **Rules:** what must always hold ("every number comes from a cited file in `data/`").
 - **Commands:** how to build and check the project.
 
-All three assistants in this book read it (checked 2026-10-30). Codex reads `AGENTS.md` files
+All three agents in this book read it (checked 2026-10-30). Codex reads `AGENTS.md` files
 before doing any work. Antigravity reads `AGENTS.md` or `GEMINI.md` in the project's folders.
 Claude Code reads `AGENTS.md` when there is no `CLAUDE.md` in the working folder or above
 it, from version 2.1.277; a `CLAUDE.md` containing the line `@AGENTS.md` imports it, so one
@@ -291,13 +293,13 @@ file can serve all three (Claude Code memory documentation, checked 2026-11-12).
 repository behind this book works exactly that way: its `CLAUDE.md` imports its `AGENTS.md`.
 
 ::: pitfall
-`AGENTS.md` is context, not enforcement. The assistant reads the rules and usually follows
+`AGENTS.md` is context, not enforcement. The agent reads the rules and usually follows
 them, but it can still slip. Write rules that are concrete enough to check ("call ALVA counts
 'ALVA member attractions'"), and check them.
 :::
 
 ::: think
-Yesterday you told the assistant, in conversation, to say "ALVA member attractions". Today it
+Yesterday you told the agent, in conversation, to say "ALVA member attractions". Today it
 writes "top attractions". Why, and what is the lasting fix?
 
 The instruction ended with yesterday's conversation: the model keeps no memory between
@@ -310,7 +312,7 @@ analysis's in @sec-water-question.
 
 ## How to ask for work {#sec-prompting}
 
-A *prompt* is the request you type into the assistant. Four habits make prompts reliable:
+A *prompt* is the request you type into the agent. Four habits make prompts reliable:
 
 **Be specific.** Name the files, the columns, the chart type and the output. "Make a chart"
 invites guessing; "add a horizontal bar chart of `visits_2025` by `attraction` from
@@ -319,15 +321,15 @@ invites guessing; "add a horizontal bar chart of `visits_2025` by `attraction` f
 **One step at a time.** One task per prompt keeps each change small enough to review, and
 tells you which step broke when one does.
 
-**Ask it to run and check.** End with a check the assistant can perform: "render it and tell
-me which file it wrote", "check that the PDF is one page". An assistant that verifies its own
+**Ask it to run and check.** End with a check the agent can perform: "render it and tell
+me which file it wrote", "check that the PDF is one page". An agent that verifies its own
 work catches many of its own mistakes.
 
 **Check what changed.** You are responsible for the result. Read the changed files (most
-assistants can show you a *diff*, the lines added and removed) before moving on.
+agents can show you a *diff*, the lines added and removed) before moving on.
 
 The prompts in this book were designed with AI assistance and refined to reduce errors, but
-they are not magic, and assistants vary. When a prompt mentions something you do not
+they are not magic, and agents vary. When a prompt mentions something you do not
 understand (a YAML key, a Markdown construct, a Python call), ask before you paste:
 
 ::: {.prompt}
@@ -343,18 +345,18 @@ Asking for the documentation page matters: it turns the answer into something yo
 If you know what you want but not how to ask for it, a free web chat (Claude, ChatGPT or
 Gemini in the browser) can turn a rough idea into a prompt. Describe the goal in plain words,
 name your tools, and ask for a prompt of one to four lines, with one task, concrete file names
-and a check (@fig-chat-prompt). The chat cannot see your files, so it guesses; the assistant
+and a check (@fig-chat-prompt). The chat cannot see your files, so it guesses; the agent
 can see them, so it checks. Read the drafted prompt before you paste it, and fix any file name
 that does not match your folder.
 
-![A web chat drafts a prompt, you read it, and the coding assistant runs it. An illustration drawn for the workshop, not a recording: real replies vary.](../media/gifs/chat-prompt.gif){#fig-chat-prompt .anim fig-alt="An animated example in five steps. A free web chat gets a request typed in plain words: a one-page London visitor guide, and a prompt for a coding assistant, naming the tools Quarto and Markdown, of one to four lines with one task, concrete file names and a check. The chat replies with a prompt: use Quarto and Markdown, create london.md with the title Visit London, a level-1 heading and a two-sentence welcome, add a heading Top sights with three bullets each naming a place and why to visit, run quarto render london.md, then list the headings in london.html and any errors. The prompt is copied and pasted into a coding assistant in the terminal, which writes london.md, renders it, lists the headings and reports no errors."}
+![A web chat drafts a prompt, you read it, and the coding agent runs it. An illustration drawn for the workshop, not a recording: real replies vary.](../media/gifs/chat-prompt.gif){#fig-chat-prompt .anim fig-alt="An animated example in five steps. A free web chat gets a request typed in plain words: a one-page London visitor guide, and a prompt for a coding agent, naming the tools Quarto and Markdown, of one to four lines with one task, concrete file names and a check. The chat replies with a prompt: use Quarto and Markdown, create london.md with the title Visit London, a level-1 heading and a two-sentence welcome, add a heading Top sights with three bullets each naming a place and why to visit, run quarto render london.md, then list the headings in london.html and any errors. The prompt is copied and pasted into a coding agent in the terminal, which writes london.md, renders it, lists the headings and reports no errors."}
 
 ::: pitfall
-Paste only what you would be happy to publish. Web chats and assistants send your text to
+Paste only what you would be happy to publish. Web chats and agents send your text to
 the vendor: no passwords, keys, unpublished data or personal information.
 :::
 
-## How to read the assistant boxes {#sec-boxes}
+## How to read the agent boxes {#sec-boxes}
 
 Every hands-on step in this book uses the same three-part box. Here is a simpler version of
 the first one you will meet in Part II:
@@ -373,35 +375,35 @@ writes `london.md` · may run `quarto render london.md`
 approve its commands · open `london.html` in your browser
 :::
 
-**Ask your coding assistant** holds the exact prompt to paste into the assistant (in the HTML
-edition, with a copy button). **Expect it to run** lists what the assistant will probably do,
+**Ask your coding agent** holds the exact prompt to paste into the agent (in the HTML
+edition, with a copy button). **Expect it to run** lists what the agent will probably do,
 so you recognise it when it asks for approval; you do not type these yourself. **You do** lists
-the few things only you can do: start the assistant, sign in to accounts, approve commands, run
-a live preview, open results. The assistant occupies the terminal tab it runs in, so commands
+the few things only you can do: start the agent, sign in to accounts, approve commands, run
+a live preview, open results. The agent occupies the terminal tab it runs in, so commands
 in a **You do** box go in a second terminal tab opened in the same folder (@sec-two-places).
 
 Together the boxes are one turn of the loop in the book's title. **Ask your coding
-assistant** is the *Prompt*. **Expect it to run** and **You do** are where you *Check*,
+agent** is the *Prompt*. **Expect it to run** and **You do** are where you *Check*,
 recognising each command before you approve it and opening the result yourself. The render
 is the *Publish*. Each exercise closes the loop with **You're done when**: the check, stated
 so that you can see whether it passed.
 
 ::: pitfall
 Approving a command without reading it. Most commands in this book run a tool the prompt named
-(`quarto`, `uv`, `git`, `gh`) on files in the project folder. Stop and ask the assistant what a
+(`quarto`, `uv`, `git`, `gh`) on files in the project folder. Stop and ask the agent what a
 command does before you approve one that deletes files (`rm`), runs as the administrator
 (`sudo`), or touches a folder outside the project that the prompt did not name.
 :::
 
-The prompts are examples, not transcripts. Assistants vary from version to version and run to
+The prompts are examples, not transcripts. Agents vary from version to version and run to
 run, so the files they write will differ in detail from the ones shown. What should not vary
 is the result you check. @fig-agent-session shows what a session looks like.
 
-![What running the first prompt looks like: the assistant writes the file, asks before running a command, renders and reports. An illustration (a scripted replay of a typical session), not a recording: your assistant's screens will look different.](../media/gifs/agent-session.gif){#fig-agent-session .anim fig-alt="A terminal replay of a coding-assistant session, labelled as an illustration. The prompt asks for london.md with a level-1 heading Visit London and one welcome paragraph. The assistant says it will create the file and shows the lines it writes: the heading and a welcome sentence about free museums, royal history and riverside walks. It says it will render the file to check it, shows the command quarto render london.md, and asks Allow this command, with Yes selected. The output reads Output created: london.html, and the assistant reports that london.md has the heading and one welcome paragraph and that the render had no errors."}
+![What running the first prompt looks like: the agent writes the file, asks before running a command, renders and reports. An illustration (a scripted replay of a typical session), not a recording: your agent's screens will look different.](../media/gifs/agent-session.gif){#fig-agent-session .anim fig-alt="A terminal replay of a coding-agent session, labelled as an illustration. The prompt asks for london.md with a level-1 heading Visit London and one welcome paragraph. The agent says it will create the file and shows the lines it writes: the heading and a welcome sentence about free museums, royal history and riverside walks. It says it will render the file to check it, shows the command quarto render london.md, and asks Allow this command, with Yes selected. The output reads Output created: london.html, and the agent reports that london.md has the heading and one welcome paragraph and that the render had no errors."}
 
 ## Using AI in research: say it, own it {#sec-ai-policy}
 
-If your work is research, using an assistant raises obligations beyond getting the code
+If your work is research, using an agent raises obligations beyond getting the code
 right. Journals and funders differ in detail, so read your venue's own policy, but the
 International Committee of Medical Journal Editors (ICMJE), whose recommendations many
 journals follow, states a common core (checked 2026-11-12):
@@ -437,21 +439,21 @@ exception for it, so when in doubt, disclose.
 ## Summary {.unnumbered}
 
 ::: keyideas
-- The model decides, the harness does, and you direct and check; when an assistant
+- The model decides, the harness does, and you direct and check; when an agent
   disappoints, either half can be the cause.
 - Choose a model by the task, not by rank: as the pelicans showed, a cheaper model at medium
   effort is often enough for a small, well-specified step.
 - Cost grows with model size, effort and conversation length, because the whole conversation
   is sent again each turn, so start a fresh conversation for each unrelated task.
-- Start an assistant only in a folder you created for the work, and read each command before
+- Start an agent only in a folder you created for the work, and read each command before
   you approve it.
 - Rules that must last go in `AGENTS.md`, which is context, not enforcement, so write them
   concretely enough to check.
-- Good prompts are specific, ask for one step and end in a check; in research the assistant is
+- Good prompts are specific, ask for one step and end in a check; in research the agent is
   never an author, and its use is disclosed.
 :::
 
-All of this assumes a computer on which an assistant, Quarto and Python are installed and
+All of this assumes a computer on which an agent, Quarto and Python are installed and
 working together. Is yours? @sec-setup gets it there in six checked steps.
 
 ## Further reading {.unnumbered}

@@ -122,7 +122,7 @@ sentences (stop-word density per sentence) and reports them.
 rather than `/ebook/es/` and `/es/`.
 
 **D2. Title.** Translate it: *Pide, revisa, publica*, subtitle *Publicación reproducible de datos
-con Quarto y asistentes de programación con IA*, with a Spanish cover from `media/cover.svg`.
+con Quarto y agentes de programación con IA*, with a Spanish cover from `media/cover.svg`.
 The alternative keeps *Prompt, Check, Publish* as a brand with a Spanish subtitle.
 
 **D3. Code that writes words.** "Code byte-for-byte identical" conflicts with the cells that put
@@ -134,7 +134,7 @@ everything else in a cell stays identical; `compare.py` enforces that and lists 
 literal in `translation/code-strings.md` for your review. Comments in code stay English, as
 you asked.
 
-**D4. Prompts in the assistant boxes** (50 `default` fences). Recommendation: translate them,
+**D4. Prompts in the agent boxes** (50 `default` fences). Recommendation: translate them,
 keeping every literal (file, column, option, quoted heading) exactly as in English. The book's
 own Appendix F tells readers they can prompt in Spanish with literals in backticks, and a
 Spanish reader should not have to type English. They have only been tested in English; the

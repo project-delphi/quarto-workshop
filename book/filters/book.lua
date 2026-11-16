@@ -1,10 +1,10 @@
 -- Book conventions (book/PLAN.md §5.2–5.3), for both editions.
 --
--- 1. Assistant boxes. Consecutive ::: {.prompt}, ::: {.agent} and ::: {.you} divs are
+-- 1. Agent boxes. Consecutive ::: {.prompt}, ::: {.agent} and ::: {.you} divs are
 --    wrapped in one ::: {.agent-box} (an explicit .agent-box is kept), and each part gets
 --    its label as real text, so the EPUB needs neither CSS content nor JavaScript:
---      .prompt  "Ask your coding assistant"  (the exact prompt, in a `default` fence)
---      .agent   "Expect it to run"           (what the assistant will probably run)
+--      .prompt  "Ask your coding agent"  (the exact prompt, in a `default` fence)
+--      .agent   "Expect it to run"           (what the agent will probably run)
 --      .you     "You do"                     (the few steps only the reader can take)
 -- 2. Asides. ::: why, ::: pitfall, ::: practice and ::: tryit become Quarto callouts
 --    with fixed titles; the class stays for styling.
@@ -26,19 +26,19 @@
 --    Spanish edition's (book-es/, translation/glossary.md) when `lang` starts "es".
 local LABELS = {
   en = {
-    prompt = "Ask your coding assistant", agent = "Expect it to run", you = "You do",
+    prompt = "Ask your coding agent", agent = "Expect it to run", you = "You do",
     why = "Why this works", pitfall = "Common pitfall", practice = "In practice", tryit = "Try it",
     opener = "In this chapter", think = "Pause and think", answer = "Answer",
     done = "You’re done when", stuck = "Stuck for two minutes?",
-    catchup = "Paste this into your assistant. It backs up your work and brings the project to "
+    catchup = "Paste this into your agent. It backs up your work and brings the project to "
       .. "this point; then carry on from here.",
   },
   es = {
-    prompt = "Pídele a tu asistente", agent = "Probablemente ejecute", you = "Tú haces",
+    prompt = "Pídele a tu agente", agent = "Probablemente ejecute", you = "Tú haces",
     why = "Por qué funciona", pitfall = "Error frecuente", practice = "En la práctica", tryit = "Pruébalo",
     opener = "En este capítulo", think = "Detente y piensa", answer = "Respuesta",
     done = "Terminaste cuando", stuck = "¿Dos minutos sin avanzar?",
-    catchup = "Pega esto en tu asistente. Respalda tu trabajo y lleva el proyecto hasta "
+    catchup = "Pega esto en tu agente. Respalda tu trabajo y lleva el proyecto hasta "
       .. "este punto; luego sigue leyendo desde aquí.",
   },
 }

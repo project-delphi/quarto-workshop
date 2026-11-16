@@ -2,17 +2,17 @@
 
 State at the end of the `.md` → `.qmd` block, so it already includes every step of that block: `london.qmd` with YAML front matter, a Python cell with inline code, a captioned figure and six formats (html, docx and typst PDF, plus the ⭐ optional pptx, epub and revealjs slides in `london-slides.html`), plus the `data/` and `images/` it reads.
 
-`AGENTS.md` holds the project's rules for the coding assistant, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
+`AGENTS.md` holds the project's rules for the coding agent, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
 
 ## Catch up
 
-Ask your coding assistant, started in `london-guide/`:
+Ask your coding agent, started in `london-guide/`:
 
 ```text
 Catch me up: follow ../quarto-workshop/checkpoints/02-london-qmd/README.md
 ```
 
-The steps, run inside `london-guide/` (by the assistant, or by you in a terminal):
+The steps, run inside `london-guide/` (by the agent, or by you in a terminal):
 
 1. Keep your work, all but the `.venv/` environment (`uv run` rebuilds it from `uv.lock`): `b="../london-guide-backup-02-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclude=.venv . | tar -xf - -C "$b"` (a new time-stamped copy beside `london-guide/`, so earlier backups are kept).
 2. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/02-london-qmd/. .`

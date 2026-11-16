@@ -2,17 +2,17 @@
 
 The ⭐ optional ePub step: checkpoint 11 plus `epub` in `report.qmd` (`lang: en`, an ePub download link on the HTML page).
 
-`AGENTS.md` holds the project's rules for the coding assistant, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
+`AGENTS.md` holds the project's rules for the coding agent, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
 
 ## Catch up
 
-Ask your coding assistant, started in `water-quality/`:
+Ask your coding agent, started in `water-quality/`:
 
 ```text
 Catch me up: follow ../quarto-workshop/checkpoints/12-water-epub/README.md
 ```
 
-The steps, run inside `water-quality/` (by the assistant, or by you in a terminal):
+The steps, run inside `water-quality/` (by the agent, or by you in a terminal):
 
 1. Keep your work, all but the `.venv/` environment (`uv run` rebuilds it from `uv.lock`): `b="../water-quality-backup-12-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclude=.venv . | tar -xf - -C "$b"` (a new time-stamped copy beside `water-quality/`, so earlier backups are kept).
 2. Copy the data if `data/water_municipal.csv` is missing (checkpoints hold sources only): `cp -R ../quarto-workshop/examples/water/data .`

@@ -53,7 +53,7 @@ KEPT = [
     "Pandemic loss and recovery", "A descriptive cluster analysis", "Water quality, services",
     "Known gaps and caveats", "User's Guide", "cannot parse length", "unexpected argument",
     "LLMflation", "book a free timed ticket", "with 7,116,929 visits", "a graphical aid",
-    "Reproducible Data Publishing with Quarto and AI Coding Assistants",
+    "Reproducible Data Publishing with Quarto and AI Coding Agents",
 ]
 
 

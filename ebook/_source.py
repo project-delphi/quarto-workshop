@@ -362,7 +362,7 @@ def assistant_cost() -> tuple[str, str]:
 
 
 def assistant_accounts() -> tuple[str, str]:
-    """Chapter 3's list of what each assistant's account needs, and its checked date."""
+    """Chapter 3's list of what each agent's account needs, and its checked date."""
     text = " ".join(read(f"{BOOK_DIR}/chapters/03-setup.qmd").split())
     if LANG == "es":
         m = re.search(r"(Claude Code necesita una [^;]+); (Codex, [^(]+?) \(para facturación por uso, "

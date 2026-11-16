@@ -20,7 +20,7 @@ import build  # noqa: E402
 
 DIAGRAMS = {
     "agent-loop.svg": [
-        (">How a coding assistant works<", ">Cómo funciona un asistente de programación<"),
+        (">How a coding agent works<", ">Cómo funciona un agente de programación<"),
         ("You give the harness a prompt, and it shows you results and asks you to approve commands. The harness (Claude Code, Codex or Antigravity) sends the conversation and tool results to the model (Claude, GPT or Gemini), which runs on the vendor's servers and replies with text or a request to use a tool. The harness carries out tool requests in the project folder, its root: it reads AGENTS.md first, then reads and edits files and runs commands there. The model decides, the harness does, and you direct and check.",
          "Tú le das un prompt al harness, y este te muestra los resultados y te pide aprobar comandos. El harness (Claude Code, Codex o Antigravity) le envía la conversación y los resultados de las herramientas al modelo (Claude, GPT o Gemini), que corre en los servidores del proveedor y responde con texto o con una solicitud para usar una herramienta. El harness lleva a cabo las solicitudes en la carpeta del proyecto, su raíz: primero lee AGENTS.md y luego lee y edita archivos y ejecuta comandos ahí. El modelo decide, el harness hace, y tú diriges y revisas."),
         (">You<", ">Tú<"), (">direct and check<", ">diriges y revisas<"),
@@ -31,15 +31,15 @@ DIAGRAMS = {
         (">servers<", ">del proveedor<"), (">edits, runs<", ">edita, ejecuta<"),
         (">reads AGENTS.md first<", ">primero lee AGENTS.md<"),
         (">Project folder, the root<", ">Carpeta del proyecto, la raíz<"),
-        (">the assistant's world: start it here<", ">el mundo del asistente: inícialo aquí<"),
+        (">the agent's world: start it here<", ">el mundo del agente: inícialo aquí<"),
         (">The model decides · the harness does · you check<", ">El modelo decide · el harness hace · tú revisas<"),
     ],
     "catch-up.svg": [
         (">Catching up from a checkpoint<", ">Ponerse al día desde un punto de control<"),
-        ("Stuck for two minutes, you paste the line Catch me up: follow ../quarto-workshop/checkpoints/NN/README.md into the assistant. It follows four steps. One, back up your project folder, all but its .venv environment, to a new time-stamped folder beside it. Two, copy the checkpoint in, and for the water project the data if they are missing. Three, render and check a named output. Four, carry on reading from the catch-up box: the project now matches the book at that point.",
-         "Después de dos minutos sin avanzar, pegas en el asistente la línea Catch me up: follow ../quarto-workshop/checkpoints/NN/README.md. El asistente sigue cuatro pasos. Uno, respalda la carpeta de tu proyecto, todo menos su entorno .venv, en una carpeta nueva con fecha y hora, al lado. Dos, copia el punto de control y, en el proyecto del agua, los datos si faltan. Tres, renderiza y revisa una salida con nombre. Cuatro, sigues leyendo desde el recuadro para ponerte al día: el proyecto ahora coincide con el libro en ese punto."),
+        ("Stuck for two minutes, you paste the line Catch me up: follow ../quarto-workshop/checkpoints/NN/README.md into the agent. It follows four steps. One, back up your project folder, all but its .venv environment, to a new time-stamped folder beside it. Two, copy the checkpoint in, and for the water project the data if they are missing. Three, render and check a named output. Four, carry on reading from the catch-up box: the project now matches the book at that point.",
+         "Después de dos minutos sin avanzar, pegas en el agente la línea Catch me up: follow ../quarto-workshop/checkpoints/NN/README.md. El agente sigue cuatro pasos. Uno, respalda la carpeta de tu proyecto, todo menos su entorno .venv, en una carpeta nueva con fecha y hora, al lado. Dos, copia el punto de control y, en el proyecto del agua, los datos si faltan. Tres, renderiza y revisa una salida con nombre. Cuatro, sigues leyendo desde el recuadro para ponerte al día: el proyecto ahora coincide con el libro en ese punto."),
         (">Stuck for two minutes?<", ">¿Dos minutos sin avanzar?<"),
-        (">paste into your assistant:<", ">pega en tu asistente:<"),
+        (">paste into your agent:<", ">pega en tu agente:<"),
         (">Back up your folder<", ">Respalda tu carpeta<"),
         (">all but <tspan", ">todo menos <tspan"), ("</tspan>, to a new time-stamped copy<", "</tspan>, en una copia nueva con fecha<"),
         (">Copy the checkpoint in<", ">Copia el punto de control<"),
@@ -111,19 +111,19 @@ DIAGRAMS = {
         (">the change joins main<", ">el cambio se suma a main<"),
         (">a team:<", ">en equipo:<"), (">every change<", ">cada cambio<"), (">goes round<", ">da la vuelta<"),
         (">Alone, as in this book: commit to main and push.<", ">Sin equipo, como en este libro: commit en main y push.<"),
-        (">The assistant runs Git; you read its diffs and approve.<", ">El asistente ejecuta Git; tú lees sus diffs y apruebas.<"),
+        (">The agent runs Git; you read its diffs and approve.<", ">El agente ejecuta Git; tú lees sus diffs y apruebas.<"),
     ],
     "loop.svg": [
         (">Prompt, Check, Publish<", ">Pide, revisa, publica<"),
-        ("The loop this book teaches, run at every step of both projects. Prompt: you ask a coding assistant for one small step, naming the files and columns and ending with a check; Chapter 2. The assistant does the work: it writes files and runs commands. Check: you read what changed, open the result and compare it with the data; this step is always yours. If it is not right, you fix the prompt, or catch up from a checkpoint, and prompt again. The checked source goes to Publish: Quarto rebuilds every output from it with quarto render, the same way every time; Chapter 1. Then the next step begins with a new prompt.",
-         "El ciclo que enseña este libro, en cada paso de los dos proyectos. Pide: le pides a un asistente de programación un paso pequeño, nombrando los archivos y las columnas y terminando con una comprobación; Capítulo 2. El asistente hace el trabajo: escribe archivos y ejecuta comandos. Revisa: lees lo que cambió, abres el resultado y lo comparas con los datos; este paso siempre es tuyo. Si no está bien, corriges el prompt, o te pones al día desde un punto de control, y vuelves a pedir. La fuente revisada pasa a Publica: Quarto reconstruye cada salida a partir de ella con quarto render, siempre de la misma manera; Capítulo 1. Luego el siguiente paso empieza con un prompt nuevo."),
+        ("The loop this book teaches, run at every step of both projects. Prompt: you ask a coding agent for one small step, naming the files and columns and ending with a check; Chapter 2. The agent does the work: it writes files and runs commands. Check: you read what changed, open the result and compare it with the data; this step is always yours. If it is not right, you fix the prompt, or catch up from a checkpoint, and prompt again. The checked source goes to Publish: Quarto rebuilds every output from it with quarto render, the same way every time; Chapter 1. Then the next step begins with a new prompt.",
+         "El ciclo que enseña este libro, en cada paso de los dos proyectos. Pide: le pides a un agente de programación un paso pequeño, nombrando los archivos y las columnas y terminando con una comprobación; Capítulo 2. El agente hace el trabajo: escribe archivos y ejecuta comandos. Revisa: lees lo que cambió, abres el resultado y lo comparas con los datos; este paso siempre es tuyo. Si no está bien, corriges el prompt, o te pones al día desde un punto de control, y vuelves a pedir. La fuente revisada pasa a Publica: Quarto reconstruye cada salida a partir de ella con quarto render, siempre de la misma manera; Capítulo 1. Luego el siguiente paso empieza con un prompt nuevo."),
         (">next step<", ">otro paso<"), (">not right?<", ">¿no está bien?<"), (">fix the prompt<", ">corrígelo<"),
-        (">YOU → ASSISTANT<", ">TÚ → ASISTENTE<"),
+        (">YOU → AGENT<", ">TÚ → AGENTE<"),
         (">Ch. 2<", ">Cap. 2<", 2), (">Ch. 1<", ">Cap. 1<"),
         (">Prompt<", ">Pide<"),
         (">one small step, files named,<", ">un paso pequeño, con archivos,<"),
         (">ending with a check<", ">y una comprobación al final<"),
-        (">the assistant works<", ">el asistente trabaja<"),
+        (">the agent works<", ">el agente trabaja<"),
         (">YOU<", ">TÚ<"), (">Check<", ">Revisa<"),
         (">read what changed, open the<", ">lee lo que cambió, abre el<"),
         (">result, compare with the data<", ">resultado, compáralo con los datos<"),
@@ -162,9 +162,9 @@ DIAGRAMS = {
     ],
     "sub-agents.svg": [
         (">One lead, three sub-agents<", ">Una sesión principal, tres subagentes<"),
-        ("Your assistant, the lead, reads the prompt and starts three sub-agents at once. Each has its own context and writes only its own files: one writes london-dashboard.qmd, one london-email.qmd and london-email-message.md, one london-flyer.qmd. None of them renders. When all three report back, the lead renders the three files one at a time and checks each. Three tasks take about as long as the slowest one, and use more tokens.",
-         "Tu asistente, la sesión principal, lee el prompt e inicia tres subagentes a la vez. Cada uno tiene su propio contexto y escribe solo sus propios archivos: uno escribe london-dashboard.qmd, otro london-email.qmd y london-email-message.md, otro london-flyer.qmd. Ninguno renderiza. Cuando los tres informan, la sesión principal renderiza los tres archivos uno por uno y revisa cada uno. Tres tareas tardan más o menos lo que la más lenta, y usan más tokens."),
-        (">Lead: your assistant<", ">Principal: tu asistente<"),
+        ("Your agent, the lead, reads the prompt and starts three sub-agents at once. Each has its own context and writes only its own files: one writes london-dashboard.qmd, one london-email.qmd and london-email-message.md, one london-flyer.qmd. None of them renders. When all three report back, the lead renders the three files one at a time and checks each. Three tasks take about as long as the slowest one, and use more tokens.",
+         "Tu agente, la sesión principal, lee el prompt e inicia tres subagentes a la vez. Cada uno tiene su propio contexto y escribe solo sus propios archivos: uno escribe london-dashboard.qmd, otro london-email.qmd y london-email-message.md, otro london-flyer.qmd. Ninguno renderiza. Cuando los tres informan, la sesión principal renderiza los tres archivos uno por uno y revisa cada uno. Tres tareas tardan más o menos lo que la más lenta, y usan más tokens."),
+        (">Lead: your agent<", ">Principal: tu agente<"),
         (">splits the work and waits<", ">reparte el trabajo y espera<"),
         (">all at once<", ">todos a la vez<"),
         (">Sub-agent 1<", ">Subagente 1<"), (">Sub-agent 2<", ">Subagente 2<"), (">Sub-agent 3<", ">Subagente 3<"),
@@ -178,13 +178,13 @@ DIAGRAMS = {
 
 COVER = [
     ("<title id=\"t\">Prompt, Check, Publish</title>", "<title id=\"t\">Pide, revisa, publica</title>"),
-    ("Title: Prompt, Check, Publish. Subtitle: Reproducible Data Publishing with Quarto and AI Coding Assistants.",
-     "Título: Pide, revisa, publica. Subtítulo: Publicación reproducible de datos con Quarto y asistentes de programación con IA."),
+    ("Title: Prompt, Check, Publish. Subtitle: Reproducible Data Publishing with Quarto and AI Coding Agents.",
+     "Título: Pide, revisa, publica. Subtítulo: Publicación reproducible de datos con Quarto y agentes de programación con IA."),
     ("Book cover.", "Cubierta del libro."), ("Author:", "Autoría:"),
     (">A PRACTITIONER’S GUIDE<", ">UNA GUÍA PRÁCTICA<"),
     (">Prompt,<", ">Pide,<"), (">Check,<", ">revisa,<"), (">Publish<", ">publica<"),
     (">Reproducible Data Publishing with Quarto<", ">Publicación reproducible de datos con Quarto<"),
-    (">and AI Coding Assistants<", ">y asistentes de programación con IA<"),
+    (">and AI Coding Agents<", ">y agentes de programación con IA<"),
 ]
 
 
