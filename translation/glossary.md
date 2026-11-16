@@ -283,7 +283,7 @@ Sentence case, as Spanish titles are written. Exercise headings read "Ejercicio 
 | Exercises for Part III | Ejercicios de la Parte III |
 | Afterword: What You Built, and Where Next | Epílogo: lo que construiste y cómo seguir |
 | A Windows: Get Ubuntu Ready | Windows: prepara Ubuntu |
-| B Terminal Keys and Habits | Teclas y hábitos de la terminal |
+| B Keys, Symbols and Terminal Habits | Teclas, símbolos y hábitos de la terminal |
 | C Cheatsheet | Hoja de referencia |
 | D Troubleshooting | Solución de problemas |
 | E Checkpoints at a Glance, and Answers | Los puntos de control de un vistazo, y respuestas |

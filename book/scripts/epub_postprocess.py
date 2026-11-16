@@ -2,7 +2,8 @@
 
 1. Front matter order: title page, copyright, dedication, Contents, preface. Quarto needs
    index.qmd (the preface) first in the chapter list, so the copyright and dedication pages
-   move in the spine and TOC.
+   move in the spine and TOC. The back cover (h1 class "back-cover", listed last in the EPUB's
+   chapters) moves to the end of the spine, after the appendices, and leaves the contents.
 2. Parts: Quarto drops `part:` entries from EPUB, so the part pages are ordinary chapters
    (h1 class "part"). Nest each part's chapters under it in nav.xhtml and toc.ncx, until
    the next part, the afterword (h1 class "backmatter") or the first appendix, and group
@@ -78,8 +79,8 @@ DIV_ALT = re.compile(r'(<div\b[^>]*?)\s+alt="[^"]*"')
 
 
 def classify(files: dict[str, str]) -> dict[str, str]:
-    """Map each chapter file (EPUB/text/...) to part, end, appendix, copyright, dedication,
-    preface or ''."""
+    """Map each chapter file (EPUB/text/...) to part, end, appendix, backcover, copyright,
+    dedication, preface or ''."""
     kinds = {}
     for name, text in files.items():
         m = H1.search(text)
@@ -92,6 +93,8 @@ def classify(files: dict[str, str]) -> dict[str, str]:
             kinds[name] = "dedication"
         elif 'epub:type="preface"' in text:
             kinds[name] = "preface"
+        elif "back-cover" in classes:
+            kinds[name] = "backcover"
         elif "part" in classes:
             kinds[name] = "part"
         elif title.startswith(("Appendix", L["appendix"])):
@@ -119,6 +122,8 @@ def nest(container: ET.Element, item_tag: str, list_tag: str, target, kinds,
     appendices = None
     for item in items:
         kind = kinds.get(target(item), "")
+        if kind == "backcover":  # the last page, not a contents entry
+            continue
         if kind == "appendix":
             if appendices is None:
                 head, appendices = group(item)
@@ -229,18 +234,32 @@ def fix_ncx(text: str, kinds: dict[str, str]) -> str:
     return '<?xml version="1.0" encoding="UTF-8"?>\n' + out + "\n"
 
 
+def take_itemref(text: str, name: str) -> tuple[str, str, int]:
+    """Remove a chapter file's spine itemref, with the whitespace before it. Returns the text,
+    the removed itemref ("" if there is none) and where it was."""
+    idref = Path(name).name.replace(".", "_")
+    m = re.search(rf'\s*<itemref idref="{re.escape(idref)}"[^>]*/>', text)
+    if not m:
+        return text, "", -1
+    return text[:m.start()] + text[m.end():], m.group(0), m.start()
+
+
 def fix_spine(text: str, kinds: dict[str, str]) -> str:
-    """Move the copyright and dedication pages' itemrefs to just after the title page."""
+    """Move the copyright and dedication pages' itemrefs to just after the title page, and the
+    back cover's to the end."""
+    for name in (n for n, k in kinds.items() if k == "backcover"):
+        text, ref, _ = take_itemref(text, name)
+        if not ref:  # nest() has already left it out of the contents: never ship it mid-book
+            sys.exit(f"epub_postprocess: no spine itemref for the back cover {name}")
+        end = text.rfind("\n", 0, text.index("</spine>"))
+        text = text[:end] + ref + text[end:]
     after = re.search(r'<itemref idref="title_page_xhtml"[^>]*/>', text).end()
     for kind in FRONT:
         for name in (n for n, k in kinds.items() if k == kind):
-            idref = Path(name).name.replace(".", "_")
-            m = re.search(rf'\s*<itemref idref="{re.escape(idref)}"[^>]*/>', text)
-            if not m:
+            text, ref, start = take_itemref(text, name)
+            if not ref:
                 continue
-            ref = m.group(0)
-            text = text[:m.start()] + text[m.end():]
-            if m.start() < after:
+            if start < after:
                 after -= len(ref)
             text = text[:after] + ref + text[after:]
             after += len(ref)
@@ -330,6 +349,8 @@ def fix_chapter(text: str, kind: str, front: bool) -> str:
                                text, 1)
         text = text.replace('<body epub:type="bodymatter">', '<body epub:type="backmatter">', 1)
         text = re.sub(r'<section ([^>]*class="level1[^"]*")>', r'<section \1 epub:type="appendix">', text, 1)
+    elif kind == "backcover":
+        text = text.replace('<body epub:type="bodymatter">', '<body epub:type="backmatter">', 1)
     elif kind == "end":
         text = text.replace('<body epub:type="bodymatter">', '<body epub:type="backmatter">', 1)
         text = re.sub(r'<section ([^>]*class="level1[^"]*")>', r'<section \1 epub:type="afterword">', text, 1)

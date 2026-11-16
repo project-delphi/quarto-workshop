@@ -5,7 +5,7 @@
 Steps (all by default, in this order):
   deck      copy the deck assets the book reuses (DECK_ASSETS) into media/deck/ and the
             London photos (examples/london/images) into media/london/
-  cover     media/cover.svg -> media/cover.png (1600 x 2560)
+  cover     media/cover.svg and back-cover.svg -> PNG (1600 x 2560)
   roadmaps  media/roadmaps/part-N.svg from _chapters.yml (scripts/roadmaps.py)
   diagrams  media/diagrams/*.svg and media/roadmaps/*.svg -> PNG at 2x, beside each SVG
   qr        media/qr/*.png from QR_TARGETS below
@@ -104,7 +104,7 @@ def step_deck() -> None:
 
 
 def step_cover() -> None:
-    rasterise([MEDIA / "cover.svg"], scale=1, transparent=False)
+    rasterise([MEDIA / "cover.svg", MEDIA / "back-cover.svg"], scale=1, transparent=False)
 
 
 def step_roadmaps() -> None:

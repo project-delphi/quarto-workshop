@@ -140,7 +140,7 @@ All images and animations are made by `media/build.py`, which `make media` runs.
 | Step | Makes |
 |---|---|
 | `deck` | copies the deck assets the book reuses into `media/deck/`, and the London photos into `media/london/` |
-| `cover` | `media/cover.png`, 1600 × 2560, from `media/cover.svg` |
+| `cover` | `media/cover.png` and `media/back-cover.png`, 1600 × 2560, from their SVGs (the back cover is the EPUB's last page, `back-cover.qmd`) |
 | `roadmaps` | the "Where we are" roadmaps, `media/roadmaps/part-N.svg`, from `_chapters.yml` |
 | `diagrams` | a PNG at twice the size beside every SVG in `media/diagrams/` and `media/roadmaps/` |
 | `qr` | the QR code for the EPUB's link to the live London map, the only live-link card with one (Chapter 6), `media/qr/` |

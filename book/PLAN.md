@@ -87,7 +87,7 @@ size. This is an estimate, not a target. Chapters will be as long as their conte
 
 | File | Content | Sources |
 |---|---|---|
-| cover | Typographic cover, 1600 × 2560 PNG from `media/cover.svg` | new |
+| cover | Typographic cover, 1600 × 2560 PNG from `media/cover.svg`; its back cover, `back-cover.qmd` from `media/back-cover.svg`, is the EPUB's last page (`epub_end` in `_chapters.yml`) | new |
 | title page | Pandoc's EPUB title page from metadata (EPUB); Quarto's title block (HTML) | `_quarto.yml` metadata |
 | Contents | The EPUB's navigation document, placed in the spine after the copyright page (`toc: true`); the page shows parts, chapters and appendices, the reader's menu every section (§6.3) | generated |
 | `copyright.qmd` | Rights, edition and date, versions validated (Quarto 1.10.20 with Typst 0.15), an AI usage statement written the way the book teaches it, a summary of data licences, and the HTML edition URL | `#ai-use-deck`, `examples/*/data/README.md` |
@@ -139,7 +139,7 @@ Part page: the question, the unit of analysis (municipality × zone × year) and
 | | Title | Sources |
 |---|---|---|
 | A | **Windows: Get Ubuntu Ready** (nine steps, "you should see" after each, the stuck table; WSL ↔ Windows) | `windows-setup.qmd`, `#wsl-windows`, `assets/windows-steps/*.svg`, `assets/windows-session.gif` |
-| B | **Terminal Keys and Habits** | `#terminal-keys`, `#terminal-basics` |
+| B | **Keys, Symbols and Terminal Habits** (keyboard basics and the symbols code uses, for readers new to both) | `#terminal-keys`, `#terminal-basics` |
 | C | **Cheatsheet** | `CHEATSHEET.md` |
 | D | **Troubleshooting** | `TROUBLESHOOTING.md` |
 | E | **Checkpoints at a Glance, and Answers** (every checkpoint: contents, catch-up line, rejoin point; model answers to the two rebuild tasks) | checkpoint READMEs, notes of `#london-change` and `#water-change` |
