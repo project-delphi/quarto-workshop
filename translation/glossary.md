@@ -41,23 +41,23 @@ Conventions that apply everywhere:
 | Common pitfall | Error frecuente | | `::: pitfall` |
 | In practice | En la práctica | | `::: practice` |
 | Try it | Pruébalo | | `::: tryit` |
-| Ask your coding assistant | Pídele a tu asistente | | `.prompt` box |
+| Ask your coding agent | Pídele a tu agente | | `.prompt` box |
 | Expect it to run | Probablemente ejecute | | `.agent` box |
 | You do | Tú haces | | `.you` box |
 | You're done when | Terminaste cuando | | `::: done` |
 | Exercise | Ejercicio | | |
 | website edition / EPUB edition | edición web / edición EPUB | | |
 
-## The loop and the assistant
+## The loop and the agent
 
 | English | Spanish | EN? | Note |
 |---|---|---|---|
 | prompt (n.) | prompt | EN | *el* prompt, *los* prompts |
-| to prompt (an assistant) | pedirle (al asistente) | | "prompt an assistant for one small step" → "pídele al asistente un paso pequeño" |
+| to prompt (an agent) | pedirle (al agente) | | "prompt an agent for one small step" → "pídele al agente un paso pequeño" |
 | Prompt, Check, Publish (the loop) | see title decision in `PLAN.md` | | |
 | check (v.) | revisar | | "comprobar" only for a mechanical test |
-| coding assistant | asistente de programación | | short form "el asistente" |
-| AI coding assistant | asistente de programación con IA | | |
+| coding agent | agente de programación | | short form "el agente" |
+| AI coding agent | agente de programación con IA | | |
 | model | modelo | | |
 | harness | harness | EN | first use: "el harness (el programa que…)"; no settled Spanish term |
 | agent | agente | | |
@@ -266,7 +266,7 @@ Sentence case, as Spanish titles are written. Exercise headings read "Ejercicio 
 | Part II: One Guide, Many Audiences | Parte II: Una guía, muchos públicos |
 | Part III: One Analysis, Many Publications | Parte III: Un análisis, muchas publicaciones |
 | 1 Publishing That Rebuilds Itself | Publicar algo que se reconstruye solo |
-| 2 Working With a Coding Assistant | Trabajar con un asistente de programación |
+| 2 Working With a Coding Agent | Trabajar con un agente de programación |
 | 3 Setting Up Your Machine | Preparar tu computadora |
 | 4 Markdown, Rendering and Project Rules | Markdown, renderizado y reglas del proyecto |
 | 5 Documents That Compute | Documentos que calculan |

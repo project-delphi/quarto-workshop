@@ -166,9 +166,9 @@ Rules every animation follows:
 - **A still for reduced motion.** `filters/anim.lua` puts each GIF in a `<picture>` that shows
   the still to readers whose system asks for reduced motion (HTML edition).
 - **Real recordings use a demo account.** The tapes set `HOME=/tmp/home/ana`, so no personal
-  path appears. They run local commands only: no network, publishing or assistant commands.
+  path appears. They run local commands only: no network, publishing or agent commands.
 - **Illustrations say so.** The chat, agent-session and Windows animations are scripted
-  illustrations (the repository's rules rule out paid assistant sessions for teaching
+  illustrations (the repository's rules rule out paid agent sessions for teaching
   material), and their captions say so.
 - **Rendered output is real.** The Markdown animations (`capture/md_side_by_side.py`) render
   every step of their snippet with `quarto render` and show a screenshot of that page beside the

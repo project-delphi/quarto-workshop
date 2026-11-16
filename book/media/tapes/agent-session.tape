@@ -1,5 +1,5 @@
-# agent-session.gif: a scripted replay of a typical coding-assistant session (an
-# illustration, not a recording: agent_replay.py prints it; no assistant or model runs).
+# agent-session.gif: a scripted replay of a typical coding-agent session (an
+# illustration, not a recording: agent_replay.py prints it; no agent or model runs).
 # Re-record from book/ with: uv run --with playwright --with segno python media/build.py tapes
 Output ../gifs/agent-session.gif
 Set Shell "bash"

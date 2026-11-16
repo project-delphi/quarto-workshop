@@ -160,7 +160,7 @@ uv run quarto publish gh-pages --no-prompt
 
 ---
 
-## 6. Prompting Coding Assistants Effectively
+## 6. Prompting Coding Agents Effectively
 
 To get reliable, reproducible results when working with agents (Claude Code, Codex, Antigravity):
 
@@ -170,6 +170,6 @@ To get reliable, reproducible results when working with agents (Claude Code, Cod
    - Always end prompts with an observable check:
    - *"Render with `uv run quarto render report.qmd` and verify `report.pdf` has 3 charts and no missing values."*
 3. **Guard against dashboard duplication**:
-   - Remind the assistant: *"Assign Plotly charts to `fig` and end the cell with `fig` (no `fig.show()`)."*
+   - Remind the agent: *"Assign Plotly charts to `fig` and end the cell with `fig` (no `fig.show()`)."*
 4. **Protect data contracts**:
-   - Instruct the assistant: *"Never fabricate numbers; compute all values from the cited CSV tables."*
+   - Instruct the agent: *"Never fabricate numbers; compute all values from the cited CSV tables."*

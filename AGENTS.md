@@ -79,13 +79,13 @@ keep teaching computations fresh. Changes to external data are not automatically
 ## Workshop slide conventions
 
 The slides are the course resource: participants follow them alone and do most work by
-prompting a coding assistant. Many have only a rudimentary grasp of Linux, the terminal or
-installing tools, so say where each thing is typed (terminal or assistant), and what they
+prompting a coding agent. Many have only a rudimentary grasp of Linux, the terminal or
+installing tools, so say where each thing is typed (terminal or agent), and what they
 should see. Setup step 1 is one slide for every system; Windows-only procedure goes on
 `windows-setup.qmd`, not on slides that Mac and Linux participants must page through.
 Pre-work is two 🏠 sections: 🛠️ Setup holds the six steps back to back, with only the slides
 a step needs before or between them; 📖 Read Before the Day, after the test run, holds the
-reading (the assistant, models and costs, AI policy, Markdown). Do not put reading slides
+reading (the agent, models and costs, AI policy, Markdown). Do not put reading slides
 between setup steps. The in-room 0:15 block, 🧰 Ready to Prompt, follows both.
 
 - One concept per slide, introduced in order (Markdown → render → YAML → code cells →
@@ -103,18 +103,18 @@ between setup steps. The in-room 0:15 block, 🧰 Ready to Prompt, follows both.
   files, with a fallback to doing them in turn, and the lead renders them one at a time
   and checks each (set in `::: {.prompt .long}` so it shows in full, as are the 🏠 install and
 setup-check prompts, which keep one copy button and one step per slide); with `code-line-numbers: false` a `text` fence
-  gets no copy button); `::: {.agent}` lists what the assistant will likely run; `::: {.you}`
-  lists only what needs the participant: starting the assistant, accounts and sign-in,
-  approving the assistant's commands, `quarto preview`, the first interactive
+  gets no copy button); `::: {.agent}` lists what the agent will likely run; `::: {.you}`
+  lists only what needs the participant: starting the agent, accounts and sign-in,
+  approving the agent's commands, `quarto preview`, the first interactive
   `quarto publish gh-pages` (Quarto 1.6.40's `--no-prompt` cannot create the `gh-pages`
   branch; https://quarto.org/docs/publishing/github-pages.html asks for one local publish
-  first, checked 2026-11-01), and opening results. Work an assistant can run (rendering, git,
+  first, checked 2026-11-01), and opening results. Work an agent can run (rendering, git,
   `gh repo create`, later `quarto publish … --no-prompt` updates) belongs in a prompt.
-  Browser translation translates prompts, so write each literal the assistant must find
+  Browser translation translates prompts, so write each literal the agent must find
   or match in existing files or data as code (backticks for a bare
   name such as a column, repo or option; paths, file names, `snake_case` columns, calls,
   `name=value` need none) or in double quotes (a heading to replace, a data value);
-  `translate-safe.html` keeps those in English. New titles the assistant writes may be
+  `translate-safe.html` keeps those in English. New titles the agent writes may be
   translated. Check new prompts with the deck translated.
 - Exercises use `### Exercise · ⏱️ N min` and a `::: {.done}` block whose text completes
   "You're done when …". Each hands-on block ends with a checkpoint in `checkpoints/` whose
@@ -128,7 +128,7 @@ setup-check prompts, which keep one copy button and one step per slide); with `c
   slides, is a 📤 prompt that copies its checkpoint's `scripts/analysis.py` (the normal
   route); the prompts that write the analysis are `· ⭐ challenge`. Page-building prompts
   are for everyone, and agenda times count the 📤 route.
-- Understanding checks are a `::: {.check}` line starting 💬, asked while the assistant
+- Understanding checks are a `::: {.check}` line starting 💬, asked while the agent
   runs; put a good answer in the notes.
 - Mark pre-work slides `[🏠 before the workshop]{.pace}` (`before the lab` in the AI lab) and
   optional slides `[⭐ self-paced]{.pace}`; when the pill would crowd a slide, end the title

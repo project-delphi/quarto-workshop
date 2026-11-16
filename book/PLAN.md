@@ -59,13 +59,13 @@ AGENTS.md asks for these before a new module is written.
 
 - **Audience:** researchers, software practitioners, data experts and students, anyone who works
   with data or code and needs to share the results (the author's words in the preface), many new to Quarto
-  and to coding assistants and with little terminal experience. The same readers as the workshop, now
+  and to coding agents and with little terminal experience. The same readers as the workshop, now
   reading alone.
 - **Prerequisites:** a computer they can install software on, a GitHub account, and access
-  to one coding assistant (paid plan or API key). No programming is assumed; the Python is
-  explained but written by the assistant.
+  to one coding agent (paid plan or API key). No programming is assumed; the Python is
+  explained but written by the agent.
 - **Objectives:** a reader can (1) explain how Quarto turns one source into many formats,
-  (2) direct a coding assistant safely: scope, rules, prompts and checks, (3) build and
+  (2) direct a coding agent safely: scope, rules, prompts and checks, (3) build and
   publish the London guide and the water-safety site, and (4) predict and verify which
   outputs a changed input updates.
 - **Exercises:** every hands-on chapter ends at a checkpoint; each part ends with an
@@ -99,9 +99,9 @@ Part page: a short introduction and a "Where we are" roadmap figure.
 
 | Ch | Title | Sections | Sources (slides / docs) |
 |---|---|---|---|
-| 1 | **Publishing That Rebuilds Itself** | 1.1 Why reports drift: copy and paste. 1.2 What Quarto is: Markdown, a code engine (Jupyter or knitr), then Pandoc or Typst; **pipeline diagram**. 1.3 Quarto is not AI: deterministic rendering vs the assistant that writes files. 1.4 Reproducible: one source, computed numbers, one command, versioned; reproducible ≠ correct. 1.5 When Quarto is the wrong tool (trade-offs, stated as judgement and cited where possible) | `#quarto-hub`, `#quarto-not-ai`, `#reproducible`, `#objective`, `#expected-outcomes` |
-| 2 | **Working With a Coding Assistant** | 2.1 Model + harness = assistant; **agent loop diagram** (human ↔ harness ↔ model, files and commands, approval gate). 2.2 Choosing an assistant and a model: pick by task; dated price bands in a sidebar; the pelican experiment as evidence and its limits. 2.3 What a conversation costs: tokens, context, `/model`, `/clear`, `/exit`. 2.4 The root folder is the assistant's world: trust, scope, one assistant per folder. 2.5 Rules that persist: `AGENTS.md` (the concept; Chapter 4 uses it). 2.6 Prompting: specific, one step, run and check, read the diff; prompts are engineered; ask when unsure; a web chat can draft a prompt (GIF). 2.7 How to read this book's assistant boxes. 2.8 Using AI in research: say it, own it | `#model-harness`, `#assistant-makers`, `#model-choice`, `#slash-commands`, `#pelican-grid`, `#root-folder`, `#agents-md`, `#how-to-prompt`, `#prompts-engineered`, `#chat-drafts-prompt`, `#three-boxes`, `#ai-policy`, `#ai-use-deck` |
-| 3 | **Setting Up Your Machine** | 3.1 Before you start: connection, accounts, where to get help (an AI chat; your group's help channel). 3.2 Step 1: get the computer ready (Mac and Linux here; Windows in Appendix A). 3.3 Step 2: move around the terminal (VHS GIF); two places to type. 3.4 Step 3: install an assistant, with its first screens as text transcripts. 3.5 Step 4: the assistant installs the tools. 3.6 Step 5: the setup check. 3.7 Step 6: the test run, a black box that prints 42. Ends with a checklist exercise | `#setup-map`, `#internet`, `#ask-ai-chat`, `#computer-ready`, `#terminal-basics`, `#two-places`, `#install-assistant`, `#assistant-screens`, `#install-tools`, `#setup-check`, `#test-run`; README pre-work; TROUBLESHOOTING §0 |
+| 1 | **Publishing That Rebuilds Itself** | 1.1 Why reports drift: copy and paste. 1.2 What Quarto is: Markdown, a code engine (Jupyter or knitr), then Pandoc or Typst; **pipeline diagram**. 1.3 Quarto is not AI: deterministic rendering vs the agent that writes files. 1.4 Reproducible: one source, computed numbers, one command, versioned; reproducible ≠ correct. 1.5 When Quarto is the wrong tool (trade-offs, stated as judgement and cited where possible) | `#quarto-hub`, `#quarto-not-ai`, `#reproducible`, `#objective`, `#expected-outcomes` |
+| 2 | **Working With a Coding Agent** | 2.1 Model + harness = agent; **agent loop diagram** (human ↔ harness ↔ model, files and commands, approval gate). 2.2 Choosing an agent and a model: pick by task; dated price bands in a sidebar; the pelican experiment as evidence and its limits. 2.3 What a conversation costs: tokens, context, `/model`, `/clear`, `/exit`. 2.4 The root folder is the agent's world: trust, scope, one agent per folder. 2.5 Rules that persist: `AGENTS.md` (the concept; Chapter 4 uses it). 2.6 Prompting: specific, one step, run and check, read the diff; prompts are engineered; ask when unsure; a web chat can draft a prompt (GIF). 2.7 How to read this book's agent boxes. 2.8 Using AI in research: say it, own it | `#model-harness`, `#assistant-makers`, `#model-choice`, `#slash-commands`, `#pelican-grid`, `#root-folder`, `#agents-md`, `#how-to-prompt`, `#prompts-engineered`, `#chat-drafts-prompt`, `#three-boxes`, `#ai-policy`, `#ai-use-deck` |
+| 3 | **Setting Up Your Machine** | 3.1 Before you start: connection, accounts, where to get help (an AI chat; your group's help channel). 3.2 Step 1: get the computer ready (Mac and Linux here; Windows in Appendix A). 3.3 Step 2: move around the terminal (VHS GIF); two places to type. 3.4 Step 3: install an agent, with its first screens as text transcripts. 3.5 Step 4: the agent installs the tools. 3.6 Step 5: the setup check. 3.7 Step 6: the test run, a black box that prints 42. Ends with a checklist exercise | `#setup-map`, `#internet`, `#ask-ai-chat`, `#computer-ready`, `#terminal-basics`, `#two-places`, `#install-assistant`, `#assistant-screens`, `#install-tools`, `#setup-check`, `#test-run`; README pre-work; TROUBLESHOOTING §0 |
 
 ### Part II · One Guide, Many Audiences: London
 
@@ -112,7 +112,7 @@ Part page: the tourism-office brief, the folder layout, and the roadmap figure.
 | 4 | **Markdown, Rendering and Project Rules** | 4.1 The brief: write once, reuse everywhere. 4.2 Headings, paragraphs and emphasis. 4.3 Render it and keep a live preview (GIF). 4.4 Rules for the guide: `AGENTS.md` in practice. 4.5 Lists; links, images and quotes (alt text and credits); a table from cited data; code fences. 4.6 Environments then and now: uv and lockfiles (GIF). 4.7 When you fall behind: catching up (GIF) | 01 | `#london-story`, `#md-heading` … `#md-code-fence`, `#md-render`, `#london-agents`, `#read-markdown`, `#environments`, `#london-env`, `#catch-up-drill` |
 | 5 | **Documents That Compute** | 5.1 YAML front matter. 5.2 Code that runs: cells and inline code (executed: the top attraction sentence). 5.3 Cell options: labels, captions, alt text, cross-references (executed: the ALVA bar chart). 5.4 One source, three formats: HTML, Word, Typst PDF (**diagram** + GIF). 5.5 Three more: PowerPoint, EPUB, Reveal.js (optional); this book is the EPUB case. 5.6 What happens during a render, and why a preview and a render collide | 02 | `#yaml`, `#code-cells`, `#cell-options`, `#formats`, `#formats-more`; TROUBLESHOOTING §2 |
 | 6 | **One Guide, Five Audiences** | 6.1 Content once, format per audience: dashboard, Word brief and email, A5 flyer, square ad, website. 6.2 Sub-agents: one lead, many hands (**diagram**: lead, three sub-agents, one file each); costs and when not to. 6.3 One prompt, three audiences (long prompt box). 6.4 The square ad (optional): a raw Typst page size. 6.5 The sights in 3-D: live in HTML, GIF in EPUB; asking for three.js; when a 3-D chart misleads | 04 | `#audiences`, `#sub-agents`, `#audiences-do`, `#london-social`, `#london-map`, `#threejs-prompt` |
-| 7 | **Publishing and Proving the Rebuild** | 7.1 Git: every change, safely (**cycle diagram**). 7.2 GitHub Pages and static hosting (redrawn flow diagram; hosts table, dated). 7.3 One folder, one website. 7.4 Publish: the first publish is yours; later updates can be the assistant's. 7.5 Change one input and explain the rebuild (**dependency diagram**; no prompt given). 7.6 A white paper (optional): Typst, citations, cross-references | `examples/london` | `#git-cycle`, `#gh-pages`, `#london-website`, `#london-publish`, `#free-hosts`, `#london-change`, `#london-whitepaper`, `#london-sources`; TROUBLESHOOTING §1; INSTRUCTOR §5 |
+| 7 | **Publishing and Proving the Rebuild** | 7.1 Git: every change, safely (**cycle diagram**). 7.2 GitHub Pages and static hosting (redrawn flow diagram; hosts table, dated). 7.3 One folder, one website. 7.4 Publish: the first publish is yours; later updates can be the agent's. 7.5 Change one input and explain the rebuild (**dependency diagram**; no prompt given). 7.6 A white paper (optional): Typst, citations, cross-references | `examples/london` | `#git-cycle`, `#gh-pages`, `#london-website`, `#london-publish`, `#free-hosts`, `#london-change`, `#london-whitepaper`, `#london-sources`; TROUBLESHOOTING §1; INSTRUCTOR §5 |
 | — | **Exercises for Part II** | One exercise per hands-on block, each with its checkpoint, catch-up line, observable "done when" and the rejoin point; the no-prompt rebuild task (answers in Appendix E) | 01, 02, 04, `examples/london` | checkpoint READMEs |
 
 ### Part III · One Analysis, Many Publications: Colombian Water
@@ -174,7 +174,7 @@ or animated version e-readers support.** Each live element in HTML is wrapped in
 | **Variable explorer**, a menu of box-plot images (`#water-compare`) | Live menu | The three or four panels the text discusses, inline; the rest via link |
 | **YouTube Short player** (`short-player.js`, `#water-kmeans`) | A plain link (no embedded player; keeps the page offline-friendly) | Plain link |
 | **Section progress bar** (`section-progress.html`) | Replaced by the book sidebar plus a "Where we are" roadmap figure on each part page | The same roadmap figure (PNG) on each part page, plus the nested EPUB TOC (§6.3) |
-| **Assistant boxes** (`.prompt`, `.agent`, `.you`; labels added by `translate-safe.html`) | `::: {.agent-box}` with three labelled parts; the prompt keeps a copy button | The same structure; labels are real text from a Lua filter, not CSS or JavaScript; prompts verbatim in wrapped monospace |
+| **Agent boxes** (`.prompt`, `.agent`, `.you`; labels added by `translate-safe.html`) | `::: {.agent-box}` with three labelled parts; the prompt keeps a copy button | The same structure; labels are real text from a Lua filter, not CSS or JavaScript; prompts verbatim in wrapped monospace |
 | **Catch-up boxes** (`.source .behind`) | A "Catch me up" line in each exercise | Same |
 | **Done / check lines** (`.done`, `.check`) | "You're done when …" in each exercise; 💬 checks become "Pause and think" questions with answers in the text or notes | Same |
 | **Drawn terminal screens** (raw HTML in `#terminal-basics`, `#assistant-screens`, `#two-places`) | Text transcripts in styled `pre` blocks (searchable and copyable); `terminal-basics` also as a VHS GIF | Same transcripts; the GIF with its still |
@@ -210,7 +210,7 @@ Every GIF is designed so that **its first frame is the best still**, because rea
 do not animate usually show the first frame. Each also gets a separate still PNG and alt
 text that describes the motion. Tapes (`media/tapes/*.tape`) and capture scripts
 (`media/capture/*.py`) are committed, so each GIF can be re-recorded. No tape runs a
-network, publishing or paid-assistant command.
+network, publishing or paid-agent command.
 
 **"Live version" links and the QR code:** EPUB stand-ins link to the HTML edition if it is
 published (open question 2). Otherwise they link to the deck's already-published slides
@@ -227,7 +227,7 @@ Inspired by Chip Huyen's practitioner books, without imitating her voice or reus
 - Explain **why before how**; name trade-offs, failure modes and when *not* to use a tool.
   No hype, and no claim without a source or a computation.
 - **System level first:** each pipeline gets a diagram before its details (Markdown →
-  engine → Pandoc/Typst → outputs; human ↔ assistant ↔ files; data → analysis → outputs →
+  engine → Pandoc/Typst → outputs; human ↔ agent ↔ files; data → analysis → outputs →
   pages).
 - **Dense, short paragraphs.** Terms are defined at first use. Slide bullets become
   explanatory prose, not longer bullet lists. Lists only for steps and genuine enumerations.
@@ -240,7 +240,7 @@ Inspired by Chip Huyen's practitioner books, without imitating her voice or reus
   checks from the last two weeks are reused with their dates; anything changed is
   re-checked and re-dated. No invented citations.
 
-### 5.2 Assistant boxes
+### 5.2 Agent boxes
 
 ````markdown
 ::: {.agent-box}
@@ -258,7 +258,7 @@ In a second terminal tab: `cd ~/london-guide && quarto preview london.md`
 :::
 ````
 
-`filters/agent-box.lua` inserts each part's label as real text ("Ask your assistant", "It
+`filters/agent-box.lua` inserts each part's label as real text ("Ask your agent", "It
 will likely run", "You do"), wraps a lone `.prompt` in an `agent-box`, and keeps prompt text
 byte-for-byte as in the deck. A check script compares every book prompt with its deck
 source (by slide ID), so the two cannot drift silently. Styled in `styles/epub.css` and
@@ -310,7 +310,7 @@ otherwise dropped or moved to Appendix I.
 A serif body (the reader's default serif, with Charter/Georgia fallbacks; no embedded body
 font unless testing shows a need), a monospace stack for code, `pre` with `white-space:
 pre-wrap` and `overflow-wrap: anywhere` (no horizontal scrolling on phones), tables that
-shrink their type and wrap, styled callouts and assistant boxes, code-annotation lists, and
+shrink their type and wrap, styled callouts and agent boxes, code-annotation lists, and
 `prefers-color-scheme` variants for borders and accents only.
 
 ## 6. Project structure and build
@@ -425,7 +425,7 @@ No push, PR or publish without your go-ahead.
   Fallback: capture in headed Chromium.
 - **Reader variety.** No EPUB fallback mechanism chooses a still over a GIF on readers that do
   not animate; first-frame design covers that (no separate e-ink variant).
-- **Fast-changing facts.** Model names and prices, assistant screens and free-plan limits will
+- **Fast-changing facts.** Model names and prices, agent screens and free-plan limits will
   date quickly; they live in clearly dated sidebars so the prose around them does not age.
 - **Windows.** As INSTRUCTOR.md notes, the Windows procedure has been checked only against
   documentation and on a Mac. Appendix A says so.
@@ -436,7 +436,7 @@ No push, PR or publish without your go-ahead.
 Each has a recommended default; "approve with defaults" works.
 
 1. **Title, author and rights.** Proposed: *One Source, Every Format: Reproducible Publishing
-   with Quarto and Coding Assistants*, by Ravi Kalia. The repository has no licence, so the
+   with Quarto and Coding Agents*, by Ravi Kalia. The repository has no licence, so the
    rights line is yours to choose: "© 2026 Ravi Kalia. All rights reserved", a Creative
    Commons licence for the text (CC BY 4.0 or CC BY-NC-SA 4.0) with code under MIT, or
    something else. Also: publisher name (if any), date, and keywords. *Default: the title
@@ -448,7 +448,7 @@ Each has a recommended default; "approve with defaults" works.
 3. **The AI workflows lab** (`ai-workflows.qmd`): a Part IV capstone chapter, an appendix,
    or left out? It adds a third dataset, but it has the most on auditing an agent's work.
    *Default: Part IV, one chapter, written last.*
-4. **The agent-session GIF.** AGENTS.md rules out paid assistant runs to test a displayed
+4. **The agent-session GIF.** AGENTS.md rules out paid agent runs to test a displayed
    command, so options are: (a) a scripted replay of a realistic session in VHS, labelled
    as an illustration like `chat-prompt.gif`; (b) you record one real session with
    asciinema (at your cost), which I then trim and convert; (c) no agent GIF. *Default: (a).*
@@ -476,7 +476,7 @@ Each has a recommended default; "approve with defaults" works.
 ## 10. Decisions (2026-11-12)
 
 1. Title *One Source, Every Format: Reproducible Publishing with Quarto and Coding
-   Assistants*, by Ravi Kalia; rights "© 2026 Ravi Kalia. All rights reserved."
+   Agents*, by Ravi Kalia; rights "© 2026 Ravi Kalia. All rights reserved."
 2. The HTML edition and the EPUB are published under `docs/book/`, and the deck's title
    slide links to the book. Pages settings stay as they are (`main:/docs`). The Makefile
    renders the deck first and the book second, because a full deck render can empty `docs/`.
@@ -490,7 +490,7 @@ Each has a recommended default; "approve with defaults" works.
    panels for figures, workshop logistics dropped or moved to Appendix I.
 
 Later the same day the book was renamed *Prompt, Check, Publish: Reproducible Data Publishing
-with Quarto and AI Coding Assistants*, after the method it teaches, with "Quarto" and "AI" in
+with Quarto and AI Coding Agents*, after the method it teaches, with "Quarto" and "AI" in
 the subtitle where readers search for them; the EPUB became `prompt-check-publish.epub`. The
 EPUB gained an in-book Contents page and both editions an About the Author page after the
 preface.
@@ -543,7 +543,7 @@ sizes, light and night, preceded the changes; the reviewers then edited their ow
 5. **Part II primers** (the author's request): Markdown at a glance with GFM's main marks, render
    and preview, and a toy `.md` (Chapter 4); the anatomy of a `.qmd` with a toy file (Chapter 5).
    The toy files live in `media/examples/` and are printed from the files themselves.
-6. **Design:** chapter and part openers, caption labels, booktabs tables, callouts and assistant
+6. **Design:** chapter and part openers, caption labels, booktabs tables, callouts and agent
    boxes as cards, live-link cards with the QR code beside the text (one card since §13),
    ordinary spaces in "Chapter 3"; EPUB charts drawn 4.6 inches wide with stacked panels
    (`scripts/figures.py`); tables, figures and boxes kept to one page (the author's request); new

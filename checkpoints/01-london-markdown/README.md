@@ -2,17 +2,17 @@
 
 State at the end of the Markdown block (steps 1–5, the first render, the project rules and the Python environment): `london.md` with a heading, lists, a link, the Big Ben photo, a quote, a table and a code fence, plus `images/` and the cited `data/` (the table's facts come from `data/sights.csv`). No YAML and no code yet.
 
-`AGENTS.md` holds the project's rules for the coding assistant, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
+`AGENTS.md` holds the project's rules for the coding agent, and `pyproject.toml` with `uv.lock` its Python environment, which `uv run` builds on first use.
 
 ## Catch up
 
-Ask your coding assistant, started in `london-guide/`:
+Ask your coding agent, started in `london-guide/`:
 
 ```text
 Catch me up: follow ../quarto-workshop/checkpoints/01-london-markdown/README.md
 ```
 
-The steps, run inside `london-guide/` (by the assistant, or by you in a terminal):
+The steps, run inside `london-guide/` (by the agent, or by you in a terminal):
 
 1. Keep your work, all but the `.venv/` environment (`uv run` rebuilds it from `uv.lock`): `b="../london-guide-backup-01-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclude=.venv . | tar -xf - -C "$b"` (a new time-stamped copy beside `london-guide/`, so earlier backups are kept).
 2. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/01-london-markdown/. .`

@@ -1,8 +1,8 @@
-"""A scripted replay of a typical coding-assistant session, for agent-session.tape.
+"""A scripted replay of a typical coding-agent session, for agent-session.tape.
 
-This is an illustration, not a recording: no assistant runs and nothing calls a model
-(AGENTS.md rules out paid assistant sessions for teaching material). The exchange follows
-the book's first prompt (Chapter 2, "How to read the assistant boxes"): the assistant
+This is an illustration, not a recording: no agent runs and nothing calls a model
+(AGENTS.md rules out paid agent sessions for teaching material). The exchange follows
+the book's first prompt (Chapter 2, "How to read the agent boxes"): the agent
 writes london.md, asks before running a command, renders, and reports. The screen starts
 on the finished session for two seconds, so the GIF's first frame is a usable still, then
 replays it.

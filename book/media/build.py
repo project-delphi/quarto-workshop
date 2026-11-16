@@ -23,7 +23,7 @@ script names (without extension), e.g. from the repository root:
     make media STEPS="capture stills check" ONLY="kmeans"     # after `make book-html`
 
 Playwright drives the installed Google Chrome (channel "chrome"), so no browser download
-is needed. Nothing here runs a network, publishing or paid-assistant command: the tapes
+is needed. Nothing here runs a network, publishing or paid-agent command: the tapes
 replay local commands, and the agent session is a scripted illustration.
 """
 from __future__ import annotations

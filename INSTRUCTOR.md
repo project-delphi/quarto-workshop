@@ -70,7 +70,7 @@ The catch-up script:
 
 From Part 2's *Cluster* block onward, the analysis offers two paths:
 - **Normal Route (📤 Default)**: Participants copy `scripts/analysis.py` directly from the checkpoint and focus their time on authoring documents, dashboards, and publications.
-- **Challenge Route (⭐ Self-Paced)**: Participants prompt their assistant to write the k-means clustering and PCA logic from scratch.
+- **Challenge Route (⭐ Self-Paced)**: Participants prompt their agent to write the k-means clustering and PCA logic from scratch.
 
 *Note for facilitators:* Agenda timing assumes the normal 📤 route. Direct participants to stick to the normal route unless they are well ahead of the room.
 
@@ -91,7 +91,7 @@ During `#london-publish` (in the block starting 1:55) and `#water-ship` (5:34):
 2. **Git push HTTP 400**:
    - Have them run `git config http.postBuffer 524288000` in their terminal.
 3. **Live preview file locking**:
-   - If an assistant says a file is locked or cannot read `.quarto_ipynb`, have the participant press `Ctrl+C` to stop `quarto preview` before the assistant renders.
+   - If an agent says a file is locked or cannot read `.quarto_ipynb`, have the participant press `Ctrl+C` to stop `quarto preview` before the agent renders.
 
 ---
 

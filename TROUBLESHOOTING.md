@@ -9,7 +9,7 @@ This guide collects tested solutions for common issues encountered during the Qu
 *Written from Microsoft's, GitHub's and Quarto's documentation. At the workshop of 2026-11-05 Windows participants found the WSL install and finding their way through the setup slides hardest; the deck now numbers the setup steps (🧭 1–6) and step 1 sends Windows participants to a [separate page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) with its own stuck-table. Not yet re-run on a clean Windows machine.*
 
 ### Mac: a pop-up asks to install "command line developer tools"
-- Expected on a clean Mac the first time `git` runs. Click Install and wait, or run `xcode-select --install` first (step 1). If the assistant is waiting, tell it `done`.
+- Expected on a clean Mac the first time `git` runs. Click Install and wait, or run `xcode-select --install` first (step 1). If the agent is waiting, tell it `done`.
 
 ### Any error, any step
 - **Fix**: copy the command and the full error, paste them into a web chat (Gemini, Claude or ChatGPT) with your system (Windows + Ubuntu, or Mac), and try the suggested fix one step at a time. No passwords or keys in the paste. Still stuck: Discord `#help`.
@@ -29,12 +29,12 @@ This guide collects tested solutions for common issues encountered during the Qu
 - **Fix**: open a **new** terminal tab (the installer changed your shell's search path), then try again. On a Mac, Claude Code's installer does not change the search path: paste the fix it printed under "Setup notes", then open a new tab.
 
 ### `quarto: command not found`, or it works in PowerShell but not Ubuntu
-- Windows installers put tools where Ubuntu cannot use them. Install Quarto **inside Ubuntu** by running the 🐧 install prompt from the deck in your assistant, then open a new tab. Check `quarto --version` (1.10 or newer).
+- Windows installers put tools where Ubuntu cannot use them. Install Quarto **inside Ubuntu** by running the 🐧 install prompt from the deck in your agent, then open a new tab. Check `quarto --version` (1.10 or newer).
 
 ### The prompt shows `/mnt/c/...`
 - You are in a Windows folder (for example OneDrive). Run `cd ~` and keep workshop folders there.
 
-### `gh auth login` or the assistant cannot open a browser
+### `gh auth login` or the agent cannot open a browser
 - Expected in WSL. Copy the URL or one-time code it prints into your Windows browser (for `gh`: github.com/login/device), authorise, and return to the terminal. Codex: `codex login --device-auth` if the browser sign-in fails.
 
 ### Downloads or `git clone` fail on a company network
@@ -80,7 +80,7 @@ This guide collects tested solutions for common issues encountered during the Qu
 ## 2. Rendering & Live Preview
 
 ### File conflict error: `readfile 'london.quarto_ipynb'` or locked files
-- **Cause**: A live `quarto preview` process was running in the background while your coding assistant or terminal ran `quarto render`. Both processes attempt to read and write temporary Jupyter notebook cache files simultaneously.
+- **Cause**: A live `quarto preview` process was running in the background while your coding agent or terminal ran `quarto render`. Both processes attempt to read and write temporary Jupyter notebook cache files simultaneously.
 - **Fix**:
   1. Do not run manual `quarto render` commands while `quarto preview` is actively running. Quarto preview automatically detects file changes and re-renders pages on save.
   2. If switching to multi-format exports (`docx`, `pdf`, `pptx`), stop the preview server (`Ctrl+C` in the terminal where preview is running), run `uv run quarto render`, and restart preview afterward.
@@ -136,7 +136,7 @@ This guide collects tested solutions for common issues encountered during the Qu
 
 ---
 
-## 4. Coding Assistants & Automated Checks
+## 4. Coding Agents & Automated Checks
 
 ### Automated link checker reports `403 Forbidden` on official museum/attraction links
 - **Cause**: Certain websites (such as the British Museum and Historic Royal Palaces) deploy Cloudflare or bot protection that returns HTTP 403 to automated CLI tools (`curl`, python scripts, agent scrapers).
