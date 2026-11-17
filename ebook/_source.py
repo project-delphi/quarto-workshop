@@ -32,6 +32,14 @@ EPUB_URL = f"{REPO}/releases/latest/download/{EPUB_NAME}"
 # Links inside the site are relative to docs/ebook/, so they work locally and when published.
 BOOK_URL = "../book/"
 DECK_URL = "../"
+
+
+def epub_site_url() -> str:
+    """The EPUB's copy on GitHub Pages, next to the website edition (make book-publish). Pages
+    serves it as an e-book (application/epub+zip), where the release serves a generic file
+    to save, so phones get this link (ebook.js): it is the one they may offer to open in a
+    reader. Desktops keep EPUB_URL, whose downloads GitHub counts."""
+    return BOOK_URL + EPUB_NAME
 OG_IMAGE = "media/og-image.png"
 OG_SIZE = (1200, 627)
 

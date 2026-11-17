@@ -10,6 +10,8 @@ _ebook-check/, ignored by git):
 - whether the primary download button is on the phone's first screen (and above 640 px, the
   height left in LinkedIn's in-app browser);
 - the bytes a phone downloads on first load, and any sideways scrolling;
+- the download hint and EPUB link an iPhone, an Android phone, in-app browsers and a desktop
+  get (phones get the EPUB's copy on GitHub Pages, desktops the release);
 - that the title slide's short link redirects to the deck;
 - every link on the page, on the deck's title and Get the Book slides, and in the website
   edition's sidebar tools: local targets and #anchors must exist in docs/, external ones must
@@ -199,6 +201,7 @@ def check_links(where: str, base: str, hrefs: list[str]) -> None:
 def page_links() -> None:
     s = (DOCS / PAGE_FILE).read_text()
     hrefs = re.findall(r'<a [^>]*href="([^"]+)"', s)
+    hrefs += re.findall(r'<a [^>]*data-phone="([^"]+)"', s)  # the EPUB link phones get (ebook.js)
     print(f"landing page ({PAGE}): {len(hrefs)} links")
     check_links(PAGE_FILE, PUBLIC + PAGE, hrefs)
     srcs = re.findall(r'(?:src|srcset|href)="((?:\.\./)?(?:media/|ebook\.)[^" ,]+)', s)  # src= matches data-src=
@@ -376,6 +379,44 @@ def scroll_through(page) -> None:
     page.wait_for_timeout(300)
 
 
+# User agents for the download hints: each should show its own hint and give phones the EPUB's
+# copy on GitHub Pages; a desktop keeps the release link and shows none.
+AGENTS = {
+    "ios": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 "
+           "(KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+    "android": "Mozilla/5.0 (Linux; Android 15; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) "
+               "Chrome/141.0.0.0 Mobile Safari/537.36",
+    "inapp": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 "
+             "(KHTML, like Gecko) Mobile/15E148 [LinkedInApp]/9.31.1",
+    "inapp-android": "Mozilla/5.0 (Linux; Android 15; Pixel 8; wv) AppleWebKit/537.36 (KHTML, like "
+                     "Gecko) Version/4.0 Chrome/141.0.0.0 Mobile Safari/537.36 [LinkedInApp]",
+    "": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/141.0.0.0 Safari/537.36",
+}
+
+
+def phone_hints(url: str, browser) -> None:
+    for name, ua in AGENTS.items():
+        want = name.split("-")[0]
+        phone = bool(want)
+        ctx = browser.new_context(user_agent=ua, viewport={"width": 375, "height": 812} if phone
+                                  else {"width": 1440, "height": 900}, is_mobile=phone, has_touch=phone)
+        page = ctx.new_page()
+        page.goto(url, wait_until="domcontentloaded")
+        page.wait_for_timeout(300)
+        got = page.evaluate("""() => ({
+          shown: [...new Set([...document.querySelectorAll('.howto:not([hidden])')].map(p => p.dataset.for))],
+          hrefs: [...new Set([...document.querySelectorAll('a[data-phone]')].map(a => a.getAttribute('href')))] })""")
+        ctx.close()
+        label = name or "desktop"
+        print(f"download hint, {label}: {got['shown'] or 'none'}, EPUB link {got['hrefs']}")
+        if got["shown"] != ([want] if want else []):
+            fail(f"{label}: shows the download hints {got['shown']}, not {want or 'none'}")
+        from_pages = all(not h.startswith(RELEASE) for h in got["hrefs"])
+        if phone != from_pages:
+            fail(f"{label}: the EPUB link is {got['hrefs']}")
+
+
 def browse(base: str, out: Path) -> None:
     url = base + PAGE
     with sync_playwright() as p:
@@ -450,6 +491,7 @@ def browse(base: str, out: Path) -> None:
             fail("reduced motion still animates or loads video")
         page.screenshot(path=str(out / "phone-reduced-motion-full.png"), full_page=True)
         ctx.close()
+        phone_hints(url, browser)
         share_card(out, browser)
         browser.close()
 
