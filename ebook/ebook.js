@@ -11,17 +11,20 @@ const T = document.documentElement.lang.startsWith("es")
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const canWatch = "IntersectionObserver" in window;
 
-  // Phones: how to get the EPUB into a reading app, and the EPUB's copy on GitHub Pages, which
-  // is served as an e-book; the release link (kept on desktops, where GitHub counts it) is a
-  // generic file that phones save without offering a reader. In-app browsers (LinkedIn,
+  // Phones (iPads too): how to get the EPUB into a reading app, and the EPUB's copy on GitHub
+  // Pages, which is served as an e-book; the release link (kept on desktops, where GitHub counts
+  // it) is a generic file that phones save without offering a reader. In-app browsers (LinkedIn,
   // Instagram, Facebook, Android web views) often fail to download at all: say so first.
   const ua = navigator.userAgent;
-  const inApp = /LinkedInApp|FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|Snapchat|musical_ly|BytedanceWebview|; wv\)/i.test(ua);
+  const inApp = /LinkedInApp|FBAN|FBAV|FB_IAB|Instagram| Line\/|MicroMessenger|Snapchat|musical_ly|BytedanceWebview|; wv\)/i.test(ua);
   const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   const phone = inApp ? "inapp" : ios ? "ios" : /Android/i.test(ua) ? "android" : "";
   if (phone) {
     document.querySelectorAll(`.howto[data-for="${phone}"]`).forEach((el) => { el.hidden = false; });
-    document.querySelectorAll("a[data-phone]").forEach((a) => { a.href = a.dataset.phone; });
+    // In-app web views may not handle a file served to display: they keep the release link.
+    if (phone !== "inapp") {
+      document.querySelectorAll("a[data-phone]").forEach((a) => { a.href = a.dataset.phone; });
+    }
   }
 
   // Draw the loop and the fan of formats when they scroll into view (unless motion is off).

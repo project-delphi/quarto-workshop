@@ -215,7 +215,7 @@ quotes is no longer in the book.
   republishing the book, `cover` after changing its cover. It needs Google Chrome and ffmpeg.
 - `make ebook-check` serves `docs/` at `/quarto-workshop/` and checks the rendered page:
   screenshots at 375 × 812 and 1440 × 900, light and dark, and with reduced motion; the download
-  button on a phone's first screen; first-load weight; every link on the page, on the deck's
+  button on a phone's first screen; the hint and EPUB link each kind of phone gets; first-load weight; every link on the page, on the deck's
   title and 📖 Get the Book slides and in the website edition's sidebar; the contents' numbers;
   the share card and the JSON-LD. Run Lighthouse (mobile) against the same local server too.
 - The **Download the EPUB** buttons link to
@@ -226,6 +226,11 @@ quotes is no longer in the book.
   `gh release create`). A new release per edition keeps each edition's download count;
   replacing the file in an old release resets it. `latest` is the newest release in the
   repository, so any other release must carry the EPUB too.
+- On iPhones, iPads and Android phones, `ebook.js` points the buttons at the EPUB's copy on
+  GitHub Pages (`docs/book/`), which is served as `application/epub+zip`; the release serves a
+  generic file to save, which phones do not offer to open in a reader. So the release counts
+  desktop downloads only. In-app browsers keep the release link, and each phone sees a hint for
+  getting the file into a reader; the FAQ gives all three without JavaScript.
 - After publishing, check the share card with LinkedIn's
   [Post Inspector](https://www.linkedin.com/post-inspector/), which also refreshes LinkedIn's
   cached copy.

@@ -21,7 +21,7 @@ WORDS = {
         "download": "Download the EPUB", "read": "Read online, free", "how_inapp":
         "In LinkedIn’s, Instagram’s or another app’s browser, the download often fails. Open this "
         "page in Safari or Chrome first: tap ⋯ or ⋮, then Open in browser.",
-        "how_ios": "On an iPhone: once it has downloaded, open it (Safari: tap ⬇ beside the "
+        "how_ios": "On an iPhone or iPad: once it has downloaded, open it (Safari: tap ⬇ beside the "
         "address; Chrome: tap Open in… at the bottom). If Books does not open, tap Share and "
         "choose Books from the row of apps.",
         "how_android": "On Android: you need a reading app such as Google Play Books (free). Once "
@@ -41,7 +41,7 @@ WORDS = {
         "download": "Descarga el EPUB", "read": "Léelo en línea, gratis", "how_inapp":
         "En el navegador de LinkedIn, Instagram u otra app, la descarga suele fallar. Abre antes "
         "esta página en Safari o Chrome: toca ⋯ o ⋮ y elige Abrir en el navegador.",
-        "how_ios": "En un iPhone: cuando termine la descarga, ábrelo (Safari: toca ⬇ junto a la "
+        "how_ios": "En un iPhone o iPad: cuando termine la descarga, ábrelo (Safari: toca ⬇ junto a la "
         "dirección; Chrome: toca Abrir en… abajo). Si no se abre Libros, toca Compartir y elige "
         "Libros en la fila de apps.",
         "how_android": "En Android: necesitas una app de lectura, como Google Play Libros (gratis). "
@@ -112,8 +112,8 @@ def howto() -> str:
 
 
 def howto_faq() -> str:
-    """The FAQ answer: every phone's steps, as a Markdown list."""
-    return "\n".join(f"- {w('how_' + k)}" for k in HOWTO) + "\n"
+    """The FAQ answer: every phone's steps, escaped as the hints are."""
+    return "<ul>" + "".join(f"<li>{e(w('how_' + k))}</li>" for k in HOWTO) + "</ul>"
 
 
 

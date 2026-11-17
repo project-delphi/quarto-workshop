@@ -11,7 +11,7 @@ _ebook-check/, ignored by git):
   height left in LinkedIn's in-app browser);
 - the bytes a phone downloads on first load, and any sideways scrolling;
 - the download hint and EPUB link an iPhone, an Android phone, in-app browsers and a desktop
-  get (phones get the EPUB's copy on GitHub Pages, desktops the release);
+  get (phones get the EPUB's copy on GitHub Pages; in-app browsers and desktops the release);
 - that the title slide's short link redirects to the deck;
 - every link on the page, on the deck's title and Get the Book slides, and in the website
   edition's sidebar tools: local targets and #anchors must exist in docs/, external ones must
@@ -201,9 +201,12 @@ def check_links(where: str, base: str, hrefs: list[str]) -> None:
 def page_links() -> None:
     s = (DOCS / PAGE_FILE).read_text()
     hrefs = re.findall(r'<a [^>]*href="([^"]+)"', s)
-    hrefs += re.findall(r'<a [^>]*data-phone="([^"]+)"', s)  # the EPUB link phones get (ebook.js)
     print(f"landing page ({PAGE}): {len(hrefs)} links")
     check_links(PAGE_FILE, PUBLIC + PAGE, hrefs)
+    phone = re.findall(r'<a [^>]*data-phone="([^"]+)"', s)  # the EPUB link phones get (ebook.js)
+    if not phone:
+        fail(f"{PAGE_FILE}: no download button has a data-phone link")
+    check_links(PAGE_FILE + " (phones)", PUBLIC + PAGE, phone)
     srcs = re.findall(r'(?:src|srcset|href)="((?:\.\./)?(?:media/|ebook\.)[^" ,]+)', s)  # src= matches data-src=
     srcs += re.findall(r'((?:\.\./)?media/[^ ,"]+) \d+w', s)  # every candidate in a srcset
     for p in set(srcs):
@@ -380,7 +383,7 @@ def scroll_through(page) -> None:
 
 
 # User agents for the download hints: each should show its own hint and give phones the EPUB's
-# copy on GitHub Pages; a desktop keeps the release link and shows none.
+# copy on GitHub Pages; in-app browsers keep the release link, and a desktop shows no hint.
 AGENTS = {
     "ios": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 "
            "(KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
@@ -412,8 +415,9 @@ def phone_hints(url: str, browser) -> None:
         print(f"download hint, {label}: {got['shown'] or 'none'}, EPUB link {got['hrefs']}")
         if got["shown"] != ([want] if want else []):
             fail(f"{label}: shows the download hints {got['shown']}, not {want or 'none'}")
-        from_pages = all(not h.startswith(RELEASE) for h in got["hrefs"])
-        if phone != from_pages:
+        # Phones get the Pages copy; in-app browsers and desktops keep the release.
+        from_pages = bool(got["hrefs"]) and all(not h.startswith(RELEASE) for h in got["hrefs"])
+        if not got["hrefs"] or from_pages != (want in ("ios", "android")):
             fail(f"{label}: the EPUB link is {got['hrefs']}")
 
 

@@ -293,7 +293,8 @@ post, so, unlike the decks, check it at 375 × 812 as well as 1440 × 900. Keep 
 - `make ebook-media` (`scripts/ebook_media.py`) makes `ebook/media/` and `ebook/_head.html`;
   rerun `head` after changing the book's title, description or date, `inside` after
   republishing the book, and `cover` after changing the cover. Do not edit their outputs.
-- The download buttons link to the EPUB in the latest GitHub release. Only the author creates
+- The download buttons link to the EPUB in the latest GitHub release (on phones, `ebook.js` swaps in
+  its copy on GitHub Pages, served as an e-book). Only the author creates
   releases (`make book-release TAG=…`); never run it, or `gh release`, to test.
 - Check with `make ebook-check` and Lighthouse (mobile) after a render, and report the results.
 
