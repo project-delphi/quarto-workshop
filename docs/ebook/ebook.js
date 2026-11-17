@@ -1,5 +1,5 @@
 // The e-book landing page's only script (ebook/index.qmd): drawing on scroll, the clips,
-// the sticky bar on phones, copy-link, and a hint for LinkedIn's in-app browser. The page
+// the sticky bar on phones, copy-link, and phones' download hints. The page
 // works without it: everything is drawn, the clips show their stills, the buttons are links.
 // The page's words in its language (<html lang>): English, or the Spanish page's (ebook/es/).
 const T = document.documentElement.lang.startsWith("es")
@@ -11,9 +11,20 @@ const T = document.documentElement.lang.startsWith("es")
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const canWatch = "IntersectionObserver" in window;
 
-  // LinkedIn's in-app browser may not download files: say what to do instead.
-  if (/LinkedInApp/i.test(navigator.userAgent)) {
-    document.querySelectorAll(".inapp").forEach((el) => { el.hidden = false; });
+  // Phones (iPads too): how to get the EPUB into a reading app, and the EPUB's copy on GitHub
+  // Pages, which is served as an e-book; the release link (kept on desktops, where GitHub counts
+  // it) is a generic file that phones save without offering a reader. In-app browsers (LinkedIn,
+  // Instagram, Facebook, Android web views) often fail to download at all: say so first.
+  const ua = navigator.userAgent;
+  const inApp = /LinkedInApp|FBAN|FBAV|FB_IAB|Instagram| Line\/|MicroMessenger|Snapchat|musical_ly|BytedanceWebview|; wv\)/i.test(ua);
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const phone = inApp ? "inapp" : ios ? "ios" : /Android/i.test(ua) ? "android" : "";
+  if (phone) {
+    document.querySelectorAll(`.howto[data-for="${phone}"]`).forEach((el) => { el.hidden = false; });
+    // In-app web views may not handle a file served to display: they keep the release link.
+    if (phone !== "inapp") {
+      document.querySelectorAll("a[data-phone]").forEach((a) => { a.href = a.dataset.phone; });
+    }
   }
 
   // Draw the loop and the fan of formats when they scroll into view (unless motion is off).

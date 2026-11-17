@@ -18,9 +18,15 @@ e = lambda s: html.escape(str(s), quote=True)  # noqa: E731
 # The page's own words, by S.LANG ("es" for ebook/es/index.qmd).
 WORDS = {
     "en": {
-        "download": "Download the EPUB", "read": "Read online, free", "inapp":
-        "In LinkedIn’s browser? If the download does not start, open this page in your phone’s "
-        "browser from LinkedIn’s menu.", "eyebrow": "A practitioner’s guide",
+        "download": "Download the EPUB", "read": "Read online, free", "how_inapp":
+        "In LinkedIn’s, Instagram’s or another app’s browser, the download often fails. Open this "
+        "page in Safari or Chrome first: tap ⋯ or ⋮, then Open in browser.",
+        "how_ios": "On an iPhone or iPad: once it has downloaded, open it (Safari: tap ⬇ beside the "
+        "address; Chrome: tap Open in… at the bottom). If Books does not open, tap Share and "
+        "choose Books from the row of apps.",
+        "how_android": "On Android: you need a reading app such as Google Play Books (free). Once "
+        "it has downloaded, tap Open. If the phone cannot open it, find the book in Files → "
+        "Downloads, long-press it, then Open with → Play Books.", "eyebrow": "A practitioner’s guide",
         "byline": "Free · by {author} · PhD, Oxford", "editions": "Editions", "web": "Web",
         "nosignup": "no sign-up", "scan": "Scan to open this page",
         "loop": [("Prompt", "you ask"), ("Check", "you, always"), ("Publish", "Quarto")],
@@ -32,9 +38,15 @@ WORDS = {
         "sticky_read": "Read online", "switch": "Language",
     },
     "es": {
-        "download": "Descarga el EPUB", "read": "Léelo en línea, gratis", "inapp":
-        "¿Estás en el navegador de LinkedIn? Si la descarga no empieza, abre esta página en el "
-        "navegador de tu teléfono desde el menú de LinkedIn.", "eyebrow": "Una guía práctica",
+        "download": "Descarga el EPUB", "read": "Léelo en línea, gratis", "how_inapp":
+        "En el navegador de LinkedIn, Instagram u otra app, la descarga suele fallar. Abre antes "
+        "esta página en Safari o Chrome: toca ⋯ o ⋮ y elige Abrir en el navegador.",
+        "how_ios": "En un iPhone o iPad: cuando termine la descarga, ábrelo (Safari: toca ⬇ junto a la "
+        "dirección; Chrome: toca Abrir en… abajo). Si no se abre Libros, toca Compartir y elige "
+        "Libros en la fila de apps.",
+        "how_android": "En Android: necesitas una app de lectura, como Google Play Libros (gratis). "
+        "Cuando termine la descarga, toca Abrir. Si el teléfono no puede abrirlo, busca el libro "
+        "en Archivos → Descargas, mantenlo pulsado y elige Abrir con → Play Libros.", "eyebrow": "Una guía práctica",
         "byline": "Gratis · de {author} · doctorado, Oxford", "editions": "Ediciones", "web": "Web",
         "nosignup": "sin registro", "scan": "Escanea para abrir esta página",
         "loop": [("Pide", "tú pides"), ("Revisa", "tú, siempre"), ("Publica", "Quarto")],
@@ -85,13 +97,23 @@ def size(rel: str) -> tuple[int, int]:
 
 def cta_buttons(size_text: str, where: str) -> str:
     return f"""<div class="ctas">
-  <a class="btn primary" href="{S.EPUB_URL}" data-where="{where}">{ICON["down"]}<span>{w("download")}</span><span class="size">{size_text}</span></a>
+  <a class="btn primary" href="{S.EPUB_URL}" data-phone="{S.epub_site_url()}" data-where="{where}">{ICON["down"]}<span>{w("download")}</span><span class="size">{size_text}</span></a>
   <a class="btn secondary" href="{S.BOOK_URL}">{w("read")}{ICON["right"]}</a>
 </div>"""
 
 
-def inapp() -> str:
-    return f'<p class="inapp" hidden>{w("inapp")}</p>'
+HOWTO = ("inapp", "ios", "android")
+
+
+def howto() -> str:
+    """How to get the EPUB into a reader, for the phone or in-app browser ebook.js detects;
+    hidden until then. The FAQ's "open it on my phone" answer shows all three without it."""
+    return "".join(f'<p class="howto" data-for="{k}" hidden>{e(w("how_" + k))}</p>' for k in HOWTO)
+
+
+def howto_faq() -> str:
+    """The FAQ answer: every phone's steps, escaped as the hints are."""
+    return "<ul>" + "".join(f"<li>{e(w('how_' + k))}</li>" for k in HOWTO) + "</ul>"
 
 
 
@@ -119,7 +141,7 @@ def hero(promise: str, size_text: str) -> str:
     <p class="promise">{e(promise)}</p>
     <p class="byline">{e(w("byline").format(author=m["author"]))}</p>
     {cta_buttons(size_text, "hero")}
-    {inapp()}
+    {howto()}
     <ul class="badges" aria-label="{w("editions")}"><li>EPUB</li><li>{w("web")}</li><li class="plain">{w("nosignup")}</li></ul>
     {hero_qr()}
   </div>
@@ -359,6 +381,6 @@ def footer() -> str:
 
 def sticky(size_text: str) -> str:
     return f"""<div class="sticky" hidden>
-  <a class="btn primary" href="{S.EPUB_URL}" data-where="sticky">{ICON["down"]}<span>{w("sticky_download")}</span><span class="size">{size_text}</span></a>
+  <a class="btn primary" href="{S.EPUB_URL}" data-phone="{S.epub_site_url()}" data-where="sticky">{ICON["down"]}<span>{w("sticky_download")}</span><span class="size">{size_text}</span></a>
   <a class="btn secondary" href="{S.BOOK_URL}">{w("sticky_read")}</a>
 </div>"""
