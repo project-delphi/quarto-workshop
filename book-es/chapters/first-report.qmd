@@ -4,6 +4,7 @@
 #| label: first-setup
 import csv
 import difflib
+import fnmatch
 import hashlib
 import re
 from pathlib import Path
@@ -28,11 +29,22 @@ n_free = sum(r["admission"].startswith("Free") for r in rows)
 tate = visits["Tate Modern"]
 # What `ls` lists in a fresh copy: the starter's files, less what .gitignore leaves out (a
 # local test render of the starter would otherwise add report.html).
-ignored = {l.strip("/") for l in (START / ".gitignore").read_text().split()}
-names = {p.name for p in START.iterdir() if not p.name.startswith(".") and p.name not in ignored}
+ignore = [l.strip("/") for l in (START / ".gitignore").read_text().split()]
+
+
+def kept(p: Path) -> bool:
+    """Whether Git records this path: no part of it matches a .gitignore pattern."""
+    return not any(fnmatch.fnmatch(part, pat) for part in p.relative_to(START).parts for pat in ignore)
+
+
+names = {p.name for p in START.iterdir() if not p.name.startswith(".") and kept(p)}
 text_holds(names == {"report.qmd", "data", "AGENTS.md", "README.md", "pyproject.toml", "uv.lock"},
            "the table of the starter's files")
 n_files = WORD[len(names)]
+# The first commit's summary in the transcript: the files Git records and their lines.
+tracked = [p for p in START.rglob("*") if p.is_file() and kept(p)]
+text_holds((len(tracked), sum(len(p.read_text().splitlines()) for p in tracked)) == (7, 916),
+           "the first commit's 7 files changed, 916 insertions(+)")
 
 
 def code(value) -> Markdown:
@@ -276,7 +288,7 @@ Output created: report.html
 
 Cuando un renderizado funciona, su última línea es `Output created: report.html`. Las líneas
 después de `pandoc` son su configuración, y la advertencia de `IPKernelApp` es inofensiva
-(@sec-step-test). Tu versión de Python y los tiempos pueden ser distintos.
+(@sec-step-test). Tu versión de Python, la cantidad de paquetes y los tiempos pueden ser distintos.
 
 Abre la página. En la terminal, ejecuta `open report.html` (Mac), `xdg-open report.html`
 (Linux), o `explorer.exe .` y luego haz doble clic en `report.html` (Windows, en Ubuntu). El
