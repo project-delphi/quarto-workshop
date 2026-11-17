@@ -22,8 +22,9 @@ WORDS = {
         "In LinkedIn’s, Instagram’s or another app’s browser, the download often fails. Open this "
         "page in Safari or Chrome first: tap ⋯ or ⋮, then Open in browser.",
         "how_ios": "On an iPhone or iPad: once it has downloaded, open it (Safari: tap ⬇ beside the "
-        "address; Chrome: tap Open in… at the bottom). If Books does not open, tap Share ⬆, swipe "
-        "the row of app icons (below the people) to its end, tap More, then Books.",
+        "address; Chrome: tap Open in… at the bottom). If Books does not open, use the share sheet "
+        "(Safari: tap Share first): tap Books in the row of apps or, if it is not there, swipe "
+        "that row to its end and tap More.",
         "how_android": "On Android: you need a reading app such as Google Play Books (free). Once "
         "it has downloaded, tap Open. If the phone cannot open it, find the book in Files → "
         "Downloads, long-press it, then Open with → Play Books.", "eyebrow": "A practitioner’s guide",
@@ -42,8 +43,9 @@ WORDS = {
         "En el navegador de LinkedIn, Instagram u otra app, la descarga suele fallar. Abre antes "
         "esta página en Safari o Chrome: toca ⋯ o ⋮ y elige Abrir en el navegador.",
         "how_ios": "En un iPhone o iPad: cuando termine la descarga, ábrelo (Safari: toca ⬇ junto a la "
-        "dirección; Chrome: toca Abrir en… abajo). Si no se abre Libros, toca Compartir ⬆, "
-        "desliza la fila de iconos de apps (bajo las personas) hasta el final, toca Más y luego Libros.",
+        "dirección; Chrome: toca Abrir en… abajo). Si no se abre Libros, usa la hoja de compartir "
+        "(Safari: toca antes Compartir): toca Libros en la fila de apps o, si no está, desliza esa "
+        "fila hasta el final y toca Más.",
         "how_android": "En Android: necesitas una app de lectura, como Google Play Libros (gratis). "
         "Cuando termine la descarga, toca Abrir. Si el teléfono no puede abrirlo, busca el libro "
         "en Archivos → Descargas, mantenlo pulsado y elige Abrir con → Play Libros.", "eyebrow": "Una guía práctica",
