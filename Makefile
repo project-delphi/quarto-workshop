@@ -154,7 +154,8 @@ book-es-publish:
 book-store: $(EPUBCHECK_JAR)
 	cd $(BOOK) && uv run python scripts/store_edition.py ../docs/book/prompt-check-publish.epub _book/store/en
 	cd $(BOOK) && uv run python scripts/store_edition.py ../docs/book/es/prompt-check-publish-es.epub _book/store/es
-	for f in $(BOOK)/_book/store/*/*-store.epub; do java -jar $(EPUBCHECK_JAR) --failonwarnings $$f; done
+	java -jar $(EPUBCHECK_JAR) --failonwarnings $(BOOK)/_book/store/en/prompt-check-publish-store.epub
+	java -jar $(EPUBCHECK_JAR) --failonwarnings $(BOOK)/_book/store/es/prompt-check-publish-es-store.epub
 
 ## book-release: attach the committed EPUB in docs/book/ to a new GitHub release, which the
 ## landing page's download buttons link to (releases/latest/download/). Run by the author, after
