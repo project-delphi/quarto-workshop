@@ -148,6 +148,7 @@ Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [T
 | `TROUBLESHOOTING.md` | Common gotchas: first publish, buffer size, preview locks, Typst sizing |
 | `examples/london/` | Finished Part 1 project: cited London data, guide, dashboard, audience versions, ⭐ white paper, website |
 | `examples/water/` | Finished Part 2 project: municipal water dataset, build pipeline, analysis, outputs and ⭐ white paper |
+| `starters/first-report/` | The book's Chapter 4 starter: five cited ALVA rows and a report with one deliberately wrong typed number, which readers copy to `~/first-report`, render, check, change and undo by hand |
 | `checkpoints/` | The state at the end of each hands-on block, with catch-up steps in each README (no rendered output; water ones need `examples/water/data/`) |
 | `assets/` | Hub and publishing diagrams (SVG); `pelicans/` holds the 🐦 slide's images, with sources and costs in its README; `threejs-visits.png` is the ✨ slide's dry run; `deck-3d/` builds the three.js bundle for the 3-D slides (Part 1's London map, Part 2's cluster cloud and relief, and five optional meta-feature slides); `deck-qr.svg` and `ebook-qr.svg` are the title slide's QR code to the published deck and the 📖 Get the Book slide's to the e-book's page, written by `uv run --with segno python scripts/deck_qr.py`; `ebook-cover.webp` is that slide's cover, written by `make ebook-media` |
 | `book/` | The book edition (EPUB and HTML) of the workshop, built with `make book`; see `book/README.md` |
@@ -162,7 +163,7 @@ Guides: [Instructor Runbook](INSTRUCTOR.md) · [Cheatsheet](CHEATSHEET.md) · [T
 | `environment.yml`, `environment-r.yml` | Python (and optional R) environment recipes |
 | `docs/` | Committed rendered output (the decks, and the book in `docs/book/`); GitHub Pages serves `main:/docs` |
 
-`examples/`, `checkpoints/` and `slides/` stay outside `project.render`; the examples and
+`examples/`, `checkpoints/`, `starters/` and `slides/` stay outside `project.render`; the examples and
 checkpoints are rendered separately when they change.
 
 ### Build and preview

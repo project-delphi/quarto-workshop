@@ -1,0 +1,913 @@
+# Un primer informe, a mano {#sec-first-report}
+
+```{python}
+#| label: first-setup
+import csv
+import difflib
+import hashlib
+import re
+from pathlib import Path
+
+from IPython.display import Markdown
+
+from scripts.prose import number_words, text_holds
+
+# The starter readers copy in this chapter (cells run from book/). Every number in the prose
+# is read from its data file, and the one typed figure from its report.qmd.
+START = Path("../starters/first-report")
+CSV = START / "data" / "visits.csv"
+csv_text = CSV.read_text()
+with open(CSV, newline="") as f:
+    rows = list(csv.DictReader(f))
+visits = {r["attraction"]: int(r["visits_2025"]) for r in rows}
+WORD = number_words()
+n_rows, n_cols = WORD[len(rows)], WORD[len(rows[0])]
+total = sum(visits.values())
+top = max(visits, key=visits.get)
+n_free = sum(r["admission"].startswith("Free") for r in rows)
+tate = visits["Tate Modern"]
+# What `ls` lists in a fresh copy: the starter's files, less what .gitignore leaves out (a
+# local test render of the starter would otherwise add report.html).
+ignored = {l.strip("/") for l in (START / ".gitignore").read_text().split()}
+names = {p.name for p in START.iterdir() if not p.name.startswith(".") and p.name not in ignored}
+text_holds(names == {"report.qmd", "data", "AGENTS.md", "README.md", "pyproject.toml", "uv.lock"},
+           "the table of the starter's files")
+n_files = WORD[len(names)]
+
+
+def code(value) -> Markdown:
+    """A value set as code in a sentence, for something the reader types or reads on screen."""
+    return Markdown(f"`{value}`")
+
+
+# The planted mistake: the one figure typed into the report's prose.
+report = (START / "report.qmd").read_text()
+typed = re.search(r"Tate Modern, on the South Bank, had ([0-9,]+) visits\.", report)
+text_holds(typed is not None, "the starter's typed sentence about Tate Modern")
+planted = int(typed.group(1).replace(",", ""))
+a, b = str(planted), str(tate)
+diff_at = [i for i in range(len(a)) if a[i] != b[i]] if len(a) == len(b) else []
+# The prose says two neighbouring digits are swapped.
+text_holds(len(diff_at) == 2 and diff_at[1] == diff_at[0] + 1
+           and (a[diff_at[0]], a[diff_at[1]]) == (b[diff_at[1]], b[diff_at[0]]),
+           "the planted figure (two neighbouring digits swapped)")
+gap = abs(tate - planted)
+# The prose says it is the only typed number: outside the front matter, the cell and the
+# inline code, the report's text holds no figures but the year and the planted one.
+body = report.split("---", 2)[2]
+body = re.sub(r"```\{python\}.*?```", "", body, flags=re.S)
+body = re.sub(r"`\{python\}[^`]*`", "", body)
+text_holds(set(re.findall(r"[0-9][0-9,]*", body)) == {"2025", typed.group(1)},
+           "the report's only typed number")
+# Its four values (a total, a name, a count and the free count) are inline code.
+text_holds(len(re.findall(r"(?<!`)`\{python\}", report)) == 4, "the report's four pieces of inline code")
+
+# The reader's trial edit: Tate Modern's first digit, raised by one.
+BUMP = 10 ** (len(b) - 1)
+trial = tate + BUMP
+text_holds(str(trial)[1:] == b[1:] and len(str(trial)) == len(b), "the first-digit edit")
+# The prediction: the most visited and the free count stay; the total rises by BUMP.
+text_holds(top != "Tate Modern" and trial < visits[top], "the unchanged most visited sight")
+total_after = total + BUMP
+first_old, first_new = b[0], str(trial)[0]
+# nano opens on the header line: the down arrow reaches the Tate Modern row this many times.
+csv_lines = csv_text.splitlines()
+downs = WORD[next(i for i, line in enumerate(csv_lines) if line.startswith("Tate Modern,"))]
+# `cut -d,` splits at every comma, so the prose's two-column view is right only while the
+# first two columns hold none.
+text_holds(all("," not in r["attraction"] for r in rows), "the cut command's safe columns")
+
+
+def screen(lines: list[str]) -> None:
+    """Print lines as a terminal screen (the cell is `output: asis`, inside ::: transcript),
+    in a fence longer than any run of backticks inside them."""
+    ticks = "`" * max(3, 1 + max((len(m) for l in lines for m in re.findall("`+", l)), default=0))
+    print(f"{ticks}text\n" + "\n".join(lines) + f"\n{ticks}")
+
+
+def git_hunks(old: list[str], new: list[str]) -> list[str]:
+    """The hunks `git diff` prints: difflib's, with Git's default context after each `@@`
+    (the last line above the hunk that starts with a letter, `_` or `$`)."""
+    out = []
+    for line in list(difflib.unified_diff(old, new, lineterm=""))[2:]:
+        if line.startswith("@@"):
+            start = int(re.match(r"@@ -(\d+)", line).group(1))
+            above = (l for l in reversed(old[:start - 1]) if re.match(r"[A-Za-z_$]", l))
+            line = f"{line} {next(above, '')}".rstrip()
+        out.append(line)
+    return out
+
+
+def short(line: str, width: int = 40) -> str:
+    """Cut a long line for a phone's width, marking the cut with an ellipsis."""
+    return line if len(line) <= width else line[:width] + "…"
+
+
+def blob(text: str) -> str:
+    """Git's short name for a file's contents (its blob hash), as `git diff` prints it."""
+    data = text.encode()
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()[:7]
+
+
+changed_text = csv_text.replace(f"Tate Modern,{tate},", f"Tate Modern,{trial},")
+text_holds(changed_text != csv_text, "the Tate Modern row of the data")
+```
+
+```{python}
+#| label: first-show-file
+#| include: false
+def show_file(path: Path, lang: str = "markdown") -> str:
+    """A file's text, as it is, in a fence longer than any run of backticks inside it."""
+    text = path.read_text()
+    ticks = "`" * max(4, 1 + max(map(len, re.findall("`+", text)), default=0))
+    return f"{ticks}{lang}\n{text}{ticks}"
+```
+
+En algún lugar del informe de este capítulo hay un número equivocado. El informe se renderiza
+sin un solo error, se lee perfectamente bien y cita su fuente, y una de sus cifras está desviada
+en `{python} f"{gap:,}"` visitas. Encontrarla no requiere programar, solo un hábito: poner cada
+número al lado de los datos de los que salió.
+
+Ese hábito es el *Revisa* del título de este libro, y este capítulo es donde lo practicas con tus
+propias manos. Escribes tú cada comando, en la terminal, sobre un informe real: lo copias, lo
+renderizas, lo revisas, lo registras con Git, lo cambias y deshaces el cambio, lo rompes de tres
+maneras a propósito y lees los errores. Solo al final el agente hace una edición, y tú revisas su
+trabajo con los mismos comandos que acabas de aprender. Calcula unos 45 minutos; menos si la
+terminal ya te resulta familiar.
+
+::: opener
+- Copiar un proyecto, entrar en él y renderizarlo desde la terminal.
+- Revisar cada número de un informe contra sus datos, y rastrear uno equivocado hasta donde se
+  escribió a mano.
+- Registrar, comparar y deshacer cambios con `git status`, `git diff`, `git restore` y `git commit`.
+- Leer un error desde su primera línea, y revisar el cambio de un agente antes de hacer commit.
+
+Partes de
+: el final del @sec-setup: las herramientas instaladas y `~/quarto-workshop` clonado en el paso 5.
+
+Construyes
+: `~/first-report`, un informe de una página en el que cada número coincide con sus datos, con
+  un historial de Git de dos commits.
+
+Punto de control
+: no hace falta ninguno: el punto de partida es el punto de control. Si te pierdes, cambia el
+  nombre de tu copia con `mv` (*move*, mover, que también cambia nombres),
+  `mv ~/first-report ~/first-report-old`, y vuelve a copiar el punto de partida (@sec-first-files).
+:::
+
+## Consigue los archivos {#sec-first-files}
+
+El paso 5 del @sec-setup clonó los archivos del taller en `~/quarto-workshop`. Entre ellos hay un
+informe pequeño, `starters/first-report`. Cópialo afuera, para que el original quede como estaba.
+Escríbelo con ayuda de **completar con Tab**, que ahorra tipeo y atrapa errores: escribe
+`cp -R ~/quarto-workshop/st` y presiona Tab, y la terminal termina el nombre, `starters/`. Cuando
+encajan varios nombres, presiona Tab otra vez para verlos. Cuando Tab no hace nada en absoluto, ahí
+no existe ningún nombre que empiece así, y conviene saberlo antes de presionar Enter. En la
+terminal, en cualquier carpeta:
+
+```bash
+cp -R ~/quarto-workshop/starters/first-report ~/first-report
+```
+
+`cp` copia, y `-R` (*recursive*, recursivo) copia una carpeta con todo lo que tiene adentro. No
+imprime nada. Muchos comandos funcionan así: `cp`, `cd` y, más adelante, `git add` no dicen nada
+cuando funcionan, y solo hablan cuando algo sale mal. En la terminal, el silencio es éxito.
+
+::: pitfall
+Si `cp` dice `No such file or directory`, tu copia del taller es más vieja que este capítulo:
+`cd ~/quarto-workshop`, luego `git pull`, y luego ejecuta otra vez la línea de `cp`.
+:::
+
+Ahora entra en la copia y mira alrededor. En la terminal:
+
+```bash
+cd ~/first-report
+pwd
+ls
+```
+
+`pwd` imprime la carpeta en la que estás, que termina en `first-report` (`/home/ana/first-report`
+en Linux, `/Users/ana/first-report` en una Mac, con tu propio nombre). `ls` enumera
+`{python} n_files` nombres, en un orden que depende de tu sistema:
+
+| Nombre | Contiene |
+|---|---|
+| `report.qmd` | la fuente del informe: la configuración, una celda de código y sus oraciones |
+| `data/` | `visits.csv`, los datos que lee el informe |
+| `AGENTS.md` | las reglas del proyecto para el agente (@sec-agents-md) |
+| `README.md` | qué es la carpeta, en unas pocas líneas |
+| `pyproject.toml`, `uv.lock` | los paquetes de Python que necesita el informe, con versiones exactas |
+
+: Lo que contiene el punto de partida. {#tbl-first-files}
+
+::: tryit
+Si todavía no lo hiciste, copia el punto de partida y entra en él con `cd ~/first-report`.
+
+::: done
+`pwd` imprime una ruta que termina en `first-report`, y `ls` enumera `report.qmd` y `data`.
+:::
+:::
+
+### Un nombre con un espacio {#a-name-with-a-space .unnumbered}
+
+La terminal parte lo que escribes en cada espacio, así que el nombre de una carpeta con un espacio
+necesita cuidado. Pruébalo una vez, desde tu carpeta personal. En la terminal:
+
+```bash
+cd ~
+mkdir "my reports"
+cd my reports
+```
+
+`cd` se queja, con palabras que dependen de tu shell:
+
+::: transcript
+```text
+bash: cd: too many arguments            (Ubuntu)
+cd: string not in pwd: my               (Mac)
+```
+:::
+
+`cd` recibió dos nombres, `my` y `reports`. Mantén el nombre de una pieza con comillas,
+`cd "my reports"`, o con una barra invertida antes del espacio, `cd my\ reports`. Completar con
+Tab escribe la barra invertida por ti: escribe `cd my` y presiona Tab. Luego ordena y vuelve:
+
+```bash
+cd ~
+rmdir "my reports"
+cd ~/first-report
+```
+
+Las carpetas de este libro no tienen espacios en el nombre, y las tuyas tampoco necesitan
+tenerlos: un guion, como en `first-report`, hace el mismo trabajo.
+
+## Renderízalo tú {#sec-first-render}
+
+En la terminal, en `~/first-report`:
+
+```bash
+uv run quarto render report.qmd
+```
+
+`uv run` ejecuta un comando en el propio entorno de Python del proyecto (@sec-reproducible;
+la @sec-environments tiene más). La primera vez, construye ese entorno a partir de `uv.lock`, lo que
+tarda desde unos segundos hasta un minuto, y puede imprimir antes algunas líneas `Downloading`.
+Luego Quarto renderiza, e imprime bastante (recortado aquí donde se marca …):
+
+::: transcript
+```text
+Using CPython 3.12.13
+Creating virtual environment at: .venv
+Installed 39 packages in 301ms
+
+Starting python3 kernel...[IPKernelApp] WARNING | …
+Done
+
+Executing 'report.quarto_ipynb'
+  Cell 1/1: ''...Done
+
+pandoc
+  to: html
+  output-file: report.html
+  …
+Output created: report.html
+```
+:::
+
+Cuando un renderizado funciona, su última línea es `Output created: report.html`. Las líneas
+después de `pandoc` son su configuración, y la advertencia de `IPKernelApp` es inofensiva
+(@sec-step-test). Tu versión de Python y los tiempos pueden ser distintos.
+
+Abre la página. En la terminal, ejecuta `open report.html` (Mac), `xdg-open report.html`
+(Linux), o `explorer.exe .` y luego haz doble clic en `report.html` (Windows, en Ubuntu). El
+navegador muestra:
+
+> **Five London Sights**
+>
+> Five of London's best-known sights had `{python} f"{total:,}"` visits between them in
+> 2025. The most visited was the `{python} top`, with `{python} f"{visits[top]:,}"`, and
+> `{python} n_free` of the five are free to enter.
+>
+> Tate Modern, on the South Bank, had `{python} f"{planted:,}"` visits.
+>
+> Source: ALVA, "Visits made in 2025 to visitor attractions in membership with ALVA" (only
+> ALVA member attractions are counted).
+
+(Es decir: cinco de las atracciones más conocidas de Londres sumaron ese total de visitas en 2025;
+la más visitada fue esa, con esas visitas, y esa cantidad de las cinco tiene entrada gratuita.
+Tate Modern, en la orilla sur del Támesis, tuvo esas visitas. La fuente es la tabla de visitas de
+2025 de ALVA, que cuenta solo las atracciones miembro de ALVA.)
+
+Ahora abre la carpeta misma: `open .` (Mac), `xdg-open .` (Linux) o `explorer.exe .` (Windows,
+en Ubuntu), donde `.` significa "esta carpeta". El explorador de archivos muestra los mismos
+archivos que `ls`, más los nuevos que hizo el renderizado: `report.html` y `report_files/`. La
+terminal y el explorador de archivos son dos vistas de una misma carpeta.
+
+::: tryit
+Renderiza el informe y abre `report.html`.
+
+::: done
+el renderizado termina con `Output created: report.html`, y la página muestra el total de las
+cinco atracciones.
+:::
+:::
+
+## Revisa cada número contra los datos {#sec-first-check}
+
+El renderizado funcionó. Eso demuestra que el código se ejecutó, no que el informe esté bien. Mira
+los datos. En la terminal, en `~/first-report`:
+
+```bash
+cat data/visits.csv
+```
+
+`cat` imprime un archivo. Un CSV es una tabla en texto plano, con comas entre las columnas. Este
+tiene una primera línea que nombra sus `{python} n_cols` columnas, y luego `{python} n_rows`
+filas, una por atracción. Cada fila lleva su `source`, su `url` y su fecha `retrieved`, así que
+las líneas son largas y se ajustan. Pide solo las dos primeras columnas:
+
+```bash
+cut -d, -f1,2 data/visits.csv
+```
+
+`cut` conserva algunas columnas de cada línea: `-d,` dice que las columnas están separadas por
+comas, y `-f1,2` conserva la primera y la segunda. Corta en cada coma, incluso en una que esté
+entre comillas, así que aquí es seguro solo porque las dos primeras columnas no tienen comas.
+
+::: transcript
+```{python}
+#| output: asis
+screen([",".join(line.split(",")[:2]) for line in csv_lines])
+```
+:::
+
+::: think
+Pon la página al lado de esta lista. ¿Cuál de los números de la página no coincide con una fila?
+(El total es la suma de las cinco; una calculadora lo confirma, pero no hace falta.)
+
+El de Tate Modern. La página dice `{python} f"{planted:,}"`; su fila dice `{python} tate`: dos
+dígitos intercambiados. Nada te avisó, porque Quarto renderizó la oración fielmente: para Quarto
+son solo palabras. Para corregirlo, encuentra de dónde salió ese número.
+:::
+
+La fuente del informe dice de dónde sale cada número. En la terminal:
+
+```bash
+cat report.qmd
+```
+
+::: transcript
+```{python}
+#| output: asis
+print(show_file(START / "report.qmd", "text"))
+```
+:::
+
+Conociste estas partes en la @sec-what-quarto: la configuración entre las líneas `---`, una celda
+de código que lee `data/visits.csv` y calcula `total`, `top` y `free`, y el código en línea, las
+piezas `` `{{python}} …` ``, que Quarto reemplaza por valores calculados. El @sec-compute explica
+cada línea. Por ahora, fíjate en qué se calcula y qué no. Todos los demás números de la página
+son código en línea que lee los datos; la oración de Tate Modern se escribió a mano.
+
+::: why
+Un número escrito a mano es una copia, hecha una vez por una persona, y después nada la conecta
+con los datos. Los dígitos intercambiados son el desliz clásico al copiar, pero el problema de
+fondo es lo que pasa después: cuando cambian los datos, la copia se queda como estaba. Así es como
+un informe se desactualiza (@sec-drift), y la @sec-first-change te deja verlo ocurrir.
+:::
+
+::: tryit
+Revisa también el conteo de entradas gratuitas: `cut -d, -f1,3 data/visits.csv` muestra el
+`admission` de cada atracción.
+
+::: done
+contaste `{python} n_free` filas que empiezan con "Free", como dice la página, y puedes nombrar el
+único número que se escribió a mano en lugar de calcularse.
+:::
+:::
+
+## Empieza un historial {#sec-first-git}
+
+Antes de cambiar nada, registra el informe tal como está, para que siempre puedas volver a él.
+Git, que instalaste en el @sec-setup, hace esto (@sec-reproducible). En la terminal, en
+`~/first-report`:
+
+```bash
+git init -b main
+```
+
+::: transcript
+```text
+Initialized empty Git repository in /home/ana/first-report/.git/
+```
+:::
+
+La carpeta ahora es un *repositorio*: tiene una carpeta oculta `.git` donde Git guarda el
+historial. `-b main` le pone a la primera *rama* del repositorio, su línea de historial, el nombre
+`main`, como hace GitHub. (Esto necesita Git 2.28 o más reciente; `git --version` muestra el tuyo,
+y la preparación del @sec-setup instala uno más nuevo.) Pregúntale a Git qué ve:
+
+```bash
+git status
+```
+
+::: transcript
+```text
+On branch main
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.gitignore
+	AGENTS.md
+	README.md
+	data/
+	pyproject.toml
+	report.qmd
+	uv.lock
+
+nothing added to commit but untracked files present (use "git add" to track)
+```
+:::
+
+Los archivos *sin seguimiento* (*untracked*) son los que Git puede ver pero todavía no registra.
+En la lista faltan tres cosas de la carpeta: `.venv/`, `report.html` y `report_files/`. Las deja
+fuera `.gitignore`, un archivo que enumera lo que Git debe ignorar; `ls` lo oculta porque su nombre
+empieza con un punto, y `ls -a` lo muestra. Nombra todo lo que `uv` y el renderizado reconstruyen,
+así que el historial guarda solo las fuentes.
+
+Registra todo lo demás como el primer *commit*, un estado guardado con un mensaje que dice por qué:
+
+```bash
+git add .
+git commit -m "Starter report, as copied"
+```
+
+`git add .` no imprime nada: elige qué entra en el próximo commit, y `.` significa "esta
+carpeta", todo lo que no se ignora. `git commit` lo registra:
+
+::: transcript
+```text
+[main (root-commit) 15856fe] Starter report, as copied
+ 7 files changed, 916 insertions(+)
+ create mode 100644 .gitignore
+ …
+```
+:::
+
+Los siete caracteres después de `root-commit` nombran el commit; los tuyos van a ser otros. Revisa
+otra vez:
+
+```bash
+git status
+git log --oneline
+```
+
+::: transcript
+```text
+On branch main
+nothing to commit, working tree clean
+15856fe (HEAD -> main) Starter report, as copied
+```
+:::
+
+El *árbol de trabajo* (*working tree*) son los archivos de la carpeta tal como están ahora;
+"clean" (limpio) significa que están exactamente como los registró el último commit.
+`git log --oneline` enumera los commits, del más reciente al más viejo, y `(HEAD -> main)` marca
+el commit en el que están ahora tus archivos.
+
+::: pitfall
+Si `git commit` dice "Author identity unknown", Git todavía no sabe tu nombre (el paso 5
+del @sec-setup lo configura). Ejecuta las dos líneas `git config --global` que imprime, con tu propio
+nombre y tu correo, y luego vuelve a hacer commit. Si omites `-m "…"`, Git abre un editor para el
+mensaje: sal sin guardar (en nano, Ctrl+X; en Vim, Esc, luego `:q!` y Enter) y vuelve a ejecutar
+el comando con `-m`.
+:::
+
+::: tryit
+Empieza el historial y haz el primer commit.
+
+::: done
+`git log --oneline` muestra un commit, y `git status` dice `working tree clean`.
+:::
+:::
+
+## Predice, cambia, reconstruye {#sec-first-change}
+
+Supón que ALVA corrige hacia arriba la cifra de Tate Modern en `{python} f"{BUMP:,}"`. Haz tú ese
+cambio en los datos, con `nano`, el pequeño editor de texto de la propia terminal. En la terminal,
+en `~/first-report`:
+
+```bash
+nano data/visits.csv
+```
+
+Presiona la flecha hacia abajo `{python} downs` veces para llegar a la fila de `Tate Modern`; su
+línea larga se sale por el borde derecho de la ventana, y no pasa nada. Presiona la flecha hacia
+la derecha hasta que el cursor quede justo después del primer dígito de `{python} code(tate)`,
+presiona Retroceso para borrar el `{python} code(first_old)` y escribe
+`{python} code(first_new)`, para que el número diga `{python} code(trial)`. Guarda con Ctrl+O y
+luego Enter; sal con Ctrl+X.
+
+::: pitfall
+En nano, Ctrl+O ("write Out", escribir) pide el nombre del archivo: presiona Enter para
+conservarlo. Ctrl+X sale; si no guardaste, nano pregunta primero: Y y luego Enter guarda, N
+descarta los cambios. Las teclas aparecen en la parte de abajo de la pantalla, donde `^`
+significa Ctrl. En una Mac, `nano` abre Pico, que usa las mismas teclas (comprobado en macOS 26,
+el 2026-11-12).
+:::
+
+Antes de renderizar, pregúntale a Git qué cambiaste:
+
+```bash
+git status
+git diff
+```
+
+Si el diff es más largo que la ventana, Git lo muestra de a una pantalla, con `:` o `(END)` en la
+última línea: presiona Espacio para ver más y `q` para recuperar el indicador. Las líneas
+eliminadas se ven en rojo y las agregadas, en verde.
+
+::: transcript
+```text
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   data/visits.csv
+
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+:::
+
+Un *diff* son las líneas que un cambio eliminó y agregó. Las líneas reales son largas, así que
+aquí cada una se corta donde ves …:
+
+::: transcript
+```{python}
+#| output: asis
+screen(["diff --git a/data/visits.csv b/data/visits.csv",
+        f"index {blob(csv_text)}..{blob(changed_text)} 100644",
+        "--- a/data/visits.csv", "+++ b/data/visits.csv"]
+       + [line if line.startswith("@@") else short(line)
+          for line in git_hunks(csv_text.splitlines(), changed_text.splitlines())])
+```
+:::
+
+Léelo desde arriba. `---` es el archivo antes, `+++` después, y `@@ … @@` dice qué líneas siguen.
+Una línea que empieza con `-` se eliminó, una que empieza con `+` se agregó, y una que empieza con
+un espacio es contexto sin cambios. Cambió una línea, en un archivo: exactamente la edición que
+querías.
+
+::: think
+Antes de renderizar: de los cuatro números del informe (el total, el conteo de la atracción más
+visitada, el conteo de entradas gratuitas y el de Tate Modern), ¿cuáles van a cambiar?
+
+Solo el total, que sube en `{python} f"{BUMP:,}"` hasta `{python} f"{total_after:,}"`. El
+`{python} top` sigue siendo el más visitado, el conteo de entradas gratuitas sigue siendo
+`{python} n_free` y la oración de Tate Modern sigue diciendo `{python} f"{planted:,}"`. Se
+escribió a mano, así que no puede seguir a los datos, ni siquiera cuando los datos cambian en la
+misma fila que describe.
+:::
+
+Ahora reconstruye y mira. En la terminal:
+
+```bash
+uv run quarto render report.qmd
+```
+
+Vuelve a cargar `report.html` en el navegador (no se recarga solo). El total ahora dice
+`{python} f"{total_after:,}"`, y la oración de Tate Modern no se movió. Esa es la
+desactualización de la @sec-drift en tu propia pantalla: cambió un dato de entrada, los números
+calculados lo siguieron y el escrito a mano se quedó atrás.
+
+El valor de prueba no es real, así que deshazlo:
+
+```bash
+git restore data/visits.csv
+git status
+```
+
+::: transcript
+```text
+On branch main
+nothing to commit, working tree clean
+```
+:::
+
+`git restore` devuelve un archivo a como estaba en el último commit. Es el deshacer de cualquier
+archivo que Git sigue, y es definitivo: el cambio que descarta nunca se registró, así que se
+pierde. Renderiza una vez más, y la página vuelve a `{python} f"{total:,}"`.
+
+::: tryit
+Cambia los datos, predice, renderiza, compara, y luego restaura y vuelve a renderizar.
+
+::: done
+tu predicción coincidió con la página, y `git status` dice `working tree clean`.
+:::
+:::
+
+## Tres errores a propósito {#sec-first-errors}
+
+Los errores son mensajes, no veredictos, y es más fácil aprender de ellos cuando los causaste a
+propósito. Para cada error de abajo, comételo, lee el mensaje y revisa una evidencia antes de
+corregir nada. Tres reglas para leer un error:
+
+- **Busca la primera línea que diga `ERROR` o `error`**, a menudo en rojo: dice qué salió mal.
+  Cuando la sigue una traza de la pila larga, sube hasta ella.
+- **Mira adónde apunta el acento circunflejo `^`**, cuando hay uno: ahí es donde el programa notó
+  el problema.
+- **Sáltate la traza de la pila.** Muchos errores de Quarto terminan con `Stack trace:` y una lista
+  de líneas que empiezan con `at …`, ocho para una carpeta equivocada y más de veinte para una
+  configuración rota. Una *traza de la pila* (*stack trace*) enumera lo que se estaba ejecutando
+  dentro de Quarto cuando se detuvo: es para los desarrolladores de Quarto, no para ti.
+
+### La carpeta equivocada {#the-wrong-folder .unnumbered}
+
+En la terminal:
+
+```bash
+cd ~
+uv run quarto render report.qmd
+```
+
+::: transcript
+```text
+ERROR: No valid input files passed to render
+
+Stack trace:
+    at _Command.actionHandler (file:///…/quarto.js:142967:11)
+    …
+```
+:::
+
+::: think
+Quarto no encontró ningún archivo para renderizar. Antes de cambiar nada, ¿qué revisas?
+
+Dónde estás, y qué hay ahí: `pwd` imprime tu carpeta personal, y `ls` no muestra ningún
+`report.qmd`. El comando estaba bien y la carpeta estaba mal. Un nombre mal escrito, como
+`reprot.qmd`, da el mismo mensaje, y `ls` también lo muestra. Corrígelo con `cd ~/first-report` y
+vuelve a renderizar: la última línea es `Output created: report.html`.
+:::
+
+### Un error de tipeo en el comando {#a-typo-in-the-command .unnumbered}
+
+En la terminal, en `~/first-report`:
+
+```bash
+uv run quatro render report.qmd
+```
+
+::: transcript
+```text
+error: Failed to spawn: `quatro`
+  Caused by: No such file or directory (os error 2)
+```
+:::
+
+::: think
+¿Qué te dice la primera línea, y cuál es la solución?
+
+uv no pudo iniciar un programa llamado `quatro`, porque no existe ninguno. El error repite el
+nombre: compáralo, letra por letra, con lo que querías escribir. Presiona la flecha hacia arriba
+para traer de vuelta el comando, corrígelo y presiona Enter. Sin `uv run`, la shell dice lo mismo
+con sus propias palabras: `zsh: command not found: quatro` en una Mac,
+`quatro: command not found` en Ubuntu.
+:::
+
+### Configuración rota {#broken-settings .unnumbered}
+
+Abre `report.qmd` con `nano report.qmd`, borra el espacio después de los dos puntos en
+`format: html` para que diga `format:html`, guarda y sal. Luego, en la terminal:
+
+```bash
+uv run quarto render report.qmd
+```
+
+::: transcript
+```text
+ERROR: YAMLException: can not read a block mapping
+entry; a multiline key may not be an implicit key (4:1)
+
+ 1 |
+ 2 | title: "Five London Sights"
+ 3 | format:html
+ 4 |
+-----^
+
+Stack trace:
+    at …
+```
+:::
+
+(La primera línea es una sola línea en tu pantalla, partida aquí para que quepa; la traza de la
+pila ocupa más de veinte líneas.)
+
+::: think
+El acento circunflejo apunta a la línea 4, que está vacía. ¿Dónde está el error, y cómo lo
+revisas?
+
+En la línea 3, la de arriba. `(4:1)` significa línea 4, columna 1, contadas dentro del bloque de
+configuración, donde la línea 1 es el `---` de apertura y se muestra vacía. Sin el espacio,
+`format:html` no es una opción de configuración, así que YAML, el formato de esa configuración,
+sigue leyendo y se rinde en la línea 4. Mira la línea del acento circunflejo y la de arriba.
+`git diff` muestra la única línea que cambiaste.
+:::
+
+Corrígelo volviendo a poner el espacio, o con el deshacer general, `git restore report.qmd`.
+Luego vuelve a renderizar para confirmar: la última línea es `Output created: report.html`.
+
+::: tryit
+Comete los tres errores, lee cada mensaje, revisa la evidencia y luego corrígelo.
+
+::: done
+el renderizado termina con `Output created: report.html`, y `git status` dice
+`working tree clean`.
+:::
+:::
+
+## Pásale la corrección al agente {#sec-first-agent}
+
+Sabes dónde está el número equivocado, puedes ver cualquier cambio con `git diff` y puedes
+deshacer uno con `git restore`. Ese es el momento de delegar: no antes de poder revisar el
+trabajo, sino en cuanto puedes hacerlo. Inicia tu agente en la carpeta del informe. En la
+terminal:
+
+::: {.you}
+```bash
+cd ~/first-report
+claude
+```
+:::
+
+Escribe `codex` o `agy` en lugar de `claude` si ese es tu agente. Confía en la carpeta cuando lo
+pregunte, porque la hiciste tú (en Claude Code, presiona primero la flecha hacia abajo: la opción
+empieza en No). (Codex pregunta aquí, y no en `~/setup`, porque esta carpeta ahora es un
+repositorio de Git.) Luego, en el agente:
+
+::: {.prompt}
+```default
+En report.qmd, la oración sobre "Tate Modern" escribe a mano su conteo de visitas. Reemplaza el número escrito a mano por código en línea que lea el `visits_2025` de Tate Modern desde data/visits.csv. No cambies data/visits.csv. Renderiza con `uv run quarto render report.qmd` y dime qué número muestra ahora la oración.
+```
+:::
+
+::: {.agent}
+lee `AGENTS.md`, `report.qmd` y `data/visits.csv` · edita `report.qmd` · `uv run quarto render report.qmd`
+:::
+
+::: {.you}
+apruebas sus comandos · `/exit` · luego, en la terminal, `git status` y `git diff`
+:::
+
+El `AGENTS.md` del punto de partida ya dice que `data/visits.csv` nunca se debe editar y que cada
+número sale de los datos mediante código en línea, así que es probable que el agente lo haga bien.
+Probable no es lo mismo que revisado.
+
+::: think
+El agente informa: "Listo. La oración ahora muestra la cifra de los datos". ¿Por qué ejecutar
+`git diff` de todos modos?
+
+El mensaje del agente es una afirmación sobre los archivos; el diff muestra los archivos mismos,
+cada archivo y cada línea que cambió, incluidos los que el agente no mencionó, como una edición de
+los datos.
+:::
+
+### Tres revisiones para cada cambio {#sec-three-checks}
+
+Cada cambio de este libro, tuyo o del agente, pasa las mismas tres revisiones: dos antes de hacer
+commit y una después. Aquí están, aplicadas a este:
+
+| Revisión | Pregunta | Aquí |
+|---|---|---|
+| Alcance | ¿Cambiaron solo los archivos que quería cambiar? | `git status` enumera solo `report.qmd`; `git diff` muestra las líneas |
+| Corrección | ¿Coincide un número con su fila de origen? | la cifra de Tate Modern de la página contra su fila en `cut -d, -f1,2 data/visits.csv` |
+| Reconstrucción | ¿Lo que registraste con commit se construye por sí solo? | renderiza un clon nuevo del repositorio (abajo) |
+
+: Las tres revisiones, aplicadas a la primera edición del agente. {#tbl-three-checks}
+
+**Alcance.** `git status` debería enumerar un archivo modificado, `report.qmd`. Si también aparece
+`data/visits.csv`, el agente rompió la regla del proyecto: `git restore data/visits.csv` deshace
+esa parte. El diff se va a ver más o menos como este, de una versión escrita a mano para probar el
+paso (recortado en el …); el de un agente va a diferir en los detalles:
+
+::: transcript
+```{python}
+#| output: asis
+# The tested hand-made fix, applied to the starter's own report.qmd.
+src = report.splitlines()
+i_free = next(i for i, line in enumerate(src) if line.startswith("free = "))
+fixed = (src[:i_free + 1]
+         + ['tate = next(int(r["visits_2025"]) for r in rows',
+            '            if r["attraction"] == "Tate Modern")']
+         + src[i_free + 1:])
+fixed = [line.replace(typed.group(0),
+                      'Tate Modern, on the South Bank, had `{python} f"{tate:,}"` visits.')
+         for line in fixed]
+text_holds(fixed != src, "the hand-made fix to report.qmd")
+old_qmd, new_qmd = report, "\n".join(fixed) + "\n"
+screen(["diff --git a/report.qmd b/report.qmd",
+        f"index {blob(old_qmd)}..{blob(new_qmd)} 100644",
+        "--- a/report.qmd", "+++ b/report.qmd"]
+       + [line if line[:1] in "+-" else short(line, 44) for line in git_hunks(src, fixed)])
+```
+:::
+
+El número escrito a mano desapareció, y en su lugar hay código en línea que busca Tate Modern en
+los datos.
+
+**Corrección.** Vuelve a cargar `report.html`: la oración ahora debería decir
+`{python} f"{tate:,}"`, que es el `{python} tate` de la fila `Tate Modern` en la salida de `cut`
+de la @sec-first-check.
+
+Si alguna de las dos revisiones falla, `git restore report.qmd` devuelve el archivo a como estaba
+antes de que el agente lo tocara, y puedes volver a pedirlo. Deshacer funciona con los cambios del
+agente exactamente igual que con los tuyos.
+
+Cuando las dos pasan, haz commit, en la terminal:
+
+```bash
+git commit -am "Compute Tate Modern's visits from the data"
+git log --oneline
+```
+
+`-a` agrega cada archivo seguido que cambió, así que no necesitas `git add`; `-m` da el mensaje.
+Tu hash, y quizá la cantidad de líneas, van a ser distintos:
+
+::: transcript
+```text
+[main d7e7f02] Compute Tate Modern's visits from the data
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+d7e7f02 (HEAD -> main) Compute Tate Modern's visits from the data
+15856fe Starter report, as copied
+```
+:::
+
+**Reconstrucción.** La última revisión pregunta si todo lo que necesita el informe está en el
+historial, y no solo en tu carpeta. Clona el repositorio en `/tmp`, una carpeta para archivos
+temporales que la computadora vacía de vez en cuando, y renderiza el clon. En la terminal:
+
+```bash
+git clone ~/first-report /tmp/first-report-check
+cd /tmp/first-report-check
+uv run quarto render report.qmd
+```
+
+::: transcript
+```text
+Cloning into '/tmp/first-report-check'...
+done.
+```
+:::
+
+El clon no tiene `.venv/` ni `report.html`, porque `.gitignore` los dejó fuera del historial, así
+que el renderizado imprime otra vez `Creating virtual environment` y luego construye la página.
+(Si Git dice que el destino ya existe, ya hiciste esto antes: elige otro nombre, como
+`/tmp/first-report-check2`.) Abre la página del clon como abriste la tuya: `open report.html`
+(Mac), `xdg-open report.html` (Linux), o `explorer.exe .` y luego doble clic en `report.html`
+(Windows, en Ubuntu). Debería coincidir con la tuya, `{python} f"{tate:,}"` incluido. Si el clon
+no se renderiza, algo que el informe necesita nunca se registró con commit: agrégalo y vuelve a
+hacer commit. Luego `cd ~/first-report` para volver; el clon es desechable.
+
+::: tryit
+Ejecuta el prompt, revisa su diff, haz commit y reconstruye desde un clon nuevo.
+
+::: done
+`git log --oneline` muestra dos commits, y la página del clon dice que Tate Modern tuvo
+`{python} f"{tate:,}"` visitas.
+:::
+:::
+
+## Resumen {.unnumbered}
+
+::: keyideas
+- Un informe que se renderiza sin errores puede estar mal igual: pon cada número al lado de su
+  fila en los datos, y rastrea uno equivocado hasta donde se escribió a mano.
+- Los números escritos a mano se desactualizan y los calculados siguen a los datos. Cambia un dato
+  de entrada, predice, reconstruye y explica.
+- `git status` dice qué cambió, `git diff` muestra cómo, `git restore` lo deshace y `git commit`
+  registra un estado al que puedes volver.
+- Lee un error desde su primera línea y el acento circunflejo, sáltate la traza de la pila y revisa
+  una evidencia (`pwd`, `ls`, `git diff`) antes de corregir nada.
+- Delega un cambio en cuanto puedas revisarlo: alcance, corrección y reconstrucción
+  (@tbl-three-checks), y luego haz commit.
+:::
+
+Ya hiciste a mano cada revisión que el resto del libro te pide hacerle al trabajo de un agente, en
+un proyecto lo bastante pequeño para verlo entero. La Parte II lo lleva a mayor escala. Cada
+proyecto empieza como este, con `git init`, así que cada edición del agente en él se puede ver con
+`git diff` y deshacer con `git restore`. El @sec-markdown empieza la guía de Londres desde una
+carpeta vacía y explica, una construcción a la vez, el Markdown que acabas de leer.
+
+## Lecturas adicionales {.unnumbered}
+
+- Scott Chacon y Ben Straub, *Pro Git*,
+  [Recording Changes to the Repository](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository)
+  y [Undoing Things](https://git-scm.com/book/en/v2/Git-Basics-Undoing-Things), que cubre
+  `git restore` (consultados el 2026-11-17).
+- Git, páginas de referencia de [`git init`](https://git-scm.com/docs/git-init) y
+  [`git restore`](https://git-scm.com/docs/git-restore) (consultadas el 2026-11-17).
+- GNU nano, [hoja de referencia](https://www.nano-editor.org/dist/latest/cheatsheet.html) de sus
+  teclas (consultada el 2026-11-17).
+- Astral, [Running commands](https://docs.astral.sh/uv/concepts/projects/run/) con `uv run`
+  (consultado el 2026-11-17).

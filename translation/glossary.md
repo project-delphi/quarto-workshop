@@ -76,6 +76,9 @@ Conventions that apply everywhere:
 | catch up (v.) | ponerte al día | | |
 | checkpoint | punto de control | | the folder `checkpoints/` stays |
 | hands-on block | bloque práctico | | |
+| three checks (scope, correctness, rebuild) | tres revisiones (alcance, corrección, reconstrucción) | | `sec-three-checks` |
+| starter (`starters/first-report/`) | punto de partida | | the folder name stays |
+| pre-work | trabajo previo | | |
 
 ## Quarto, Markdown and publishing
 
@@ -148,6 +151,8 @@ Conventions that apply everywhere:
 | clone | clonar | | |
 | diff | diff | EN | |
 | version control | control de versiones | | |
+| untracked | sin seguimiento | | |
+| working tree | árbol de trabajo | | "clean" → "limpio" |
 
 ## Terminal and environment
 
@@ -161,6 +166,10 @@ Conventions that apply everywhere:
 | home folder | carpeta personal | | written `~` |
 | PATH | PATH | EN | |
 | folder, file | carpeta, archivo | | |
+| path; absolute path; relative path | ruta; ruta absoluta; ruta relativa | | |
+| stack trace | traza de la pila | | "traza de la pila (stack trace)" in the glossary; Quarto's `Stack trace:` stays |
+| Tab completion | completar con Tab | | |
+| caret (`^`) | acento circunflejo | | |
 | environment | entorno | | |
 | package | paquete | | |
 | lockfile | archivo de bloqueo (lockfile) | | "(lockfile)" on first use only |

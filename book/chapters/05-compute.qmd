@@ -168,6 +168,11 @@ rendered last wins, so the page you see may not come from the file you edited. R
 preview on the new file, too: the old one is still watching `london.md`.
 :::
 
+Commit the step as before (@sec-md-lists). `git status` shows `london.md` deleted and
+`london.qmd` new; `git add .` records both, and `git status` then reports them as one change,
+`renamed: london.md -> london.qmd`, because the two files are mostly the same text. The
+history of the guide's first lines carries on under the new name.
+
 ## Numbers the guide computes {#sec-code-cells}
 
 ::: {.prompt}
@@ -326,6 +331,40 @@ inline numbers and the figure appear in every file without anything being copied
 only one format, add `--to docx` (or `--to typst`). Each format is one more pass through the
 steps of @fig-pipeline. When you restart the preview, the web page has a list of *Other
 Formats* in its margin, with a link to each file; open the Word file and the PDF from there.
+
+```{python}
+#| label: ch5-one-row
+# One revised row, for the prediction below: the Tower of London's 2025 count rises by `bump`.
+bump = 100_000
+tower_now = int(attractions.loc[attractions["attraction"] == "Tower of London",
+                                "visits_2025"].iloc[0])
+tower_new = tower_now + bump
+others = attractions[attractions["attraction"] != "Tower of London"]
+passed = others[(others["visits_2025"] > tower_now) & (others["visits_2025"] < tower_new)]
+# The answer says the top attraction stays and the Tower's bar passes exactly one other.
+text_holds(tower_new < top["visits_2025"] and len(passed) == 1, "the one-row prediction")
+passed_name = passed["attraction"].iloc[0]
+passed_visits = f"{passed['visits_2025'].iloc[0]:,}"
+bump_s, tower_new_s = f"{bump:,}", f"{tower_new:,}"
+new_total = f"{attractions['visits_2025'].sum() + bump:,}"
+```
+
+::: think
+Suppose ALVA revises one row of `data/attractions.csv`: the Tower of London's `visits_2025`
+rises by `{python} bump_s`. At the next render, what changes in `london.html`, `london.docx`
+and `london.pdf`? Predict before you read on, as you did with the first report
+(@sec-first-change).
+
+The same things change in all three, because each format runs the cells again. The total
+becomes `{python} new_total`. The Tower's bar grows, and in a chart sorted by visits, as
+@fig-ldn-top10 is, it moves up past `{python} passed_name`, which has `{python} passed_visits`.
+The first half of the sentence does not change: `{python} tower_new_s` is still fewer than the
+`{python} top_name`'s `{python} top_visits`, so `idxmax()` finds the same row. The typed word
+"ten" does not change either. To check a prediction like this one, make the change yourself
+with `nano`, render, look, then put the real count back with
+`git restore data/attractions.csv`. @sec-london-change asks the same question of the whole
+published project.
+:::
 
 ::: why
 Why render the code once per format? Because a format can change what code produces: a figure

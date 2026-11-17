@@ -323,14 +323,15 @@ In your home folder (`~`), `quarto-workshop/` is the clone from Chapter 3, `lond
 Part II's project and `water-quality/` is this part's.
 
 Quit the London guide's agent first (`/exit`), so that the new one starts in the new folder and
-takes it as its world (@sec-root-folder). Then make the folder, start the agent in it, and copy
-the data:
+takes it as its world (@sec-root-folder). Then make the folder, start its history as you did
+for the guide (@sec-brief), start the agent in it, and copy the data:
 
 ::: {.you}
 ```bash
 cd ~
 mkdir -p water-quality
 cd water-quality
+git init -b main
 claude
 ```
 :::
@@ -374,13 +375,13 @@ first lets it add the data's caveats to the rules itself.
 
 ::: {.prompt}
 ```default
-Give this project its own Python environment with `uv`: run `uv init --bare`, then `uv add ipykernel nbclient nbformat pyyaml pandas numpy matplotlib plotly scikit-learn pyarrow itables tabulate`. Run `quarto` and `python` through `uv run`, and add that rule to AGENTS.md. Show me the Python line of `uv run quarto check jupyter`.
+Give this project its own Python environment with `uv`: run `uv init --bare`, then `uv add ipykernel nbclient nbformat pyyaml pandas numpy matplotlib plotly scikit-learn pyarrow itables tabulate`. Run `quarto` and `python` through `uv run`, and add that rule to AGENTS.md. Create a .gitignore for .venv/, .quarto/, _site/, outputs/ and *_files/. Show me the Python line of `uv run quarto check jupyter`.
 ```
 :::
 
 ::: {.agent}
 `uv init --bare` · `uv add …` · writes `pyproject.toml`, `uv.lock` and `.venv/` · adds the
-`uv run` rule to `AGENTS.md` · `uv run quarto check jupyter`
+`uv run` rule to `AGENTS.md` · writes `.gitignore` · `uv run quarto check jupyter`
 :::
 
 You should see a Python whose path runs through this folder's `.venv`, as for the London guide
@@ -392,8 +393,11 @@ and `tabulate` for tables written as Markdown. Packages shared with Part II come
 Copy the data, write the rules and create the environment.
 
 ::: done
-`AGENTS.md` states the analysis's scope and its rules, and `uv run quarto check jupyter` shows
-this project's `.venv` Python.
+`AGENTS.md` states the analysis's scope and its rules, `uv run quarto check jupyter` shows
+this project's `.venv` Python, and the first commit holds them. In your own tab, `git status`
+should list `.gitignore`, `AGENTS.md`, `data/`, `pyproject.toml` and `uv.lock`, and not `.venv/`;
+then `git add .` and `git commit -m "Data, rules and environment"` record them, and `git status`
+says the working tree is clean.
 :::
 
 There is no catch-up here. If you get stuck, the one at the end of @sec-explore restores this

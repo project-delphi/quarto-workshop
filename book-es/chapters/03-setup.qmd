@@ -30,9 +30,9 @@ Construyes
   `hello.html` y `hello.pdf` dicen 42.
 
 Punto de control
-: ninguno, porque la preparación no construye ningún proyecto con el que ponerse al día. El
-  @sec-markdown empieza desde una carpeta vacía, y sus puntos de control llegan con los archivos
-  del taller en el paso 5.
+: ninguno, porque la preparación no construye ningún proyecto con el que ponerse al día. Los
+  archivos del taller llegan en el paso 5, con los puntos de control y el informe inicial que
+  abre el @sec-first-report: un informe real que puedes leer.
 :::
 
 ## Antes de empezar {#sec-before-setup}
@@ -156,15 +156,24 @@ Dos teclas evitan la mayoría de los errores de tipeo: **Tab** completa el nombr
 de una carpeta, y la **flecha hacia arriba** trae de vuelta el comando anterior. Copiar y pegar
 funciona distinto en una terminal: selecciona el texto, y luego **Ctrl+Shift+C** copia y
 **Ctrl+Shift+V** pega (Comando-C y Comando-V en una Mac), porque **Ctrl+C** solo detiene el
-programa que está corriendo (@tbl-terminal-keys). Los capítulos siguientes usan seguido un
-comando compuesto:
+programa que está corriendo (@tbl-terminal-keys). Dos comandos inician la mayoría de los
+proyectos de este libro, una línea cada uno:
+
+```bash
+mkdir -p london-guide
+cd london-guide
+```
+
+El primero crea la carpeta, y `-p` hace que `mkdir` acepte sin quejarse una carpeta que ya
+existe, así que ejecutarlo dos veces no hace daño. El segundo entra en ella. Los capítulos
+siguientes suelen unir las dos líneas en una con `&&`, que significa "y luego, si eso
+funcionó":
 
 ```bash
 mkdir -p london-guide && cd london-guide
 ```
 
-`-p` hace que `mkdir` acepte sin quejarse una carpeta que ya existe, y `&&` significa "y luego,
-si eso funcionó". El @sec-terminal tiene más teclas y hábitos.
+Si `mkdir` falla, `cd` no se ejecuta. El @sec-terminal tiene más teclas y hábitos.
 
 ::: tryit
 Desde tu carpeta personal, escribe los comandos de la @tbl-terminal en el orden que muestra
@@ -178,14 +187,23 @@ la @fig-terminal-basics.
 ## Paso 3: instala un agente de programación {#sec-step-assistant}
 
 Elige un agente y ejecuta su instalador, el comando documentado por el propio proveedor
-(consultado el 2026-10-30):
+(consultado el 2026-10-30). Ejecuta solo la línea de tu agente.
+
+**Claude Code:**
 
 ```bash
-# Claude Code
 curl -fsSL https://claude.ai/install.sh | bash
-# Codex
+```
+
+**Codex:**
+
+```bash
 curl -fsSL https://chatgpt.com/codex/install.sh | sh
-# Antigravity
+```
+
+**Antigravity:**
+
+```bash
 curl -fsSL https://antigravity.google/cli/install.sh | bash
 ```
 
@@ -203,12 +221,17 @@ notes". Pega esa solución en la terminal, presiona Enter y luego abre la pesta�
 Code, [solución de problemas de instalación](https://code.claude.com/docs/en/troubleshoot-install),
 consultado el 2026-11-06).
 
-Inicia el agente en una carpeta nueva:
+Inicia el agente en una carpeta nueva. Escribe las tres líneas una por una: crea la carpeta
+`setup` en tu carpeta personal (`-p`: sin quejas si ya existe), entra en ella e inicia el
+agente:
 
 ```bash
-mkdir -p ~/setup && cd ~/setup
-claude          # or: codex, or: agy
+mkdir -p ~/setup
+cd ~/setup
+claude
 ```
+
+Esa última línea inicia Claude Code; escribe `codex` para Codex, o `agy` para Antigravity.
 
 El primer arranque pasa por tres pantallas. Las de Claude Code se muestran abajo tal como se
 capturaron el 2026-11-07 (versión 2.1.319, en una carpeta vacía, con los nombres de carpeta
@@ -318,12 +341,12 @@ también funciona, pero termina la conversación.
 Las herramientas que faltan son el propio Quarto, uv, Git y la herramienta de línea de comandos de
 GitHub, `gh`. Cada una tiene su propio método oficial de instalación para cada sistema, que es
 exactamente el tipo de detalle que un agente maneja bien. Inícialo otra vez en la carpeta de la
-preparación (con `codex` o `agy` en lugar de `claude` si ese es tu agente, aquí y en los pasos
-siguientes):
+preparación, ahora en una sola línea unida con `&&` (con `codex` o `agy` en lugar de `claude` si
+ese es tu agente, aquí y en los pasos siguientes):
 
 ::: {.you}
 ```bash
-mkdir -p ~/setup && cd ~/setup && claude    # or: codex, or: agy
+mkdir -p ~/setup && cd ~/setup && claude
 ```
 :::
 
@@ -382,7 +405,7 @@ instaladas:
 
 ::: {.you}
 ```bash
-cd ~/setup && claude    # or: codex, or: agy
+cd ~/setup && claude
 ```
 :::
 
@@ -404,9 +427,9 @@ prompt hace que el agente te pida tu nombre y tu correo, así que los escribes t
 que configuró sea tuyo y no un valor de relleno.
 
 *Clonar* es copiar un repositorio, con su historial, a tu computadora: en este caso el del taller,
-en `~/quarto-workshop`. Contiene los ejemplos terminados, el conjunto de datos del agua y los
-*puntos de control*: instantáneas de cada proyecto al final de cada bloque práctico, que vas a
-usar para ponerte al día si te quedas atrás.
+en `~/quarto-workshop`. Contiene los ejemplos terminados, el conjunto de datos del agua, el
+informe inicial del @sec-first-report y los *puntos de control*: instantáneas de cada proyecto
+al final de cada bloque práctico, que vas a usar para ponerte al día si te quedas atrás.
 
 ::: {.you}
 si `gh` no dice "Logged in": en una **segunda pestaña**, `gh auth login` → GitHub.com → HTTPS → Yes → inicia sesión con un navegador web; copia el código de un solo uso en github.com/login/device; luego pídele al agente que vuelva a revisar `gh`
@@ -429,8 +452,7 @@ apruebas, uv puede construir el entorno de un proyecto, Quarto puede ejecutar Py
 
 ::: {.you}
 ```bash
-mkdir -p ~/quarto-test && cd ~/quarto-test
-claude          # or: codex, or: agy
+mkdir -p ~/quarto-test && cd ~/quarto-test && claude
 ```
 :::
 
@@ -451,7 +473,8 @@ Ejecuta `uv init --bare` y `uv add ipykernel nbclient nbformat pyyaml`. Crea hel
 La prueba usa cosas que explican los capítulos siguientes, la configuración en YAML, una celda de
 código y código en línea, a propósito: es una comprobación de caja negra de que las herramientas
 funcionan juntas, no una lección. Si te da curiosidad, `hello.qmd` es el archivo que se muestra
-en la @sec-what-quarto.
+en la @sec-what-quarto, y el @sec-first-report abre un informe real del mismo tipo, que lees y
+renderizas tú.
 
 ::: pitfall
 Cada renderizado imprime una línea como `[IPKernelApp] WARNING | Kernel is running over TCP
@@ -487,9 +510,13 @@ del @sec-troubleshooting.
 :::
 
 La prueba fue una caja negra: un archivo que no escribiste, una configuración que todavía no
-conoces, código que no leíste. La Parte II la abre. Desde una carpeta vacía, escribes la guía de
-Londres para la oficina de turismo, una construcción de Markdown a la vez, y al final del
-@sec-markdown es una página web con reglas escritas para el agente.
+conoces, código que no leíste. El @sec-first-report pone en tus manos un informe real antes que
+en las de cualquier agente: lo copias, lo renderizas tú, comparas sus números con sus datos y
+encuentras el equivocado, y lo registras con Git, para que cada cambio posterior se pueda ver y
+deshacer. Solo entonces el agente hace su primera edición, y tú la revisas. Luego la Parte II
+explica lo que había en la caja: desde una carpeta vacía, escribes la guía de Londres para la
+oficina de turismo, una construcción de Markdown a la vez, y al final del @sec-markdown es una
+página web con reglas escritas para el agente.
 
 ## Lecturas adicionales {.unnumbered}
 

@@ -1,6 +1,7 @@
 # Troubleshooting {#sec-troubleshooting}
 
-Problems seen while building and teaching the workshop, with fixes that were tested. For setup on Windows,
+Problems seen while building and teaching the workshop, and the mistakes @sec-first-errors makes on purpose,
+with fixes that were tested. [Reading an error](b-terminal.qmd#sec-keys-errors) says which line of an error to read first. For setup on Windows,
 see also [the Windows stuck table](a-windows.qmd#sec-windows-stuck). For anything not listed: copy the command and the whole error into a web chat
 with your system's name, try one suggested fix at a time, and never paste passwords or keys.
 
@@ -19,10 +20,22 @@ with your system's name, try one suggested fix at a time, and never paste passwo
 
 : Setup problems. {#tbl-trouble-setup}
 
+## The terminal {.unnumbered}
+
+| Message | Cause and fix |
+|---|---|
+| `zsh: command not found: quatro` (Mac) or `quatro: command not found` (Ubuntu) | A typo in the command's name. Press the up arrow, correct it, then Enter (@sec-first-errors). If the name is right, see the `command not found` row in @tbl-trouble-setup |
+| `` error: Failed to spawn: `quatro` ``, then `No such file or directory (os error 2)` | The same typo after `uv run`: uv found no program of that name. Press the up arrow, correct it, then Enter |
+| `bash: cd: too many arguments` (Ubuntu) or `cd: string not in pwd: my` (Mac) | The folder's name has a space, so `cd` read two names: `cd "my reports"`, or type `cd my` and press Tab ([Paths](b-terminal.qmd#sec-keys-paths)) |
+
+: Terminal messages. {#tbl-trouble-terminal}
+
 ## Rendering and preview {.unnumbered}
 
 | Problem | Cause and fix |
 |---|---|
+| `ERROR: No valid input files passed to render` | Quarto found no file of that name in this folder: you are in the wrong folder, or the name is misspelt. `pwd` and `ls` show where you are; `cd` to the project, such as `cd ~/first-report` (@sec-first-errors) |
+| `ERROR: YAMLException: …`, with numbered lines and a caret (`^`) | A mistake in the front matter. YAML often notices it one line *after* it, so check the line the caret points to and the line above: a missing space after a colon (`can not read a block mapping entry`), a stray indent (`bad indentation of a mapping entry`), a missing closing quote (`unexpected end of the stream within a double quoted scalar`). Fix it by hand, or undo every change since the last commit with `git restore report.qmd` (@sec-first-errors) |
 | `readfile 'london.quarto_ipynb'`, or a locked file | A render ran while `quarto preview` was rendering the same file. Let the preview render, or stop it (Ctrl+C) before rendering several formats, then restart it (@sec-render-mechanics) |
 | Typst PDF fails: `cannot parse length '60px'` | Typst does not accept CSS pixels in image sizes: write `{height=60}` or `{width="30%"}` |
 | A Plotly chart appears twice in a dashboard card | The cell both calls `fig.show()` (or a bare `fig.add_…()`) and returns the figure: assign, and end the cell with `fig` |

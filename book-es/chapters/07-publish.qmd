@@ -58,13 +58,14 @@ def word(n: int) -> str:
 
 La guía está terminada y nadie más que tú puede verla: cada salida está en una carpeta de tu
 computadora. Este capítulo la pone en la web, donde cualquiera puede abrirla en el teléfono, con
-Git para guardar cada versión de la fuente y GitHub Pages para servir el resultado. Luego hace la
+GitHub para guardar una copia del historial que vienes registrando con tus commits y GitHub Pages
+para servir el resultado. Luego hace la
 pregunta que todo el flujo de trabajo está construido para responder: si cambia un dato de
 entrada, ¿qué salidas cambian con él, y cómo lo sabes? Esa pregunta no trae prompt. Pone a prueba
 si puedes predecir lo que hará una reconstrucción, y luego comprobarlo.
 
 ::: opener
-- Explicar los commits, las ramas y los pull requests, y leer un diff.
+- Explicar qué agregan el push, las ramas y los pull requests a los commits que ya haces.
 - Convertir la carpeta en un sitio web y publicarlo en GitHub Pages.
 - Elegir entre servicios de alojamiento que reciben tus archivos y servicios que construyen.
 - Predecir, reconstruir y explicar hasta dónde llega un dato de entrada que cambia.
@@ -82,28 +83,33 @@ Punto de control
 ## Git: cada cambio, con seguridad {#sec-git}
 
 La @sec-reproducible comparó Git con el control de cambios de Word para una carpeta entera, con
-un historial que perdura. En la práctica eso significa dos cosas. Ves exactamente qué cambió,
-línea por línea, y otra persona puede aprobarlo antes de que cuente. Y se conserva cada versión
-anterior del proyecto entero, con una nota que dice por qué cambió, así que cualquiera de ellas se
-puede restaurar o comparar.
+un historial que perdura, y desde el primer informe (@sec-first-git) llevas uno tú: `git status` y
+`git diff` antes de cada commit, un mensaje que dice por qué, y `git restore` para un cambio que no
+querías. Eso es lo que hace Git dentro de una carpeta, y ya conserva cada versión anterior de la
+guía, cada una con una nota que dice por qué cambió. Publicar necesita lo que hace Git más allá de
+la carpeta: una copia del historial a la que otros puedan llegar, y una forma de que otra persona
+lea un cambio y lo apruebe antes de que cuente.
 
-El vocabulario es corto (@fig-git-cycle; Pro Git y la documentación de GitHub, consultados el
-2026-10-31). Un *repositorio* es una carpeta de proyecto con su historial; cada versión guardada
-es un *commit*, una instantánea de cada archivo con seguimiento, con su mensaje.
+El vocabulario para eso es corto (@fig-git-cycle; Pro Git y la documentación de GitHub,
+consultados el 2026-10-31). Tu carpeta ya es un *repositorio*, una carpeta de proyecto con su
+historial, y cada uno de tus commits es una instantánea de cada archivo con seguimiento, con su
+mensaje. Las palabras nuevas tienen que ver con compartirlos.
 
 ![Cada cambio, con seguridad. Un equipo lleva cada cambio por todo el ciclo; si trabajas sin equipo, como en este libro, haces commit en la línea principal y haces push.](../media/diagrams/git-cycle){#fig-git-cycle .on-light fig-alt="Seis pasos. Rama: trabaja en una rama, para que main quede intacta. Commit: guarda una instantánea de los archivos con un mensaje que diga por qué. Push: copia los commits a GitHub. Pull request: propone el cambio y muestra la diferencia. Revisión: alguien lee la diferencia y comenta, aprueba o pide cambios. Merge: los commits se suman a main. Si trabajas sin equipo, haces commit en main y push; en un equipo, cada cambio recorre el ciclo entero."}
 
-Una *rama* es una etiqueta móvil sobre una línea de commits, para que el trabajo pueda seguir ahí
-mientras la línea principal, `main`, sigue funcionando. Hacer *push* es copiar los commits al
-repositorio compartido en GitHub, el sitio web que guarda una copia de un repositorio en línea. Un
-*pull request* propone hacer merge de una rama y muestra la diferencia, o *diff*, línea por línea;
-una *revisión* lo comenta, lo aprueba o pide cambios; hacer *merge* agrega sus commits a `main`.
+Hacer *push* es copiar los commits al repositorio compartido en GitHub, el sitio web que guarda
+una copia de un repositorio en línea. Una *rama* es una etiqueta móvil sobre una línea de commits,
+para que el trabajo pueda seguir ahí mientras la línea principal, `main` (el nombre que le dio
+`git init -b main`), sigue funcionando. Un *pull request* propone hacer merge de una rama y
+muestra su diferencia, o *diff*, línea por línea, como hace `git diff` en tu terminal, pero en una
+página que otros pueden leer; una *revisión* lo comenta, lo aprueba o pide cambios; hacer *merge*
+agrega sus commits a `main`.
 
 Si trabajas sin equipo, como en este libro, haces commit directamente en `main` y haces push; en
-un equipo, cada cambio recorre el ciclo. En los dos casos, el agente ejecuta los comandos de
-Git y tú los apruebas. Pídele que "haga commit con un mensaje que diga por qué", y lee sus diffs
-antes de aprobar: un diff es la comprobación más clara que tienes de lo que de verdad hizo el
-agente.
+un equipo, cada cambio recorre el ciclo. En los dos casos, la revisión es la que ya haces: leer el
+diff antes de que un cambio cuente. De aquí en adelante, el agente también puede ejecutar los
+comandos de Git. Pídele que "haga commit con un mensaje que diga por qué", y lee su diff antes de
+aprobar: un diff es la comprobación más clara que tienes de lo que de verdad hizo el agente.
 
 ::: think
 El agente informa "Committed the dashboard changes" (hice commit de los cambios del dashboard)
@@ -170,12 +176,12 @@ Quarto y Python en el trabajo. Quarto Pub, el servicio gratuito propio de Quarto
 
 ::: {.prompt}
 ```default
-Convierte esta carpeta en un sitio web de Quarto: _quarto.yml (renderiza solo los archivos .qmd; barra de navegación, en inglés: Guide, Dashboard y un menú Downloads con los archivos docx, pdf, pptx, epub y london-slides.html que existan), index.qmd, y un .gitignore para /_site/, /.quarto/, /.venv/ y *_files/. Renderiza y revisa los enlaces.
+Convierte esta carpeta en un sitio web de Quarto: _quarto.yml (renderiza solo los archivos .qmd; barra de navegación, en inglés: Guide, Dashboard y un menú Downloads con los archivos docx, pdf, pptx, epub y london-slides.html que existan) e index.qmd, y agrega /_site/ a .gitignore. Renderiza y revisa los enlaces.
 ```
 :::
 
 ::: {.agent}
-escribe 3 archivos · `uv run quarto render` → `_site/`
+escribe 2 archivos · agrega una línea a `.gitignore` · `uv run quarto render` → `_site/`
 :::
 
 ::: {.you}
@@ -207,10 +213,10 @@ website:
 2. El menú enlaza los archivos que escribieron los otros formatos: la guía en Word, el PDF, el
    folleto y los archivos opcionales que hayas hecho.
 
-`.gitignore` enumera lo que Git no debe seguir: la carpeta renderizada `_site/` (que se reconstruye
-desde la fuente y se publica aparte), la carpeta de trabajo de Quarto, `.quarto/`, el entorno
-`.venv/` (que se reconstruye desde `uv.lock`) y las carpetas `*_files/` de las figuras. `index.qmd`
-se convierte en la página de inicio del sitio, `index.html`, la que ve quien visita la dirección
+`.gitignore` gana una línea, para el sitio renderizado, `_site/`, que se reconstruye desde la
+fuente y se publica aparte (@sec-london-publish). El resto de la lista está ahí desde que empezaste
+la carpeta (@sec-brief): el entorno `.venv/` (que se reconstruye desde `uv.lock`), los archivos de
+trabajo de Quarto y las salidas renderizadas junto a las fuentes. `index.qmd` se convierte en la página de inicio del sitio, `index.html`, la que ve quien visita la dirección
 del sitio.
 
 ::: tryit
@@ -229,12 +235,12 @@ GitHub (el agente puede averiguarlo con `gh api user` si se lo pides).
 
 ::: {.prompt}
 ```default
-Inicializa un repositorio de git aquí. Reemplaza el README.md de esta carpeta por uno corto, en inglés, que enlace a https://<your-github-username>.github.io/london-guide/ y enumere los archivos del menú Downloads del sitio. Haz commit de todo menos _site/, .quarto/, .venv/ y *_files/, luego crea con gh un repositorio público de GitHub llamado `london-guide` y haz push. Fija el sitio web del repositorio en la misma URL con `gh repo edit --homepage`. Muéstrame el README y la URL que configuraste.
+Reemplaza el README.md de esta carpeta por uno corto, en inglés, que enlace a https://<your-github-username>.github.io/london-guide/ y enumere los archivos del menú Downloads del sitio. Haz commit de él junto con el trabajo que aún no tenga commit (nada de lo que .gitignore deja afuera), luego crea con gh un repositorio público de GitHub llamado `london-guide` y haz push de `main` a él. Fija el sitio web del repositorio en la misma URL con `gh repo edit --homepage`. Muéstrame el README y la URL que configuraste.
 ```
 :::
 
 ::: {.agent}
-`git init` · `git commit` · `gh repo create london-guide …` · `gh repo edit --homepage …`
+`git status` · `git commit` · `gh repo create london-guide …` · `gh repo edit --homepage …`
 :::
 
 ::: {.you}
@@ -243,7 +249,9 @@ apruebas `gh` · en la pestaña de la vista previa: Ctrl+C, luego `uv run quarto
 
 El agente crea el repositorio en GitHub a partir de tu carpeta con
 `gh repo create london-guide --public --source=. --push`, que también sube los commits, usando la
-sesión iniciada en la comprobación de la preparación. Su README es lo primero que ven quienes
+sesión iniciada en la comprobación de la preparación. Con ellos va cada commit que hiciste desde
+que empezaste la carpeta, así que el repositorio en GitHub abre con todo el historial de la guía,
+un paso revisado a la vez. Su README es lo primero que ven quienes
 visitan el repositorio, y su enlace los lleva al sitio en vivo.
 
 La primera publicación es tuya, escrita en la terminal. Detén antes la vista previa: la
@@ -294,7 +302,9 @@ Catch me up: follow ../quarto-workshop/examples/london/README.md
 
 El @sec-quarto empezó con una corrección (@sec-drift): ALVA revisa una cifra y, en un flujo de
 copiar y pegar, alguien tiene que llevarla a mano a cada archivo que la cita. Aquí está ese
-escenario de verdad, en un proyecto en el que nunca se copió ningún conteo de visitantes. No viene
+escenario de verdad, en un proyecto en el que nunca se copió ningún conteo de visitantes. Hiciste el
+mismo movimiento a menor escala con el primer informe (@sec-first-change) y predijiste uno para
+los tres primeros formatos de la guía (@sec-formats); ahora abarca cada página. No viene
 ningún prompt: escribe el tuyo, o hazlo a mano. Haz tú la edición de los datos, por ejemplo con
 `nano data/attractions.csv` (Ctrl+O, Enter, Ctrl+X): las reglas del proyecto mantienen al
 agente fuera de `data/`, que es justamente su propósito.
@@ -313,7 +323,8 @@ que cambió con el dato de entrada.
 :::
 
 El valor es ficticio: elegido para que cambie la atracción más visitada, de modo que el efecto se
-vea, y reversible, porque el paso de publicación hizo commit del archivo real. `git restore`
+vea, y reversible, porque el archivo real tiene commit desde que lo copiaste
+(@sec-md-table). `git restore`
 devuelve un archivo a como estaba en el último commit, y la segunda reconstrucción no deja ningún
 número de prueba en tus archivos.
 
@@ -424,7 +435,8 @@ es más rápido y más simple.
 ## Resumen {.unnumbered}
 
 ::: keyideas
-- Git guarda cada versión como commits; un diff muestra lo que hizo el agente.
+- Hacer push copia tus commits a GitHub; un pull request muestra un diff para que otra persona
+  lo revise antes de que cuente.
 - Un sitio construido son archivos estáticos: súbelos, o deja que un servicio los construya.
 - Un `_quarto.yml` con una lista `render` convierte una carpeta en un sitio web.
 - El primer `quarto publish gh-pages` es tuyo; las actualizaciones siguientes pueden ser del
