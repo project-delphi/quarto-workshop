@@ -43,6 +43,7 @@ make book-epub     # the EPUB only, with post-processing and EPUBCheck
 make book-fresh    # the same as `make book`, re-executing every chapter
 make book-shots    # screenshot the EPUB's chapters at phone and tablet widths, light and night
 make book-publish  # copy the HTML edition and the EPUB into docs/book/ (both must be built)
+make book-store    # store EPUBs (GIFs as stills), covers and listings for Apple and Google (STORES.md)
 make deck          # render the deck into docs/, keeping docs/book/ as it was
 make site          # render the deck, then the book, then publish the book into docs/
 ```
