@@ -575,3 +575,41 @@ because at a phone's the theme shrinks the three levels to nearly one size. The 
 guide's credited photo of the Natural History Museum's Central Hall; the links go to Visit London
 and to the museum's page in `data/sights.csv`. The reference tables, the toy file and the
 dialect notes follow the animations.
+
+## 15. A first report, by hand (2026-11-17)
+
+Two outside reviews of the EPUB rated it highly as a workshop but lower as a standalone book for
+readers new to the terminal: the first payoff came late, Git arrived in Chapter 7 after many agent
+edits, and checking was explained more than practised. The changes:
+
+1. **A new Chapter 4, "A First Report, by Hand"** (`chapters/first-report.qmd`), the last chapter
+   of Part I. From `starters/first-report/` (five unchanged ALVA rows, and a report whose one typed
+   number has two digits swapped) the reader, by hand: copies, renders, checks every number against
+   the data and finds the wrong one; starts a Git history; edits the CSV, predicts, rebuilds, reads
+   the diff and restores; makes three mistakes on purpose (wrong folder, a typo, broken YAML) and
+   reads their real errors; and only then has the agent fix the typed number, checked with
+   `git diff` and a fresh-clone rebuild. Its numbers come from the starter, its diffs and Git hashes
+   are computed, and its terminal output was captured (Quarto 1.10.20, Git 2.37, macOS zsh, and
+   Ubuntu 24.04 bash 5.2 in Docker). A newcomer test run of every command, in a disposable home
+   folder, led to 21 fixes. It names the **three checks** (scope, correctness, rebuild) that the
+   exercises reuse.
+2. **Git from the first agent edit.** Part II starts the guide with `git init -b main`, a
+   `.gitignore` and a commit, reads a diff before each commit and undoes an unwanted change;
+   Part III starts its history when the folder is made. Chapter 8's Git section now covers only
+   what Git does beyond one folder, and neither publish prompt initialises a repository.
+3. **Three projects of your own** in the afterword: an internal metrics brief, a research
+   supplement and a coursework report, each ending with a fresh-clone rebuild.
+4. **For terminal newcomers:** no alternatives as inline `#` comments in copyable commands (zsh
+   passes them as arguments); compound commands split on first use; Appendix B gains Paths and
+   Reading an error; Appendix D the real messages; the cheatsheet a Git table; the preface a first
+   afternoon, a core path and a diagnosis before catching up; §1.4 the conditions of the rebuild
+   promise (inputs, seeds, caches).
+5. Chapters from the old 4 on are renumbered (5–8, 9–15); the landing page and roadmaps follow
+   from the sources. The Spanish edition has every change, with `compare.py`, `lint.py` and
+   `english_scan.py` clean.
+
+Not done, and worth doing next: a pilot with real newcomers on managed laptops and WSL (time to
+first render, where they stop); a prepared cloud environment for machines that cannot install
+software; Part III opened with the council claim it builds towards, with a Tunja ledger (raw value,
+inclusion, transformation, cluster, what may be said) carried through Chapters 10–14; and the deck's
+Markdown block, which still has no `git init` before its first prompt.

@@ -173,6 +173,11 @@ se renderiza último, así que la página que ves puede no venir del archivo que
 también la vista previa con el archivo nuevo: la anterior sigue vigilando `london.md`.
 :::
 
+Haz commit de este paso como antes (@sec-md-lists). `git status` muestra `london.md` borrado y
+`london.qmd` nuevo; `git add .` registra los dos, y luego `git status` los presenta como un solo
+cambio, `renamed: london.md -> london.qmd`, porque los dos archivos tienen casi el mismo texto. El
+historial de las primeras líneas de la guía continúa con el nombre nuevo.
+
 ## Números que calcula la guía {#sec-code-cells}
 
 ::: {.prompt}
@@ -337,6 +342,40 @@ Para renderizar un solo formato, agrega `--to docx` (o `--to typst`). Cada forma
 más por los pasos de la @fig-pipeline. Cuando reinicias la vista previa, la página web tiene en su
 margen una lista de *Other Formats* (otros formatos), con un enlace a cada archivo; abre desde ahí
 el archivo de Word y el PDF.
+
+```{python}
+#| label: ch5-one-row
+# One revised row, for the prediction below: the Tower of London's 2025 count rises by `bump`.
+bump = 100_000
+tower_now = int(attractions.loc[attractions["attraction"] == "Tower of London",
+                                "visits_2025"].iloc[0])
+tower_new = tower_now + bump
+others = attractions[attractions["attraction"] != "Tower of London"]
+passed = others[(others["visits_2025"] > tower_now) & (others["visits_2025"] < tower_new)]
+# The answer says the top attraction stays and the Tower's bar passes exactly one other.
+text_holds(tower_new < top["visits_2025"] and len(passed) == 1, "the one-row prediction")
+passed_name = passed["attraction"].iloc[0]
+passed_visits = f"{passed['visits_2025'].iloc[0]:,}"
+bump_s, tower_new_s = f"{bump:,}", f"{tower_new:,}"
+new_total = f"{attractions['visits_2025'].sum() + bump:,}"
+```
+
+::: think
+Supón que ALVA revisa una fila de `data/attractions.csv`: las `visits_2025` de la Tower of London
+suben en `{python} bump_s`. En el siguiente renderizado, ¿qué cambia en `london.html`,
+`london.docx` y `london.pdf`? Predice antes de seguir leyendo, como hiciste con el primer informe
+(@sec-first-change).
+
+Cambian las mismas cosas en los tres, porque cada formato vuelve a ejecutar las celdas. El total
+pasa a ser `{python} new_total`. La barra de la Tower crece y, en un gráfico ordenado por visitas,
+como la @fig-ldn-top10, sube y deja atrás a `{python} passed_name`, que tiene
+`{python} passed_visits`. La primera mitad de la oración no cambia: `{python} tower_new_s` sigue
+siendo menos que las `{python} top_visits` del `{python} top_name`, así que `idxmax()` encuentra
+la misma fila. La palabra escrita a mano "ten" tampoco cambia. Para comprobar una predicción como
+esta, haz el cambio tú con `nano`, renderiza, mira, y luego devuelve el conteo real con
+`git restore data/attractions.csv`. La @sec-london-change le hace la misma pregunta a todo el
+proyecto publicado.
+:::
 
 ::: why
 ¿Por qué ejecutar el código una vez por formato? Porque un formato puede cambiar lo que produce el

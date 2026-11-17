@@ -1,8 +1,10 @@
 # Keys, Symbols and Terminal Habits {#sec-terminal}
 
-If you mostly type prose, three things in this book may be new: keys that each program treats
-differently, the symbols that code is full of, and the keys and habits that make a terminal
-predictable. Skip what you already know.
+If you mostly type prose, four things in this book may be new: keys that each program treats
+differently, the symbols that code is full of, the paths that name files and folders, and the
+keys and habits that make a terminal predictable, including how to read an error. Skip what you
+already know. @sec-first-report is the place to practise all of it: almost everything in it is
+typed by hand.
 
 ## The keyboard {#sec-keys-keyboard .unnumbered}
 
@@ -93,6 +95,89 @@ Open a second tab (Ctrl+Shift+D in Windows Terminal, Command-T on a Mac), type `
 Ctrl+R found your `ls` command and Ctrl+U cleared it.
 :::
 :::
+
+## Paths {#sec-keys-paths .unnumbered}
+
+A *path* names a file or folder by the folders that lead to it, separated by `/`. An *absolute*
+path starts at the top of the computer's folders, `/`, and means the same wherever you are:
+`/home/ana/first-report` on Linux and WSL, `/Users/ana/first-report` on a Mac. A *relative*
+path starts from the folder you are in: in `~/first-report`, `data/visits.csv` is the file
+`visits.csv` in its `data` folder, and from your home folder the same path finds nothing.
+
+| Path | Means |
+|---|---|
+| `~` | your home folder: `~/first-report` is the folder `first-report` inside it, from anywhere |
+| `.` | the folder you are in: `open .` opens it on a Mac |
+| `..` | the folder above: `cd ..` goes up one, and `../quarto-workshop` is a folder beside this one |
+| `data/visits.csv` | relative: `visits.csv` in the `data` folder of the folder you are in |
+
+: The short forms of paths that this book's commands use. {#tbl-keys-paths}
+
+A "no such file" error often means a relative path read from the wrong folder: `pwd` says where
+you are, and `ls` what is there.
+
+A space separates a command's parts, so a name with a space reads as two names. Each shell says
+so in its own words:
+
+::: transcript
+```text
+$ mkdir "my reports"
+$ cd my reports
+bash: cd: too many arguments
+```
+:::
+
+That is Bash on Ubuntu (5.2); zsh on a Mac answers `cd: string not in pwd: my`. Either way, keep
+the name in one piece: put it in quotes, `cd "my reports"`, or put a backslash before the space,
+`cd my\ reports`. Easiest of all, type `cd my` and press **Tab**: the shell completes the name and
+types the backslash for you. Names you choose yourself are simpler without spaces:
+`my-reports`.
+
+## Reading an error {#sec-keys-errors .unnumbered}
+
+A failed command often prints more than you need. Read it in this order.
+
+**The first line.** It says what went wrong, usually after `ERROR:` or `error:`. Run
+`uv run quarto render report.qmd` in the wrong folder and the line is:
+
+::: transcript
+```text
+ERROR: No valid input files passed to render
+
+Stack trace:
+    at _Command.actionHandler (file:///Applications/quarto/bin/quarto.js:142967:11)
+    ...
+```
+:::
+
+Quarto found no `report.qmd` here: you are in the wrong folder, or the name is misspelt.
+
+**Not the stack trace.** The lines after `Stack trace:`, each starting `at`, show where inside
+Quarto the error surfaced. They are for Quarto's developers, not for you: skip them.
+
+**The caret.** A mistake in a file's YAML ends with the lines around it, numbered, and a caret,
+`^`, under the place where YAML gave up. Here `format: html` lost the space after its colon:
+
+::: transcript
+```text
+ERROR: YAMLException: can not read a block mapping entry; a multiline key may not be an implicit key (4:1)
+
+ 1 |
+ 2 | title: "Five London Sights"
+ 3 | format:html
+ 4 |
+-----^
+```
+:::
+
+The numbers count lines from the opening `---`, which is line 1, and `(4:1)` means line 4,
+character 1. YAML often notices a mistake one line *after* it, so look at the line the caret
+points to and the line above: here the culprit is line 3.
+
+When you ask for help, copy the whole thing all the same: the command and every line it printed,
+stack trace included. The person or web chat helping you may need the part you skipped.
+@sec-first-errors makes three common mistakes on purpose, and @sec-troubleshooting lists the
+messages seen in practice, with their fixes.
 
 ## Habits {.unnumbered}
 

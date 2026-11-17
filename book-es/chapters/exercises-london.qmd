@@ -18,7 +18,11 @@ nombra el capítulo que lo explica, cómo sabes que terminaste y la línea que t
 terminaste; un punto de control es el estado al *final* de su bloque, así que, después de ponerte
 al día, salta al ejercicio siguiente. El @sec-checkpoints tiene la tabla completa. Si hiciste los
 pasos de los capítulos, usa estos cinco como lista de comprobación: confirma cada "terminaste
-cuando" y sigue. Si leíste sin hacer, hazlos aquí, en orden. Los demás no traen prompts. En las
+cuando" y sigue. Si leíste sin hacer, hazlos aquí, en orden. Cada "terminaste cuando" pide las
+tres revisiones de la @sec-three-checks donde corresponden: alcance (`git status` y `git diff`
+enumeran solo los archivos que querías cambiar), corrección (un número o un dato rastreado a mano
+hasta su fila en `data/`) y reconstrucción (un renderizado a partir de lo que tiene commit da el
+mismo resultado). Los ejercicios que siguen a estos cinco no traen prompts. En las
 tareas de transferencia escribes tú el prompt y la comprobación, y las preguntas de repaso
 comprueban si te quedaron las razones; al final hay respuestas cortas.
 
@@ -28,14 +32,17 @@ se lee fuera de esa carpeta, así que aprueba la solicitud del agente para leer
 
 ## Ejercicio II.1: Londres en Markdown {#exercise-ii.1-london-in-markdown .unnumbered}
 
-Del @sec-markdown. Escribe `london.md` con un título, listas, un enlace, la foto del Big Ben con
+Del @sec-markdown. Inicia a mano el historial de la carpeta (`git init -b main`, un `.gitignore`
+y un primer commit); escribe `london.md` con un título, listas, un enlace, la foto del Big Ben con
 texto alternativo y crédito, una cita, una tabla a partir de `data/sights.csv` y un bloque de
 código; renderízalo y mantén una vista previa en vivo; escribe el `AGENTS.md` del proyecto; dale a
-la carpeta su propio entorno con uv.
+la carpeta su propio entorno con uv. Lee el `git diff` de cada paso y haz commit.
 
 ::: done
 `london.html` muestra las dos listas, la foto con su crédito, la tabla de cinco filas y la lista
-para marcar, y `uv run quarto check jupyter` informa el Python del `.venv` de esta carpeta.
+para marcar, `uv run quarto check jupyter` informa el Python del `.venv` de esta carpeta, un rango
+de precio de la tabla coincide con su fila en `data/sights.csv`, y `git log --oneline` enumera un
+commit por paso, con `git status` limpio.
 :::
 
 ::: catchup
@@ -53,7 +60,10 @@ EPUB y Reveal.js).
 
 ::: done
 `london.html` muestra el bloque del título, la oración calculada y un gráfico numerado, y
-`london.docx` y `london.pdf` muestran la misma oración y el mismo gráfico.
+`london.docx` y `london.pdf` muestran la misma oración y el mismo gráfico. Las visitas de la
+atracción más visitada que da la oración coinciden con su fila en `data/attractions.csv`, y después
+de tu commit, con `git status` limpio, `uv run quarto render london.qmd` vuelve a dar la misma
+oración.
 :::
 
 ::: catchup
@@ -72,7 +82,8 @@ con su correo de presentación y el folleto A5; la sesión principal los renderi
 barras y uno de líneas, y una página Churches que enumera `{python} churches_word` iglesias con
 enlaces a Visit London; `london-email.docx` abre con títulos y enlaces que funcionan;
 `london-email-message.md` contiene el correo en un solo bloque de texto; `london-flyer.pdf` es una
-página A5.
+página A5. Antes de hacer commit, `git status` enumera esos cuatro archivos fuente y nada en
+`data/`, `images/` ni `london.qmd`.
 :::
 
 ::: catchup
@@ -90,7 +101,8 @@ Downloads, súbela a GitHub y publícala con un `uv run quarto publish gh-pages`
 
 ::: done
 `https://<your-github-username>.github.io/london-guide/london-dashboard.html` se abre en tu
-teléfono.
+teléfono, y `git status` estaba limpio cuando publicaste, así que el sitio en vivo se construyó a
+partir de lo que tiene commit y push.
 :::
 
 ::: catchup
@@ -99,8 +111,8 @@ Catch me up: follow ../quarto-workshop/examples/london/README.md
 ```
 :::
 
-Si ya publicaste, ponerte al día copia el README del proyecto terminado sobre el tuyo; recupera el
-tuyo con `git checkout -- README.md`.
+Si ya publicaste, ponerte al día copia el README y el `.gitignore` del proyecto terminado sobre
+los tuyos; recupera los tuyos con `git checkout -- README.md .gitignore`.
 
 ## Ejercicio II.5: cambia un dato de entrada, explica la reconstrucción {#exercise-ii.5-change-an-input-explain-the-rebuild .unnumbered}
 
@@ -110,7 +122,8 @@ predice qué salidas cambian, reconstruye, explica qué cambió y qué no, y res
 
 ::: done
 puedes nombrar las salidas que cambiaron, las que no, y la línea de código que conecta cada salida
-que cambió con el dato de entrada. Las respuestas modelo están en el @sec-checkpoints.
+que cambió con el dato de entrada, y después de `git restore` y la segunda reconstrucción
+`git status` está limpio. Las respuestas modelo están en el @sec-checkpoints.
 :::
 
 ## Escribe tus propios prompts {#going-further .unnumbered}
@@ -149,22 +162,26 @@ técnico (@sec-london-whitepaper) y la página de three.js (@sec-london-3d).
 
 1. Las reglas del proyecto dicen "ALVA member attractions", nunca "London's most visited
    attractions" (las atracciones más visitadas de Londres). ¿Qué estaría mal en la segunda frase?
-2. Alguien de tu equipo copia tu carpeta `london-guide/` sin `.venv/`. ¿Qué le da los mismos
+2. Después de un prompt para agregar una lista "Getting around", `git status` enumera `london.md` y
+   `AGENTS.md` como modificados, y `git diff AGENTS.md` muestra que se quitó la regla "Keep `data/`
+   and `images/` unchanged". ¿Qué haces, y por qué esto importa más que una palabra equivocada en
+   la guía?
+3. Alguien de tu equipo copia tu carpeta `london-guide/` sin `.venv/`. ¿Qué le da los mismos
    paquetes que a ti, y qué escribe primero?
-3. Mientras `quarto preview` corre sobre `london.qmd`, el agente ejecuta
+4. Mientras `quarto preview` corre sobre `london.qmd`, el agente ejecuta
    `quarto render london.qmd` y falla con `readfile 'london.quarto_ipynb'`. ¿Qué pasó, y cuáles son
    dos formas de evitarlo?
-4. En la oración de la guía sobre las visitas, ¿qué partes se actualizan cuando cambia
+5. En la oración de la guía sobre las visitas, ¿qué partes se actualizan cuando cambia
    `attractions.csv`, y cuándo? ¿Hay alguna parte que no se actualice?
-5. El gráfico de barras de la guía tiene un pie de figura y un texto alternativo. ¿Qué debería decir
+6. El gráfico de barras de la guía tiene un pie de figura y un texto alternativo. ¿Qué debería decir
    cada uno, y por qué no son lo mismo?
-6. Necesitas dos cambios en `london-dashboard.qmd`: un cuadro de valor nuevo y un arreglo en la
+7. Necesitas dos cambios en `london-dashboard.qmd`: un cuadro de valor nuevo y un arreglo en la
    leyenda del gráfico de líneas. ¿Deberías dárselos a dos subagentes que trabajen en paralelo?
-7. ¿Por qué el tamaño de página del folleto se fija con `papersize: a5`, pero el del anuncio
+8. ¿Por qué el tamaño de página del folleto se fija con `papersize: a5`, pero el del anuncio
    cuadrado en un bloque de Typst sin procesar?
-8. Netlify puede construir tu sitio a partir del repositorio, o puedes renderizarlo tú y subirlo.
+9. Netlify puede construir tu sitio a partir del repositorio, o puedes renderizarlo tú y subirlo.
    ¿Qué necesita el proyecto de Londres, y por qué?
-9. Después de la reconstrucción del Ejercicio II.5, el dashboard de tu computadora muestra la Tower
+10. Después de la reconstrucción del Ejercicio II.5, el dashboard de tu computadora muestra la Tower
    of London como la atracción más visitada, pero el folleto no cambió y el dashboard de tu teléfono
    sigue mostrando las cifras viejas. Explica las dos cosas.
 
@@ -173,30 +190,35 @@ técnico (@sec-london-whitepaper) y la página de three.js (@sec-london-3d).
 1. ALVA cuenta solo a sus sitios miembro, así que su tabla no es una lista de todas las atracciones
    de Londres. "London's most visited attractions" afirmaría más de lo que muestran los
    datos (@sec-london-agents).
-2. `uv.lock`, que registra la versión exacta de cada paquete para cada sistema. Su primer comando
+2. Deshaz solo ese archivo con `git restore AGENTS.md`, comprueba que el diff de `london.md`
+   contenga solo la lista, y haz commit de eso. Una palabra equivocada arruina una página y se ve
+   en la vista previa; una regla quitada no se ve en ninguna parte de la página, pero cambia cada
+   sesión siguiente, porque el agente lee `AGENTS.md` al comienzo de cada una, y la protección de
+   la evidencia desaparecería sin que nadie lo decidiera (@sec-md-code-fence).
+3. `uv.lock`, que registra la versión exacta de cada paquete para cada sistema. Su primer comando
    `uv run`, como `uv run quarto render london.md`, construye `.venv/` a partir de
    él (@sec-environments).
-3. Un renderizado escribe un cuaderno temporal con el nombre del archivo, y la vista previa estaba
+4. Un renderizado escribe un cuaderno temporal con el nombre del archivo, y la vista previa estaba
    renderizando el mismo archivo en el mismo momento, así que los dos chocaron. Deja que la vista
    previa renderice mientras corre, o detenla antes con Ctrl+C y vuelve a iniciarla
    después (@sec-render-mechanics).
-4. El código en línea (la atracción más visitada, sus visitas y el total) se actualiza en el
+5. El código en línea (la atracción más visitada, sus visitas y el total) se actualiza en el
    siguiente renderizado, no cuando se guarda el archivo. La palabra "ten" está escrita a mano, así
    que nunca se actualiza (@sec-code-cells).
-5. El pie dice qué es el gráfico: la medida, el año y de quién son las atracciones. El texto
+6. El pie dice qué es el gráfico: la medida, el año y de quién son las atracciones. El texto
    alternativo dice qué muestra, como cuál barra es la más larga y cuál la más corta, para quien no
    puede verlo (@sec-cell-options).
-6. No. Los dos editan el mismo archivo, y los dos son pequeños. Los subagentes sirven para tareas
+7. No. Los dos editan el mismo archivo, y los dos son pequeños. Los subagentes sirven para tareas
    independientes y sustanciales que escriben archivos distintos; haz estas dos ediciones una tras
    otra (@sec-sub-agents).
-7. Typst tiene un nombre de papel para A5, pero ninguno para un cuadrado de 12 cm, así que el tamaño
+8. Typst tiene un nombre de papel para A5, pero ninguno para un cuadrado de 12 cm, así que el tamaño
    del anuncio necesita un bloque sin procesar, que Quarto le pasa intacto a Typst. Un bloque sin
    procesar ata la fuente a un solo formato, así que úsalo solo para lo que la configuración del
    formato no puede expresar (@sec-london-social).
-8. Renderizarlo tú y subirlo: las páginas ejecutan Python, y el plugin de construcción de Quarto
+9. Renderizarlo tú y subirlo: las páginas ejecutan Python, y el plugin de construcción de Quarto
    para Netlify no ejecuta ninguno. Un servicio que construye tampoco encontraría ningún sitio
    renderizado en el repositorio, porque `.gitignore` deja afuera `_site/` (@sec-hosting).
-9. El folleto no carga ningún dato: sus datos se copiaron en su Markdown, así que un cambio en
+10. El folleto no carga ningún dato: sus datos se copiaron en su Markdown, así que un cambio en
    `attractions.csv` no puede llegarle. El sitio en vivo muestra lo último que se publicó, y solo
    cambia cuando vuelves a publicar (@sec-london-change).
 

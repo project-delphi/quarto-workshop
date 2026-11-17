@@ -45,23 +45,26 @@ Markdown es lo que tú revisas: la capa que lees, comparas entre versiones y cor
 una oración está mal. La guía está en inglés, como los puntos de control del taller, para que
 puedas ponerte al día desde cualquiera de ellos; los prompts piden sus títulos en inglés.
 
-En este capítulo hay más cosas nuevas que en cualquier otro: el agente, las reglas, la vista
-previa y el entorno. Avanza en orden: lee una sección, pega su prompt y mira el resultado antes de
-seguir; cada recuadro *Pruébalo* dice lo que deberías ver para entonces. Cuando un paso sale mal,
+En este capítulo hay más cosas nuevas que en cualquier otro: un proyecto que el agente construye
+paso a paso, sus reglas, la vista previa y el entorno. Avanza en orden: lee una sección, pega su
+prompt y mira el resultado antes de seguir; cada recuadro *Pruébalo* dice lo que deberías ver para
+entonces. Cada paso termina igual que los del primer informe (@sec-first-agent): lees el cambio
+con `git diff` y haces commit. Cuando un paso sale mal,
 no se pierde nada: una línea pegada en el agente restaura el estado final del
 capítulo (@sec-catch-up).
 
 ::: opener
 - Escribir una página en Markdown: títulos, listas, enlaces, imágenes, tablas, bloques de código.
 - Renderizar un archivo, y mantener una vista previa en vivo corriendo a su lado.
-- Escribir reglas de proyecto lo bastante concretas como para revisarlas.
+- Escribir reglas de proyecto lo bastante concretas como para revisarlas, y contrastar con ellas
+  cada edición del agente mediante `git diff`.
 - Preparar el propio entorno de Python de un proyecto con uv.
 
 Partes de
 : una carpeta vacía `~/london-guide/`
 
 Construyes
-: `london.md`, sus reglas y un entorno de uv
+: `london.md`, sus reglas, un entorno de uv y el historial de cada paso
 
 Punto de control
 : `checkpoints/01-london-markdown/`
@@ -285,6 +288,8 @@ preparación (@sec-step-check), para que sus puntos de control estén siempre en
 ~
 ├── quarto-workshop/
 └── london-guide/
+    ├── .git/
+    ├── .gitignore
     ├── AGENTS.md
     ├── london.md
     ├── london.html
@@ -295,6 +300,8 @@ preparación (@sec-step-check), para que sus puntos de control estén siempre en
     └── .venv/
 ```
 
+- `.git/` y `.gitignore`: el historial de la guía, que inicias a mano, y la lista de archivos
+  que deja afuera.
 - `AGENTS.md`: las reglas que el agente lee primero.
 - `london.md`: la fuente de la guía, el archivo que revisas; `london.html` se renderiza a partir
   de él.
@@ -302,19 +309,64 @@ preparación (@sec-step-check), para que sus puntos de control estén siempre en
 - `pyproject.toml`, `uv.lock` y `.venv/`: los paquetes, sus versiones exactas y el entorno
   instalado.
 
-Crea la carpeta e inicia el agente en ella:
+Crea la carpeta e inicia su historial a mano, como hiciste con el primer informe
+(@sec-first-git), y luego abre una lista de lo que Git debe dejar afuera:
 
 ::: {.you}
 ```bash
 cd ~
 mkdir -p london-guide
 cd london-guide
-claude    # or: codex, or: agy
+git init -b main
+nano .gitignore
+```
+:::
+
+En nano, escribe estas líneas, un patrón por línea, y luego Ctrl+O, Enter y Ctrl+X para guardar
+y salir:
+
+```text
+.venv/
+.quarto/
+*.quarto_ipynb
+*_files/
+london*.html
+*.docx
+*.pdf
+*.pptx
+*.epub
+```
+
+Las cuatro primeras son el entorno y los archivos de trabajo de Quarto. El resto es lo que van a
+escribir los renderizados de la guía: páginas web, archivos de Word, PDF, diapositivas y libros
+electrónicos (un `*` representa cualquier secuencia de caracteres). Cada uno se reconstruye desde
+la fuente en el renderizado siguiente, así que un commit que los contuviera solo guardaría copias
+que quedan viejas. Las páginas web se enumeran por nombre, `london*.html`, y no `*.html`, porque
+una página opcional más adelante, `visits-3d.html` (@sec-london-3d), es una fuente que escribe el
+agente, no un archivo renderizado. Haz el primer commit:
+
+::: {.you}
+```bash
+git add .gitignore
+git commit -m "Leave the environment and rendered files out of Git"
+```
+:::
+
+Ahora `git status` dice `nothing to commit, working tree clean`, y no va a enumerar
+`london.html` ni `.venv/` cuando aparezcan, porque `.gitignore` los nombra. Deja esta pestaña de
+la terminal para Git, e inicia el agente en una pestaña nueva, en la misma carpeta (escribe
+`codex` o `agy` en lugar de `claude` si usas uno de esos):
+
+::: {.you}
+```bash
+cd ~/london-guide
+claude
 ```
 :::
 
 Claude Code primero pregunta si confías en la carpeta nueva (@sec-step-assistant): la creaste para
-este trabajo, así que di que sí. Los prompts siguientes copian archivos de `../quarto-workshop/`,
+este trabajo, así que di que sí. Codex hace la misma pregunta aquí, porque la carpeta ahora es un
+repositorio de Git. Los prompts siguientes copian archivos de `../quarto-workshop/`,
 que está fuera de la carpeta del proyecto, así que el agente te pide permiso la primera vez que
 lee ahí. Apruébalo, o inicia Claude Code con `claude --add-dir ../quarto-workshop` para
 permitirlo desde el principio (Codex tiene la misma opción, `--add-dir`).
@@ -339,6 +391,37 @@ Welcome to **London**: free museums, royal history and *riverside walks*.
 hacia abajo. Los asteriscos dobles marcan el texto en **negrita** y los simples, en *cursiva*. Una
 línea en blanco separa los párrafos. Eso ya es un documento completo.
 
+Antes que nada, mira qué cambió el agente. En tu pestaña de Git:
+
+::: {.you}
+```bash
+git status
+```
+:::
+
+::: transcript
+```text
+On branch main
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        london.md
+
+nothing added to commit but untracked files present (use "git add" to track)
+```
+:::
+
+Un archivo nuevo y nada más: el agente escribió solo lo que se le pidió. `git diff` todavía no
+mostraría nada, porque compara los archivos que Git ya sigue con su último commit, y un archivo
+nuevo no tiene último commit: todo su texto es el cambio. Así que lee el archivo en sí
+(`cat london.md` lo imprime) y luego haz commit con un mensaje que diga por qué:
+
+::: {.you}
+```bash
+git add london.md
+git commit -m "Start the guide with a title and a welcome"
+```
+:::
+
 ## Mírala convertirse en una página web {#sec-md-render}
 
 ::: {.prompt}
@@ -352,7 +435,7 @@ Renderiza london.md con quarto render y dime qué archivo escribió.
 :::
 
 ::: {.you}
-en una segunda pestaña de la terminal:
+en una tercera pestaña de la terminal:
 
 ```bash
 cd ~/london-guide
@@ -371,7 +454,8 @@ si no lo hace, abre tú la dirección.
 ![Una vista previa en vivo: cada vez que se guarda `london.md` (izquierda), `quarto preview` lo vuelve a renderizar y la página se recarga (derecha). Una grabación real de `quarto preview` con las ediciones que hace este capítulo.](../media/gifs/quarto-preview-reload.gif){#fig-preview-reload .anim fig-alt="Dos paneles. A la izquierda, la fuente de london.md, en inglés, a medida que el agente la guarda, con cada sección nueva resaltada: primero el título y la bienvenida, luego una lista numerada de cinco atracciones, luego una sección Plan your visit con un enlace y un consejo de un local, y luego una lista Before you go. A la derecha, la página que sirve quarto preview se recarga después de cada guardado y muestra la sección nueva, renderizada como títulos, una lista numerada, un enlace, una cita y un bloque de código."}
 
 Deja la vista previa corriendo de aquí en adelante. Es la forma más rápida de revisar lo que hizo
-cada prompt.
+cada prompt. `git status` en tu pestaña de Git no enumera nada nuevo después de un renderizado:
+`london.html` es un archivo renderizado, y `.gitignore` lo deja afuera.
 
 ::: pitfall
 Una vista previa y un renderizado del mismo archivo en el mismo momento chocan: los dos escriben
@@ -382,7 +466,8 @@ Ctrl+C, y vuelve a iniciarla después.
 :::
 
 ::: tryit
-Pega los dos prompts de arriba y luego inicia la vista previa en una segunda pestaña.
+Pega los dos prompts de arriba, haz commit de la primera página y luego inicia la vista previa en
+una tercera pestaña.
 
 ::: done
 `london.html` se abre en tu navegador y se actualiza cada vez que cambia `london.md`.
@@ -434,9 +519,10 @@ La versión del proyecto terminado dice, en parte:
 
 Lee lo que escribió el agente y edítalo tú si la redacción no es la que querías. Es el contrato
 de tu proyecto con el agente, y las reglas funcionan mejor cuando son lo bastante concretas
-como para revisarlas. Sirve cualquier editor de texto plano, o el de la propia terminal: en una
-pestaña nueva, `cd ~/london-guide`, y luego `nano AGENTS.md` abre el archivo; Ctrl+O y Enter
-lo guardan, y Ctrl+X sale (@sec-terminal).
+como para revisarlas. Sirve cualquier editor de texto plano, o el de la propia terminal: en tu
+pestaña de Git, `nano AGENTS.md` abre el archivo; Ctrl+O y Enter lo guardan, y Ctrl+X sale
+(@sec-terminal). Luego haz commit, como hiciste con la primera página: `git add AGENTS.md`, y
+luego `git commit -m "Write the project's rules"`.
 
 ## Cinco atracciones y cómo moverse {#sec-md-lists}
 
@@ -469,6 +555,62 @@ los datos de ALVA. La lista es un punto de partida, no un ranking. Entre las
 en el orden de la lista, están en los puestos `{python} five_ranks`;
 `{python} word(n_above_tower)` atracciones que no están en la lista tuvieron más visitas que la
 Tower of London.
+
+### Lee el diff y haz commit {#read-the-diff-then-commit}
+
+Este es el primer cambio del agente en un archivo que Git ya sigue, así que `git diff`, en tu
+pestaña de Git, tiene algo que mostrar:
+
+::: transcript
+```text
+diff --git a/london.md b/london.md
+index df822e3..797957c 100644
+--- a/london.md
++++ b/london.md
+@@ -1,3 +1,17 @@
+ # Visit London
+
+ Welcome to **London**: free museums, royal history and *riverside walks*.
++
++## Five sights to start with
++
++1. British Museum
++2. Natural History Museum
++3. Tate Modern
++4. National Gallery
++5. Tower of London
++
++## Getting around
++
++- 🚇 Tube
++- 🚌 Bus
++- 🚲 Santander Cycles
+```
+:::
+
+Las líneas que empiezan con `+` se agregaron y las que empiezan con `-` se quitaron; las demás son
+líneas sin cambios que se muestran como contexto. `@@ -1,3 +1,17 @@` dice que las tres líneas
+que empiezan en la línea 1 ahora son diecisiete. El tuyo va a diferir dondequiera que difiera la
+redacción del agente. Revisa dos cosas: cada línea agregada es una que pediste, y no aparece
+ningún otro archivo. Luego haz commit:
+
+::: {.you}
+```bash
+git commit -am "Add five sights and ways to get around"
+```
+:::
+
+`-a` incluye cada archivo seguido que cambió, y `-m` da el mensaje, como en el primer informe.
+
+::: practice
+Hazlo un hábito: después de cada prompt, una vez que la vista previa muestre lo que pediste,
+ejecuta `git status` y `git diff` y haz commit con un mensaje que diga por qué. `git commit -am`
+cubre los archivos modificados; un archivo nuevo, o una carpeta nueva como `data/`, necesita
+antes `git add .`, que agrega todo lo nuevo o modificado que `.gitignore` no deja afuera. Los
+commits pequeños, un paso revisado cada uno, te dejan deshacer un paso sin perder los demás.
+Cuando el hábito ya sea tuyo, puedes pedirle al agente que haga commit ("haz commit con un
+mensaje que diga por qué") y leer su diff antes de aprobar.
+:::
 
 ## Planear una visita: un enlace, una foto y un consejo {#sec-md-link-image}
 
@@ -568,6 +710,9 @@ Algunos sitios oficiales, incluidos el del British Museum y el de Historic Royal
 responden a las solicitudes automáticas con `403 Forbidden`, así que un agente que revisa sus
 enlaces puede informar esos dos como rotos. Ábrelos en un navegador antes de creerlo.
 
+Haz commit de este paso con `git add .` primero, para que `data/` entre en el commit junto con la
+tabla: desde entonces, Git te muestra cualquier cambio en la evidencia.
+
 ## Una lista que conserva su forma {#sec-md-code-fence}
 
 ::: {.prompt}
@@ -592,13 +737,60 @@ un bloque se muestra exactamente como se escribió, por eso los corchetes y los 
 sobreviven. En el capítulo siguiente, escribir `{python}` después de las comillas invertidas en
 lugar de `python` convierte un bloque que se muestra en uno que se ejecuta.
 
+### Detecta el cambio que no pediste {#spot-the-change-you-did-not-ask-for}
+
+```{python}
+#| label: ch4-unwanted
+# The scene below quotes the British Museum's nearest_tube row: stop if sights.csv changes it.
+bm_tube = ldn_sights[(ldn_sights["sight"] == "British Museum")
+                     & (ldn_sights["fact"] == "nearest_tube")]["value"]
+text_holds(bm_tube.tolist() == ["Tottenham Court Road"], "the unwanted change's diff")
+```
+
+Supón que después del prompt de la lista para marcar, `git status` enumera dos archivos
+modificados, no uno:
+
+::: transcript
+```text
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   data/sights.csv
+        modified:   london.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+:::
+
+::: think
+El prompt pidió una lista para marcar en `london.md`, y nada más. ¿Qué haces con
+`data/sights.csv`?
+
+Mira antes de deshacer. `git diff data/sights.csv` muestra qué cambió; aquí, acortado con "…", un
+valor en una fila:
+
+```text
+-British Museum,nearest_tube,Tottenham Court Road,"British Museum, Visit: …
++British Museum,nearest_tube,Holborn,"British Museum, Visit: …
+```
+
+El agente reemplazó la estación que nombra la propia página del museo por una de su memoria, en
+contra de la regla que deja `data/` sin cambios. `git restore data/sights.csv` devuelve ese único
+archivo a como estaba en el último commit y no toca la lista de `london.md`, así que `git status`
+luego enumera solo `london.md`. Haz commit de eso, y dile al agente qué hizo y qué regla rompió.
+La escena es una ilustración, no una sesión grabada; es justo el tipo de cambio que un resumen
+como "Agregué la lista" no mencionaría, y por eso lees `git status` y no solo lo que informa el
+agente.
+:::
+
 ::: tryit
 Agrega las listas, el enlace, la imagen y la cita, la tabla y el bloque de código con los cuatro
-prompts de arriba, y mira cómo llega cada cambio a la vista previa.
+prompts de arriba, mira cómo llega cada cambio a la vista previa, y luego lee su diff y haz commit.
 
 ::: done
 `london.html` muestra las dos listas, la foto con su crédito, la tabla de cinco filas y la lista
-para marcar.
+para marcar, y `git log --oneline` enumera un commit por cada paso.
 :::
 :::
 
@@ -671,12 +863,19 @@ sistema. Ese es el archivo que hace que el `uv run` de un colega construya el mi
 tuyo.
 :::
 
+Haz commit de este paso también. `git status` enumera los nuevos `pyproject.toml` y `uv.lock` y
+el `AGENTS.md` modificado, pero no `.venv/`: `.gitignore` lo deja afuera, porque `uv run` lo
+reconstruye desde `uv.lock`. Así, `git add .` y
+`git commit -m "Give the guide its own Python environment"` registran todo lo que un colega
+necesita para construir el mismo entorno, y nada que no necesite.
+
 ::: tryit
-Ejecuta el prompt del entorno. Deja la vista previa corriendo: `london.md` todavía no necesita
-Python.
+Ejecuta el prompt del entorno, lee su diff y haz commit. Deja la vista previa corriendo:
+`london.md` todavía no necesita Python.
 
 ::: done
-`uv run quarto check jupyter` informa el Python del `.venv` de esta carpeta.
+`uv run quarto check jupyter` informa el Python del `.venv` de esta carpeta, y `git status` dice
+`nothing to commit, working tree clean`.
 :::
 
 ::: catchup
@@ -711,6 +910,36 @@ El respaldo deja afuera `.venv/` porque puede pesar cientos de megabytes y se re
 `uv.lock` en el siguiente `uv run`. Copiarlo sería lento e inútil.
 :::
 
+Tu historial también se conserva. Un punto de control no tiene carpeta `.git/`, así que ponerte al
+día deja tus commits como estaban, y los archivos del punto de control llegan como cambios. Si
+habías hecho commit de cada paso anterior al entorno (@sec-environments), `git status` muestra entonces:
+
+::: transcript
+```text
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   AGENTS.md
+        modified:   london.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        README.md
+        pyproject.toml
+        uv.lock
+
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+:::
+
+Revísalos como revisarías un cambio del agente: `git diff` muestra cómo cambiaron `london.md` y
+`AGENTS.md` (las reglas del punto de control agregan los comandos `uv run`), y no aparece nada de
+`data/` ni de `images/`, porque las copias del punto de control son iguales a las tuyas. `README.md`
+contiene los pasos del punto de control para ponerte al día; la @sec-london-publish lo reemplaza
+por el de la propia guía. Luego `git add .` y `git commit -m "Catch up to checkpoint 01"`. Tu
+propio `.gitignore` se queda, porque el punto de control no tiene uno.
+
 ## Resumen {.unnumbered}
 
 ::: keyideas
@@ -721,8 +950,9 @@ El respaldo deja afuera `.venv/` porque puede pesar cientos de megabytes y se re
 - El Markdown simple se renderiza sin configuración; mientras corre una vista previa, deja que
   ella renderice.
 - `AGENTS.md` contiene reglas lo bastante concretas como para revisarlas, escritas antes de que
-  lleguen los datos.
-- Los datos salen de archivos citados, nunca de la memoria del agente.
+  lleguen los datos: los datos salen de archivos citados, nunca de la memoria del agente.
+- Después de cada paso, `git status` y `git diff` muestran qué cambió el agente; haz commit de lo
+  que revisaste, y `git restore` deshace un archivo que no querías que cambiara.
 - uv fija los paquetes del proyecto en `uv.lock`, y `uv run` los usa.
 :::
 

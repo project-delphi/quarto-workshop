@@ -1,7 +1,8 @@
 # Solución de problemas {#sec-troubleshooting}
 
-Problemas vistos al construir y dar el taller, con soluciones que se probaron. Para la preparación en
-Windows, mira también [la tabla de Windows para cuando te trabas](a-windows.qmd#sec-windows-stuck). Para
+Problemas vistos al construir y dar el taller, y los errores que la @sec-first-errors comete a propósito,
+con soluciones que se probaron. [Leer un error](b-terminal.qmd#sec-keys-errors) dice qué línea de un error
+leer primero. Para la preparación en Windows, mira también [la tabla de Windows para cuando te trabas](a-windows.qmd#sec-windows-stuck). Para
 cualquier cosa que no esté en la lista: copia el comando y el error completo en un chat web con el nombre
 de tu sistema, prueba una solución sugerida a la vez y nunca pegues contraseñas ni claves.
 
@@ -20,10 +21,22 @@ de tu sistema, prueba una solución sugerida a la vez y nunca pegues contraseña
 
 : Problemas de la preparación. {#tbl-trouble-setup}
 
+## La terminal {#the-terminal .unnumbered}
+
+| Mensaje | Causa y solución |
+|---|---|
+| `zsh: command not found: quatro` (Mac) o `quatro: command not found` (Ubuntu) | Un error de tipeo en el nombre del comando. Presiona la flecha hacia arriba, corrígelo y luego Enter (@sec-first-errors). Si el nombre está bien, mira la fila de `command not found` en la @tbl-trouble-setup |
+| `No such file or directory (os error 2)`, justo después de `` error: Failed to spawn: `quatro` `` | El mismo error de tipeo después de `uv run`: uv no encontró ningún programa con ese nombre. Presiona la flecha hacia arriba, corrígelo y luego Enter |
+| `bash: cd: too many arguments` (Ubuntu) o `cd: string not in pwd: my` (Mac) | El nombre de la carpeta tiene un espacio, así que `cd` leyó dos nombres: `cd "my reports"`, o escribe `cd my` y presiona Tab ([Rutas](b-terminal.qmd#sec-keys-paths)) |
+
+: Mensajes de la terminal. {#tbl-trouble-terminal}
+
 ## Renderizado y vista previa {#rendering-and-preview .unnumbered}
 
 | Problema | Causa y solución |
 |---|---|
+| `ERROR: No valid input files passed to render` | Quarto no encontró ningún archivo con ese nombre en esta carpeta: estás en la carpeta equivocada, o el nombre está mal escrito. `pwd` y `ls` muestran dónde estás; haz `cd` al proyecto, como `cd ~/first-report` (@sec-first-errors) |
+| `ERROR: YAMLException: …`, con líneas numeradas y un acento circunflejo (`^`) | Un error en el encabezado YAML. YAML a menudo lo nota una línea *después* de él, así que revisa la línea a la que apunta el acento circunflejo y la de arriba: falta un espacio después de dos puntos (`can not read a block mapping entry`), una sangría de más (`bad indentation of a mapping entry`), falta una comilla de cierre (`unexpected end of the stream within a double quoted scalar`). Corrígelo a mano, o deshaz todos los cambios desde el último commit con `git restore report.qmd` (@sec-first-errors) |
 | `readfile 'london.quarto_ipynb'`, o un archivo bloqueado | Se ejecutó un renderizado mientras `quarto preview` renderizaba el mismo archivo. Deja que renderice la vista previa, o detenla (Ctrl+C) antes de renderizar varios formatos, y luego vuelve a iniciarla (@sec-render-mechanics) |
 | El PDF de Typst falla: `cannot parse length '60px'` | Typst no acepta píxeles de CSS en los tamaños de imagen: escribe `{height=60}` o `{width="30%"}` |
 | Un gráfico de Plotly aparece dos veces en una tarjeta del dashboard | La celda llama a `fig.show()` (o a un `fig.add_…()` suelto) y además devuelve la figura: asígnala y termina la celda con `fig` |

@@ -148,6 +148,12 @@ catch-up steps in their READMEs and no rendered output. London checkpoints carry
 on its own; water checkpoints hold sources only (participants copy `examples/water/data/`
 first). Keep all three outside `project.render`; they are rendered separately for testing.
 
+`starters/first-report/` is the book's Chapter 4 starter (`book/chapters/first-report.qmd`):
+five unchanged ALVA rows and a report whose one typed number is wrong on purpose, for readers
+to find. The chapter computes its numbers from the starter and reads the planted figure from
+`report.qmd`, so change them together; keep it outside `project.render`, with its own
+`pyproject.toml` and `uv.lock`.
+
 London figures must be real and cited: every data row carries `source`, `url`, and
 `retrieved` columns (ALVA attraction visits; ALVA counts only its member sites, so say
 "ALVA member attractions"). VisitBritain/ONS inbound visits are excluded while its 2024

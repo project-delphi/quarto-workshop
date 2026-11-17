@@ -40,28 +40,260 @@ If you worked through both parts, you can:
 - direct a coding agent safely, with written rules, one task per prompt and a check after each;
 - build and publish a site from data for several readers, as you did for London and for the water
   analysis;
+- read an agent's change with `git diff` before you keep it, and undo one with `git restore`;
 - predict which outputs a changed input or setting updates, rebuild, and explain the result;
 - say which edition of this book shows each interactive figure, and why.
 
 If one of these is shaky, go back to that part's exercises, starting from a known-good state in
 @sec-checkpoints.
 
-## Your own project, in three turns {.unnumbered}
+## Three projects of your own {.unnumbered #sec-own-projects}
 
-The order matters more than the tools.
+The London guide and the water analysis were practice. The three projects here are the kind of
+document you already make, or will soon be asked for, built the book's way. Each ends with the
+same proof, a rebuild from a fresh copy, so you know that someone else could make it too.
 
-1. **One output, for one reader.** Start with the document your readers already ask for, usually a
-   report, in a project folder with its data, kept unchanged, and an `AGENTS.md`. Prompt for the
-   skeleton; check that it renders and answers the reader's question.
-2. **Make it compute.** Replace every typed number with inline code that reads the data, or the results
-   of one analysis script, and guard any sentence whose conclusion depends on them. Check by changing
-   one input in a copy and watching the number move.
-3. **Add formats, then readers.** Word or a PDF, then slides, then a website, each reading the same
-   results. Check with a prediction: change a setting, say what will change, rebuild and compare. Then
-   publish.
+Inside each project the order is the one the book followed. Start with one output for one
+reader; make it compute, so that no number is typed; then add formats. The second format is where
+the approach starts to repay the setup; the first change to the data is where it pays for itself.
 
-The second format is where the approach starts to repay the setup; the first change to the data is
-where it pays for itself.
+::: {.practice title="Which project first?"}
+Choose the one with a real reader and a date: a brief your manager reads on the first Monday, a
+supplement due with a resubmission, a report due in three weeks. Then check that you are allowed
+to use its data with an agent ([below](#sec-project-start)). If two qualify, start with the smaller. Finish one
+project, fresh clone included, before you start another; the second goes faster.
+:::
+
+### Start every project the same way {.unnumbered #sec-project-start}
+
+Make the project folder and go into it (@sec-first-files): for the brief, `mkdir ~/metrics-brief`
+then `cd ~/metrics-brief`. Make a `data/` folder inside it (`mkdir data`) and copy your files in,
+unchanged; Finder or File Explorer will do. Start the history with `git init -b main` and
+commit the data, `git add data` then `git commit -m "Data, as exported"` (@sec-first-git).
+Then hand the agent the setup, with rules written before the first
+request (@sec-agents-md). This prompt and the ones below are examples: change the file and
+column names to yours.
+
+::: {.prompt}
+```default
+Set up this folder for a Quarto report with `uv`: run `uv init --bare`, then `uv add ipykernel nbclient nbformat pyyaml pandas matplotlib`. Write AGENTS.md: files in data/ are inputs, never edit them; every number comes from data/ through code; run quarto through `uv run`. Write a .gitignore for .venv/, .quarto/ and the rendered outputs. Show me `git status`.
+```
+:::
+
+It writes `AGENTS.md`, `pyproject.toml`, `uv.lock` and `.gitignore`; the layouts below show the
+rest. New files appear in `git status` as untracked, not in `git diff`, so open and read them,
+then commit them yourself. From then on, read each change with `git diff` (@sec-first-agent) and
+commit after every prompt whose result you checked, so that a bad turn is one `git restore` away.
+
+::: {.practice title="Keep private data private"}
+What an agent reads is sent to the model on its vendor's servers (@sec-model-harness). Customer
+records, sales figures, unpublished results, participant data and student marks are not yours to
+send anywhere you like. Before a confidential file meets an agent, read your organisation's AI
+and data policy, and ask whoever owns it if the policy is silent. If your agent is not approved
+for the data, do not paste it, open it or name its path in a prompt: build the project on a public
+or made-up file with the same columns, labelled as such, then swap in the real file and render
+it yourself. Keep such a project off public hosting.
+:::
+
+### An internal metrics brief {.unnumbered #sec-project-metrics}
+
+**Who it is for.** Anyone who sends the same figures every month: an analyst, an operations
+lead, a manager. Each month you export a CSV from your own tool (a CRM, a ticketing system, a
+finance package) and turn it into a one-page brief, as a web page and a Word file. **Start with:**
+
+```text
+metrics-brief/
+├── AGENTS.md
+├── data/
+│   ├── 2026-09.csv   each month's export, saved unchanged
+│   └── 2026-10.csv
+├── brief.qmd         the agent writes it
+├── pyproject.toml
+└── uv.lock
+```
+
+**You build** `brief.html` and `brief.docx`. The first prompt makes one output that computes:
+
+::: {.prompt}
+```default
+Write brief.qmd with formats html and docx. Read the newest file in data/ (files are named YYYY-MM.csv) and state its month, its number of rows and the total of `amount`, each as inline code. Render, and tell me which file it read.
+```
+:::
+
+Then the comparison a reader acts on:
+
+::: {.prompt}
+```default
+In brief.qmd, add a table of total `amount` by `region` for the newest month and the one before, with the change, and a bar chart of the change with a caption and alt text. Render both formats; check that the table's total equals the sentence's.
+```
+:::
+
+An export can change shape when someone renames a column, so make the brief say so instead of
+printing nonsense, and let code choose the words of the one sentence that depends on the data:
+
+::: {.prompt}
+```default
+Make brief.qmd stop with an error naming the column if the newest export lacks `date`, `region` or `amount`. Test it on a renamed copy in a temporary folder, then delete the copy and render again.
+```
+:::
+
+::: {.prompt}
+```default
+Add a sentence saying whether the total rose or fell since the month before, its wording chosen by code from the two totals. Render, and show me the sentence.
+```
+:::
+
+**Checks only you can do.** Open the export in its own tool and compare one region's total with
+the brief's. Open the Word file: does it fit one page? Show it to one reader and ask what they
+would do differently after reading it; if the answer is "nothing", the brief needs a different
+question, not more charts.
+
+**The rebuild test is next month's file.** When it arrives, save it in `data/`, predict
+which numbers will change, render, and compare (@sec-first-change). To rehearse now, remove the
+newest export (`rm data/2026-10.csv`), predict, render, then bring it back with
+`git restore data/2026-10.csv`.
+
+::: done
+next month's export rebuilds both formats with no other edit, one region's total matches the
+tool's, and [the fresh-clone test](#sec-fresh-clone) gives the same brief.
+:::
+
+### A reproducible research supplement {.unnumbered #sec-project-supplement}
+
+**Who it is for.** Researchers with a paper in progress. The supplement holds the paper's figures and
+tables, each computed from the data, with captions, alt text and citations, as a web page and a
+PDF that reviewers can open and you can rebuild after every revision. **Start with:**
+
+```text
+paper-supplement/
+├── AGENTS.md
+├── data/
+│   ├── README.md        each file's source, licence and date
+│   └── measurements.csv your data, unchanged
+├── references.bib     the agent writes it
+├── supplement.qmd     the agent writes it
+├── pyproject.toml
+└── uv.lock
+```
+
+**You build** `supplement.html` and `supplement.pdf`, the PDF made with Typst as in @sec-formats.
+
+::: {.prompt}
+```default
+Write supplement.qmd with formats html and typst. Add Table S1 from data/measurements.csv: n, mean and standard deviation of `value` by `group`, with a caption. Render both; check that the n values add up to the file's rows.
+```
+:::
+
+::: {.prompt}
+```default
+Add Figure S1, `value` by `group` as a box plot, with a caption and alt text that says what the figure shows, not only what it is (`fig-cap`, `fig-alt`). Render both formats; check that the figure and caption appear in the PDF.
+```
+:::
+
+::: {.prompt}
+```default
+Add a Data section citing each source in data/README.md, from a new references.bib set as the `bibliography`. List every DOI and URL you used so that I can open each one; cite nothing you could not find.
+```
+:::
+
+::: {.prompt}
+```default
+Add an "AI use" section naming the agent and its version and the tasks it did here, with a TODO where I will list the checks I made. Render, and show me the section.
+```
+:::
+
+The last prompt follows @sec-ai-policy: the tool is never an author, you are responsible for
+what it produced, and you say how you used it. The checks are yours to write, because only you
+made them.
+
+**Checks only you can do.** Compare every number in the paper's text with the supplement's.
+Open every reference, since an agent can produce a plausible one that does not exist
+(@sec-water-dashboard), and read the sentence that cites it. Confirm that you may share the
+data: consent, ethics approval and data agreements decide, not the agent. Read the journal's rules on supplementary material and on AI use.
+
+::: done
+every figure and table in both formats comes from a cell and has a caption and alt text, every
+citation opens to the work it names, the AI-use statement names the tool, the tasks and your
+checks, and [the fresh-clone test](#sec-fresh-clone) gives the same supplement.
+:::
+
+### A coursework report {.unnumbered #sec-project-coursework}
+
+**Who it is for.** Students with an assignment that involves data. **You build** `report.pdf`
+and hand it in with the source, so that a marker can rebuild it and see that every number came
+from the data. **Start with:**
+
+```text
+coursework/
+├── AGENTS.md
+├── data/survey.csv   the data the assignment gives you, unchanged
+├── README.md         how to rebuild it (the agent writes it)
+├── report.qmd        the agent writes it
+├── pyproject.toml
+└── uv.lock
+```
+
+Coursework has a rule the other two projects lack: the work being marked must be yours. Start
+with the course's AI policy, before any other prompt.
+
+::: {.prompt}
+```default
+Add to AGENTS.md the rules from my course's AI policy, pasted below, and that data/survey.csv must never be edited. Then list, one line each, what you may and may not do for me under them.
+```
+:::
+
+::: {.prompt}
+```default
+Write report.qmd with format typst and the sections the assignment brief asks for (pasted below), and one inline-code sentence giving the number of responses in data/survey.csv. Render report.pdf; tell me how you checked the number.
+```
+:::
+
+::: {.prompt}
+```default
+Write README.md: what the project is, and how to rebuild report.pdf from a fresh copy (install uv and Quarto, then `uv run quarto render report.qmd`). Then add an AI-use statement at the end of report.qmd in the form my course asks for. Render, and show me both.
+```
+:::
+
+If the policy forbids an agent for assessed work, build the project by hand, as in
+@sec-first-report: everything here except the prompts still applies.
+
+**Checks only you can do.** Read the policy yourself, and ask the course leader when it is
+unclear; the agent's summary of it is not permission. Make sure you can explain every line of
+code and every sentence, since a marker may ask. Check the brief's length and format rules
+against the PDF. Hand in the source the way the course asks; for a zip of exactly what you
+committed (no `.venv/`, no rendered files), run `git archive -o coursework-source.zip HEAD`.
+
+::: done
+`report.pdf` answers the brief, the AI-use statement matches both what you did and what the
+policy allows, and [the fresh-clone test](#sec-fresh-clone), run by following your own
+`README.md`, gives the same PDF.
+:::
+
+### The fresh-clone test {.unnumbered #sec-fresh-clone}
+
+The last check of every project is the one a colleague, a reviewer or a marker will make:
+rebuild it from what you committed, on a clean copy. Anything that lived only on your machine, a
+file never committed or a step done by hand, shows up here instead of in their inbox.
+
+1. In the project folder, run `git status`. If it lists anything, commit it (@sec-first-git)
+   until it says `nothing to commit, working tree clean`.
+2. Clone the project into a new folder and render it there. For the brief:
+
+   ```bash
+   git clone ~/metrics-brief ~/metrics-brief-check
+   cd ~/metrics-brief-check
+   uv run quarto render brief.qmd
+   ```
+
+   The clone has no `.venv/` and no outputs, because `.gitignore` kept them out of the history,
+   so the first render builds the environment again, as in @sec-first-render. A local clone
+   copies between folders on your own computer; nothing is uploaded. For the other projects,
+   use their folder and file names.
+3. Open each output from both folders side by side and compare every number.
+
+A failed render or a different number is a finding, not a failure: commit the missing file, or
+turn the manual step into code, and clone again. When the two agree, delete the check folder; it
+is only a copy.
 
 Agents, models and Quarto's options will keep changing, and some details in this book with them.
 The loop does not. Prompt for one thing. Check it against the data. Publish only what you checked, from
@@ -77,6 +309,10 @@ one source, as often as the data change.
 - For the causal questions Part III left open, Miguel A. Hernán and James M. Robins,
   [*Causal Inference: What If*](https://miguelhernan.org/whatifbook) (Boca Raton: Chapman & Hall/CRC,
   2020; free online), on confounding and the designs that can answer them (checked 2026-11-12).
+- Quarto's [Citations](https://quarto.org/docs/authoring/citations.html) page, and its
+  [Manuscripts](https://quarto.org/docs/manuscripts/), projects that write a scholarly article in
+  several formats and publish it as a website, take the research supplement further (checked
+  2026-11-17).
 - In this book: @sec-cheatsheet for the commands, @sec-troubleshooting when a render fails, and
   @sec-checkpoints for every known-good state.
 - The workshop's [slides](https://project-delphi.github.io/quarto-workshop/) are online, and its examples and checkpoints are in

@@ -27,8 +27,9 @@ You build
   checkpoints; and a throwaway `~/quarto-test` whose `hello.html` and `hello.pdf` say 42.
 
 Checkpoint
-: none, because setup builds no project to catch up to. @sec-markdown starts from an empty
-  folder, and its checkpoints arrive with the workshop's files in Step 5.
+: none, because setup builds no project to catch up to. The workshop's files arrive in Step 5,
+  with the checkpoints and the starter that @sec-first-report opens: a real report you can
+  read.
 :::
 
 ## Before you start {#sec-before-setup}
@@ -151,14 +152,22 @@ Two keys save most typing mistakes: **Tab** completes a file or folder name, and
 arrow** brings back the previous command. Copying and pasting work differently in a terminal:
 select the text, then **Ctrl+Shift+C** copies and **Ctrl+Shift+V** pastes (Command-C and
 Command-V on a Mac), because **Ctrl+C** on its own stops the running program
-(@tbl-terminal-keys). Later chapters use one compound command often:
+(@tbl-terminal-keys). Two commands start most projects in this book, one line each:
+
+```bash
+mkdir -p london-guide
+cd london-guide
+```
+
+The first makes the folder, and `-p` makes `mkdir` quietly accept a folder that already
+exists, so running it twice does no harm. The second goes into it. Later chapters often join
+the two lines into one with `&&`, which means "and then, if that worked":
 
 ```bash
 mkdir -p london-guide && cd london-guide
 ```
 
-`-p` makes `mkdir` quietly accept a folder that already exists, and `&&` means "and then, if
-that worked". @sec-terminal has more keys and habits.
+If `mkdir` fails, `cd` does not run. @sec-terminal has more keys and habits.
 
 ::: tryit
 From your home folder, type the commands in @tbl-terminal in the order shown in
@@ -172,14 +181,23 @@ From your home folder, type the commands in @tbl-terminal in the order shown in
 ## Step 3: Install a coding agent {#sec-step-assistant}
 
 Pick one agent and run its installer, the vendor's own documented command (checked
-2026-10-30):
+2026-10-30). Run only the line for your agent.
+
+**Claude Code:**
 
 ```bash
-# Claude Code
 curl -fsSL https://claude.ai/install.sh | bash
-# Codex
+```
+
+**Codex:**
+
+```bash
 curl -fsSL https://chatgpt.com/codex/install.sh | sh
-# Antigravity
+```
+
+**Antigravity:**
+
+```bash
 curl -fsSL https://antigravity.google/cli/install.sh | bash
 ```
 
@@ -197,12 +215,16 @@ Enter, then open the new tab (Claude Code,
 [installation troubleshooting](https://code.claude.com/docs/en/troubleshoot-install), checked
 2026-11-06).
 
-Start the agent in a fresh folder:
+Start the agent in a fresh folder. Type the three lines one at a time: make the folder `setup`
+in your home folder (`-p`: no complaint if it exists), go into it, and start the agent:
 
 ```bash
-mkdir -p ~/setup && cd ~/setup
-claude          # or: codex, or: agy
+mkdir -p ~/setup
+cd ~/setup
+claude
 ```
+
+That last line starts Claude Code; type `codex` for Codex, or `agy` for Antigravity.
 
 The first start walks through three screens. Claude Code's are shown below as captured on
 2026-11-07 (version 2.1.319, in an empty folder, with folder names changed); the screens
@@ -308,12 +330,13 @@ conversation.
 
 The remaining tools are Quarto itself, uv, Git and the GitHub command-line tool `gh`. Each has
 its own official install method for each system, which is exactly the kind of detail an
-agent handles well. Start it again in the setup folder (with `codex` or `agy` in place of
-`claude` if that is your agent, here and in the next steps):
+agent handles well. Start it again in the setup folder, now as one line joined with `&&`
+(with `codex` or `agy` in place of `claude` if that is your agent, here and in the next
+steps):
 
 ::: {.you}
 ```bash
-mkdir -p ~/setup && cd ~/setup && claude    # or: codex, or: agy
+mkdir -p ~/setup && cd ~/setup && claude
 ```
 :::
 
@@ -370,7 +393,7 @@ Open a new tab and start the agent again, so that it sees the newly installed to
 
 ::: {.you}
 ```bash
-cd ~/setup && claude    # or: codex, or: agy
+cd ~/setup && claude
 ```
 :::
 
@@ -392,9 +415,9 @@ the agent ask you for your name and email, so you type your own; check that what
 is yours, not a placeholder.
 
 To *clone* is to copy a repository, with its history, to your computer: here the workshop's,
-into `~/quarto-workshop`. It holds the finished examples, the water dataset and the
-*checkpoints*: snapshots of each project at the end of each hands-on block, which you will
-use to catch up if you fall behind.
+into `~/quarto-workshop`. It holds the finished examples, the water dataset, the starter
+report for @sec-first-report and the *checkpoints*: snapshots of each project at the end of
+each hands-on block, which you will use to catch up if you fall behind.
 
 ::: {.you}
 if `gh` is not "Logged in": in a **second tab**, `gh auth login` → GitHub.com → HTTPS → Yes → log in with a web browser; copy the one-time code to github.com/login/device; then ask the agent to check `gh` again
@@ -416,8 +439,7 @@ environment, Quarto can run Python through it, and Typst can write a PDF.
 
 ::: {.you}
 ```bash
-mkdir -p ~/quarto-test && cd ~/quarto-test
-claude          # or: codex, or: agy
+mkdir -p ~/quarto-test && cd ~/quarto-test && claude
 ```
 :::
 
@@ -437,7 +459,8 @@ Run `uv init --bare` and `uv add ipykernel nbclient nbformat pyyaml`. Create hel
 
 The test run uses things the next chapters explain, YAML settings, a code cell and inline
 code, on purpose: it is a black-box check that the tools work together, not a lesson. If you
-are curious, `hello.qmd` is the file shown in @sec-what-quarto.
+are curious, `hello.qmd` is the file shown in @sec-what-quarto, and @sec-first-report opens a
+real report of the same kind, which you read and render yourself.
 
 ::: pitfall
 Every render prints a line such as `[IPKernelApp] WARNING | Kernel is running over TCP
@@ -473,9 +496,13 @@ afterwards. If a file is missing or says something else, see the Python and Jupy
 :::
 
 The test run was a black box: a file you did not write, settings you have not met, code you
-have not read. Part II opens it. Starting from an empty folder, you write the London guide for
-the tourism office one Markdown construct at a time, and by the end of @sec-markdown it is a
-web page with written rules for the agent.
+have not read. @sec-first-report puts your hands on a real report before any agent does: you
+copy it, render it yourself, check its numbers against its data and find the wrong one, and
+record it with Git, so that every later change can be seen and undone. Only then does the
+agent make its first edit, and you check it. Part II then explains what was in the box:
+starting from an empty folder, you write the London guide for the tourism office one Markdown
+construct at a time, and by the end of @sec-markdown it is a web page with written rules for
+the agent.
 
 ## Further reading {.unnumbered}
 

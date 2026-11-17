@@ -1,8 +1,10 @@
 # Teclas, símbolos y hábitos de la terminal {#sec-terminal}
 
-Si sobre todo escribes prosa, tres cosas de este libro pueden ser nuevas: teclas que cada programa
-trata de manera distinta, los símbolos de los que el código está lleno, y las teclas y los hábitos
-que hacen predecible una terminal. Sáltate lo que ya sabes.
+Si sobre todo escribes prosa, cuatro cosas de este libro pueden ser nuevas: teclas que cada programa
+trata de manera distinta, los símbolos de los que el código está lleno, las rutas que nombran
+archivos y carpetas, y las teclas y los hábitos que hacen predecible una terminal, incluido cómo leer
+un error. Sáltate lo que ya sabes. El @sec-first-report es el lugar para practicarlo todo: casi todo
+lo que contiene se escribe a mano.
 
 ## El teclado {#sec-keys-keyboard .unnumbered}
 
@@ -97,6 +99,93 @@ Abre una segunda pestaña (Ctrl+Shift+D en Windows Terminal, Comando-T en una Ma
 Ctrl+R encontró tu comando `ls` y Ctrl+U lo borró.
 :::
 :::
+
+## Rutas {#sec-keys-paths .unnumbered}
+
+Una *ruta* nombra un archivo o una carpeta por las carpetas que llevan hasta él, separadas por `/`.
+Una ruta *absoluta* empieza en lo más alto de las carpetas de la computadora, `/`, y significa lo
+mismo estés donde estés: `/home/ana/first-report` en Linux y WSL, `/Users/ana/first-report` en una
+Mac. Una ruta *relativa* empieza en la carpeta en la que estás: en `~/first-report`,
+`data/visits.csv` es el archivo `visits.csv` de su carpeta `data`, y desde tu carpeta personal la
+misma ruta no encuentra nada.
+
+| Ruta | Significa |
+|---|---|
+| `~` | tu carpeta personal: `~/first-report` es la carpeta `first-report` que está dentro, desde cualquier lugar |
+| `.` | la carpeta en la que estás: `open .` la abre en una Mac |
+| `..` | la carpeta de arriba: `cd ..` sube un nivel, y `../quarto-workshop` es una carpeta al lado de esta |
+| `data/visits.csv` | relativa: `visits.csv` en la carpeta `data` de la carpeta en la que estás |
+
+: Las formas cortas de rutas que usan los comandos de este libro. {#tbl-keys-paths}
+
+Un error "no such file" (no existe el archivo) suele significar una ruta relativa leída desde la
+carpeta equivocada: `pwd` dice dónde estás, y `ls` qué hay ahí.
+
+Un espacio separa las partes de un comando, así que un nombre con un espacio se lee como dos
+nombres. Cada shell lo dice con sus propias palabras:
+
+::: transcript
+```text
+$ mkdir "my reports"
+$ cd my reports
+bash: cd: too many arguments
+```
+:::
+
+Eso es Bash en Ubuntu (5.2); zsh en una Mac responde `cd: string not in pwd: my`. En los dos casos,
+mantén el nombre de una pieza: ponlo entre comillas, `cd "my reports"`, o pon una barra invertida
+antes del espacio, `cd my\ reports`. Lo más fácil es escribir `cd my` y presionar **Tab**: la shell
+completa el nombre y escribe la barra invertida por ti. Los nombres que eliges son más simples sin
+espacios: `my-reports`.
+
+## Leer un error {#sec-keys-errors .unnumbered}
+
+Un comando que falla suele imprimir más de lo que necesitas. Léelo en este orden.
+
+**La primera línea.** Dice qué salió mal, por lo general después de `ERROR:` o `error:`. Ejecuta
+`uv run quarto render report.qmd` en la carpeta equivocada y la línea es:
+
+::: transcript
+```text
+ERROR: No valid input files passed to render
+
+Stack trace:
+    at _Command.actionHandler (file:///Applications/quarto/bin/quarto.js:142967:11)
+    ...
+```
+:::
+
+Quarto no encontró ningún `report.qmd` aquí: estás en la carpeta equivocada, o el nombre está mal
+escrito.
+
+**No la traza de la pila.** Las líneas después de `Stack trace:`, cada una empezando con `at`,
+muestran en qué lugar de Quarto apareció el error. Son para los desarrolladores de Quarto, no para
+ti: sáltalas.
+
+**El acento circunflejo.** Un error en el YAML de un archivo termina con las líneas que lo rodean,
+numeradas, y un acento circunflejo, `^`, debajo del lugar donde YAML se rindió. Aquí `format: html`
+perdió el espacio después de sus dos puntos:
+
+::: transcript
+```text
+ERROR: YAMLException: can not read a block mapping entry; a multiline key may not be an implicit key (4:1)
+
+ 1 |
+ 2 | title: "Five London Sights"
+ 3 | format:html
+ 4 |
+-----^
+```
+:::
+
+Los números cuentan las líneas desde el `---` de apertura, que es la línea 1, y `(4:1)` significa
+línea 4, carácter 1. YAML a menudo nota un error una línea *después* de él, así que mira la línea a
+la que apunta el acento circunflejo y la de arriba: aquí el culpable es la línea 3.
+
+Cuando pidas ayuda, copia todo de todos modos: el comando y cada línea que imprimió, incluida la
+traza de la pila. La persona o el chat web que te ayuda puede necesitar la parte que te saltaste. La
+@sec-first-errors comete tres errores frecuentes a propósito, y el @sec-troubleshooting enumera los
+mensajes vistos en la práctica, con sus soluciones.
 
 ## Hábitos {#habits .unnumbered}
 

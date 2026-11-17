@@ -36,6 +36,7 @@ KEPT = [
     "Changes will not be effective", "the remote origin does not have a branch",
     "Please tell me who you are", "There is an unactivated Python environment",
     "Kernel is running over TCP", "the next cluster cuts inertia", "Visits made in",
+    "of the five are free to enter", "Tate Modern, on the South Bank, had",
     "Least squares quantization", "Silhouettes: a graphical aid", "Clustering in an object",
     "k-means++: the advantages", "The proof and measurement of association",
     "Ecological correlations and the behavior", "Causal Inference: What If",

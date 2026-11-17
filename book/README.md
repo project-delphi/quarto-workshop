@@ -65,7 +65,7 @@ to the package file, adds landmarks, and removes the `alt` attribute that Quarto
 wrappers (invalid in XHTML). For the stylesheet it marks each chapter's opening paragraph
 (`hook`), sets caption labels ("Figure 1.1") and exercise labels apart, replaces the
 no-break spaces outside code (drawn double-wide by macOS's Charter), lets identifiers in table
-cells break after an underscore, puts the QR code of Chapter 6's live-link card (the only
+cells break after an underscore, puts the QR code of Chapter 7's live-link card (the only
 card with one) at the front of the card, and flattens figures shown on a light panel onto the
 panel's colour. It stops with an error,
 as `make book-html` does for the HTML edition, if a line beginning "@label." has turned a
@@ -87,7 +87,7 @@ does not notice changes outside the chapter, so run `make book-fresh` after chan
 - `examples/london/data/` or `examples/water/data/`
 - `examples/water/scripts/analysis.py` (Part III imports it and calls `analysis.run()`)
 - `scripts/water.py`, `scripts/scenes.py`, `scripts/figures.py` or `scripts/roadmaps.py`
-- `media/examples/` (the toy files Chapters 4 and 5 print; rerun
+- `media/examples/` (the toy files Chapters 5 and 6 print; rerun
   `media/capture/toy_examples.py` first, so their pictures match)
 
 ## Conventions
@@ -144,9 +144,9 @@ All images and animations are made by `media/build.py`, which `make media` runs.
 | `cover` | `media/cover.png` and `media/back-cover.png`, 1600 × 2560, from their SVGs (the back cover is the EPUB's last page, `back-cover.qmd`) |
 | `roadmaps` | the "Where we are" roadmaps, `media/roadmaps/part-N.svg`, from `_chapters.yml` |
 | `diagrams` | a PNG at twice the size beside every SVG in `media/diagrams/` and `media/roadmaps/` |
-| `qr` | the QR code for the EPUB's link to the live London map, the only live-link card with one (Chapter 6), `media/qr/` |
+| `qr` | the QR code for the EPUB's link to the live London map, the only live-link card with one (Chapter 7), `media/qr/` |
 | `tapes` | terminal animations from `media/tapes/*.tape`, recorded with VHS |
-| `capture` | 3-D scene and preview animations, the Markdown animations of Chapter 4, and pictures of the projects' outputs and the toy files, from `media/capture/*.py` (build the HTML edition first for the scenes) |
+| `capture` | 3-D scene and preview animations, the Markdown animations of Chapter 5, and pictures of the projects' outputs and the toy files, from `media/capture/*.py` (build the HTML edition first for the scenes) |
 | `posters` | the book versions of the deck's illustrated GIFs |
 | `stills` | the first frame of every GIF, `media/stills/*.png` |
 | `check` | fails unless every GIF is at most 2 MB and 800 px wide, and has a still |
@@ -251,7 +251,7 @@ untested; the Kindle column quotes Amazon's publishing guidelines, not a test.
 | Feature | HTML edition | EPUB, as checked in Chrome | Kindle (Amazon's guidelines) | Apple Books, Kobo, Google Play Books, Thorium |
 |---|---|---|---|---|
 | Animated GIFs | play; the still is shown when reduced motion is on | play | "do not support … multi-frame GIFs"[^kdp-img]: the first frame, a finished still, should show | untested |
-| Live 3-D scenes and data explorers | run (WebGL) | replaced by an animation and a link; the first, Chapter 6's London map, also has a QR code | the same as the EPUB | the same as the EPUB |
+| Live 3-D scenes and data explorers | run (WebGL) | replaced by an animation and a link; the first, Chapter 7's London map, also has a QR code | the same as the EPUB | the same as the EPUB |
 | Night and sepia themes | dark theme via the switch | text takes the reader's colours; figures sit on light panels | the guidelines do not support "images with transparent areas"[^kdp-img]: panel figures are flattened to opaque PNGs | untested |
 | Diagrams | SVG | PNG at twice the size | PNG, as the guidelines recommend over SVG[^kdp-img] | untested |
 | Mathematics | MathJax | MathML (four chapters) | not documented in the pages read[^kdp-tags] | untested |

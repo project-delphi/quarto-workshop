@@ -45,6 +45,7 @@ Si trabajaste las dos partes, puedes:
   una comprobación después de cada una;
 - construir y publicar un sitio a partir de datos para varios lectores, como hiciste para Londres y
   para el análisis del agua;
+- leer el cambio de un agente con `git diff` antes de quedártelo, y deshacer uno con `git restore`;
 - predecir qué salidas actualiza un dato de entrada o una opción que cambia, reconstruir y explicar el
   resultado;
 - decir qué edición de este libro muestra cada figura interactiva, y por qué.
@@ -52,23 +53,269 @@ Si trabajaste las dos partes, puedes:
 Si alguna de estas cosas no está firme, vuelve a los ejercicios de esa parte, empezando desde un
 estado que sepas que funciona en el @sec-checkpoints.
 
-## Tu propio proyecto, en tres vueltas {#your-own-project-in-three-turns .unnumbered}
+## Tres proyectos propios {#sec-own-projects .unnumbered}
 
-El orden importa más que las herramientas.
+La guía de Londres y el análisis del agua fueron práctica. Los tres proyectos de aquí son el
+tipo de documento que ya haces, o que pronto te van a pedir, construidos a la manera del libro.
+Cada uno termina con la misma prueba, una reconstrucción desde una copia nueva, para que sepas
+que otra persona también podría hacerlo.
 
-1. **Una salida, para un lector.** Empieza con el documento que tus lectores ya piden, normalmente un
-   informe, en una carpeta de proyecto con sus datos, sin cambios, y un `AGENTS.md`. Pide el
-   esqueleto; comprueba que se renderiza y responde la pregunta del lector.
-2. **Haz que calcule.** Reemplaza cada número escrito a mano por código en línea que lea los datos, o
-   los resultados de un solo script de análisis, y protege con una guarda cualquier oración cuya
-   conclusión dependa de ellos. Comprueba cambiando un dato de entrada en una copia y mirando cómo se
-   mueve el número.
-3. **Agrega formatos, y luego lectores.** Word o un PDF, luego diapositivas, luego un sitio web, todos
-   leyendo los mismos resultados. Comprueba con una predicción: cambia una opción, di qué va a cambiar,
-   reconstruye y compara. Luego publica.
+Dentro de cada proyecto, el orden es el que siguió el libro. Empieza con una salida para un
+lector; haz que calcule, para que ningún número se escriba a mano; luego agrega formatos. El
+segundo formato es donde el enfoque empieza a devolver lo que costó prepararlo; el primer cambio
+en los datos es donde se paga solo.
 
-El segundo formato es donde el enfoque empieza a devolver lo que costó prepararlo; el primer cambio en
-los datos es donde se paga solo.
+::: {.practice title="¿Qué proyecto primero?"}
+Elige el que tenga un lector real y una fecha: un resumen que tu gerente lee el primer lunes, un
+material complementario que se entrega con una nueva versión del artículo, un informe que vence
+en tres semanas. Luego comprueba que puedes usar sus datos con un agente
+([más abajo](#sec-project-start)). Si dos cumplen, empieza por el más pequeño. Termina un
+proyecto, con la prueba del clon nuevo incluida, antes de empezar otro; el segundo va más rápido.
+:::
+
+### Empieza cada proyecto de la misma manera {#sec-project-start .unnumbered}
+
+Crea la carpeta del proyecto y entra en ella (@sec-first-files): para el resumen,
+`mkdir ~/metrics-brief` y luego `cd ~/metrics-brief`. Crea dentro una carpeta `data/`
+(`mkdir data`) y copia ahí tus archivos, sin cambios; el Finder o el Explorador de archivos
+sirven. Empieza el historial con `git init -b main` y haz commit de los datos, `git add data` y
+luego `git commit -m "Data, as exported"` (@sec-first-git). Luego encárgale al agente la
+preparación, con las reglas escritas antes del primer pedido (@sec-agents-md). Este prompt y los
+que siguen son ejemplos: cambia los nombres de archivo y de columna por los tuyos.
+
+::: {.prompt}
+```default
+Prepara esta carpeta para un informe de Quarto con `uv`: ejecuta `uv init --bare` y luego `uv add ipykernel nbclient nbformat pyyaml pandas matplotlib`. Escribe AGENTS.md: los archivos de data/ son entradas, nunca los edites; cada número sale de data/ a través de código; ejecuta quarto a través de `uv run`. Escribe un .gitignore para .venv/, .quarto/ y las salidas renderizadas. Muéstrame `git status`.
+```
+:::
+
+El agente escribe `AGENTS.md`, `pyproject.toml`, `uv.lock` y `.gitignore`; las estructuras de
+abajo muestran el resto. Los archivos nuevos aparecen en `git status` como no rastreados
+(untracked), no en `git diff`, así que ábrelos y léelos, y luego haz commit tú. De ahí en
+adelante, lee cada cambio con `git diff` (@sec-first-agent) y haz commit después de cada prompt
+cuyo resultado revisaste, para que una vuelta mala quede a un `git restore` de distancia.
+
+::: {.practice title="Mantén privados los datos privados"}
+Lo que lee un agente se envía al modelo, en los servidores de su proveedor (@sec-model-harness).
+Los registros de clientes, las cifras de ventas, los resultados no publicados, los datos de
+participantes y las calificaciones de estudiantes no son tuyos para mandarlos a donde quieras.
+Antes de que un archivo confidencial se encuentre con un agente, lee la política de IA y de datos
+de tu organización, y pregúntale a quien sea responsable de los datos si la política no dice
+nada. Si tu agente no está aprobado para esos datos, no los pegues, no los abras ni nombres su
+ruta en un prompt: construye el proyecto con un archivo público o inventado que tenga las mismas
+columnas, rotulado como tal, y luego cambia al archivo real y renderízalo tú. Mantén un proyecto
+así fuera de cualquier alojamiento público.
+:::
+
+### Un informe interno de métricas {#sec-project-metrics .unnumbered}
+
+**Para quién es.** Cualquiera que manda las mismas cifras cada mes: una analista, un responsable
+de operaciones, una gerente. Cada mes exportas un CSV desde tu propia herramienta (un CRM, un
+sistema de tickets, un programa de finanzas) y lo conviertes en un resumen de una página, como
+página web y como archivo de Word. **Empieza con:**
+
+```text
+metrics-brief/
+├── AGENTS.md
+├── data/
+│   ├── 2026-09.csv   each month's export, saved unchanged
+│   └── 2026-10.csv
+├── brief.qmd         the agent writes it
+├── pyproject.toml
+└── uv.lock
+```
+
+**Construyes** `brief.html` y `brief.docx`. El primer prompt hace una salida que calcula:
+
+::: {.prompt}
+```default
+Escribe brief.qmd con los formatos html y docx. Lee el archivo más reciente de data/ (los archivos se llaman YYYY-MM.csv) e indica su mes, su número de filas y el total de `amount`, cada uno como código en línea. Renderiza, y dime qué archivo leyó.
+```
+:::
+
+Luego, la comparación a partir de la cual actúa un lector:
+
+::: {.prompt}
+```default
+En brief.qmd, agrega una tabla del total de `amount` por `region` para el mes más reciente y el anterior, con el cambio, y un gráfico de barras del cambio con pie de figura y texto alternativo. Renderiza los dos formatos; comprueba que el total de la tabla sea igual al de la oración.
+```
+:::
+
+Una exportación puede cambiar de forma cuando alguien le cambia el nombre a una columna, así que
+haz que el resumen lo diga en lugar de imprimir disparates, y deja que el código elija las
+palabras de la única oración que depende de los datos:
+
+::: {.prompt}
+```default
+Haz que brief.qmd se detenga con un error que nombre la columna si a la exportación más reciente le falta `date`, `region` o `amount`. Pruébalo con una copia con una columna renombrada en una carpeta temporal, luego borra la copia y vuelve a renderizar.
+```
+:::
+
+::: {.prompt}
+```default
+Agrega una oración que diga si el total subió o bajó desde el mes anterior, con palabras que elija el código a partir de los dos totales. Renderiza, y muéstrame la oración.
+```
+:::
+
+**Lo que solo tú puedes revisar.** Abre la exportación en su propia herramienta y compara el
+total de una región con el del resumen. Abre el archivo de Word: ¿cabe en una página? Muéstraselo
+a un lector y pregúntale qué haría distinto después de leerlo; si la respuesta es "nada", el
+resumen necesita otra pregunta, no más gráficos.
+
+**La prueba de reconstrucción es el archivo del mes siguiente.** Cuando llegue, guárdalo en
+`data/`, predice qué números van a cambiar, renderiza y compara (@sec-first-change). Para
+ensayar ahora, quita la exportación más reciente (`rm data/2026-10.csv`), predice, renderiza y
+luego tráela de vuelta con `git restore data/2026-10.csv`.
+
+::: done
+la exportación del mes siguiente reconstruye los dos formatos sin ninguna otra edición, el total
+de una región coincide con el de la herramienta y [la prueba del clon nuevo](#sec-fresh-clone)
+da el mismo resumen.
+:::
+
+### Un material complementario de investigación reproducible {#sec-project-supplement .unnumbered}
+
+**Para quién es.** Personas investigadoras con un artículo en curso. El material complementario
+reúne las figuras y tablas del artículo, cada una calculada a partir de los datos, con pies,
+texto alternativo y citas, como página web y como PDF que los revisores pueden abrir y que tú
+puedes reconstruir después de cada revisión. **Empieza con:**
+
+```text
+paper-supplement/
+├── AGENTS.md
+├── data/
+│   ├── README.md        each file's source, licence and date
+│   └── measurements.csv your data, unchanged
+├── references.bib     the agent writes it
+├── supplement.qmd     the agent writes it
+├── pyproject.toml
+└── uv.lock
+```
+
+**Construyes** `supplement.html` y `supplement.pdf`, con el PDF hecho con Typst como en
+la @sec-formats.
+
+::: {.prompt}
+```default
+Escribe supplement.qmd con los formatos html y typst. Agrega la Tabla S1 a partir de data/measurements.csv: n, media y desviación estándar de `value` por `group`, con pie de tabla. Renderiza los dos; comprueba que los valores de n sumen las filas del archivo.
+```
+:::
+
+::: {.prompt}
+```default
+Agrega la Figura S1, `value` por `group` como diagrama de caja, con un pie de figura y un texto alternativo que diga lo que muestra la figura, no solo lo que es (`fig-cap`, `fig-alt`). Renderiza los dos formatos; comprueba que la figura y su pie aparezcan en el PDF.
+```
+:::
+
+::: {.prompt}
+```default
+Agrega una sección de Datos que cite cada fuente de data/README.md, desde un references.bib nuevo configurado como `bibliography`. Enumera cada DOI y URL que usaste para que yo pueda abrir cada uno; no cites nada que no hayas podido encontrar.
+```
+:::
+
+::: {.prompt}
+```default
+Agrega una sección "Uso de IA" que nombre el agente, su versión y las tareas que hizo aquí, con un TODO donde yo enumeraré las comprobaciones que hice. Renderiza, y muéstrame la sección.
+```
+:::
+
+El último prompt sigue la @sec-ai-policy: la herramienta nunca es autora, tú respondes por lo
+que produjo y dices cómo la usaste. Las comprobaciones las escribes tú, porque solo tú las
+hiciste.
+
+**Lo que solo tú puedes revisar.** Compara cada número del texto del artículo con el del
+material complementario. Abre cada referencia, porque un agente puede producir una verosímil que
+no existe (@sec-water-dashboard), y lee la oración que la cita. Confirma que puedes compartir
+los datos: deciden el consentimiento, la aprobación ética y los acuerdos de datos, no el agente.
+Lee las reglas de la revista sobre el material complementario y sobre el uso de IA.
+
+::: done
+cada figura y tabla de los dos formatos sale de una celda y tiene pie y texto alternativo, cada
+cita abre la obra que nombra, la declaración de uso de IA nombra la herramienta, las tareas y tus
+comprobaciones, y [la prueba del clon nuevo](#sec-fresh-clone) da el mismo material
+complementario.
+:::
+
+### Un informe de curso {#sec-project-coursework .unnumbered}
+
+**Para quién es.** Estudiantes con un trabajo práctico que involucra datos. **Construyes**
+`report.pdf` y lo entregas con la fuente, para que quien corrige pueda reconstruirlo y ver que
+cada número salió de los datos. **Empieza con:**
+
+```text
+coursework/
+├── AGENTS.md
+├── data/survey.csv   the data the assignment gives you, unchanged
+├── README.md         how to rebuild it (the agent writes it)
+├── report.qmd        the agent writes it
+├── pyproject.toml
+└── uv.lock
+```
+
+Un trabajo de curso tiene una regla que los otros dos proyectos no tienen: el trabajo que se
+califica tiene que ser tuyo. Empieza con la política de IA del curso, antes de cualquier otro
+prompt.
+
+::: {.prompt}
+```default
+Agrega a AGENTS.md las reglas de la política de IA de mi curso, pegada abajo, y que data/survey.csv no se debe editar nunca. Luego enumera, una línea cada una, lo que puedes y lo que no puedes hacer por mí según esas reglas.
+```
+:::
+
+::: {.prompt}
+```default
+Escribe report.qmd con el formato typst y las secciones que pide la consigna del trabajo (pegada abajo), y una oración con código en línea que dé el número de respuestas de data/survey.csv. Renderiza report.pdf; dime cómo comprobaste el número.
+```
+:::
+
+::: {.prompt}
+```default
+Escribe README.md: qué es el proyecto y cómo reconstruir report.pdf desde una copia nueva (instalar uv y Quarto, y luego `uv run quarto render report.qmd`). Luego agrega una declaración de uso de IA al final de report.qmd en la forma que pide mi curso. Renderiza, y muéstrame las dos cosas.
+```
+:::
+
+Si la política prohíbe usar un agente en trabajos que se califican, construye el proyecto a
+mano, como en el @sec-first-report: todo lo de aquí, salvo los prompts, sigue valiendo.
+
+**Lo que solo tú puedes revisar.** Lee tú la política, y pregúntale a quien dirige el curso
+cuando no esté clara; el resumen que haga el agente no es un permiso. Asegúrate de poder explicar
+cada línea de código y cada oración, porque quien corrige puede preguntarte. Compara el PDF con
+las reglas de extensión y formato de la consigna. Entrega la fuente como lo pide el curso; para
+un zip con exactamente lo que registraste en commits (sin `.venv/` ni archivos renderizados),
+ejecuta `git archive -o coursework-source.zip HEAD`.
+
+::: done
+`report.pdf` responde a la consigna, la declaración de uso de IA coincide tanto con lo que hiciste
+como con lo que permite la política, y [la prueba del clon nuevo](#sec-fresh-clone), hecha
+siguiendo tu propio `README.md`, da el mismo PDF.
+:::
+
+### La prueba del clon nuevo {#sec-fresh-clone .unnumbered}
+
+La última comprobación de cada proyecto es la que hará un colega, un revisor o quien corrige:
+reconstruirlo desde lo que registraste en commits, en una copia limpia. Lo que solo existía en tu
+computadora, un archivo al que nunca le hiciste commit o un paso hecho a mano, aparece aquí y no
+en su bandeja de entrada.
+
+1. En la carpeta del proyecto, ejecuta `git status`. Si enumera algo, haz commit (@sec-first-git)
+   hasta que diga `nothing to commit, working tree clean`.
+2. Clona el proyecto en una carpeta nueva y renderízalo ahí. Para el resumen:
+
+   ```bash
+   git clone ~/metrics-brief ~/metrics-brief-check
+   cd ~/metrics-brief-check
+   uv run quarto render brief.qmd
+   ```
+
+   El clon no tiene `.venv/` ni salidas, porque `.gitignore` las dejó fuera del historial, así que
+   el primer renderizado vuelve a construir el entorno, como en la @sec-first-render. Un clon
+   local copia entre carpetas de tu propia computadora; no se sube nada. Para los otros
+   proyectos, usa sus nombres de carpeta y de archivo.
+3. Abre lado a lado cada salida de las dos carpetas y compara cada número.
+
+Un renderizado que falla o un número distinto es un hallazgo, no un fracaso: haz commit del
+archivo que falta, o convierte el paso manual en código, y vuelve a clonar. Cuando las dos
+coincidan, borra la carpeta de comprobación; es solo una copia.
 
 Los agentes, los modelos y las opciones de Quarto van a seguir cambiando, y algunos detalles de
 este libro con ellos. El ciclo no. Pide una cosa. Revísala contra los datos. Publica solo lo que
@@ -87,6 +334,10 @@ revisaste, desde una sola fuente, tan seguido como cambien los datos.
   [*Causal Inference: What If*](https://miguelhernan.org/whatifbook) (Boca Raton: Chapman & Hall/CRC,
   2020; gratis en línea), sobre la confusión y los diseños que pueden responderlas (consultado el
   2026-11-12).
+- La página [Citations](https://quarto.org/docs/authoring/citations.html) de Quarto, y sus
+  [Manuscripts](https://quarto.org/docs/manuscripts/), proyectos que escriben un artículo
+  académico en varios formatos y lo publican como sitio web, llevan más lejos el material
+  complementario de investigación (consultadas el 2026-11-17).
 - En este libro: el @sec-cheatsheet para los comandos, el @sec-troubleshooting cuando falla un
   renderizado y el @sec-checkpoints para cada estado que se sabe que funciona.
 - Las [diapositivas](https://project-delphi.github.io/quarto-workshop/) del taller están en línea, y sus
