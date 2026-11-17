@@ -12,7 +12,7 @@ QUARTO_BOOK := cd $(BOOK) && JUPYTER_PATH="$$PWD/.venv/share/jupyter" uv run qua
 
 .PHONY: book book-sync book-html book-epub book-fresh epubcheck media book-shots book-publish deck site \
 	ebook-media ebook-check book-release book-es book-es-sync book-es-html book-es-epub book-es-fresh \
-	book-es-publish epubcheck-es
+	book-es-publish epubcheck-es book-store
 
 ## book: render the HTML and EPUB editions, post-process the EPUB, run epubcheck, check the
 ## EPUB's links into the website edition, and check the live scenes' data against the deck's
@@ -147,6 +147,14 @@ book-es-publish:
 	rsync -a --delete --delete-excluded --exclude $(notdir $(EPUB_ES)) --exclude 'figure-epub/' \
 	  $(BOOK_ES)/_book/html/ docs/book/es/
 	cp $(EPUB_ES) docs/book/es/
+
+## book-store: the store editions for Apple Books and Google Play Books (book/STORES.md), made
+## from the published EPUBs in docs/book/: GIFs become their first-frame stills. Each lands in
+## book/_book/store/{en,es}/ with its cover and listing.md, and must pass EPUBCheck.
+book-store: $(EPUBCHECK_JAR)
+	cd $(BOOK) && uv run python scripts/store_edition.py ../docs/book/prompt-check-publish.epub _book/store/en
+	cd $(BOOK) && uv run python scripts/store_edition.py ../docs/book/es/prompt-check-publish-es.epub _book/store/es
+	for f in $(BOOK)/_book/store/*/*-store.epub; do java -jar $(EPUBCHECK_JAR) --failonwarnings $$f; done
 
 ## book-release: attach the committed EPUB in docs/book/ to a new GitHub release, which the
 ## landing page's download buttons link to (releases/latest/download/). Run by the author, after
