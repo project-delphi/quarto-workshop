@@ -313,7 +313,7 @@ def inside() -> None:
         with tempfile.TemporaryDirectory() as tmp:
             zipfile.ZipFile(epub).extractall(tmp)
             text = Path(tmp, "EPUB", "text")
-            title = S.contents()["parts"][1]["chapters"][1]["title"]  # Chapter 5
+            title = S.chapter("05-compute")["title"]  # by file, as ebook/index.qmd finds it
             chapter = next(f for f in sorted(text.glob("ch*.xhtml"))
                            if f"{title}</" in f.read_text(encoding="utf-8"))
             phone = browser.new_page(viewport={"width": 390, "height": 760}, device_scale_factor=2,
