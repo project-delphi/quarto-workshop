@@ -32,6 +32,7 @@ import functools
 import html
 import http.server
 import json
+import os
 import re
 import subprocess
 import sys
@@ -117,8 +118,12 @@ def external_status(url: str) -> int:
 @functools.cache
 def latest_release() -> dict | None:
     """The latest GitHub release, or None if there is none yet; fails if GitHub cannot say."""
-    req = urllib.request.Request(LATEST_API, headers={"User-Agent": "link-check",
-                                                      "Accept": "application/vnd.github+json"})
+    headers = {"User-Agent": "link-check", "Accept": "application/vnd.github+json"}
+    # GitHub limits unauthenticated API calls per address, which shared CI runners exhaust;
+    # CI passes its own token (GITHUB_TOKEN), and a local run works without one.
+    if os.environ.get("GITHUB_TOKEN"):
+        headers["Authorization"] = f"Bearer {os.environ['GITHUB_TOKEN']}"
+    req = urllib.request.Request(LATEST_API, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=20) as r:
             return json.load(r)
