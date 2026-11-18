@@ -35,6 +35,10 @@ INPUTS = {
     "checkpoints/17-eval-site": (["../checkpoints/17-eval-site/_brand.yml",
                                   "../checkpoints/17-eval-site/_quarto.yml"],
                                  ("17-eval-site",)),
+    "checkpoints/18-eval-whitepaper": (["../checkpoints/18-eval-whitepaper/whitepaper.qmd",
+                                        "../checkpoints/18-eval-whitepaper/model-card.qmd",
+                                        "../checkpoints/18-eval-whitepaper/references.bib"],
+                                       ("18-eval-whitepaper",)),
 }
 
 
