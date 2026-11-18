@@ -7,7 +7,6 @@ date: today
 date-format: "D MMMM YYYY"
 number-sections: true
 bibliography: references.bib
-csl: csl/apa.csl  # APA 7th edition, from the official CSL styles repository (README.md)
 format:
   html:
     toc: true
@@ -34,6 +33,7 @@ import pandas as pd
 from IPython.display import Markdown
 
 from acme_eval.claims import claim
+from acme_eval.models import load_releases
 
 metrics = pd.read_csv("outputs/metrics.csv")
 segments = pd.read_csv("outputs/segments.csv")
@@ -173,7 +173,8 @@ fields = {version: int(n) for version, n in releases["n_features"].items()}
 claim(list(releases["model"]) == ["logistic_regression", "logistic_regression",
                                   "gradient_boosting"],
       "v1 and v2 are logistic regressions; v3 is gradient-boosted trees.")
-claim(fields[versions[1]] == fields[best], "v3 uses the same fields as v2.")
+field_lists = {r.version: list(r.features) for r in load_releases()}
+claim(field_lists[versions[1]] == field_lists[best], "v3 uses the same fields as v2.")
 ```
 
 `{python} first` and `{python} versions[1]` are logistic regressions, on
