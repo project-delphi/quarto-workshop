@@ -287,7 +287,7 @@ def london_top() -> dict:
 
 
 def water_span() -> dict:
-    """The water table's coverage, as Chapter 8 computes it, through the project's analysis.py."""
+    """The water table's coverage, as 08-water-question.qmd computes it, through the project's analysis.py."""
     import sys
 
     scripts = str(ROOT / "examples/water/scripts")
@@ -387,7 +387,7 @@ def english_fact(section: str, item: str) -> dict:
 
 
 def assistant_accounts() -> tuple[str, str]:
-    """Chapter 3's list of what each agent's account needs, and its checked date: from
+    """The setup chapter's list of what each agent's account needs, and its checked date: from
     book/facts.yml in English, from the Spanish chapter's sentence on the Spanish page."""
     if LANG != "es":
         es_ = [english_fact("agents", f"{k}_accounts") for k in ("claude_code", "codex", "antigravity")]
