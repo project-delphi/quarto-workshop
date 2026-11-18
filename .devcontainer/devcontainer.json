@@ -1,0 +1,38 @@
+// A ready-made workshop environment for GitHub Codespaces (or any Dev Containers tool),
+// for readers who cannot install software on their own computer.
+// Reference: https://containers.dev/implementors/json_reference/
+{
+  "name": "Quarto workshop",
+  // Debian with Python 3.12, git, curl and a non-root "vscode" user.
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "features": {
+    // Quarto, pinned to the version the workshop is validated with. It bundles Typst,
+    // so PDFs need no LaTeX. Jupyter comes from each project's uv environment.
+    "ghcr.io/rocker-org/devcontainer-features/quarto-cli:1": {
+      "version": "1.10.20"
+    },
+    // uv: each project's Python and packages (`uv run quarto render ...`).
+    "ghcr.io/devcontainers-extra/features/uv:1": {
+      "version": "0.11.32"
+    },
+    // GitHub CLI, for `gh auth login`, `gh repo create` and publishing.
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  // Agent installers put their command in ~/.local/bin, which the image adds to PATH
+  // only for login shells that start after it exists; this covers every terminal.
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin"
+  },
+  // The book's paths expect this repository at ~/quarto-workshop, with projects
+  // (~/london-guide, ~/first-report) beside it in the home folder.
+  "postCreateCommand": "[ -e \"$HOME/quarto-workshop\" ] || ln -s \"${containerWorkspaceFolder}\" \"$HOME/quarto-workshop\"; echo 'Workshop ready: the repository is at ~/quarto-workshop; make projects in ~ and preview with: quarto preview --port 4848 --host 0.0.0.0 --no-browser'",
+  // `quarto preview` picks a random port unless given --port; Codespaces forwards
+  // either, and this labels the suggested one.
+  "forwardPorts": [4848],
+  "portsAttributes": {
+    "4848": {
+      "label": "Quarto preview",
+      "onAutoForward": "notify"
+    }
+  }
+}
