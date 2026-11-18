@@ -18,7 +18,7 @@ are real; `data/synthetic_business.csv` is SYNTHETIC and must be labelled so whe
   from `acme_eval.claims.claim` in the cell before it, so the render stops if it becomes false.
 - `duration` is known only after the call: no model may use it.
 - Cite sources from `references.bib` with `[@key]`; verify each entry at its DOI or URL.
-- `outputs/`, `.venv/`, `_site/` and rendered files (`*.html`, `*.docx`, `*.pdf`, `*.pptx`,
+- `outputs/`, `reports/`, `.venv/`, `_site/` and rendered files (`*.html`, `*.docx`, `*.pdf`, `*.pptx`,
   `*_files/`) are never committed; the reference documents in `templates/` are source files
   and are.
 
@@ -80,6 +80,33 @@ are real; `data/synthetic_business.csv` is SYNTHETIC and must be labelled so whe
   first paragraph, between the two raw Typst blocks that open and close `whitepaper-abstract`.
 - Figures in the PDF are vector (`fig-format: svg` under `typst:`).
 
+## Parameter rules (`update.qmd`, `segment.qmd`)
+
+- A parameterised document keeps its parameters and their defaults in one cell tagged
+  `parameters` (`#| tags: [parameters]`), the first cell after the YAML. Each default must
+  render on its own (`month = "latest"` means the last month in the data), so a plain
+  `uv run quarto render update.qmd` works.
+- Check every value before using it, with `acme_eval.params`: a month or segment that is not
+  in the data stops the render with a message that lists the values that are.
+- Name every output by its parameters (`update-2026-10.pdf`, `segment-age-60plus.pdf`), with
+  `-M output-file:<name>` (each format adds its extension) or `--output <name>.<ext>`, so one
+  value never overwrites another's file. `scripts/render_params.py` renders every value into
+  `reports/` and checks that each file contains its value; run it after changing either one.
+- Every wording that depends on the value (up or down, above or below, first, best so far,
+  new this month) is chosen by code from the numbers as printed, and guarded with `claim`. A
+  sentence that only some values need comes from an `output: asis` cell; a caption that names
+  the value is computed (the last paragraph of a `::: {#tbl-…}` div, with inline code).
+- Every number from `data/synthetic_business.csv` is labelled SYNTHETIC: the document opens
+  with a "SYNTHETIC: invented for teaching" callout, each number in the text is marked
+  "(synthetic)", and the table caption and column headings say so. Figures from `outputs/`
+  are said to be real.
+- `-P` and `--execute-params` need `papermill` (in `pyproject.toml`). Keep `echo: false`: it
+  also hides the cell papermill injects with the values.
+- The parameterised documents are not in `project.render` or the navbar: the site's home page
+  says every number on it comes from the real bank data, and a site page could show only one
+  value. Quarto therefore renders each as a single file, next to the source, not in `_site/`.
+  `reports/` is never committed.
+
 ## Commands
 
 The Python environment is `pyproject.toml` and `uv.lock`. Run `python`, `pytest` and
@@ -94,3 +121,7 @@ The Python environment is `pyproject.toml` and `uv.lock`. Run `python`, `pytest`
 - `uv run python scripts/deck_pdf.py` (`_site/slides.pdf`, checked page by page; needs Chrome)
 - `uv run python scripts/make_reference_docs.py` (after changing `_brand.yml`)
 - `uv run python scripts/check_refs.py` (every DOI in `references.bib`; before a release)
+- `uv run quarto render update.qmd -P month:2026-06 -M output-file:update-2026-06` (one month,
+  html, docx and pdf, next to the source); `segment.qmd` takes `-P factor:job -P segment:retired`
+- `uv run python scripts/render_params.py` (every month and age band into `reports/`, checked;
+  `2026-06 2026-10` for a range of months, `--formats pdf` for PDFs only)

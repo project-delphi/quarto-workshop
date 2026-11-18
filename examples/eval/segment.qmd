@@ -1,0 +1,141 @@
+---
+title: "The contact-ranking model for one segment"
+subtitle: "Acme Signals (a fictional company), on the UCI Bank Marketing data"
+description: "How the best release of the contact-ranking model treats one segment of the bank's contacts, an age band or a job, on real held-out data."
+date: today
+format:
+  html:
+    toc: false
+    embed-resources: true  # one self-contained file per segment, to send or to move
+  docx:
+    reference-doc: templates/acme-reference.docx  # scripts/make_reference_docs.py
+  typst:
+    citeproc: true  # the same citation style as html and docx
+bibliography: references.bib
+csl: csl/apa.csl
+execute:
+  echo: false  # also hides the cell papermill injects with the parameter values
+---
+
+```{python}
+#| tags: [parameters]
+# The parameters and their defaults. Another segment:
+#   quarto render segment.qmd -P factor:job -P segment:retired
+factor = "age_band"  # "age_band" or "job", a factor in outputs/segments.csv
+segment = "60+"      # one segment of that factor, as written in outputs/segments.csv
+```
+
+```{python}
+#| label: setup
+import json
+from pathlib import Path
+
+import pandas as pd
+from IPython.display import HTML
+
+from acme_eval import params
+from acme_eval.claims import claim
+
+summary = json.loads(Path("outputs/summary.json").read_text())
+metrics = pd.read_csv("outputs/metrics.csv")
+segments = pd.read_csv("outputs/segments.csv", dtype={"segment": str})
+factor, segment = params.segment(factor, segment, segments)  # stops on an unknown segment
+
+best = summary["best_version"]
+overall = metrics[metrics["version"] == best].set_index("metric")["value"]
+claim(best == metrics[metrics["metric"] == "roc_auc"].set_index("version")["value"].idxmax(),
+      "The best release named here has the highest ROC AUC in metrics.csv.")
+rows = segments[(segments["factor"] == factor) & (segments["segment"] == segment)]
+here = rows.set_index("version").loc[best]
+claim(here["n"] > 0, "The segment has contacts in the test set.")
+
+who = f"aged {segment}" if factor == "age_band" else f'with the job "{segment}"'
+name = f"age band {segment}" if factor == "age_band" else f"job {segment}"
+
+
+def percent(share: float, digits: int = 1) -> str:
+    """A share between 0 and 1, as a percentage."""
+    return f"{100 * share:.{digits}f}%"
+
+
+def compare(mine: float, theirs: float, show) -> str:
+    """ "above", "below" or "level with", decided on the printed values, and guarded."""
+    a, b = show(mine), show(theirs)
+    shown = (float(a.rstrip("%")), float(b.rstrip("%")))
+    word = params.relation(*shown)
+    claim({"above": shown[0] > shown[1], "below": shown[0] < shown[1],
+           "level with": shown[0] == shown[1]}[word], f"{a} is {word} {b}.")
+    return word
+
+
+rate_word = compare(here["base_rate"], summary["base_rate"], percent)
+called_word = compare(here["share_called"], summary["top_share"], percent)
+recall_word = compare(here["recall_top10"], overall["recall_top10"], percent)
+```
+
+This page covers the contacts **`{python} who`** (segment: `{python} name`), under
+**`{python} best`**, the release that ranks best. Acme Signals is a fictional company; the
+bank data are real, and every number here is computed from them by `scripts/evaluate.py`.
+
+## Who they are
+
+Of the `{python} f"{summary['test_rows']:,}"` contacts held out from training,
+`{python} f"{here['n']:,}"` are contacts `{python} who`
+(`{python} percent(here['n'] / summary['test_rows'])`).
+`{python} percent(here['base_rate'])` of them subscribed, `{python} rate_word` the
+`{python} percent(summary['base_rate'])` of all contacts.
+
+## How the model treats them
+
+The call centre calls the top `{python} percent(summary['top_share'], 0)` of the ranked list.
+That list includes `{python} percent(here['share_called'])` of these contacts,
+`{python} called_word` the `{python} percent(summary['top_share'], 0)` of all contacts, and
+reaches `{python} percent(here['recall_top10'])` of their subscribers,
+`{python} recall_word` the `{python} percent(overall['recall_top10'])` it reaches overall.
+
+```{python}
+#| output: asis
+if pd.isna(here["roc_auc"]):
+    print("The ROC AUC within the segment is not defined: its test contacts all have the "
+          "same outcome.")
+else:
+    auc_word = compare(here["roc_auc"], overall["roc_auc"], lambda v: f"{v:.3f}")
+    print(f"Within the segment, the ROC AUC is {here['roc_auc']:.3f}, {auc_word} the "
+          f"{overall['roc_auc']:.3f} of the whole test set: it says how well the model orders "
+          "these contacts among themselves.")
+if here["subscribers"] < params.FEW_SUBSCRIBERS:  # the caveat is chosen by the count
+    print(f"\n\n**Few subscribers.** Only {here['subscribers']:,} of these contacts subscribed, "
+          "so the recall and the ROC AUC above rest on few people and could move by many points "
+          "in another sample. No interval is computed for a segment.")
+else:
+    print(f"\n\n{here['subscribers']:,} of these contacts subscribed. No interval is computed "
+          "for a segment, so a difference of a point or two from the overall figures may be "
+          "sampling noise.")
+```
+
+::: {#tbl-releases}
+
+```{python}
+table = rows.set_index("version")[["share_called", "recall_top10", "roc_auc"]]
+table = pd.DataFrame({
+    "Release": table.index,
+    "Share called": table["share_called"].map(percent),
+    f"Recall, top {percent(summary['top_share'], 0)}": table["recall_top10"].map(percent),
+    "ROC AUC": table["roc_auc"].map(lambda v: "not defined" if pd.isna(v) else f"{v:.3f}"),
+})
+HTML(table.to_html(index=False))
+```
+
+Each release on the test contacts `{python} who`: the share of them in the called list, the
+share of their subscribers it reaches, and the ROC AUC within the segment. Real data: the UCI
+Bank Marketing test set.
+
+:::
+
+```{python}
+#| output: asis
+if factor == "age_band":
+    print("Age is a protected characteristic in UK law [@equalityact2010s4]; the model card "
+          "discusses how the ranking treats it.\n\n## References {.unnumbered}\n\n"
+          "::: {#refs}\n:::")
+```
