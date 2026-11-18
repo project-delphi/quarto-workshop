@@ -40,13 +40,27 @@ def entries(text: str) -> dict[str, dict[str, str]]:
         while depth and i < len(text):  # find the entry's closing brace
             depth += {"{": 1, "}": -1}.get(text[i], 0)
             i += 1
+        if depth:
+            raise ValueError(f"{key}: unbalanced braces: the entry never closes")
         body, fields = text[start:i - 1], {}
-        for field in re.finditer(r"(\w+)\s*=\s*\{", body):
-            depth, j = 1, field.end()
-            while depth:
-                depth += {"{": 1, "}": -1}.get(body[j], 0)
-                j += 1
-            fields[field.group(1).lower()] = " ".join(body[field.end():j - 1].split())
+        # A value is in braces, in double quotes, or bare (a number such as a year), as
+        # reference managers export them.
+        for field in re.finditer(r'(\w+)\s*=\s*(\{|"|(?=\d))', body):
+            name, opener, j = field.group(1).lower(), field.group(2), field.end()
+            if opener == "{":
+                depth = 1
+                while depth and j < len(body):
+                    depth += {"{": 1, "}": -1}.get(body[j], 0)
+                    j += 1
+                if depth:
+                    raise ValueError(f"{key}: unbalanced braces in {name}")
+                value = body[field.end():j - 1]
+            elif opener == '"':
+                end = body.index('"', j)
+                value = body[j:end]
+            else:
+                value = re.match(r"\d+", body[j:]).group(0)
+            fields[name] = " ".join(value.split())
         found[key] = fields
     return found
 
@@ -98,7 +112,7 @@ def check(key: str, fields: dict[str, str]) -> tuple[str, list[str]]:
     doi = fields["doi"]
     try:
         found = record(doi)
-    except (urllib.error.URLError, LookupError, KeyError, IndexError, ValueError) as error:
+    except (OSError, LookupError, KeyError, IndexError, ValueError) as error:  # OSError: URLError, timeouts
         return f"{key:30} {doi:40} {'?':9} DOES NOT RESOLVE", [f"{key}: {doi}: {error}"]
     problems = []
     if found["year"] != fields.get("year"):
@@ -117,7 +131,12 @@ def check(key: str, fields: dict[str, str]) -> tuple[str, list[str]]:
 def main() -> int:
     failures = []
     print(f"{'entry':30} {'doi':40} {'agency':9} year first author     result")
-    for key, fields in entries(BIB.read_text(encoding="utf-8")).items():
+    try:
+        found = entries(BIB.read_text(encoding="utf-8"))
+    except ValueError as error:
+        print(f"{BIB} cannot be read: {error}", file=sys.stderr)
+        return 1
+    for key, fields in found.items():
         if "doi" not in fields:
             print(f"{key:30} {'(no DOI: check by hand)':40}")
             continue

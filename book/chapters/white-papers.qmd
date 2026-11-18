@@ -4,6 +4,7 @@
 #| label: wp-setup
 # The white paper and its references as this chapter leaves them (checkpoint 18), read from
 # their files: the cross-references the paper makes, and every entry of its bibliography.
+import importlib.util
 import re
 
 from scripts import evaluation as ev
@@ -15,11 +16,17 @@ bib = (CHECKPOINT / "references.bib").read_text()
 WORD = number_words()
 
 refs = {kind: sorted(set(re.findall(rf"@{kind}-[\w-]+", paper))) for kind in ("eq", "tbl", "fig", "sec")}
-entries = []
-for kind, key, body in re.findall(r"@(\w+)\{([\w-]+),(.*?)\n\}", bib, re.S):
-    field = dict(re.findall(r"(\w+)\s*=\s*\{(.*?)\},?\s*$", body, re.M))
-    entries.append({"key": key, "kind": kind, "year": field.get("year", ""),
-                    "doi": field.get("doi", ""), "title": field.get("title", "").replace("{", "").replace("}", "")})
+# The bibliography, read by the project's own parser (scripts/check_refs.py, standard library only).
+spec = importlib.util.spec_from_file_location("check_refs", CHECKPOINT / "scripts" / "check_refs.py")
+check_refs = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(check_refs)
+entries = [{"key": key, "year": f.get("year", ""), "doi": f.get("doi", "")}
+           for key, f in check_refs.entries(bib).items()]
+
+
+def counted(n: int, noun: str) -> str:
+    """'one table', 'two figures'."""
+    return f"{WORD[n]} {noun}" + ("" if n == 1 else "s")
 card = (CHECKPOINT / "model-card.qmd").read_text()
 cited_paper = {e["key"] for e in entries if f"@{e['key']}" in paper}
 cited_card = {e["key"] for e in entries if f"@{e['key']}" in card}
@@ -81,10 +88,11 @@ Checkpoint
 
 : The parts of a white paper, and what each is called (Quarto 1.10.20). {#tbl-wp-vocab}
 
-The finished paper refers to `{python} WORD[len(refs["eq"])]` equations,
-`{python} WORD[len(refs["tbl"])]` table, `{python} WORD[len(refs["fig"])]` figures and
-`{python} WORD[len(refs["sec"])]` of its sections by number, and every one resolves in all three
-formats: that is the check a reader makes by eye, done once by the render.
+The finished paper refers to `{python} counted(len(refs["eq"]), "equation")`,
+`{python} counted(len(refs["tbl"]), "table")`, `{python} counted(len(refs["fig"]), "figure")`
+and `{python} counted(len(refs["sec"]), "section")` by number. A reference that does not resolve
+renders as "??", so a search of each format for it is the check a reader would make by eye,
+done once: in the finished paper's three formats, checked on 2026-11-18, it found none.
 
 ## The paper {#sec-wp-paper}
 
@@ -128,7 +136,7 @@ confirmed at its source on 2026-11-18:
 #| output: asis
 lines = ["| Key | Year | DOI | Cited by |", "|---|---|---|---|"]
 for e in entries:
-    doi = f"[{e['doi']}](https://doi.org/{e['doi']})" if e["doi"] else "none: a statute, checked at its official page"
+    doi = f"[{e['doi']}](https://doi.org/{e['doi']})" if e["doi"] else "none: checked by hand at its source"
     by = ", ".join(d for d, keys in (("paper", cited_paper), ("card", cited_card)) if e["key"] in keys)
     lines.append(f"| `{e['key']}` | {e['year']} | {doi} | {by} |")
 print("\n".join(lines))
@@ -190,8 +198,10 @@ The brand's colours and logo reach the partial, but its name does not: in Quarto
 the brand's typography becomes a template variable, so the finished paper names the company in
 a `company:` field of its own front matter. Render the PDF of the whole site, or delete what a
 single-page render with `keep-typ` leaves in the project folder: in the test run it wrote a
-`site_libs/` folder and the `.typ` source beside the sources. Quarto 1.10.20 accepts only its
-own partial names (`typst-show.typ`, `typst-template.typ`,
+`site_libs/` folder and the `.typ` source beside the sources. One trap of Typst's own: in a
+page-number pattern such as `"1 of 1"`, letters are counters too, so a pattern written
+`"page 1 of 1"` printed "pbge" on the second page; keep words outside the pattern. Quarto
+1.10.20 accepts only its own partial names (`typst-show.typ`, `typst-template.typ`,
 `page.typ` and four more); any other name stops the render. When a journal or a conference has
 its own format, use theirs instead of a house template: Quarto's journal templates install
 with `quarto use template quarto-journals/<name>`, and the venue's instructions come first.
@@ -225,8 +235,7 @@ lists match; `check_refs.py` reports no problems; and the PDF opens on the house
 :::
 
 That completes the evaluation's set: a report, a model card, a deck, a site and a white paper,
-all from one run of one script. The next chapter makes the same documents for many readers at
-once.
+all from one run of one script.
 
 ## Further reading {.unnumbered}
 

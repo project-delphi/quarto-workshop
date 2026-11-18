@@ -48,7 +48,9 @@
       line(length: 100%, stroke: 0.5pt + house-rule)
       v(-0.4em)
       grid(columns: (1fr, auto), [#label · #company],
-           counter(page).display("1 of 1", both: true))
+           // "page" stays outside the numbering pattern: Typst would read its letters
+           // (the "a") as a counter.
+           [page #counter(page).display("1 of 1", both: true)])
     },
   )
   // Tables: smaller type, and no justified stretching inside cells.

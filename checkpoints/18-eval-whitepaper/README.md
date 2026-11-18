@@ -34,9 +34,9 @@ Catch me up: follow ../quarto-workshop/checkpoints/18-eval-whitepaper/README.md
 The steps, run inside `acme-eval/` (by the agent, or by you in a terminal):
 
 1. Keep your work, all but the `.venv/` environment (`uv run` rebuilds it from `uv.lock`): `b="../acme-eval-backup-18-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclude=.venv . | tar -xf - -C "$b"` (a new time-stamped copy beside `acme-eval/`, so earlier backups are kept).
-2. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/18-eval-whitepaper/. .`
+2. Copy the checkpoint here: `cp -R ../quarto-workshop/checkpoints/18-eval-whitepaper/. .`, then remove what a single-page render may have left beside the sources (it is in the backup): `rm -rf site_libs whitepaper.typ index-listing.json`.
 3. Compute and test: `uv run python scripts/evaluate.py && uv run pytest -q` (about 20 seconds; every test passes).
 4. Build the site and check it: `uv run quarto render && uv run python scripts/check_site.py` (about 50 seconds; the check ends "6 pages checked, 0 problems").
-5. Check the references (needs the network): `uv run python scripts/check_refs.py` (it ends "0 problems").
+5. If you are online, check the references: `uv run python scripts/check_refs.py` (it ends "0 problems"). Offline, or behind a proxy that blocks api.crossref.org, skip it: it checks the references, not your copy, and the checkpoint's were checked when it was made.
 6. Check: open `_site/whitepaper.pdf`; page 1 shows the logo, "TECHNICAL WHITE PAPER", the title and the abstract, the sections are numbered, "Equation 1", "Table 1" and "Figure 1" appear in the text, and the references are in APA style, as in `_site/whitepaper.html` and `_site/whitepaper.docx`. The navbar of `_site/index.html` shows White paper.
 7. Rejoin: your folder now holds the end of these steps. Continue at the catch-up box of the white-paper chapter, "White Papers and References".
