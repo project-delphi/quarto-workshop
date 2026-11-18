@@ -27,4 +27,4 @@ The steps, run inside `acme-eval/` (by the agent, or by you in a terminal):
 3. Compute and test: `uv run python scripts/evaluate.py && uv run pytest -q` (about 20 seconds; every test passes).
 4. Render every format: `uv run quarto render report.qmd`.
 5. Check: `report.html` opens with the sentence naming the best release and its ROC AUC, then Table 1 (three releases) and Figure 1 (three ROC curves); `report.docx` and `report.pdf` exist.
-6. Rejoin: your folder now holds the end of these steps. Continue at the box in Chapter 3.
+6. Rejoin: your folder now holds the end of these steps. Continue at the catch-up box of the fast-path chapter, after "A guard for the sentence".
