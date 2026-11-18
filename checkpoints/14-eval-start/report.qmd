@@ -63,12 +63,13 @@ is scored on the same resamples.
 ```{python}
 #| label: tbl-metrics
 #| tbl-cap: "Test-set metrics of each release, with 95% bootstrap intervals. ROC AUC and average precision: higher is better. Brier score: lower is better. Recall and lift are for the top 10% of the ranked list, the contacts that are called."
+claim(summary["top_share"] == 0.10, "The caption says top 10%, which a caption cannot compute.")
 names = {
     "roc_auc": "ROC AUC",
     "average_precision": "Average precision",
     "brier": "Brier score",
-    "recall_top10": "Recall, top 10%",
-    "lift_top10": "Lift, top 10%",
+    "recall_top10": f"Recall, top {percent(summary['top_share'], 0)}",
+    "lift_top10": f"Lift, top {percent(summary['top_share'], 0)}",
 }
 models = {"logistic_regression": "Logistic regression", "gradient_boosting": "Gradient boosting"}
 releases = pd.DataFrame(summary["releases"]).set_index("version")
