@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="keywords" content="Quarto, reproducible publishing, coding agents, Markdown, Python, EPUB, data analysis, k-means clustering">
+<meta name="description" content="A practitioner’s guide to reproducible publishing: write once in Markdown, let a coding agent write the code, check its work, and rebuild one source into a web page, Word, PDF, slides, an e-book, a website, a blog and a dashboard. Two real projects run through the book: a London visitor guide and a study of drinking-water risk in Colombian municipalities.">
+
+<title>10&nbsp; One Set of Results – Prompt, Check, Publish</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../part-3.html" rel="next">
+<link href="../part-craft.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<!-- lang-switch --><!-- /lang-switch --></head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-craft.html">Part III: The Craft of Outputs</a></li><li class="breadcrumb-item"><a href="../chapters/results.html"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">One Set of Results</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <!-- lang-switch --><nav class="lang-switch lang-switch-top" aria-label="Language / Idioma"><span lang="en" aria-current="true" title="English">EN</span> <span aria-hidden="true">|</span> <a href="../es/index.html" hreflang="es" lang="es" title="Español">ES</a></nav><!-- /lang-switch --><button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Prompt, Check, Publish</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://project-delphi.github.io/quarto-workshop/ebook/" title="The e-book's page" class="quarto-navigation-tool px-1" aria-label="The e-book's page"><i class="bi bi-book"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/releases/latest/download/prompt-check-publish.epub" title="Download the EPUB" class="quarto-navigation-tool px-1" aria-label="Download the EPUB"><i class="bi bi-download"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div><!-- lang-switch --><nav class="lang-switch lang-switch-sidebar" aria-label="Language / Idioma"><span lang="en" aria-current="true" title="English">EN</span> <span aria-hidden="true">|</span> <a href="../es/index.html" hreflang="es" lang="es" title="Español">ES</a></nav><!-- /lang-switch -->
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface: How to Use This Book</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../copyright.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Copyright</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedication</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About the Author</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part I: Start Here</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publishing That Rebuilds Itself</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-assistant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working With a Coding Agent</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/fast-path.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">The Fast Path</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Setting Up Your Machine</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/first-report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">A First Report, by Hand</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part II: One Guide, Many Audiences</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-markdown.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Markdown, Rendering and Project Rules</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-compute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Documents That Compute</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-audiences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">One Guide, Five Audiences</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-publish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Publishing and Proving the Rebuild</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-london.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exercises for Part II</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-craft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part III: The Craft of Outputs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/results.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">One Set of Results</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part IV: One Analysis, Many Publications</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-water-question.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">The Question, the Data and the Rules</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-explore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Look Before You Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-prepare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">From Table to Features</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Finding Kinds of Places: k-Means</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Interpreting Clusters</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-causation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Correlation Is Not Causation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-publish-many.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Publish Many</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-water.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exercises for the Water Analysis</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../afterword.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Afterword: What You Built, and Where Next</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-windows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Windows: Get Ubuntu Ready</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-terminal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Keys, Symbols and Terminal Habits</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Cheatsheet</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/d-troubleshooting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Troubleshooting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/e-checkpoints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Checkpoints at a Glance, and Answers</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/f-translation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Reading in Another Language</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/g-sources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Data Sources, Licences and Credits</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/h-how-built.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">H</span>&nbsp; <span class="chapter-title">How This Book Is Built</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/i-workshop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Running This as a Workshop</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glossary</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/k-facts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">K</span>&nbsp; <span class="chapter-title">Facts That Change</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-results-checks" id="toc-sec-results-checks" class="nav-link active" data-scroll-target="#sec-results-checks"><span class="header-section-number">10.1</span> Compute once, check three ways</a></li>
+  <li><a href="#sec-model-card" id="toc-sec-model-card" class="nav-link" data-scroll-target="#sec-model-card"><span class="header-section-number">10.2</span> A model card, as one larger task</a></li>
+  <li><a href="#sec-results-sections" id="toc-sec-results-sections" class="nav-link" data-scroll-target="#sec-results-sections"><span class="header-section-number">10.3</span> Sections, numbers and references</a></li>
+  <li><a href="#sec-results-change" id="toc-sec-results-change" class="nav-link" data-scroll-target="#sec-results-change"><span class="header-section-number">10.4</span> Change a setting, explain the rebuild</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#further-reading" id="toc-further-reading" class="nav-link" data-scroll-target="#further-reading">Further reading</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-craft.html">Part III: The Craft of Outputs</a></li><li class="breadcrumb-item"><a href="../chapters/results.html"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">One Set of Results</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="sec-results" class="quarto-section-identifier"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">One Set of Results</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Keywords</div>
+    <p>Quarto, reproducible publishing, coding agents, Markdown, Python, EPUB, data analysis, k-means clustering</p>
+  </div>
+</div>
+
+</header>
+
+
+<p>The fast path ended with one report. A real evaluation has more readers than that. The product team wants the headline and the table; a risk or compliance reviewer wants to know who the model treats differently and what it must not be used for; an investor wants one number that moved. The way to serve all of them without the numbers drifting apart is the design the repository already has: <strong>one script computes every result once, and every document reads them.</strong> This chapter adds the second document, a <a href="../appendices/j-glossary.html#gl-model-card" class="glossary-link"><em>model card</em></a>, and grows the report, and it shows how to hand an agent a larger task safely: by asking for a plan, then judging the result by its checks.</p>
+<p>It is the first chapter of this part, whose chapters each take one kind of output, a model card here and then slides, a site and a white paper, and teach it the same way: what it can do and what that is called, how to ask for it, and how to check it (<a href="02-assistant.html#sec-three-skills" class="quarto-xref"><span>Section 2.7</span></a>).</p>
+<div class="opener">
+<div class="box-label">
+<strong>In this chapter</strong>
+</div>
+<ul>
+<li>Explain why results are computed once and read by every document, and what each kind of check (tests, guards, the render) catches.</li>
+<li>Ask an agent for a model card as one larger task, with a plan first, and judge it by its checks.</li>
+<li>Number sections and refer to them, to tables and to figures, so that every reference resolves in HTML, Word and PDF.</li>
+<li>Predict what a changed setting does to every document, then rebuild and check.</li>
+</ul>
+<div class="opener-meta">
+<p><span class="meta-label"><strong>Start from</strong></span>your <code>acme-eval</code> repository at the end of <a href="fast-path.html" class="quarto-xref"><span>Chapter 3</span></a>, or <code>checkpoints/14-eval-start/</code>.</p>
+<p><span class="meta-label"><strong>You build</strong></span><code>model-card.qmd</code> with <code>references.bib</code>, and a report with numbered sections, in HTML, Word and PDF.</p>
+<p><span class="meta-label"><strong>Checkpoint</strong></span><code>checkpoints/15-eval-results/</code></p>
+</div>
+</div>
+<section id="sec-results-checks" class="level2" data-number="10.1">
+<h2 data-number="10.1" class="anchored" data-anchor-id="sec-results-checks"><span class="header-section-number">10.1</span> Compute once, check three ways</h2>
+<p><code>scripts/evaluate.py</code> is the only code in the repository that fits a model. It writes five plain files to <code>outputs/</code>, and they are the same bytes on every run, because every random choice, the split, the models and the bootstrap, has a fixed seed. For this book’s run:</p>
+<div id="tbl-results-outputs" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-outputs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;10.1: What the evaluation writes.
+</figcaption>
+<div aria-describedby="tbl-results-outputs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Holds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>summary.json</code></td>
+<td>the best release (v3), the test-set size (11,303), the base rate (11.7%), the seeds, the data’s checksum and the package versions</td>
+</tr>
+<tr class="even">
+<td><code>metrics.csv</code></td>
+<td>each release’s metrics, with a 95% bootstrap interval</td>
+</tr>
+<tr class="odd">
+<td><code>segments.csv</code></td>
+<td>the same by age band and by job</td>
+</tr>
+<tr class="even">
+<td><code>calibration.csv</code></td>
+<td>predicted against observed rates, in ten bins</td>
+</tr>
+<tr class="odd">
+<td><code>curves.csv</code></td>
+<td>the points of the ROC and precision-recall curves</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Three kinds of check then guard different things, and a professional repository needs all three:</p>
+<div id="tbl-results-check-kinds" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-check-kinds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;10.2: Three kinds of check, and what each catches.
+</figcaption>
+<div aria-describedby="tbl-results-check-kinds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Check</th>
+<th>Runs</th>
+<th>Catches</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Tests</strong> (<code>uv run pytest</code>)</td>
+<td>on the code and the data</td>
+<td>a changed data file (its checksum), a leak (no release may use <code>duration</code>, which is known only after the call), a wrong metric, outputs missing a column</td>
+</tr>
+<tr class="even">
+<td><strong>Guards</strong> (<code>claim(…)</code> in a document)</td>
+<td>when a document renders</td>
+<td>a sentence whose words the results no longer support: “best”, “most”, “within five points”</td>
+</tr>
+<tr class="odd">
+<td><strong>The render</strong></td>
+<td>on every document, in every format</td>
+<td>a reference that does not resolve, a missing file, a cell that fails</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>A test does not read prose, and a guard does not test code; neither notices a stale typed label, which only a reader, or a prediction tested by a rebuild (<a href="#sec-results-change" class="quarto-xref"><span>Section 10.4</span></a>), will.</p>
+</section>
+<section id="sec-model-card" class="level2" data-number="10.2">
+<h2 data-number="10.2" class="anchored" data-anchor-id="sec-model-card"><span class="header-section-number">10.2</span> A model card, as one larger task</h2>
+<p>A <em>model card</em> is a short document that travels with a model: what it is, what it is for and not for, how it performs overall and for the groups it affects, and what its makers know is wrong with it. Mitchell and colleagues proposed the form in 2019, with a fixed list of sections, which is the vocabulary to ask for.</p>
+<p>The card is a good example of a task to hand over whole (<a href="02-assistant.html#sec-step-or-task" class="quarto-xref"><span>Section 2.8</span></a>): you can state the result (those sections, from those files), and its checks run without you (guards, the references, the render). So ask for a plan first, read it, and only then let the agent work. Start a branch for it, as for any change you will review:</p>
+<div class="agent-box">
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>You do</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">-c</span> model-card</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="prompt long" data-boxed="true">
+<div class="box-label">
+<strong>Ask your coding agent</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Plan first, and wait for my go-ahead: add model-card.qmd (html, docx and typst) for the best release, with the sections of Mitchell et al. (2019), "Model Cards for Model Reporting": model details, intended use, factors, metrics, evaluation data, training data, quantitative analyses, ethical considerations, and caveats and recommendations. Read only outputs/ and data/README.md. Slice metrics by age band and by job come from outputs/segments.csv, and calibration from outputs/calibration.csv. Cite the paper and the dataset from a new references.bib, opening each DOI first. Guard every sentence whose wording depends on the results with `claim`. Render all three formats, then list anything you could not verify.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Expect it to run</strong>
+</div>
+<p>replies with a plan · after your go-ahead: writes <code>references.bib</code> and <code>model-card.qmd</code> · <code>uv run quarto render model-card.qmd</code></p>
+</div>
+</div>
+<p><strong>Read the plan</strong> as a reviewer would. A good one lists the sections in order, says where each number comes from, names the slices and the figure, and says how it will check the references; in the test run it also promised to compute the “top 10%” label from <code>outputs/</code> rather than type it. If the plan misses something, say so before it starts; it is cheaper to change a plan than a file. Then reply <code>Go ahead.</code></p>
+<p>When it finishes, the checks are the ones the prompt asked for:</p>
+<ul>
+<li><strong>The guards.</strong> Read every <code>claim(…)</code> in the file: each should state a sentence of the card, and its condition should compute that sentence from <code>outputs/</code>. A guard whose condition can never be false, such as a name read from the results compared with itself, protects nothing.</li>
+<li><strong>The references.</strong> <code>references.bib</code> should hold Mitchell et al.&nbsp;and the dataset, each with a DOI you can open. In the test run, the dataset’s DOI record had its authors garbled, and the agent cited the dataset as the repository’s own page gives it: a reason to open DOIs, not only to collect them.</li>
+<li><strong>The list of what it could not verify.</strong> This is the most useful part of a larger task’s report. The test run’s list named how the split was made, how the calibration bins were formed, and that the intended-use and ethics text was its own framing. Each item is a question for you, not a defect to accept.</li>
+<li><strong>The render.</strong> Open the three formats, and look at the slices as their subjects would.</li>
+</ul>
+<p>The finished card’s slices make the point of the exercise. Under v3, the called top 10% of the list holds 47.9% of the contacts aged 60+ but 5.0% of those aged 40-49: the model ranks by age, because in these data the 60+ band subscribes most often (38.8%). That is accurate, and it is exactly what a card must say, because age is a protected characteristic in UK law, and a bank deciding whom to call needs to know it before it relies on the ranking.</p>
+<div id="tbl-results-ages" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-ages-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;10.3: The best release’s slices by age band, from the evaluation’s outputs: the share of each band in the called list, the band’s subscription rate, and the share of its subscribers the calls reach.
+</figcaption>
+<div aria-describedby="tbl-results-ages-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th>Age band</th>
+<th style="text-align: right;">Test contacts</th>
+<th style="text-align: right;">Called</th>
+<th style="text-align: right;">Subscription rate</th>
+<th style="text-align: right;">Recall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>18-29</td>
+<td style="text-align: right;">1,337</td>
+<td style="text-align: right;">20.0%</td>
+<td style="text-align: right;">17.1%</td>
+<td style="text-align: right;">51.8%</td>
+</tr>
+<tr class="even">
+<td>30-39</td>
+<td style="text-align: right;">4,512</td>
+<td style="text-align: right;">8.2%</td>
+<td style="text-align: right;">10.7%</td>
+<td style="text-align: right;">37.9%</td>
+</tr>
+<tr class="odd">
+<td>40-49</td>
+<td style="text-align: right;">2,953</td>
+<td style="text-align: right;">5.0%</td>
+<td style="text-align: right;">8.6%</td>
+<td style="text-align: right;">32.0%</td>
+</tr>
+<tr class="even">
+<td>50-59</td>
+<td style="text-align: right;">2,102</td>
+<td style="text-align: right;">7.4%</td>
+<td style="text-align: right;">9.7%</td>
+<td style="text-align: right;">41.9%</td>
+</tr>
+<tr class="odd">
+<td>60+</td>
+<td style="text-align: right;">399</td>
+<td style="text-align: right;">47.9%</td>
+<td style="text-align: right;">38.8%</td>
+<td style="text-align: right;">70.3%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Common pitfall
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Three traps met in the test run. Pandas’ styled tables (<code>df.style</code>) need the <code>jinja2</code> package, which the repository does not have, so the first render stopped; the agent wrote the table another way rather than add a dependency, which is the choice to prefer. Without a setting, the PDF’s citations came out in a different style from the HTML and Word, with an empty “References” heading and a second “Bibliography” page, because Quarto hands citations in a Typst PDF to Typst’s own processor; <code>citeproc: true</code> under <code>typst:</code> makes all three formats use the same one (<a href="#sec-results-sections" class="quarto-xref"><span>Section 10.3</span></a>). And a failed render leaves the previous <code>model-card.html</code> where it was, so read the render’s last lines before you open the file.</p>
+</div>
+</div>
+</section>
+<section id="sec-results-sections" class="level2" data-number="10.3">
+<h2 data-number="10.3" class="anchored" data-anchor-id="sec-results-sections"><span class="header-section-number">10.3</span> Sections, numbers and references</h2>
+<p>The report grows two sections, and a reader of a three-format document needs to find them. Numbered sections and cross-references do that, and each is one setting or one label:</p>
+<div id="tbl-results-refs" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-refs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;10.4: References in a document, and the setting behind each.
+</figcaption>
+<div aria-describedby="tbl-results-refs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>You ask for</th>
+<th>Quarto’s feature</th>
+<th>It renders as</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>numbered sections</td>
+<td><code>number-sections: true</code></td>
+<td>“2 Who is called”</td>
+</tr>
+<tr class="even">
+<td>a section referred to</td>
+<td><code>## Who is called {#sec-segments}</code> and <code>@sec-segments</code></td>
+<td>“Section 2”, a link</td>
+</tr>
+<tr class="odd">
+<td>a table or a figure referred to</td>
+<td>a cell labelled <code>tbl-…</code> or <code>fig-…</code>, and <code>@tbl-…</code></td>
+<td>“Table 2”, “Figure 2”</td>
+</tr>
+<tr class="even">
+<td>the same citation style in every format</td>
+<td><code>bibliography:</code>, and <code>citeproc: true</code> for <code>typst</code></td>
+<td>“(Mitchell et al.&nbsp;2019)” in all three</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div class="agent-box">
+<div class="prompt long" data-boxed="true">
+<div class="box-label">
+<strong>Ask your coding agent</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>In report.qmd, number the sections and add two: who is called (recall in the top 10% by age band, from outputs/segments.csv, as a table labelled `tbl-segments`) and calibration (a figure labelled `fig-calibration` from outputs/calibration.csv), each with a guard where its wording depends on the results, and refer to both from the opening paragraph with @sec- references. Render all three formats and check that no cross-reference shows "??".</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Expect it to run</strong>
+</div>
+<p>edits <code>report.qmd</code> · <code>uv run quarto render report.qmd</code></p>
+</div>
+</div>
+<p>The check is in the prompt: an unresolved reference renders as “??”, in every format, so search each output for it. In the test run, the opening paragraph read the same in HTML, Word and PDF, ending “Section 2 shows who is called, by age band, and Section 3 whether the predicted probabilities match the rates observed.”</p>
+<p>Calibration asks whether a predicted probability can be read as a rate: of the contacts the model gives 20%, do about one in five subscribe? <a href="#fig-results-calibration" class="quarto-xref">Figure&nbsp;<span>10.1</span></a> draws it for the best release, from the same file the report reads.</p>
+<div id="cell-fig-results-calibration" class="cell on-light" data-execution_count="3">
+<div class="cell-output cell-output-display">
+<div id="fig-results-calibration" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Points joined by a line, observed rate against mean predicted probability, with a dashed diagonal. The points lie close to the diagonal, most of them at predicted probabilities below 0.25.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-results-calibration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="results_files/figure-html/fig-results-calibration-output-1.svg" class="img-fluid figure-img" alt="Points joined by a line, observed rate against mean predicted probability, with a dashed diagonal. The points lie close to the diagonal, most of them at predicted probabilities below 0.25.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-results-calibration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10.1: Calibration of the best release on the test contacts: the observed subscription rate against the mean predicted probability, in equal-sized bins. On the dashed diagonal, predictions equal rates.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>For v3, no bin is more than 1.7 percentage points from the diagonal; for the oldest release, the largest gap is 5.7. The report says which release is best calibrated with a guard, because that word, unlike the numbers, does not follow the data by itself.</p>
+<p>When both documents render, review the branch as in <a href="fast-path.html#sec-fast-pr" class="quarto-xref"><span>Section 3.7</span></a>: the scope (<code>model-card.qmd</code>, <code>references.bib</code>, <code>report.qmd</code>, perhaps <code>AGENTS.md</code>), one number against <code>outputs/</code>, and a fresh clone. Then commit.</p>
+<div class="catchup">
+<p><strong>Stuck for two minutes?</strong> Paste this into your agent. It backs up your work and brings the project to this point; then carry on from here.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/15-eval-results/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sec-results-change" class="level2" data-number="10.4">
+<h2 data-number="10.4" class="anchored" data-anchor-id="sec-results-change"><span class="header-section-number">10.4</span> Change a setting, explain the rebuild</h2>
+<p>The call centre has room for more calls. No prompt is supplied: this is the test of the design, and you can do it by hand.</p>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Try it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>Predict.</strong> The share of the list that is called is <code>TOP_SHARE</code> in <code>src/acme_eval/metrics.py</code>, now 0.1. Double it. Before you rebuild, write down which numbers in the report and the card will change, which will not, and whether anything will stop the render.</li>
+<li><strong>Rebuild</strong>: <code>uv run python scripts/evaluate.py</code>, then render both documents.</li>
+<li><strong>Explain</strong> what changed, what did not, and anything that stopped.</li>
+<li><strong>Undo</strong> with <code>git restore src/acme_eval/metrics.py</code>, and evaluate and render again.</li>
+</ol>
+<div class="done">
+<p><strong>You’re done when</strong> you can name the outputs that changed, the ones that did not, and the line of code or the guard behind each.</p>
+</div>
+</div>
+</div>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>What should change, what should not, and what is the trap?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>The number of calls (to 2,261), and with it every top-of-list metric: recall, precision, lift and each band’s share called. ROC AUC, average precision, the Brier score, the calibration and the best release do not change: they measure the whole ranking, not where it is cut. The trap is everything that names the share in words. In the test run, a report written without guards on them kept “top 10%” in a table caption and two row labels beside the new figures, and the metric names in <code>outputs/</code>, <code>recall_top10</code> among them, kept saying 10 too. In the finished project the labels compute the share, and each caption that names it, which cannot compute, has a guard: both documents stop with “The caption says top 10%, which a caption cannot compute.” Two unit tests in <code>tests/test_metrics.py</code> fail as well, because they pin the 10% rule; that is a test doing its job, and changing the share means updating them on purpose. In the test run, the agent’s own card also stopped on a guard about which jobs the calls reach least, the kind of sentence a doubled list really does change.</p>
+</div>
+</div>
+</section>
+<section id="summary" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
+<div class="keyideas">
+<ul>
+<li>One script computes every result once into plain files; every document reads them, so a reviewer can trust that the report and the card quote the same run.</li>
+<li>Tests check the code and the data, guards check the prose, and the render checks the references; none of them sees a typed label, which a prediction and a rebuild do.</li>
+<li>A model card has a fixed set of sections, which is the vocabulary to ask for; its slices are where a model’s effect on people shows.</li>
+<li>Hand an agent a larger task with a plan first, then judge the result by its guards, its references, its list of what it could not verify, and the render.</li>
+<li>Numbered sections and labelled tables and figures give references that resolve in every format; <code>citeproc: true</code> makes a Typst PDF cite like the others.</li>
+</ul>
+</div>
+<p>The project now has two documents for readers who read. The next readers will be in a meeting, in front of a screen.</p>
+</section>
+<section id="further-reading" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>
+<ul>
+<li>Margaret Mitchell and colleagues, <a href="https://doi.org/10.1145/3287560.3287596">Model Cards for Model Reporting</a>, <em>Proceedings of the Conference on Fairness, Accountability, and Transparency</em> (FAT* ’19), 220–229 (checked <span class="nowrap">2026-11-18</span>).</li>
+<li>Quarto, <a href="https://quarto.org/docs/authoring/cross-references.html">Cross References</a> and <a href="https://quarto.org/docs/authoring/citations.html">Citations</a> (checked <span class="nowrap">2026-11-18</span>).</li>
+<li>UK Government, <a href="https://www.legislation.gov.uk/ukpga/2010/15/section/4">Equality Act 2010, section 4</a>: the protected characteristics, age among them (checked <span class="nowrap">2026-11-18</span>).</li>
+<li>S. Moro, P. Cortez and P. Rita, <a href="https://doi.org/10.1016/j.dss.2014.03.001">A data-driven approach to predict the success of bank telemarketing</a>, <em>Decision Support Systems</em> 62 (2014), 22–31: the study behind the data (checked <span class="nowrap">2026-11-18</span>).</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/quarto-workshop\/book\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../part-craft.html" class="pagination-link" aria-label="Part III: The Craft of Outputs">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Part III: The Craft of Outputs</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../part-3.html" class="pagination-link" aria-label="Part IV: One Analysis, Many Publications">
+        <span class="nav-page-text">Part IV: One Analysis, Many Publications</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
