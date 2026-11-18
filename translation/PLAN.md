@@ -184,3 +184,49 @@ building and checked meanwhile:
 To translate one: translate the file (or the changed sections, `git diff <commit> -- book/<file>`),
 remove its line from `pending.yml` or its entry from `english_only`, and run `make book-es`.
 The list of what waits is kept in `REVISION-PLAN.md`, "For the Spanish edition".
+
+### 8.1 The Spanish to-do for the revision (WP14, 2026-11-18)
+
+What the Spanish edition needs before it matches the English one, in the order to do it. Each
+step ends with `make book-es` (EPUBCheck, `compare.py`, `english_scan.py`) and removes its
+files from `english_only` or `pending.yml`.
+
+1. **The changed files first** (`pending.yml`, 32 lines): the preface (audiences, reading paths,
+   the three examples, how the book is organised, free and open source), Chapters 1 to 4, the
+   first report, the London and water chapters whose references changed, Appendices A, E, G, I
+   and J, the copyright page, the afterword (two new projects) and the three existing part
+   pages. Most are references and short sections: `git diff <commit> -- book/<file>` shows
+   each one's change.
+2. **The glossary's new terms** (into `translation/glossary.md` first, then Appendix J):
+   API key, `apt`, artifact, brand file, calibration, citeproc, codespace, continuous
+   integration (CI), contrast ratio, cron, cross-reference, CSL, `curl`, description, dev
+   container, fragment, Homebrew, model card, notebook, package manager, papermill, parameter,
+   print view, protected branch, proxy, reference document, ROC AUC, runner, slice, social card,
+   speaker notes, spending limit, status check, template partial, theme, VPN, workflow, zero data
+   retention. Decide which stay in English as GitHub's or Quarto's interface words (*workflow*,
+   *runner*, *status check*, *pull request*), as section 6 does for code.
+3. **Appendix K and `facts.yml`.** The facts' `text` and `label` are English sentences.
+   Add `text_es` and `label_es` beside each (`scripts/facts.py` reads the document's `lang`),
+   rather than a second file, so a re-checked fact changes once. The Spanish landing page
+   already reads `facts.yml` in English (`ebook/_source.py`); switch it to the Spanish texts.
+4. **New chapters, in reading order**, each with its part page: The Fast Path; Part III, The
+   Craft of Outputs (One Set of Results, slides, sites, white papers, parameters); Part IV,
+   Working in a Team (pull requests and CI, at work and in a start-up). Their roadmap entries
+   go in `META_ES` (`scripts/roadmaps.py`); the Spanish water part becomes *Parte V* when Parts
+   III and IV arrive, not before.
+5. **Prompts.** Translate each printed prompt, keeping file names, column names, options and
+   commands as code (section 6). A translated prompt is a new prompt: dry-run it from the same
+   checkpoint before it is printed, as the English ones were, and record any change of result.
+6. **What stays in English:** the Acme example (`examples/eval/`, checkpoints 14 to 20,
+   `starters/eval-repo/`) and `examples/feedback/`, like the other projects' code; their
+   READMEs and page text are a separate decision for the author (a Spanish Acme site would need
+   its own `_brand.yml` strings and checks).
+
+The shared scripts already take their words from `lang` (section 3); the new ones added by the
+revision do not, and need the same treatment before their chapters are translated:
+`scripts/evaluation.py` needs nothing (numbers only), and `scripts/partpage.py` already reads
+Spanish descriptions (from `META_ES`). `filters/glossary.lua` is off in Spanish (it returns
+early for `lang: es`): turning it on needs the Spanish Appendix J's terms and IDs. And the new
+chapters' setup cells build some sentences in English (for example `team.qmd` joins its list of
+pinned actions with "and"); give them the edition's words through `scripts/prose.py`, as the
+water chapters do.

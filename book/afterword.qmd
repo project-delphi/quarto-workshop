@@ -2,8 +2,8 @@
 
 Near the end of the water analysis, one setting changed in one script, and the officials' report, the council's
 slides, the blog post and the dashboard all changed with it, without a number retyped. That moment is
-what the two projects were for. The London guide and the water analysis each started from plain text
-and data, became a shelf of documents for different readers, and rebuild with one command. The projects
+what the book's projects were for. The London guide, the Acme evaluation and the water analysis each
+started from plain text and data, became a shelf of documents for different readers, and rebuild with one command. The projects
 will date. The method will not, and it fits on a card.
 
 ::: {.practice title="Prompt, Check, Publish"}
@@ -33,7 +33,7 @@ makes: who the work is for, and what would make them read it.
 
 ## What you can now do {.unnumbered}
 
-If you worked through both parts, you can:
+If you worked through Parts II and V, the London guide and the water analysis, you can:
 
 - explain how Quarto turns one plain-text source into many formats, and why a computed number cannot
   drift from its data;
@@ -44,12 +44,22 @@ If you worked through both parts, you can:
 - predict which outputs a changed input or setting updates, rebuild, and explain the result;
 - say which edition of this book shows each interactive figure, and why.
 
+If you also worked through Parts III and IV, the Acme evaluation, you can:
+
+- compute results once and have every document read them, with tests, guards and the render
+  each catching what the others miss;
+- ask for slides, a branded site and a white paper by name, and check each against what makes
+  it work;
+- make one document for many values, and render and check every one with a script;
+- have every pull request rebuilt by CI, so that a guard the results no longer support turns it
+  red.
+
 If one of these is shaky, go back to that part's exercises, starting from a known-good state in
 @sec-checkpoints.
 
-## Three projects of your own {.unnumbered #sec-own-projects}
+## Projects of your own {.unnumbered #sec-own-projects}
 
-The London guide and the water analysis were practice. The three projects here are the kind of
+The London guide, the Acme evaluation and the water analysis were practice. The five projects here are the kind of
 document you already make, or will soon be asked for, built the book's way. Each ends with the
 same proof, a rebuild from a fresh copy, so you know that someone else could make it too.
 
@@ -59,14 +69,17 @@ the approach starts to repay the setup; the first change to the data is where it
 
 ::: {.practice title="Which project first?"}
 Choose the one with a real reader and a date: a brief your manager reads on the first Monday, a
-supplement due with a resubmission, a report due in three weeks. Then check that you are allowed
+supplement due with a resubmission, a report due in three weeks, an update investors expect on
+the 5th, a design review next week. Then check that you are allowed
 to use its data with an agent ([below](#sec-project-start)). If two qualify, start with the smaller. Finish one
 project, fresh clone included, before you start another; the second goes faster.
 :::
 
 ### Start every project the same way {.unnumbered #sec-project-start}
 
-Make the project folder and go into it (@sec-first-files): for the brief, `mkdir ~/metrics-brief`
+The design document is the exception: it lives in a repository you already have, so skip this
+setup and start on a branch there, as in @sec-fast-path. For the others, make the project folder
+and go into it (@sec-first-files): for the brief, `mkdir ~/metrics-brief`
 then `cd ~/metrics-brief`. Make a `data/` folder inside it (`mkdir data`) and copy your files in,
 unchanged; Finder or File Explorer will do. Start the history with `git init -b main` and
 commit the data, `git add data` then `git commit -m "Data, as exported"` (@sec-first-git).
@@ -86,13 +99,11 @@ then commit them yourself. From then on, read each change with `git diff` (@sec-
 commit after every prompt whose result you checked, so that a bad turn is one `git restore` away.
 
 ::: {.practice title="Keep private data private"}
-What an agent reads is sent to the model on its vendor's servers (@sec-model-harness). Customer
-records, sales figures, unpublished results, participant data and student marks are not yours to
-send anywhere you like. Before a confidential file meets an agent, read your organisation's AI
-and data policy, and ask whoever owns it if the policy is silent. If your agent is not approved
-for the data, do not paste it, open it or name its path in a prompt: build the project on a public
-or made-up file with the same columns, labelled as such, then swap in the real file and render
-it yourself. Keep such a project off public hosting.
+What an agent reads is sent to the model on its vendor's servers (@sec-model-harness). Before a
+confidential file meets an agent, read your organisation's AI and data policy; if the agent is
+not approved for the data, build the project on a made-up file with the same columns, labelled as
+such, and render the real one yourself. @sec-at-work-confidential has the habits in full, and
+what each vendor's plan does with what it is sent.
 :::
 
 ### An internal metrics brief {.unnumbered #sec-project-metrics}
@@ -233,7 +244,7 @@ coursework/
 └── uv.lock
 ```
 
-Coursework has a rule the other two projects lack: the work being marked must be yours. Start
+Coursework has a rule the other projects lack: the work being marked must be yours. Start
 with the course's AI policy, before any other prompt.
 
 ::: {.prompt}
@@ -267,6 +278,134 @@ committed (no `.venv/`, no rendered files), run `git archive -o coursework-sourc
 `report.pdf` answers the brief, the AI-use statement matches both what you did and what the
 policy allows, and [the fresh-clone test](#sec-fresh-clone), run by following your own
 `README.md`, gives the same PDF.
+:::
+
+### A monthly investor update {.unnumbered #sec-project-investor}
+
+**Who it is for.** A founder or an early team who writes to investors every month, as Acme did
+in @sec-parameters, but from your own figures. Your figures, not a model's: customers, revenue,
+burn and cash, kept in a spreadsheet you export as CSV, and a few lines in your own words on
+what happened and what you need. **Start with:**
+
+```text
+investor-update/
+├── AGENTS.md
+├── data/metrics.csv   one row a month: month, customers, mrr, burn, cash
+├── notes/
+│   └── 2026-10.md     your highlights and asks, in your words, no numbers
+├── update.qmd         the agent writes it
+├── pyproject.toml
+└── uv.lock
+```
+
+Investors' figures are confidential: keep the repository private, and send the PDF, not a
+link to a page. **You build** `update.pdf` and `update.docx` for any month.
+
+::: {.prompt}
+```default
+Write update.qmd, a monthly investor update with formats typst and docx, parameterised by `month` (a cell tagged `parameters` whose default is "latest", meaning the last month in data/metrics.csv). Show that month's `customers`, `mrr` and `cash`, each as inline code, and runway in months as `cash` divided by `burn`, with a note saying how it is computed. Add papermill with `uv add papermill`, render it for the month before the latest with `-P`, and tell me which month it shows.
+```
+:::
+
+::: {.prompt}
+```default
+Add each figure's change from the month before, its wording (up, down or unchanged) chosen by code from the figures as printed, and make the render stop with a message listing the valid months if `month` is not in the data. Test it with a month that is not there.
+```
+:::
+
+::: {.prompt}
+```default
+Below the figures, include notes/<month>.md, my own words on highlights and asks, and stop with a clear message if that month's notes file is missing. Render the latest month in both formats, and show me the notes as they appear in the PDF.
+```
+:::
+
+In the test run, these prompts worked as written, on a made-up company. Three things they do not
+settle are yours. **Runway** here is cash divided by burn; if your investors expect net burn,
+burn less revenue, say so in the prompt and in the note. **Every render overwrites the last**:
+`update.pdf` is whichever month you rendered most recently, and a render that fails leaves the
+previous month's files in place, so check the month printed in the PDF before you send it, or
+name each file by its month with `-M output-file:update-2026-10`, as @sec-params-all does. And
+the first month in the data has no month before it; the test run's agent wrote "no earlier month
+to compare with", and yours should say something, not stop.
+
+**Checks only you can do.** Compare cash with the bank statement and revenue with your billing
+tool, every month. Read the notes as an investor would: an ask without a number or a date is
+not an ask. Show the update to a co-founder before it goes out.
+
+**The rebuild test is next month.** Add the row and the notes file, render with no `-P`, and
+check that the default found the new month.
+
+::: done
+the update for any month in the data renders in both formats with that month's figures and
+notes, a month that is not in the data stops the render with the valid list, and
+[the fresh-clone test](#sec-fresh-clone) gives the same PDF.
+:::
+
+### A design document with live numbers {.unnumbered #sec-project-rfc}
+
+**Who it is for.** An engineer proposing a change to a codebase: a design document, or RFC,
+whose case rests on measurements and on what the code allows. The data is not a dataset but the
+code itself: a benchmark you run, and settings read from the source, so the document cannot
+quote a timing nobody measured or list an option the code no longer has. The example below
+compares two ways of counting words in a small package, `textstats`; change the names to your
+repository's. **Start with** your repository, on a branch, with Quarto's packages added as in
+@sec-fast-path:
+
+```text
+your-repository/
+├── src/textstats/
+│   ├── core.py        the code the proposal changes
+│   └── config.py      its settings
+└── rfc/
+    ├── bench.py       the agent writes it
+    ├── results.json   bench.py writes it; commit it
+    └── rfc.qmd        the agent writes it
+```
+
+::: {.prompt}
+```default
+Write rfc/bench.py: time `count_words_loop` against `count_words_counter` from src/textstats/core.py on texts of three sizes, five repeats each, and write rfc/results.json with each one's median time and range, the Python version, the machine and the date it ran. Run it, and show me the medians.
+```
+:::
+
+::: {.prompt}
+```default
+Write rfc/rfc.qmd, a design document in html and typst with sections Context, Proposal, Measurements, Alternatives and Decision. Measurements reads rfc/results.json for a table and a chart with alt text, says what machine and Python it was measured on, and chooses the word faster or slower by code, with a guard. Leave the other sections as a heading and one line saying what goes there. Render it, and show me the sentence with that word.
+```
+:::
+
+::: {.prompt}
+```default
+Add a table of the settings in src/textstats/config.py, read from the code at render time (each name, default and description), so the document cannot list a setting the code no longer has. Render, and tell me how you read them.
+```
+:::
+
+**You build** `rfc/rfc.html` and `rfc/rfc.pdf`; the prose of Context, Proposal, Alternatives
+and Decision is yours. From the test run: Quarto runs the document's code from its own folder,
+`rfc/`, so every path in it is relative to `rfc/`: the document reads `results.json`, not
+`rfc/results.json`, and reaches the code as `../src/textstats/config.py` or, better, by importing
+the package, as the test run's agent did. An agent that copies the prompt's paths into the code
+gets "file not found". The rendered files land in `rfc/` too: add them to
+`.gitignore`. And alt text cannot be computed in a Python document's cell options (`!expr` is
+for R's knitr only); write alt text that describes the chart without its numbers, and let the
+table carry them.
+
+**Checks only you can do.** Check the machine's name in `results.json`: on a Mac, Python's
+`platform.processor()` says only "arm", and the test run's agent had to ask the system for the
+chip's name. Run the benchmark twice. In the test run, the faster function stayed
+faster, but medians moved by up to about six per cent between runs, more than five repeats'
+range suggested: report the direction and the ratio, not the third decimal place, and say on
+what machine it ran. Commit `results.json` with the document, so a reviewer reads the numbers
+you measured; re-run it when the code changes. Then ask a reviewer whether the Alternatives
+section names the option they would have proposed.
+
+**The rebuild test is the code.** Add a setting to `config.py` and render: the table shows it.
+Remove it again.
+
+::: done
+the measurements and settings tables come from `results.json` and the code at render time, the
+word faster or slower is chosen by code and guarded, and [the fresh-clone test](#sec-fresh-clone)
+gives the same document.
 :::
 
 ### The fresh-clone test {.unnumbered #sec-fresh-clone}
