@@ -1,0 +1,211 @@
+---
+title: "Model card: contact-ranking model"
+subtitle: "Acme Signals (a fictional company)"
+date: today
+format:
+  html:
+    toc: true
+  docx: default
+  typst:
+    citeproc: true  # the same citation style as html and docx
+number-sections: true
+bibliography: references.bib
+execute:
+  echo: false
+fig-dpi: 200
+---
+
+```{python}
+#| label: setup
+import json
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import HTML
+
+from acme_eval.claims import claim
+
+metrics = pd.read_csv("outputs/metrics.csv")
+segments = pd.read_csv("outputs/segments.csv")
+calibration = pd.read_csv("outputs/calibration.csv")
+summary = json.loads(open("outputs/summary.json").read())
+
+best = summary["best_version"]
+auc = metrics[metrics["metric"] == "roc_auc"].set_index("version")["value"]
+claim(best == auc.idxmax(), "The card describes the release with the highest ROC AUC.")
+release = next(r for r in summary["releases"] if r["version"] == best)
+scores = metrics[metrics["version"] == best].set_index("metric")
+slices = segments[segments["version"] == best]
+cal = calibration[calibration["version"] == best]
+SMALL = 100  # fewer test contacts than this: a group's estimates are noisy
+
+
+def interval(metric: str, digits: int = 3) -> str:
+    """The best release's value of one metric and its 95% interval, as text."""
+    row = scores.loc[metric]
+    return f"{row['value']:.{digits}f} (95% interval {row['low']:.{digits}f} to {row['high']:.{digits}f})"
+
+
+def percent(share: float, digits: int = 1) -> str:
+    """A share between 0 and 1, as a percentage."""
+    return f"{100 * share:.{digits}f}%"
+```
+
+This card follows the sections of @mitchell2019modelcards. It describes release
+**`{python} best`**, the release with the highest ROC AUC in the evaluation report. Acme
+Signals is a fictional company; the evaluation data are real [@moro2014bank].
+
+## Model details {#sec-details}
+
+- **Developer.** Acme Signals, a fictional two-person company.
+- **Release.** `{python} best`, released `{python} release["month"]`.
+- **Model.** `{python} release["description"]` It uses
+  `{python} release["n_features"]` fields of the customer and the campaign, all known before
+  the call. It does not use the call's length, `duration`, which is only known afterwards.
+- **Output.** A probability that the contact subscribes to a term deposit; contacts are
+  called in descending order of it.
+
+## Intended use {#sec-use}
+
+- **Primary use.** Ordering a bank's list of existing customers for an outbound
+  term-deposit campaign, so that the call centre reaches likely subscribers sooner. People
+  make and conduct every call.
+- **Primary users.** A bank's marketing and call-centre teams.
+- **Out of scope.** Decisions about credit, pricing or eligibility for any product; deciding
+  who may be offered a product; ranking customers of a bank or country it has not been
+  evaluated on; any version that uses `duration`.
+
+## Factors {#sec-factors}
+
+The evaluation reports results by two factors: age band
+(`{python} ", ".join(slices.loc[slices["factor"] == "age_band", "segment"])` years) and
+occupation (`job`, `{python} slices.loc[slices["factor"] == "job", "segment"].nunique()`
+categories as recorded in the data, including `unknown`). Both are inputs to the model.
+
+## Metrics {#sec-metrics}
+
+The call centre calls the top `{python} percent(summary["top_share"], 0)` of the list, so
+the business metric is **recall in the top 10%**: the share of all subscribers that those
+calls reach. For `{python} best` it is `{python} interval("recall_top10")`, against a base
+rate of `{python} percent(summary["base_rate"])`. ROC AUC, `{python} interval("roc_auc")`,
+measures the whole ranking; the Brier score, `{python} interval("brier")`, measures the
+probabilities. Intervals are percentiles over
+`{python} f"{summary['n_bootstrap']:,}"` bootstrap resamples of the test set; they show
+sampling variation in the test set only.
+
+## Evaluation data {#sec-evaluation-data}
+
+A stratified random `{python} percent(summary["test_size"], 0)` of the UCI Bank Marketing
+table (`{python} f"{summary['test_rows']:,}"` contacts, split seed
+`{python} summary["split_seed"]`), held out from training. The table records phone
+campaigns of a Portuguese bank, May 2008 to November 2010 [@moro2014datadriven].
+
+## Training data {#sec-training-data}
+
+The other `{python} f"{summary['train_rows']:,}"` contacts of the same table. The data file
+is unchanged from the source (SHA-256 `{python} summary["data_sha256"][:12]`…).
+
+## Quantitative analyses {#sec-analyses}
+
+```{python}
+#| label: slice-setup
+ages = slices[slices["factor"] == "age_band"].set_index("segment")
+jobs = slices[slices["factor"] == "job"].set_index("segment")
+most_called = ages["share_called"].idxmax()
+least_called = ages["share_called"].idxmin()
+small = slices[slices["n"] < SMALL]
+claim(ages["base_rate"].idxmax() == most_called,
+      "The age band called most often has the highest subscription rate.")
+claim(len(small) > 0, "Some groups have fewer than SMALL test contacts.")
+claim(ages["share_called"].max() > 3 * ages["share_called"].min(),
+      "The ranking calls the age bands at very different rates (Ethical considerations).")
+claim("unknown" in set(jobs.index), "The job categories include `unknown`.")
+```
+
+@tbl-age and @tbl-job break the metrics down by factor. The ranking calls
+`{python} percent(ages.loc[most_called, "share_called"])` of contacts aged
+`{python} most_called`, the band with the highest subscription rate, and
+`{python} percent(ages.loc[least_called, "share_called"])` of those aged
+`{python} least_called`. Groups with fewer than `{python} SMALL` test contacts
+(`{python} "; ".join(f"{s}, n = {n}" for s, n in zip(small["segment"], small["n"]))`) give
+noisy estimates. @fig-calibration shows that the predicted probabilities follow the observed
+rates.
+
+```{python}
+#| label: slice-table
+def slice_table(part: pd.DataFrame, label: str) -> HTML:
+    """One factor's slice metrics, formatted for display."""
+    shown = pd.DataFrame({
+        label: part.index,
+        "n": part["n"].map(lambda v: f"{v:,}"),
+        "Subscribers": part["subscribers"].map(lambda v: f"{v:,}"),
+        "Base rate": part["base_rate"].map(percent),
+        "Called": part["share_called"].map(percent),
+        "Recall, top 10%": part["recall_top10"].map(percent),
+        "ROC AUC": part["roc_auc"].map(lambda v: f"{v:.3f}"),
+    })
+    return HTML(shown.to_html(index=False))
+```
+
+```{python}
+#| label: tbl-age
+#| tbl-cap: "Slice metrics by age band on the test contacts. Called: share of the band in the called top 10%. Recall: share of the band's subscribers who are called. ROC AUC: ranking within the band."
+slice_table(ages, "Age band")
+```
+
+```{python}
+#| label: tbl-job
+#| tbl-cap: "Slice metrics by job on the test contacts, defined as in the age-band table."
+slice_table(jobs, "Job")
+```
+
+```{python}
+#| label: fig-calibration
+#| fig-cap: "Calibration on the test contacts: observed subscription rate against mean predicted probability in ten equal-sized bins. Points on the dashed diagonal are perfectly calibrated."
+#| fig-alt: "Points joined by a line: observed rate against mean predicted probability, with a dashed diagonal. The points lie close to the diagonal; most bins have predicted probabilities below 0.25 and one bin is near 0.5."
+gap = (cal["mean_predicted"] - cal["observed_rate"]).abs()
+claim(gap.max() < 0.05, "The points lie close to the diagonal (alt text).")
+claim((cal["mean_predicted"] < 0.25).sum() > len(cal) / 2,
+      "Most bins have predicted probabilities below 0.25 (alt text).")
+claim(cal["mean_predicted"].max() > 0.4, "One bin is near 0.5 (alt text).")
+fig, ax = plt.subplots(figsize=(4.5, 4))
+ax.plot(cal["mean_predicted"], cal["observed_rate"], marker="o", color="#D55E00")
+limit = cal[["mean_predicted", "observed_rate"]].max().max() * 1.05
+ax.plot([0, limit], [0, limit], linestyle="--", color="#555555", linewidth=1)
+ax.set_xlabel("Mean predicted probability")
+ax.set_ylabel("Observed subscription rate")
+ax.spines[["top", "right"]].set_visible(False)
+plt.show()
+```
+
+## Ethical considerations {#sec-ethics}
+
+- **Unwanted calls.** The model decides who is called first. Marketing calls take people's
+  time, and a ranking concentrates them on the people it scores highest.
+- **Age.** Age is an input, and age is a protected characteristic in UK law
+  [@equalityact2010s4]. @sec-analyses shows that the ranking calls the age bands at very
+  different rates. TODO: before any UK deployment, obtain legal review of whether and how a
+  bank may use age to order marketing calls
+  (<https://www.legislation.gov.uk/ukpga/2010/15>).
+- **Proxies.** Some `job` categories, such as `student` and `retired`, are related to age by
+  their nature, so removing `age` alone may not remove its effect.
+- **Personal data.** The table holds no names or contact details, but a deployment would
+  score identifiable customers. TODO: data-protection review for the deploying bank.
+
+## Caveats and recommendations {#sec-caveats}
+
+- **Place and time.** The data come from one Portuguese bank in 2008 to 2010. Re-evaluate on
+  the deploying bank's own recent contacts before use.
+- **Random split.** The source file is ordered by date, but the test set is a random sample
+  of all dates. A split by time would better show performance on future campaigns.
+- **Campaign fields.** `day`, `month` and `campaign` describe the last contact of the
+  campaign. A ranking made before a campaign starts would not know them; such a deployment
+  needs a version without them.
+- **Probabilities.** They are calibrated to this data's base rate of
+  `{python} percent(summary["base_rate"])`; a campaign with a different rate needs
+  recalibration.
+
+## References {.unnumbered}
+
+::: {#refs}
+:::
