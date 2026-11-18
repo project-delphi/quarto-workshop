@@ -40,6 +40,14 @@ jobs:
           distribution: temurin
           java-version: "11"
 
+      # The Makefile copies with rsync, which GitHub's runners have and slimmer images (act's) lack.
+      - name: Make sure rsync is installed
+        run: |
+          if ! command -v rsync >/dev/null; then
+            SUDO=$(command -v sudo || true)
+            $SUDO apt-get update -q && $SUDO apt-get install -y -q rsync
+          fi
+
       - name: Cache EPUBCheck
         uses: actions/cache@v6
         with:
