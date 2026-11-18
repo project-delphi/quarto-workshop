@@ -1,10 +1,11 @@
 ---
 title: "Which release should the call centre use?"
 subtitle: "The contact-ranking model, evaluated · Acme Signals (a fictional company)"
+description: "The deck for the product team and investors: one claim per slide, ending in the decision on which release to offer."
 date: today
 format:
   revealjs:
-    theme: [default, acme.scss]
+    theme: [default, acme.scss, brand]
     width: 1280
     height: 720
     slide-number: true
@@ -16,6 +17,7 @@ format:
     reference-doc: templates/acme-reference.pptx
 filters:
   - filters/title-notes.lua
+  - filters/description-meta.lua
 execute:
   echo: false
 fig-dpi: 200
@@ -29,6 +31,7 @@ from fractions import Fraction
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from acme_eval import brand
 from acme_eval.claims import claim
 
 metrics = pd.read_csv("outputs/metrics.csv")
@@ -49,9 +52,9 @@ releases = pd.DataFrame(summary["releases"]).set_index("version")
 calls = summary["calls_made"]
 top_share = summary["top_share"]
 
-# The figures use the report's colour-blind-safe palette (Okabe-Ito) and acme.scss's ink and paper.
+# The figures use the report's colour-blind-safe palette (Okabe-Ito) and the brand's ink and paper.
 colors = {"v1": "#999999", "v2": "#0072B2", "v3": "#D55E00"}
-INK, PAPER = "#1b2733", "#fbfaf7"
+INK, PAPER = (brand.colour(brand.load(), name) for name in ("foreground", "background"))
 plt.rcParams.update({
     "font.size": 15, "axes.labelsize": 15, "legend.fontsize": 14,
     "text.color": INK, "axes.labelcolor": INK, "axes.edgecolor": INK,

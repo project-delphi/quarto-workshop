@@ -1,6 +1,6 @@
-"""Print slides.html to slides.pdf with headless Chrome, one page per slide, and check it.
+"""Print _site/slides.html to _site/slides.pdf with headless Chrome, and check every page.
 
-Run from the project root, after `quarto render slides.qmd`:
+Run from the project root, after `quarto render` (or `quarto render slides.qmd`):
 
     uv run python scripts/deck_pdf.py
 
@@ -32,8 +32,8 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
-DECK = Path("slides.html")
-PDF = Path("slides.pdf")
+DECK = Path("_site/slides.html")
+PDF = Path("_site/slides.pdf")
 TRIES = 3
 MAC_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 LINUX_NAMES = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"]
