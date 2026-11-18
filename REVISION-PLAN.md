@@ -482,6 +482,9 @@ The questions as asked:
 | 2026-11-18 | WP9 (#144) | Chapter 14, Reports That Run Themselves: parameters through papermill, values validated, words chosen from printed numbers, a monthly investor update (business figures synthetic and labelled), segment reports, a checked batch script, and an educator's feedback sheets from a synthetic gradebook (`examples/feedback/`); checkpoint 19 | — |
 | 2026-11-18 | WP10 and WP11 (`revision/wp10-team-ci`) | Part IV, Working in a Team: Chapter 15, Pull Requests and Builds You Can Trust (team rules, a pull request template, check, publish and monthly workflows; checkpoint 20), and Chapter 16, At Work and in a Start-up (vendors' data terms, confidential data, approved tools, proxies, templates, start-ups), every vendor and GitHub claim in `facts.yml` with its date. The water analysis becomes Part V. The plan's Chapters 15 and 16 (pull requests; CI) became one chapter: the pull-request part is short once the fast path has taught it, and CI is what makes the review trustworthy | Pushing, pull requests, the Publish and Monthly runs and branch protection need a GitHub repository; the check workflow was run with act, green and then red on a broken guard |
 
+| 2026-11-18 | WP10 and WP11 merged (#145) | After one review: checkpoint 20 regained the parameters review's fixes, and `make book` now checks that the newest checkpoint matches `examples/eval` file for file | A reusable workflow for the three workflows' shared build was declined: three short plain files read better in a chapter |
+| 2026-11-18 | WP12 and WP13 (`revision/wp12-afterword`) | The afterword gains a monthly investor update and a design document with live numbers, both dry-run verbatim (a made-up company; a small package); What you can now do covers Parts III and IV. The deck ends with one ⭐ slide, *After Today: Your Own Work*, linking the professional chapters, checked at 1440 × 1000, 1366 × 768 and 1280 × 720; Appendix I says the material is book-only and the day is unchanged | — |
+
 ### Milestone (WP0–WP5): stopped here for review, as agreed
 
 Checks on the final state (`revision/wp2b-preface`):
@@ -527,8 +530,7 @@ the Spanish landing page still reads its own preface and setup chapter.
 
 ### Remaining work packages (after review)
 
-WP12 afterword projects, WP13 the workshop pointer slide, WP14 the Spanish to-do in
-`translation/PLAN.md`, and optional WP15 (file renames with aliases, which the spike showed
+WP14 the Spanish to-do in `translation/PLAN.md`, and optional WP15 (file renames with aliases, which the spike showed
 work as JavaScript redirects) and WP16 (guards for Part V's typed prompt values).
 
 ## 10. Verified while working (2026-11-18)
