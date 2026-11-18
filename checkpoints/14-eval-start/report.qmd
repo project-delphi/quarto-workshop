@@ -1,0 +1,114 @@
+---
+title: "Evaluation of the contact-ranking model, v1 to v3"
+subtitle: "Acme Signals (a fictional company), on the UCI Bank Marketing data"
+date: today
+format:
+  html:
+    toc: true
+  docx: default
+  typst: default
+execute:
+  echo: false
+fig-dpi: 200
+---
+
+```{python}
+#| label: setup
+import json
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import HTML
+
+from acme_eval.claims import claim
+
+metrics = pd.read_csv("outputs/metrics.csv")
+curves = pd.read_csv("outputs/curves.csv")
+summary = json.loads(open("outputs/summary.json").read())
+
+auc = metrics[metrics["metric"] == "roc_auc"].set_index("version")
+best = summary["best_version"]
+claim(best == auc["value"].idxmax(),
+      "The best version named in this report has the highest ROC AUC in metrics.csv.")
+top = metrics[metrics["version"] == best].set_index("metric")
+
+
+def interval(row: pd.Series, digits: int = 3) -> str:
+    """A value and its 95% interval, as text."""
+    return f"{row['value']:.{digits}f} ({row['low']:.{digits}f}–{row['high']:.{digits}f})"
+
+
+def percent(share: float, digits: int = 1) -> str:
+    """A share between 0 and 1, as a percentage."""
+    return f"{100 * share:.{digits}f}%"
+```
+
+Acme Signals, a fictional company, ranks a bank's marketing contacts so that its call centre
+calls the likeliest subscribers first. Of the three releases, **`{python} best`** ranks best:
+its ROC AUC on the `{python} f"{summary['test_rows']:,}"` held-out contacts is
+`{python} f"{auc.loc[best, 'value']:.3f}"` (95% interval
+`{python} f"{auc.loc[best, 'low']:.3f}"` to `{python} f"{auc.loc[best, 'high']:.3f}"`).
+Calling the top `{python} percent(summary["top_share"], 0)` of its list
+(`{python} f"{summary['calls_made']:,}"` calls) reaches
+`{python} percent(top.loc["recall_top10", "value"])` of the subscribers, against a base rate
+of `{python} percent(summary["base_rate"])`.
+
+## Results
+
+@tbl-metrics compares the releases on the same test contacts, and @fig-roc shows their ROC
+curves. Each interval is the 2.5th to 97.5th percentile over
+`{python} f"{summary['n_bootstrap']:,}"` bootstrap resamples of the test set; every version
+is scored on the same resamples.
+
+```{python}
+#| label: tbl-metrics
+#| tbl-cap: "Test-set metrics of each release, with 95% bootstrap intervals. ROC AUC and average precision: higher is better. Brier score: lower is better. Recall and lift are for the top 10% of the ranked list, the contacts that are called."
+names = {
+    "roc_auc": "ROC AUC",
+    "average_precision": "Average precision",
+    "brier": "Brier score",
+    "recall_top10": "Recall, top 10%",
+    "lift_top10": "Lift, top 10%",
+}
+models = {"logistic_regression": "Logistic regression", "gradient_boosting": "Gradient boosting"}
+releases = pd.DataFrame(summary["releases"]).set_index("version")
+rows = {
+    "Released": releases["month"],
+    "Model": releases["model"].map(models),
+    "Fields used": releases["n_features"].astype(str),
+}
+for metric, label in names.items():
+    rows[label] = metrics[metrics["metric"] == metric].set_index("version").apply(interval, axis=1)
+table = pd.DataFrame(rows).T.rename_axis(None, axis=1).reset_index(names="")
+HTML(table.to_html(index=False))
+```
+
+```{python}
+#| label: fig-roc
+#| fig-cap: "ROC curves of the three releases on the test contacts. The dashed diagonal is a random ranking."
+#| fig-alt: "Line chart of true-positive rate against false-positive rate, one curve per release. All three curves rise above the dashed diagonal of a random ranking, and the curves of v2 and v3 enclose more area than the curve of v1."
+claim((auc["value"] > 0.5).all(), "All three curves rise above the diagonal (alt text).")
+claim((auc["value"] > auc.loc["v1", "value"]).drop("v1").all(),
+      "The curves of v2 and v3 enclose more area than v1's (alt text).")
+colors = {"v1": "#999999", "v2": "#0072B2", "v3": "#D55E00"}
+fig, ax = plt.subplots(figsize=(5, 4.2))
+for version, points in curves[curves["curve"] == "roc"].groupby("version"):
+    ax.plot(points["x"], points["y"], color=colors[version],
+            label=f"{version} (AUC {auc.loc[version, 'value']:.3f})")
+ax.plot([0, 1], [0, 1], linestyle="--", color="#555555", linewidth=1)
+ax.set_xlabel("False-positive rate")
+ax.set_ylabel("True-positive rate")
+ax.spines[["top", "right"]].set_visible(False)
+ax.legend(frameon=False, loc="lower right")
+plt.show()
+```
+
+## Data and method
+
+The data are the UCI Bank Marketing table of Moro, Rita and Cortez (2014,
+<https://doi.org/10.24432/C5K306>), licensed CC BY 4.0: contacts of a Portuguese bank's
+phone campaigns, May 2008 to November 2010. The rows were split once into training and test sets
+(`{python} f"{summary['train_rows']:,}"` and `{python} f"{summary['test_rows']:,}"` rows,
+stratified, seed `{python} summary['split_seed']`). The call's length, `duration`, is
+excluded: it is only known after the call. Every number here is read from `outputs/`,
+written by `scripts/evaluate.py`.
