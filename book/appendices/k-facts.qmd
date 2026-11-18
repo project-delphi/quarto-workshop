@@ -1,0 +1,78 @@
+# Facts That Change {#sec-facts}
+
+```{python}
+#| label: facts-setup
+from IPython.display import Markdown
+
+from scripts.facts import all_items, table
+
+
+def cell(text: str) -> str:
+    """Text for a table cell: no line breaks, no stray pipes."""
+    return " ".join(str(text).split()).replace("|", "\\|")
+
+
+def dollars(x: float) -> str:
+    """A price as Chapter 2 prints it: 50, or 0.50."""
+    return f"{x:g}" if x == int(x) else f"{x:.2f}"
+
+
+def sources(e: dict) -> str:
+    urls = [e["url"], *e.get("also", [])]
+    return ", ".join(f"[{i + 1}]({u})" for i, u in enumerate(urls)) if len(urls) > 1 else f"[page]({urls[0]})"
+```
+
+Prices, plans, accounts and free allowances change from month to month, so this book keeps
+them in one place: a file in its source, `book/facts.yml`, which this appendix prints in full.
+The chapters quote it rather than typing a price or a plan, so when a fact changes, one edit
+and a rebuild update every page that mentions it, and this list. Each fact carries the date it
+was checked against the official page linked beside it. By the time you read this, some will
+have changed: follow the link, and trust the page over the book.
+
+## Agents, chats and models {.unnumbered}
+
+```{python}
+#| output: asis
+by_section = {}
+for title, key, e in all_items():
+    by_section.setdefault(title, []).append(e)
+lines = ["| Fact | As the book states it | Checked | Source |", "|---|---|---|---|"]
+for title, entries in by_section.items():
+    for e in entries:
+        lines.append(f"| {cell(e['label'])} | {cell(e['text'])} | {e['checked']} | {sources(e)} |")
+print("\n".join(lines))
+print("\n: Facts the chapters quote, with the date each was checked. {#tbl-facts}")
+```
+
+## Model prices {.unnumbered}
+
+```{python}
+#| output: asis
+prices = table("models", "prices")
+rows = ["| Model | What the vendor says it is for | Input / output, \\$ per million tokens |",
+        "|---|---|---|"]
+for r in prices["rows"]:
+    rows.append(f"| {r['model']} | \"{cell(r['for'])}\" | {dollars(r['input'])} / {dollars(r['output'])} |")
+print("\n".join(rows))
+print(f"\n: {prices['caption']}, checked {prices['checked']}. {{#tbl-prices}}")
+print(f"\n{cell(prices['note'])} Sources: Anthropic's [pricing]({prices['url']}) and "
+      f"[models]({prices['also'][0]}) pages and OpenAI's [models]({prices['also'][1]}) pages.")
+```
+
+These are *API* prices: what a program pays per token when it calls the model directly
+(@sec-choose). Read them as a snapshot of the spread between small and large models, not as
+numbers to plan with.
+
+## Free plans for static sites {.unnumbered}
+
+```{python}
+#| output: asis
+hosts = table("hosting", "hosts")
+rows = ["| Host | Free plan |", "|---|---|"]
+rows += [f"| [{h['host']}]({h['url']}) | {h['free']} |" for h in hosts["rows"]]
+print("\n".join(rows))
+print(f"\n: Free plans of six static hosts, checked on their official pages on {hosts['checked']}. {{#tbl-hosts-free}}")
+```
+
+@sec-hosting explains the two ways these hosts work: you render and upload, or they build
+from your repository.

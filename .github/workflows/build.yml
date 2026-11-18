@@ -80,4 +80,5 @@ jobs:
 
       - name: Whitespace in the change
         if: github.event_name == 'pull_request'
-        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
+        # The base commit, not the base branch, which may be deleted once a stacked PR merges.
+        run: git diff --check "${{ github.event.pull_request.base.sha }}...HEAD"

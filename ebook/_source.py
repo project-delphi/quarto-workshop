@@ -368,24 +368,34 @@ def checked_with() -> str:
 
 
 def assistant_cost() -> tuple[str, str]:
-    """The preface's sentence on what Claude Code needs, and the date it was checked."""
-    pattern = (r"(Claude Code, por ejemplo, necesita [^(]+?)\s*\(consultado el (\d{4}-\d{2}-\d{2})"
-               if LANG == "es" else r"(Claude Code, for one, needs [^(]+?)\s*\(checked (\d{4}-\d{2}-\d{2})")
+    """What Claude Code needs, as the preface says it, and the date it was checked: from
+    book/facts.yml in English (the preface quotes it from there), and from the Spanish
+    preface's own sentence on the Spanish page, until that is translated."""
+    if LANG != "es":
+        e = english_fact("agents", "claude_code_cost")
+        return e["text"], e["checked"]
+    pattern = r"(Claude Code, por ejemplo, necesita [^(]+?)\s*\(consultado el (\d{4}-\d{2}-\d{2})"
     m = re.search(pattern, " ".join(read(f"{BOOK_DIR}/index.qmd").split()))
     return m.group(1), m.group(2)
 
 
+def english_fact(section: str, item: str) -> dict:
+    """One entry of book/facts.yml (the facts that change, Appendix K), its date as text."""
+    e = dict(yaml.safe_load(read("book/facts.yml"))[section]["items"][item])
+    e["checked"] = str(e["checked"])
+    return e
+
+
 def assistant_accounts() -> tuple[str, str]:
-    """Chapter 3's list of what each agent's account needs, and its checked date."""
+    """Chapter 3's list of what each agent's account needs, and its checked date: from
+    book/facts.yml in English, from the Spanish chapter's sentence on the Spanish page."""
+    if LANG != "es":
+        es_ = [english_fact("agents", f"{k}_accounts") for k in ("claude_code", "codex", "antigravity")]
+        return "; ".join(e["text"] for e in es_), max(e["checked"] for e in es_)
     text = " ".join(read(f"{BOOK_DIR}/chapters/03-setup.qmd").split())
-    if LANG == "es":
-        m = re.search(r"(Claude Code necesita una [^;]+); (Codex, [^(]+?) \(para facturación por uso, "
-                      r"@sec-choose\); (Antigravity, una cuenta de Google) \(consultado el (\d{4}-\d{2}-\d{2})\)",
-                      text)
-    else:
-        m = re.search(r"(Claude Code needs a [^;]+); (Codex a [^(]+?) \(for pay-per-use billing, "
-                      r"@sec-choose\); (Antigravity a Google account) \(checked (\d{4}-\d{2}-\d{2})\)",
-                      text)
+    m = re.search(r"(Claude Code necesita una [^;]+); (Codex, [^(]+?) \(para facturación por uso, "
+                  r"@sec-choose\); (Antigravity, una cuenta de Google) \(consultado el (\d{4}-\d{2}-\d{2})\)",
+                  text)
     return f"{m.group(1)}; {m.group(2)}; {m.group(3)}", m.group(4)
 
 
