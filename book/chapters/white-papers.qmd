@@ -1,0 +1,251 @@
+# White Papers and References {#sec-white-papers}
+
+```{python}
+#| label: wp-setup
+# The white paper and its references as this chapter leaves them (checkpoint 18), read from
+# their files: the cross-references the paper makes, and every entry of its bibliography.
+import importlib.util
+import re
+
+from scripts import evaluation as ev
+from scripts.prose import number_words, text_holds
+
+CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "18-eval-whitepaper"
+paper = (CHECKPOINT / "whitepaper.qmd").read_text()
+bib = (CHECKPOINT / "references.bib").read_text()
+WORD = number_words()
+
+refs = {kind: sorted(set(re.findall(rf"@{kind}-[\w-]+", paper))) for kind in ("eq", "tbl", "fig", "sec")}
+# The bibliography, read by the project's own parser (scripts/check_refs.py, standard library only).
+spec = importlib.util.spec_from_file_location("check_refs", CHECKPOINT / "scripts" / "check_refs.py")
+check_refs = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(check_refs)
+entries = [{"key": key, "year": f.get("year", ""), "doi": f.get("doi", "")}
+           for key, f in check_refs.entries(bib).items()]
+
+
+def counted(n: int, noun: str) -> str:
+    """'one table', 'two figures'."""
+    return f"{WORD[n]} {noun}" + ("" if n == 1 else "s")
+card = (CHECKPOINT / "model-card.qmd").read_text()
+cited_paper = {e["key"] for e in entries if f"@{e['key']}" in paper}
+cited_card = {e["key"] for e in entries if f"@{e['key']}" in card}
+text_holds(all(e["key"] in cited_paper | cited_card for e in entries),
+           "every entry of the project's bibliography is cited by the paper or the model card")
+how_many = "all of them" if len(cited_paper) == len(entries) else f"{WORD[len(cited_paper)]} of them"
+text_holds(all(refs[k] for k in refs), "the paper refers to equations, tables, figures and sections")
+# Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
+# checkpoint 17 on 2026-11-18; the pitfalls are the ones that run, and the build of the
+# finished paper, met.
+```
+
+A white paper is the one output that leaves the building and has to stand on its own. A
+client's analyst, an investor's technical adviser or a sceptical researcher will read it
+without you in the room, and will check it: whether the method is stated, whether the numbers
+in the text match the tables, whether the references exist and say what the paper claims they
+say. For a start-up, a benchmark or evaluation white paper is often the most credible thing it
+can publish, and the most damaging if one of those checks fails.
+
+This chapter writes the evaluation's white paper: numbered sections, an equation, a table and
+figures that the text refers to by number, citations in a standard style that read the same in
+the PDF, the Word file and the web page, references that a script confirms exist, and a house
+template for the PDF. The London and water projects each ended with an optional white paper
+(@sec-london-whitepaper, @sec-water-dashboard); this is the full treatment, on the core path.
+
+::: opener
+- Name the parts of a technical white paper and the Quarto feature behind each: numbered
+  sections, cross-references, citations, a citation style and a template.
+- Ask for a paper whose every figure, table and equation is referred to by number, and check
+  that each reference resolves in every format.
+- Cite only what you have opened, in one citation style across HTML, Word and PDF, and check
+  every DOI with a script.
+- Give the PDF a house template, and know when to use a journal's instead.
+
+Start from
+: your `acme-eval` repository at the end of @sec-sites, or `checkpoints/17-eval-site/`.
+
+You build
+: `whitepaper.qmd` in PDF, Word and HTML, with `references.bib`, a citation style, a reference
+  checker and a house template.
+
+Checkpoint
+: `checkpoints/18-eval-whitepaper/`
+:::
+
+## What a white paper is made of {#sec-wp-vocab}
+
+| Part | Quarto calls it | You check |
+|---|---|---|
+| sections a reader can cite | `number-sections: true`, and `## Data {#sec-data}` | "Section 2" in the text, in every format |
+| an equation, referred to | `$$ … $$ {#eq-auc}` and `@eq-auc` | "Equation 1", a real equation in Word |
+| a table or figure, referred to | a cell labelled `tbl-…` or `fig-…`, and `@tbl-…` | "Table 1", "Figure 1"; no "??" anywhere |
+| citations | `[@key]` in the text, entries in `references.bib` | each one appears in the reference list |
+| a citation style | `csl:` naming a style file, such as APA's | the same style in every format |
+| the same style in the PDF | `citeproc: true` under `typst:` | no second "Bibliography" heading |
+| a reference manager | a `.bib` exported from it, such as Zotero's | the export's entries match the sources |
+| a house look | a Typst *template partial*; a Word reference document | the title block and footer, in the brand |
+| a journal's look | `quarto use template quarto-journals/<name>` | the journal's own instructions |
+
+: The parts of a white paper, and what each is called (Quarto 1.10.20). {#tbl-wp-vocab}
+
+The finished paper refers to `{python} counted(len(refs["eq"]), "equation")`,
+`{python} counted(len(refs["tbl"]), "table")`, `{python} counted(len(refs["fig"]), "figure")`
+and `{python} counted(len(refs["sec"]), "section")` by number. A reference that does not resolve
+renders as "??", so a search of each format for it is the check a reader would make by eye,
+done once: in the finished paper's three formats, checked on 2026-11-18, it found none.
+
+## The paper {#sec-wp-paper}
+
+::: {.prompt .long}
+```default
+Create whitepaper.qmd, a short technical white paper for clients and investors from outputs/ only: numbered sections (Introduction, Data, Method, Results, Limitations, Conclusion), the abstract written in the body rather than in the YAML, the definition of ROC AUC as a numbered equation, a results table and the ROC figure, each referred to in the text with @eq-, @tbl- and @fig-, vector figures for the PDF (`fig-format: svg`), and a guard on every sentence whose wording depends on the results. Formats html, typst and docx (the existing reference document); add it to the site's render list and listing with a description. Render it and check that no cross-reference shows "??".
+```
+:::
+
+::: {.agent}
+writes `whitepaper.qmd` · adds it to `_quarto.yml` and the home page's listing · `uv run quarto render whitepaper.qmd`
+:::
+
+Check it as its outside reader would. **References resolve**: search each output for "??".
+**Figures are vectors**: in the PDF, zoom in on a figure's labels; they stay sharp. **Numbers
+agree**: a number in the Results text equals the same number in the table. **The abstract
+stands alone**: someone who reads only the abstract knows what was evaluated, the headline
+result and its main limit.
+
+## References a reader can check {#sec-wp-refs}
+
+A reference list is a set of claims: this work exists, and it says what we say it says. An
+agent can produce a plausible reference that does not exist (@sec-water-dashboard), so the
+prompt requires opening each one, and allows only what was confirmed:
+
+::: {.prompt .long}
+```default
+Cite the dataset, Moro et al. (2014), Mitchell et al. (2019), and the papers behind ROC analysis, the bootstrap and calibration, from references.bib. Look each DOI up with the Crossref API, or DataCite's for the dataset, open it, and add only entries whose authors, title and year you could confirm. Download apa.csl from the official CSL styles repository, use it with `citeproc: true` for typst, render all three formats and check that their reference lists match.
+```
+:::
+
+::: {.agent}
+queries Crossref · edits `references.bib` · downloads `csl/apa.csl` · renders three formats
+:::
+
+The project's `references.bib`, which the paper shares with the model card, holds
+`{python} WORD[len(entries)]` works, `{python} how_many` cited by the paper, each one
+confirmed at its source on 2026-11-18:
+
+```{python}
+#| output: asis
+lines = ["| Key | Year | DOI | Cited by |", "|---|---|---|---|"]
+for e in entries:
+    doi = f"[{e['doi']}](https://doi.org/{e['doi']})" if e["doi"] else "none: checked by hand at its source"
+    by = ", ".join(d for d, keys in (("paper", cited_paper), ("card", cited_card)) if e["key"] in keys)
+    lines.append(f"| `{e['key']}` | {e['year']} | {doi} | {by} |")
+print("\n".join(lines))
+print("\n: The project's references, from the finished `references.bib`, and the documents that cite each. {#tbl-wp-refs}")
+```
+
+A citation style is a file. The Citation Style Language's official repository holds thousands,
+APA and IEEE among them, and most journals', each under a Creative Commons licence; download
+the one your readers expect and name it in `csl:`; in a site's `_quarto.yml`, so that every
+document on the site cites alike, as the finished project does. Reference managers such as Zotero export
+the same `.bib` format, so an existing library can be the source, and Quarto's visual editor
+can insert citations from a Zotero library directly. Either way, the check is the same: every
+entry was opened, and every claim it supports was read there.
+
+::: pitfall
+Traps met while building and testing the references. Without `citeproc: true`, the PDF hands
+citations to Typst's own processor, which printed a different style and a second "Bibliography"
+heading. APA's style lower-cases words in titles, so proper names such as "Bank Marketing" must
+be braced in the `.bib` to keep their capitals. The dataset's DOI is registered with DataCite,
+not Crossref, and its record listed its authors wrongly, so it is cited as the repository's
+own page gives it. One paper whose DOI resolved could not be opened at all; it is not cited,
+and the measure it introduced is defined in the text instead: cite what you have read. And in
+the PDF a conference's abbreviated year, "ICML '05", came out with an opening quote, because
+Typst curls a straight apostrophe by its own rules. The finished paper leaves such abbreviated
+names out of its `.bib`; in the test run, a curled apostrophe in the `.bib` with the format
+written `typst-smart` instead of `typst` kept it right.
+:::
+
+## A check for every DOI {#sec-wp-check}
+
+Opening every reference by hand is the first check; a script that repeats it before every
+release is the second, and the one that survives a colleague adding an entry in a hurry:
+
+::: {.prompt}
+```default
+Write scripts/check_refs.py: for every entry in references.bib with a DOI, look the record up (Crossref, or DataCite for a DataCite DOI) and fail if the DOI does not resolve or if the year, the first author's family name or the title disagree with the entry. Run it.
+```
+:::
+
+The script needs the network, so it is a check you run before publishing, not part of the
+render, which must work offline. Test it once on a deliberately broken copy of the `.bib`: a
+wrong year, a changed title and a DOI that does not exist should each fail it.
+
+## A house template for the PDF {#sec-wp-template}
+
+Quarto writes a Typst PDF from a template made of named parts, *template partials*, and you
+can replace a part with your own. The one that styles the document is `typst-show.typ`; a
+replacement can give the paper a title block with the company's logo and a label, a running
+header and page numbers, in the brand's colours, which Quarto defines for it from
+`_brand.yml`:
+
+::: {.prompt .long}
+```default
+Give the PDF a house style: a Typst partial, templates/whitepaper/typst-show.typ, used from whitepaper.qmd's typst format with `template-partials`, that shows brand/logo.svg, the label "Technical white paper", the company and the date in a title block, and "page n of N" in the footer, in the brand's colours. Render the PDF and look at its first page.
+```
+:::
+
+The brand's colours and logo reach the partial, but its name does not: in Quarto 1.10.20 only
+the brand's typography becomes a template variable, so the finished paper names the company in
+a `company:` field of its own front matter. Render the PDF of the whole site, or delete what a
+single-page render with `keep-typ` leaves in the project folder: in the test run it wrote a
+`site_libs/` folder and the `.typ` source beside the sources. One trap of Typst's own: in a
+page-number pattern such as `"1 of 1"`, letters are counters too, so a pattern written
+`"page 1 of 1"` printed "pbge" on the second page; keep words outside the pattern. Quarto
+1.10.20 accepts only its own partial names (`typst-show.typ`, `typst-template.typ`,
+`page.typ` and four more); any other name stops the render. When a journal or a conference has
+its own format, use theirs instead of a house template: Quarto's journal templates install
+with `quarto use template quarto-journals/<name>`, and the venue's instructions come first.
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/18-eval-whitepaper/README.md
+```
+:::
+
+::: tryit
+Write the paper, cite and check its references, and give the PDF the house template.
+
+::: done
+every cross-reference resolves in the PDF, the Word file and the web page; the three reference
+lists match; `check_refs.py` reports no problems; and the PDF opens on the house title block.
+:::
+:::
+
+## Summary {.unnumbered}
+
+::: keyideas
+- A white paper is read without you and checked by strangers: numbered sections,
+  cross-referenced figures, tables and equations, and references that exist.
+- Cross-references are labels (`sec-`, `tbl-`, `fig-`, `eq-`), and the render shows any that
+  fail as "??".
+- One CSL style file sets the citation style; `citeproc: true` makes a Typst PDF use it too.
+- Cite only what you have opened, and let a script confirm every DOI before each release.
+- A Typst template partial gives the PDF a house look from the brand; a journal's template
+  replaces it when a venue has one.
+:::
+
+That completes the evaluation's set: a report, a model card, a deck, a site and a white paper,
+all from one run of one script.
+
+## Further reading {.unnumbered}
+
+- Quarto, [Cross References](https://quarto.org/docs/authoring/cross-references.html) and
+  [Citations](https://quarto.org/docs/authoring/citations.html) (checked 2026-11-18).
+- Quarto, [Typst custom formats](https://quarto.org/docs/output-formats/typst-custom.html) and
+  [journal templates](https://quarto.org/docs/journals/templates.html) (checked 2026-11-18).
+- Quarto, [technical writing in the visual editor](https://quarto.org/docs/visual-editor/technical.html),
+  on citations from Zotero (checked 2026-11-18).
+- Citation Style Language, [styles repository](https://github.com/citation-style-language/styles)
+  (checked 2026-11-18).
+- Tom Fawcett, [An introduction to ROC analysis](https://doi.org/10.1016/j.patrec.2005.10.010),
+  *Pattern Recognition Letters* 27 (2006), 861–874 (checked 2026-11-18).

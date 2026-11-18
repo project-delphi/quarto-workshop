@@ -41,7 +41,7 @@ are real; `data/synthetic_business.csv` is SYNTHETIC and must be labelled so whe
 ## Site and brand rules
 
 - The folder is a Quarto website (`_quarto.yml`): `index.qmd`, `about.qmd`, the report, the
-  model card and the deck, rendered together into `_site/`. Its `render` list is explicit;
+  model card, the white paper and the deck, rendered together into `_site/`. Its `render` list is explicit;
   add a page there and to the navbar together.
 - One `_brand.yml` drives the colours, fonts and logo of the web pages, the Reveal.js deck
   and the Typst PDFs. Change a brand colour or font there, never in a page or in
@@ -61,6 +61,25 @@ are real; `data/synthetic_business.csv` is SYNTHETIC and must be labelled so whe
   4.5:1), and `scripts/check_site.py` must pass after every render: alt text, `lang`,
   title and description on every page, no skipped heading levels, and the brand's contrast.
 
+## White paper rules (`whitepaper.qmd`)
+
+- Every reference in `references.bib` is verified before a release: run
+  `uv run python scripts/check_refs.py` (it needs the network) and fix every mismatch. An
+  entry without a DOI is checked by hand at its URL; record the date in the file's comment.
+- Cite a source only for what you have read in it (its text, or at least its abstract). If a
+  source cannot be opened, do not cite it; never add a reference from memory.
+- Every figure, table and equation has a label (`fig-`, `tbl-`, `eq-`) and is referred to in
+  the text (`@fig-roc`); sections are referred to as `@sec-`. A rendered "??" or "?@" is a
+  broken reference.
+- Citations use `csl: csl/apa.csl` in every format; for Typst that needs `citeproc: true`
+  under `typst:`, or Typst formats them itself in another style. Keep the style file as
+  downloaded, with its licence line.
+- The PDF uses the house template, `templates/whitepaper/typst-show.typ`, named under
+  `template-partials`. Change the look there, in `brand-color` roles, not in the document.
+- No inline code in YAML (`abstract`, `description`, `title`): the abstract is the body's
+  first paragraph, between the two raw Typst blocks that open and close `whitepaper-abstract`.
+- Figures in the PDF are vector (`fig-format: svg` under `typst:`).
+
 ## Commands
 
 The Python environment is `pyproject.toml` and `uv.lock`. Run `python`, `pytest` and
@@ -68,9 +87,10 @@ The Python environment is `pyproject.toml` and `uv.lock`. Run `python`, `pytest`
 
 - `uv run python scripts/evaluate.py` (writes `outputs/`)
 - `uv run pytest -q`
-- `uv run quarto render` (the whole site into `_site/`: every page, the report's and the
-  card's docx and pdf, the deck's pptx with its alt text), then
+- `uv run quarto render` (the whole site into `_site/`: every page, the report's, the
+  card's and the white paper's docx and pdf, the deck's pptx with its alt text), then
   `uv run python scripts/check_site.py`
 - `uv run quarto render report.qmd` (or any one page) renders that page alone, into `_site/`
 - `uv run python scripts/deck_pdf.py` (`_site/slides.pdf`, checked page by page; needs Chrome)
 - `uv run python scripts/make_reference_docs.py` (after changing `_brand.yml`)
+- `uv run python scripts/check_refs.py` (every DOI in `references.bib`; before a release)

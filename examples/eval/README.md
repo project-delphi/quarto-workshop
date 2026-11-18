@@ -5,12 +5,12 @@ marketing contacts by how likely each is to subscribe to a term deposit, so that
 centre calls the likeliest first. This project evaluates three fictional releases of the
 model (v1 to v3, `releases.yml`) on real public data, the UCI Bank Marketing dataset
 (`data/README.md`), and publishes the results as a small website: an evaluation report, a
-model card and a slide deck, each also as Word or PowerPoint and PDF, in one brand.
+model card, a technical white paper and a slide deck, each also as Word or PowerPoint and
+PDF, in one brand.
 
-This folder is the finished project so far: the state of `checkpoints/17-eval-site/`
+This folder is the finished project so far: the state of `checkpoints/18-eval-whitepaper/`
 with this README. It starts from `starters/eval-repo/`, the repository as a team would have
-it before Quarto. A white paper and a parameterised update are planned for later chapters
-and are not here yet.
+it before Quarto. A parameterised update is planned for a later chapter and is not here yet.
 
 ## Layout
 
@@ -29,7 +29,11 @@ and are not here yet.
 | `about.qmd` | About the fictional company (`about` template `trestles`) |
 | `report.qmd` | Evaluation report: html, docx and Typst PDF |
 | `model-card.qmd` | Model card for the best release: html, docx and Typst PDF |
-| `references.bib` | Sources cited by both documents |
+| `whitepaper.qmd` | Technical white paper for clients and investors: html, docx and a Typst PDF in the house template |
+| `references.bib` | Sources the documents cite, each checked against its DOI record |
+| `csl/apa.csl` | The APA 7th edition citation style, from the official CSL repository (CC BY-SA 3.0) |
+| `templates/whitepaper/typst-show.typ` | The white paper's house template for Typst: title block, running header, footer |
+| `scripts/check_refs.py` | Checks every DOI in `references.bib` against Crossref or DataCite (needs the network) |
 | `slides.qmd` | Eight-slide deck for the product team and investors: Reveal.js and PowerPoint |
 | `_brand.yml` | Acme's brand: palette and colour roles, system fonts, logo |
 | `brand/logo.svg` | The logo, drawn for this fictional company |
@@ -51,11 +55,12 @@ uv run pytest -q                       # every test passes
 uv run quarto render                   # the whole site into _site/ (about 40 s)
 uv run python scripts/check_site.py    # every page passes
 uv run python scripts/deck_pdf.py      # _site/slides.pdf, one page per slide, needs Chrome
+uv run python scripts/check_refs.py    # every DOI in references.bib, before publishing; needs the network
 ```
 
 `uv run quarto render` writes every page and format into `_site/`: `index.html`,
 `about.html`, `report.html`, `.docx` and `.pdf`, `model-card.html`, `.docx` and `.pdf`,
-`slides.html` and `slides.pptx`, plus `search.json` for the site's search. After it,
+`whitepaper.html`, `.docx` and `.pdf`, `slides.html` and `slides.pptx`, plus `search.json` for the site's search. After it,
 `_quarto.yml` runs `scripts/pptx_alt_text.py`, which gives the PowerPoint figures their alt
 text. One page renders alone with `uv run quarto render report.qmd` (into `_site/` too);
 `uv run quarto preview` serves the site and re-renders a page when it is saved.
@@ -120,9 +125,43 @@ shadows the project's environment, prefix the render with
   and that `acme.scss` sets no colour of its own.
 - **The home page states the result.** Its first sentence is the headline, computed from
   `outputs/` and guarded like the report's. Below it, a Quarto listing of type `table` lists
-  the three documents with the `description` each one declares, so a description is written
+  the four documents with the `description` each one declares, so a description is written
   once and serves the listing, search results and link previews.
 - **The site checks itself.** `scripts/check_site.py` reads every rendered page and fails
   on an image without alt text, a page without `lang`, title or description, or a heading
   that skips a level, and on brand colours with too little contrast. Quarto's Reveal.js
   template writes no description tag, so `filters/description-meta.lua` adds the deck's.
+- **The white paper is short and cited.** `whitepaper.qmd` is for clients and investors:
+  three to five A4 pages with an abstract, numbered sections (Introduction, Data, Method,
+  Results, Limitations, Conclusion), numbered equations, one table and two figures, each
+  referred to in the text (`@eq-`, `@tbl-`, `@fig-`, `@sec-`). Its numbers and guarded
+  wording follow the report's rules. The only typed numbers are the source's campaign dates
+  and the definitions' constants (one half in the AUC, one over n in the Brier score).
+- **The abstract is in the body.** Inline code in a YAML `abstract:` does run in Quarto
+  1.10.20 (tried in html, docx and Typst), but the project keeps numbers out of YAML, as it
+  does for `description`: metadata is read by tools that compute nothing, and a long YAML
+  string is hard to review. The abstract is the first paragraph, wrapped for the PDF in two raw Typst blocks that call
+  the house template's `whitepaper-abstract`; for html and docx an `## Abstract` heading
+  (hidden in Typst) introduces it.
+- **APA everywhere.** `csl: csl/apa.csl` styles the citations in html and docx (Pandoc's
+  citeproc). In Typst, Quarto would hand citations to Typst's own processor, which prints its
+  own "Bibliography" heading and title-cases titles; `citeproc: true` under `typst:` makes
+  Pandoc format them, so all three formats cite alike. The style is
+  <https://github.com/citation-style-language/styles/blob/3c6698d791a83016d699f50cbbea857f6ee3d2f8/apa.csl>
+  (retrieved 2026-11-18, unchanged), licensed CC BY-SA 3.0 as its `<rights>` line says.
+- **References are checked, and cited only for what was read.** `scripts/check_refs.py`
+  asks doi.org which agency registered each DOI and compares the year, first author and title
+  with Crossref's or DataCite's record. It needs the network, so it is a check before
+  publishing, not part of the render. Each source is cited only for what its text or abstract,
+  as opened, says. Brier (1950) was not cited: its DOI checks, but neither its publisher's
+  page nor Crossref offered its text or abstract, so the Brier score is defined without it.
+- **A house template for the PDF.** Quarto 1.10.20 lets a document replace any of its Typst
+  template partials (`template-partials:`; the names are Quarto's, such as `typst-show.typ`
+  and `typst-template.typ`). `templates/whitepaper/typst-show.typ` replaces the partial that
+  applies the page style: it draws the title block (logo, a "Technical white paper" label,
+  title, subtitle, company, date), a running header from page 2 and a "page n of N" footer,
+  in `brand-color`, which Quarto defines from `_brand.yml` before the partial. Quarto's own
+  `article` still sets the fonts and section numbers. `_brand.yml`'s `meta.name` does not
+  reach Pandoc templates, so the company name is the document's `company` field.
+- **Vector figures in the PDF.** `fig-format: svg` under `typst:` writes the figures as SVG,
+  which Typst draws as vector paths; html and docx get PNG at `fig-dpi: 200`.
