@@ -1,14 +1,17 @@
-"""Give the figures in slides.pptx their alt text, after `quarto render slides.qmd`.
+"""Give the figures in _site/slides.pptx their alt text, after `quarto render`.
 
-Run from the project root:  uv run python scripts/pptx_alt_text.py
+_quarto.yml runs it after every render (`post-render`); by hand, from the project root:
+uv run python scripts/pptx_alt_text.py
 
 Reveal.js gets each figure's `fig-alt`, but pandoc's PowerPoint writer (pandoc 3.10, in
 Quarto 1.10) writes the image's file name as its description. That file name contains the
 cell's label (`slides_files/figure-pptx/<label>-output-1.png`), so this script reads each
 label's `#| fig-alt:` from slides.qmd and puts it in the picture's description. It stops if
-a picture has no alt text to give it.
+a picture has no alt text to give it. After a render that did not write the PowerPoint deck
+(Quarto lists a render's files in QUARTO_PROJECT_OUTPUT_FILES), it has nothing to do.
 """
 
+import os
 import re
 import sys
 import zipfile
@@ -19,7 +22,7 @@ from pathlib import Path
 import yaml
 
 SOURCE = Path("slides.qmd")
-DECK = Path("slides.pptx")
+DECK = Path("_site/slides.pptx")
 
 
 def alt_texts(qmd: str) -> dict[str, str]:
@@ -34,6 +37,9 @@ def alt_texts(qmd: str) -> dict[str, str]:
 
 
 def main() -> int:
+    rendered = os.environ.get("QUARTO_PROJECT_OUTPUT_FILES")
+    if rendered is not None and DECK.name not in {Path(f).name for f in rendered.split()}:
+        return 0  # a render of other pages: the deck is as it was
     alts = alt_texts(SOURCE.read_text())
     missing = []
 

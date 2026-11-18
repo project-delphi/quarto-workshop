@@ -1,0 +1,298 @@
+# A Site and One Brand {#sec-sites}
+
+```{python}
+#| label: sites-setup
+# The site and brand as this chapter leaves them (checkpoint 17), read from its files, and the
+# brand's text colours checked with the WCAG 2.2 formula.
+import yaml
+
+from scripts import evaluation as ev
+from scripts.prose import number_words, text_holds
+from scripts.wcag import contrast
+
+CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "17-eval-site"
+brand = yaml.safe_load((CHECKPOINT / "_brand.yml").read_text())
+site = yaml.safe_load((CHECKPOINT / "_quarto.yml").read_text())
+palette = brand["color"]["palette"]
+pages = site["project"]["render"]
+WORD = number_words()
+S = ev.summary()
+best = S["best_version"]
+
+
+def resolve(name: str) -> str:
+    """A brand colour by palette name, role or hex value, as the project's
+    acme_eval.brand.colour() resolves it."""
+    for _ in range(3):
+        if name in palette:
+            name = palette[name]
+        elif name in brand["color"] and name != "palette":
+            name = brand["color"][name]
+    return name
+
+
+typography = brand.get("typography", {})
+# The text roles the project's contrast test checks (acme_eval.brand.text_colours()).
+TEXT_ROLES = {
+    "body text": "foreground",
+    "headings": typography.get("headings", {}).get("color", "foreground"),
+    "links": typography.get("link", {}).get("color", "primary"),
+    "captions, footer, slide numbers": "secondary" if "secondary" in brand["color"] else "foreground",
+}
+text_colour = {use: resolve(role) for use, role in TEXT_ROLES.items()}
+background = resolve("background")
+text_holds(all(contrast(c, background) >= 4.5 for c in text_colour.values()),
+           "every text colour of the brand passes 4.5:1")
+text_holds(set(pages) == {"index.qmd", "about.qmd", "report.qmd", "model-card.qmd", "slides.qmd"},
+           "the site's five pages")
+# Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
+# checkpoint 16 on 2026-11-18; the pitfalls are the ones that run, and the build of the
+# finished site, met.
+```
+
+The evaluation now has a report, a model card and a deck, in three formats each, scattered
+across a folder. Investors, a client's risk team and a new colleague will each want the
+latest version, from one address, and they will judge the work partly by whether it looks
+like it came from one place. A small team has no designer for that. It has a site, built from
+the same sources, and one file that says what the company's colours, type and logo are, which
+every format then follows.
+
+This chapter makes the evaluation a website with a home page, an About page and search, and
+gives it one brand that reaches the site, the deck and the PDFs, and, through templates, Word
+and PowerPoint. It ends with the checks a site needs and a person cannot make by eye on every
+page: alt text, titles, descriptions, heading order and contrast, as code.
+
+::: opener
+- Say what one brand file reaches in Quarto, and how Word and PowerPoint get the same look.
+- Ask for a website from an existing project: a render list, a navbar, a footer, a home page
+  with a listing, an About page and social cards.
+- Check every page of a site for alt text, titles, descriptions, heading order and contrast
+  with a script.
+- Decide where a branded site may be published, and what to set before it is.
+
+Start from
+: your `acme-eval` repository at the end of @sec-slides, or `checkpoints/16-eval-slides/`.
+
+You build
+: `_brand.yml` and a logo, Word and PowerPoint templates made from it, and a site of
+  `{python} WORD[len(pages)]` pages, with a check script.
+
+Checkpoint
+: `checkpoints/17-eval-site/`
+:::
+
+## One brand, every format {#sec-sites-brand-reach}
+
+A *brand file*, `_brand.yml`, states a company's look once: a palette of named colours, the
+roles they play (background, foreground, primary), the fonts, and the logo. Quarto reads it
+and applies it, but not to every format. Which formats it reaches decides how you build the
+rest:
+
+| Format | Does `_brand.yml` reach it? | How it gets the brand |
+|---|---|---|
+| Web pages and websites | yes | colours, fonts and the logo in the navbar |
+| Reveal.js decks | yes | colours, fonts and the logo on each slide |
+| Typst PDFs | yes | page and text colours, heading fonts, the logo |
+| Dashboards | yes | colours and the logo |
+| Word | no | a *reference document*, made from the brand by a script |
+| PowerPoint | no | a reference document, made the same way |
+
+: Where one brand file reaches, in Quarto 1.10.20 (tested 2026-11-18). {#tbl-sites-brand}
+
+So the plan is one source of truth with two routes out of it: Quarto applies the brand where it
+can, and a short script turns the same file into the two templates where it cannot. Change a
+colour in `_brand.yml`, rerun the script, render, and every format follows.
+
+## The brand file {#sec-sites-brand}
+
+::: {.prompt .long}
+```default
+Add _brand.yml with Acme's colours from acme.scss as a palette and the roles primary, background and foreground, system fonts, and a logo at brand/logo.svg (a simple wordmark, marked in a comment as a fictional company's). Make slides.qmd use it (theme: [default, acme.scss, brand]), move every colour out of acme.scss, and make tests/test_deck_contrast.py read the colours from _brand.yml. Render the deck and the report, run the tests, and tell me where the brand's colours appear in each output.
+```
+:::
+
+::: {.agent}
+writes `_brand.yml` and `brand/logo.svg` · edits `acme.scss`, `slides.qmd` and the test · renders · `uv run pytest`
+:::
+
+The finished palette, and each text colour's contrast on the background,
+`{python} background`:
+
+```{python}
+#| output: asis
+lines = ["| Used for | Role | Colour | Contrast |", "|---|---|---|--:|"]
+for use, role in TEXT_ROLES.items():
+    lines.append(f"| {use} | `{role}` | `{text_colour[use]}` | {contrast(text_colour[use], background):.1f}:1 |")
+print("\n".join(lines))
+print("\n: The brand's text colours, resolved from the finished `_brand.yml`'s roles as its contrast test resolves them, with their WCAG 2.2 contrast on its background. {#tbl-sites-palette}")
+```
+
+Verify where the brand landed, as the prompt asks: in the site's or deck's CSS, the colours
+appear as variables; in a Typst PDF, they set the page and the headings. And make the contrast
+test read the colours from `_brand.yml`, so the test checks the file that is now the source of
+truth, not a copy of it.
+
+::: pitfall
+Three traps met while building and testing this step. The order of the deck's themes matters:
+with `brand` anywhere but last, `acme.scss` cannot use the brand's colours, and Sass stops with
+"Undefined variable"; the prompt puts `brand` last for that reason. A font list that ends in
+the generic `sans-serif`, harmless in a web page, made Typst warn "unknown font family"; name
+only real fonts in the brand. And figures drawn by matplotlib do not read the brand: the
+finished project gives its charts the brand's ink and paper from a small helper that reads
+`_brand.yml`.
+:::
+
+## Word and PowerPoint, in the same colours {#sec-sites-templates}
+
+Word and PowerPoint take their look from a reference document (@sec-slides-pptx). Make both
+from the brand with one script, so that a change of colour reaches them too:
+
+::: {.prompt .long}
+```default
+Turn scripts/make_pptx_reference.py into scripts/make_reference_docs.py, which also makes templates/acme-reference.docx from Quarto's default reference.docx with the brand's colours and font (in its theme and its Title and Heading styles). Use it as the docx `reference-doc` of report.qmd and model-card.qmd, render both, and check the colours in the Word files.
+```
+:::
+
+The check is in the Word file itself, which is a zip of XML: the theme's colours and the
+styles' colours must be the brand's. In the test run, Quarto's default reference document
+coloured its headings with the theme's first accent colour, darkened by a quarter, its links
+with the same accent, and its title not at all, so the script wrote the brand's colours into
+those styles explicitly. Checking the file, not the script, is what shows it.
+
+::: pitfall
+Two more from the test run. The project's `.gitignore` ignored every `*.docx`, as a rendered
+output, so the new template could not be committed until it was excepted
+(`!templates/*.docx`). And Apple's Quick Look preview showed the body in Times, ignoring the
+theme's font; the finished script also names the font in Word's Normal style for viewers like
+it. Check a Word file in Word, and in whatever your readers open it with.
+:::
+
+## A site from the project {#sec-sites-site}
+
+A Quarto *website* is a project whose `_quarto.yml` lists its pages and how to navigate them.
+Everything else on a modern site is vocabulary you can ask for:
+
+| Ask for | Quarto calls it | Check |
+|---|---|---|
+| exactly these pages | an explicit `render:` list | README and notebooks do not become pages |
+| a menu with the logo | `navbar:`, whose logo comes from the brand | the logo is visible against the navbar |
+| a line on every page | `page-footer:` | the notice and the data's licence on every page |
+| a home page that lists the documents | a *listing*, `type: table`, `default` or `grid` | each entry shows its description |
+| an About page | `about:` with a template: `jolla`, `trestles`, `solana`, `marquee` or `broadside` | the logo and links render |
+| search | on by default; `search.json` in `_site/` | a word from the report finds it |
+| cards when a link is shared | `open-graph: true`, with `site-url` and a `description` on each page | each page has `og:` tags |
+| the other formats of a page | Quarto's "Other formats" links (`format-links`) | the Word and PDF files are one click away |
+
+: A website's vocabulary, and how to check each item (Quarto 1.10.20). {#tbl-sites-vocab}
+
+::: {.prompt .long}
+```default
+Make this folder a Quarto website: _quarto.yml with an explicit render list (index.qmd, about.qmd, report.qmd, model-card.qmd, slides.qmd), execute-dir project, a navbar with the brand's logo, a page footer with the fictional-company notice and the data's CC BY 4.0 credit, site-url https://example.org/acme-eval/, open-graph, and a description on every page. index.qmd: a first sentence stating the headline result as inline code with a guard, then a table listing of the three documents. about.qmd: an about page with the trestles template. Render the site and list the pages and any warnings.
+```
+:::
+
+::: {.agent}
+writes `_quarto.yml`, `index.qmd` and `about.qmd` · adds descriptions · `uv run quarto render` → `_site/`
+:::
+
+::: {.you}
+`uv run quarto preview` · open the address it prints, and the site on a phone-sized window
+:::
+
+The home page's first sentence is the headline, computed and guarded like any other: in the
+finished site, `{python} best` is named as the release that ranks best, with its numbers read
+from `outputs/`. Its description, written once in the page's front matter, feeds the listing
+on the home page, the search index, the page's `<meta>` tag and the card a chat app shows when
+someone pastes the link. So write one sentence per page, without numbers, because a
+description is front matter and cannot compute.
+
+`site-url` is a placeholder until you know where the site will live; set it before publishing,
+because social cards need absolute addresses for their images.
+
+::: pitfall
+Once the folder is a website, every render writes into `_site/`, a single file's too, so
+scripts that expected `slides.html` beside the source must look in `_site/`; in the test run
+the PDF and alt-text scripts failed until they did. And a navbar in the brand's primary colour
+hid a logo in the same navy; `background: light` in the navbar fixed it. Look at the site, not
+only its build log.
+:::
+
+## Checks for every page {#sec-sites-checks}
+
+A person checks the page they are looking at. A script checks every page, every time. Ask for
+the checks a site most often fails, as code:
+
+::: {.prompt}
+```default
+Write scripts/check_site.py: after a render, check every page in _site/ for alt text on every image, a lang attribute, a title, a description meta tag and no skipped heading levels, and that the brand's text colours have a contrast of at least 4.5:1 on its background. Run it and fix what it finds.
+```
+:::
+
+In the test run, the first run of the checker found two problems, both on the deck's page:
+Reveal.js showed the brand's logo with no alt text, until the logo was given one in
+`_brand.yml`, and wrote no description tag, until a short filter added it from the page's
+`description`. Neither shows on the screen; both are exactly what the script is for. Each
+check is a common failure with a reason. Alt text is what a screen reader announces in
+place of an image (@sec-md-link-image). The page's language tells a screen reader how to
+pronounce it. A title and a description are what a search result and a shared link show.
+Headings that skip a level confuse anyone navigating by headings, as screen-reader users do.
+And contrast is the rule of @sec-slides-theme, applied to the whole brand. The script does not
+replace looking at the site, or a full audit such as Lighthouse's accessibility score;
+it catches the regressions that a new page or a new colour would otherwise
+slip in.
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/17-eval-site/README.md
+```
+:::
+
+## Where a branded site may go {#sec-sites-publish}
+
+The site is static files in `_site/`, published like the London guide's (@sec-london-publish).
+Two decisions come first. **Who may see it.** A public evaluation of a public dataset can go
+on any public host; an evaluation of a client's data cannot. GitHub Pages serves private
+repositories' sites only on paid plans, so private work needs a host your organisation
+approves. **Where it lives**, so that `site-url` can be set and the social cards work.
+
+::: tryit
+Build the brand, the templates, the site and the check script, and preview the site.
+
+::: done
+one `_brand.yml` sets the colours of the site, the deck and the PDFs; the Word and PowerPoint
+files are in the same colours; `check_site.py` reports no problems; and the home page's first
+sentence names the best release.
+:::
+:::
+
+## Summary {.unnumbered}
+
+::: keyideas
+- One `_brand.yml` sets colours, fonts and the logo for web pages, Reveal.js decks, Typst PDFs
+  and dashboards; Word and PowerPoint get them through reference documents a script makes from
+  the same file.
+- A website is a project: an explicit render list, a navbar, a footer, a listing home page, an
+  About page, search, and a description on every page that feeds listings, search and social
+  cards.
+- Descriptions are front matter and cannot compute: write them without numbers.
+- Check every page with a script (alt text, language, title, description, heading order,
+  contrast), and still look at the site.
+- Decide who may see a site before choosing where it goes, and set `site-url` before
+  publishing.
+:::
+
+The last of the evaluation's core outputs is the one that has to stand on its own outside the
+company: a technical white paper, with references a reader can check.
+
+## Further reading {.unnumbered}
+
+- Quarto, [Brand](https://quarto.org/docs/authoring/brand.html) (checked 2026-11-18).
+- Quarto, [Website navigation](https://quarto.org/docs/websites/website-navigation.html),
+  [About pages](https://quarto.org/docs/websites/website-about.html),
+  [listings](https://quarto.org/docs/websites/website-listings.html),
+  [search](https://quarto.org/docs/websites/website-search.html) and
+  [website tools](https://quarto.org/docs/websites/website-tools.html), on social cards
+  (checked 2026-11-18).
+- Quarto, [Word templates](https://quarto.org/docs/output-formats/ms-word-templates.html)
+  (checked 2026-11-18).
+- W3C, [WCAG 2.2](https://www.w3.org/TR/WCAG22/) (checked 2026-11-18).
