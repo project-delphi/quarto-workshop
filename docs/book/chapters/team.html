@@ -799,11 +799,12 @@ Table&nbsp;15.1: CI’s parts, and what GitHub Actions calls them.
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin team-rules</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin ci</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr merge team-rules <span class="at">--merge</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin ci</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>The second pull request runs the check; on GitHub, its <em>Checks</em> tab shows each step as it runs. The first run downloads Quarto and every package, which takes a few minutes; later runs restore uv’s downloads from a cache. Review the template’s three checks on the first pull request, merge it, then merge the second when its check is green.</p>
+<p>Review the first pull request against its own template’s three checks before you merge it. Merge it with a merge commit, <code>--merge</code>, as above: <code>ci</code> starts from <code>team-rules</code>, so once <code>team-rules</code> is on <code>main</code> unchanged, the second pull request shows only the workflow, one change as the rules ask. (Squashing the first would rewrite its commits, and the second would carry them again.) The second pull request runs the check; its <em>Checks</em> tab shows each step as it runs. The first run downloads Quarto and every package, which takes a few minutes; later runs restore uv’s downloads from a cache. Merge it when the check is green.</p>
 <p>What it costs: GitHub Actions’ standard runners are free in public repositories, and a free account’s private repositories get 12 US dollars of compute a month (checked <span class="nowrap">2026-11-18</span>; <a href="../appendices/k-facts.html" class="quarto-xref"><span>Appendix K</span></a>). A private repository’s check uses that allowance; a public one does not.</p>
 </section>
 <section id="sec-team-red" class="level2" data-number="15.4">
