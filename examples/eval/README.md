@@ -7,9 +7,11 @@ model (v1 to v3, `releases.yml`) on real public data, the UCI Bank Marketing dat
 (`data/README.md`), and publishes the results as a small website: an evaluation report, a
 model card, a technical white paper and a slide deck, each also as Word or PowerPoint and
 PDF, in one brand. Two parameterised documents, rendered once per value by a script, give a
-monthly investor update and a one-page report per customer segment.
+monthly investor update and a one-page report per customer segment. GitHub Actions workflows rebuild
+and check it on every pull request, publish the site from `main`, and render the reports
+each month.
 
-This folder is the finished project: the state of `checkpoints/19-eval-params/` with this
+This folder is the finished project: the state of `checkpoints/20-eval-ci/` with this
 README. It starts from `starters/eval-repo/`, the repository as a team would have it before
 Quarto.
 
@@ -48,6 +50,10 @@ Quarto.
 | `update.qmd` | Monthly investor update, parameter `month` (default `"latest"`): the month's SYNTHETIC business figures and the release live that month, with its real metrics; html, docx and Typst PDF; not on the site |
 | `segment.qmd` | One page per customer segment, parameters `factor` (`age_band` or `job`) and `segment` (default `60+`): the best release in that segment, real data; html, docx and Typst PDF; not on the site |
 | `scripts/render_params.py` | Renders `update.qmd` for every month and `segment.qmd` for every age band into `reports/`, and checks each file contains its value |
+| `.github/workflows/check.yml` | CI: on every pull request and push to `main`, computes `outputs/`, runs the tests, renders the site and checks it |
+| `.github/workflows/publish.yml` | The same build on `main`, then deploys `_site/` to GitHub Pages |
+| `.github/workflows/monthly.yml` | On the 2nd of each month: the build, every report as PDF (kept as an artifact), and the reference check |
+| `.github/pull_request_template.md` | The three checks for reviewing a change, and a line on what an agent did not verify |
 
 ## Rebuild
 
@@ -86,6 +92,38 @@ next to the source.
 `outputs/`, `reports/`, `_site/` and the rendered files are not committed. If a user-level Jupyter kernel
 shadows the project's environment, prefix the render with
 `JUPYTER_PATH="$PWD/.venv/share/jupyter"`.
+
+## CI and publishing
+
+When this folder is its own GitHub repository, `.github/` holds three workflows that run the
+Rebuild commands above on GitHub's machines (`ubuntu-24.04`, Quarto 1.10.20, uv 0.11.32),
+from a fresh clone, so "it builds" means it builds there, not only on one laptop.
+
+| Workflow | Runs on | Does | Results appear |
+|---|---|---|---|
+| `check.yml` (*Check*) | every pull request, every push to `main` | `evaluate.py`, `pytest`, `quarto render`, `check_site.py`; read-only | a green tick or red cross on the pull request and commit; the log under *Actions* |
+| `publish.yml` (*Publish*) | every push to `main`, or *Run workflow* | the same build, then uploads `_site/` and deploys it to GitHub Pages | the site at `https://<owner>.github.io/<repository>/`, linked from the run's *deploy* job |
+| `monthly.yml` (*Monthly reports*) | 06:00 UTC on the 2nd of each month (`cron: "0 6 2 * *"`), or *Run workflow* | the same build, `render_params.py --formats pdf`, then `check_refs.py` | the PDFs as an artifact, `reports-<run number>`, at the foot of the run's page (kept 90 days) |
+
+A guard that the results no longer support (`ClaimError`) stops `quarto render`, so the
+check fails and the pull request shows which sentence to fix; *Publish* runs the same steps,
+so such a page is never published. Each run caches uv's downloads, keyed on `uv.lock`.
+
+- **One-time setting.** Before the first *Publish*, on GitHub: Settings → Pages → Build and
+  deployment → Source: **GitHub Actions**. It deploys without a `gh-pages` branch and without
+  `quarto publish`. Set `site-url` in `_quarto.yml` to the Pages address at the same time.
+- **Protect `main`.** Settings → Branches (or Rules): require a pull request and the *Check*
+  job to pass before merging, so every change to `main` has been reviewed and rebuilt.
+- **The schedule.** Cron reads UTC and runs on the default branch's latest commit; GitHub may
+  start it late when busy, and turns schedules off in a public repository after 60 days with
+  no activity (re-enable it under *Actions*). The reference check runs last and fails the run
+  on a mismatch, after the reports are saved.
+- **Pull requests.** `pull_request_template.md` fills each new pull request with the three
+  checks (scope, correctness, rebuild) and asks which coding agent, if any, made the change
+  and what it did not verify.
+
+In this book's repository, `.github/` sits inside `examples/eval/`, where GitHub does not
+read it: the workflows run only once the folder is a repository of its own.
 
 ## Design decisions
 

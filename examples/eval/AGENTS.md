@@ -107,6 +107,27 @@ are real; `data/synthetic_business.csv` is SYNTHETIC and must be labelled so whe
   value. Quarto therefore renders each as a single file, next to the source, not in `_site/`.
   `reports/` is never committed.
 
+## Team rules (branches, pull requests, CI)
+
+- Work on a branch, never on `main`: `git switch -c <short-name>` before the first edit.
+  Never push to `main`, never force-push, and never merge a pull request: a person reviews
+  and merges it.
+- One coherent change per branch and pull request: a new section, a fix, a dependency
+  update. Unrelated fixes you notice go in your report, not in this change.
+- Never commit `outputs/`, `reports/`, `_site/`, `.venv/` or rendered files; CI computes them.
+  Check `git status` before every commit: it lists only the files this change needs.
+- Before saying a change is done, run the commands CI runs, in order, and say which passed:
+  `uv run python scripts/evaluate.py`, `uv run pytest -q`, `uv run quarto render`,
+  `uv run python scripts/check_site.py`. Never weaken a test, delete a `claim` guard or
+  change its condition to make a step pass: report the failure instead.
+- Report what you could not verify: a step you did not run (no network for
+  `check_refs.py`, no Chrome for `deck_pdf.py`), a page you did not open, a number you did not
+  check against `outputs/`. The pull request template has a line for it.
+- CI is the source of truth for "it builds": `.github/workflows/check.yml` runs on every pull
+  request from a fresh clone. A change is ready for review when that check is green, not when
+  it builds on your machine. Change the workflows in `.github/workflows/` only when asked,
+  and keep their commands the same as the ones listed here.
+
 ## Commands
 
 The Python environment is `pyproject.toml` and `uv.lock`. Run `python`, `pytest` and
