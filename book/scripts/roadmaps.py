@@ -1,11 +1,14 @@
-"""Write media/roadmaps/part-N.svg: the "Where we are" figure on each part page.
+"""Write media/roadmaps/<part>.svg: the "Where we are" figure on each part page.
 
 The deck's coloured progress bar becomes, for each part of the book, a static roadmap: a strip
-of the three parts with this one highlighted, then this part's chapters in order, each with
+of the book's parts with this one highlighted, then this part's chapters in order, each with
 what the reader reads about or builds there and the checkpoint it ends at. Titles come from the chapter files
 listed in _chapters.yml, so the roadmaps follow the book. Run from book/ (media/build.py
 roadmaps), then rasterise with the diagrams step. With --book ../book-es it draws the Spanish
-edition's roadmaps from that folder's chapter titles, into its media/roadmaps/.
+edition's roadmaps from that folder's chapter titles, into its media/roadmaps/, without the
+parts and chapters it does not have yet (`english_only`, scripts/chapter_list.py). Each
+roadmap is named after its part page (part-1.qmd draws part-1.svg), so a new part does not
+rename the others.
 """
 from __future__ import annotations
 
@@ -15,7 +18,7 @@ import sys
 import textwrap
 from pathlib import Path
 
-import yaml
+from chapter_list import load
 
 BOOK = Path(__file__).resolve().parents[1]
 OUT = BOOK / "media" / "roadmaps"
@@ -80,7 +83,7 @@ def svg(part_index: int, parts: list[dict], first_number: int) -> str:
     W = 700
     # Part strip
     strip = []
-    pw = (W - 40 - 2 * 12) / len(parts)
+    pw = (W - 40 - (len(parts) - 1) * 12) / len(parts)
     for i, p in enumerate(parts):
         x = 20 + i * (pw + 12)
         on = i == part_index
@@ -140,14 +143,14 @@ def main() -> None:
     if "--book" in sys.argv:
         SOURCE = (Path.cwd() / sys.argv[sys.argv.index("--book") + 1]).resolve()
         OUT, LANG = SOURCE / "media" / "roadmaps", "es"
-    spec = yaml.safe_load((BOOK / "_chapters.yml").read_text())
-    parts = spec["parts"]
+    parts = load(LANG)["parts"]
     OUT.mkdir(parents=True, exist_ok=True)
     number = 1
     for i, part in enumerate(parts):
-        (OUT / f"part-{i + 1}.svg").write_text(svg(i, parts, number))
+        name = Path(part["file"]).stem
+        (OUT / f"{name}.svg").write_text(svg(i, parts, number))
         number += sum(not Path(c).stem.startswith("exercises") for c in part["chapters"])
-        print("roadmap", f"media/roadmaps/part-{i + 1}.svg")
+        print("roadmap", f"media/roadmaps/{name}.svg")
 
 
 if __name__ == "__main__":

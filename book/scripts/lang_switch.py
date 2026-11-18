@@ -8,6 +8,9 @@ For every HTML page of each built edition this adds, once (it is safe to run aga
 - a visible EN | ES switch in the sidebar beside the book's tools, and in the narrow screen's
   top bar, the current language marked with aria-current.
 
+A page that has no twin yet (an `english_only` chapter, scripts/chapter_list.py) gets no
+alternate link to the other language, and its switch goes to the other edition's home page.
+
 Run from book/ after rendering an edition:  uv run python scripts/lang_switch.py
 It processes whichever of _book/html and ../book-es/_book/html exist.
 """
@@ -21,6 +24,14 @@ BOOK = Path(__file__).resolve().parents[1]
 SITE = "https://project-delphi.github.io/quarto-workshop/book/"
 EDITIONS = {"en": (BOOK / "_book" / "html", ""), "es": (BOOK.parent / "book-es" / "_book" / "html", "es/")}
 LABEL = {"en": ("EN", "English"), "es": ("ES", "Español")}
+SOURCES = {"en": BOOK, "es": BOOK.parent / "book-es"}
+
+
+def has_twin(lang: str, rel: str) -> bool:
+    """Whether edition `lang` has this page: its source file exists (pages Quarto generates,
+    such as search results, exist in both)."""
+    src = SOURCES[lang] / Path(rel).with_suffix(".qmd")
+    return src.exists() or not (SOURCES["en"] / Path(rel).with_suffix(".qmd")).exists()
 # The block, and the newline that earlier versions put after the <head> block.
 MARK = re.compile(r"<!-- lang-switch -->.*?<!-- /lang-switch -->(\n(?=</head>))?", re.S)
 TOOLS_END = re.compile(r'(<div class="sidebar-tools-main[^"]*">.*?</div>)', re.S)
@@ -41,7 +52,7 @@ def switch(lang: str, rel: str, cls: str) -> str:
         if other == lang:
             links.append(f'<span lang="{other}" aria-current="true" title="{name}">{short}</span>')
             continue
-        there = Path(EDITIONS[other][1]) / rel
+        there = Path(EDITIONS[other][1]) / (rel if has_twin(other, rel) else "index.html")
         href = os.path.relpath(there, here.parent)
         links.append(f'<a href="{href}" hreflang="{other}" lang="{other}" title="{name}">{short}</a>')
     return (f'<!-- lang-switch --><nav class="lang-switch {cls}" aria-label="Language / Idioma">'
@@ -50,8 +61,11 @@ def switch(lang: str, rel: str, cls: str) -> str:
 
 def add(path: Path, lang: str, rel: str) -> bool:
     text = MARK.sub("", path.read_text(encoding="utf-8"))
-    head = "".join(f'<link rel="alternate" hreflang="{l}" href="{url(l, rel)}">' for l in EDITIONS)
-    head += f'<link rel="alternate" hreflang="x-default" href="{url("en", rel)}">'
+    twins = [l for l in EDITIONS if has_twin(l, rel)]
+    head = ""
+    if len(twins) == len(EDITIONS):
+        head = "".join(f'<link rel="alternate" hreflang="{l}" href="{url(l, rel)}">' for l in twins)
+        head += f'<link rel="alternate" hreflang="x-default" href="{url("en", rel)}">'
     text = text.replace("</head>", f"<!-- lang-switch -->{head}<!-- /lang-switch --></head>", 1)
     text, n_side = TOOLS_END.subn(lambda m: m.group(1) + switch(lang, rel, "lang-switch-sidebar"), text, 1)
     if SEARCH in text:

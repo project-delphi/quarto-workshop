@@ -6,7 +6,7 @@ Steps (all by default, in this order):
   deck      copy the deck assets the book reuses (DECK_ASSETS) into media/deck/ and the
             London photos (examples/london/images) into media/london/
   cover     media/cover.svg and back-cover.svg -> PNG (1600 x 2560)
-  roadmaps  media/roadmaps/part-N.svg from _chapters.yml (scripts/roadmaps.py)
+  roadmaps  media/roadmaps/part-*.svg from _chapters.yml (scripts/roadmaps.py)
   diagrams  media/diagrams/*.svg and media/roadmaps/*.svg -> PNG at 2x, beside each SVG
   qr        media/qr/*.png from QR_TARGETS below
   tapes     media/tapes/*.tape -> media/gifs/*.gif with VHS (real, local commands only)

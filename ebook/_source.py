@@ -229,8 +229,13 @@ def href(rel: str) -> str:
 
 
 def contents() -> dict:
-    """Parts, chapters and appendices, numbered as Quarto numbers them, from _chapters.yml."""
+    """Parts, chapters and appendices, numbered as Quarto numbers them, from _chapters.yml,
+    without the files the Spanish edition does not have yet (`english_only`) on its page."""
     ch = yaml.safe_load(read("book/_chapters.yml"))
+    skip = set(ch.pop("english_only", None) or []) if LANG == "es" else set()
+    ch = {**ch, "parts": [{**p, "chapters": [c for c in p["chapters"] if c not in skip]}
+                          for p in ch["parts"] if p["file"] not in skip]}
+    ch.update({k: [f for f in ch[k] if f not in skip] for k in ("front", "back", "appendices")})
     n = 0
 
     def entry(rel: str) -> dict:
