@@ -48,15 +48,31 @@ and Python packages, the agent itself
 and the example projects with their data. The agent also sends every request to its
 model over the internet, so a weak connection shows up as long pauses, timeouts and
 half-finished installs, which are easy to mistake for your own errors. Use a wired connection
-or strong Wi-Fi, avoid VPNs where you can, and expect company networks with a proxy to block
-some downloads.
+or strong Wi-Fi, and avoid a *VPN* (a virtual private network, which sends your traffic through
+another network) where you can. On a company network, expect a *proxy*, a server that all web
+traffic must pass through, to block some downloads; a personal connection avoids it.
 
 **Two accounts.** A free [GitHub account](https://github.com/signup), used to publish in
 Parts II and III, and an account with access to one coding agent.
 `{python} fact("agents.claude_code_accounts")`; `{python} fact("agents.codex_accounts")` (for
 pay-per-use billing, @sec-choose); `{python} fact("agents.antigravity_accounts")` (checked
-`{python} accounts_checked`; @sec-facts keeps the current list). Sign-up and email verification can take
-hours, so do them first.
+`{python} accounts_checked`; @sec-facts keeps the current list). An *API key* is a long secret
+string that identifies your account to the vendor's programming interface, which bills each
+request; keep it out of files you share. Sign-up and email verification can take hours, so do
+them first.
+
+**The low-cost route.** The book needs one agent, not the most expensive one. Two routes keep
+the cost down. The first costs nothing: `{python} fact("agents.antigravity_free")` (checked
+`{python} checked("agents.antigravity_free")`), and every prompt in the book is written to work in
+Antigravity too, although its screens were not captured for it (@sec-choose). The second is to
+pay only for what you use, with an API key, after setting a monthly cap on the vendor's site:
+`{python} fact("agents.claude_spend_limit")`, and `{python} fact("agents.openai_spend_limit")`
+(both checked `{python} checked("agents.openai_spend_limit")`). With either, choose a small
+model at medium effort (@sec-cost), and start a fresh conversation for each task.
+
+**No install rights?** If you cannot install software, on a locked-down work laptop or a
+Windows computer where WSL is not allowed, use the workshop's ready-made environment in your
+browser instead (@sec-codespace) and skip Steps 1 and 4.
 
 **A plan for when a step fails.** Errors during setup are normal: each step depends on your
 system, your network and that week's versions, so an error does not mean you have failed. It
@@ -88,8 +104,8 @@ The six steps, and how you know each one worked:
 
 ## Step 1: Get the computer ready {#sec-step-ready}
 
-The later steps assume two small programs: `git`, for version control, and `curl`, for
-downloading. Open a terminal, the window for typing commands that Step 2 explains (on a Mac:
+The later steps assume two small programs: `git`, for version control, and `curl`, which
+downloads a file from a web address. Open a terminal, the window for typing commands that Step 2 explains (on a Mac:
 Command-Space, type `Terminal`, Enter; on Ubuntu: Ctrl+Alt+T), and run the line for your
 system.
 
@@ -109,6 +125,8 @@ On **Ubuntu or Debian** (including Ubuntu on Windows):
 sudo apt update && sudo apt install -y curl git
 ```
 
+`apt` is Ubuntu's *package manager*, the program that installs software from Ubuntu's own
+collection and keeps it up to date; `apt update` refreshes its list, and `apt install` installs.
 `sudo` runs a command as the administrator and asks for your Linux password, which stays
 invisible as you type. On other Linux distributions, install `curl` and `git` with your usual
 package manager. On **Windows**, follow @sec-windows first: it ends with this same command,
@@ -355,7 +373,7 @@ Check which of `git`, `curl`, `uv`, `quarto` (1.10 or newer) and the GitHub CLI 
 :::
 
 ::: {.agent}
-installs uv with its official installer · Quarto from its release page (or Homebrew on a Mac) · `gh` from GitHub's own package source · prints versions
+installs uv with its official installer · Quarto from its release page (or with Homebrew, a package manager for the Mac, if you have it) · `gh` from GitHub's own package source · prints versions
 :::
 
 Before each command it wants to run, the agent stops and asks, as in @fig-agent-session:
@@ -465,10 +483,36 @@ Run `uv init --bare` and `uv add ipykernel nbclient nbformat pyyaml`. Create hel
 `/exit`, then open the folder: `open .` (Mac), `xdg-open .` (Linux) or `explorer.exe .` (WSL), and open both files
 :::
 
-The test run uses things the next chapters explain, YAML settings, a code cell and inline
-code, on purpose: it is a black-box check that the tools work together, not a lesson. If you
-are curious, `hello.qmd` is the file shown in @sec-what-quarto, and @sec-first-report opens a
-real report of the same kind, which you read and render yourself.
+The test run uses three things the next chapters teach, on purpose: it is a check that the
+tools work together, not a lesson, so you need not understand the file to pass it. Its file
+will look much like this one, which the agent's may differ from in detail:
+
+````markdown
+---
+title: "Hello"
+format:
+  html: default
+  typst: default
+---
+
+```{{python}}
+answer = 6 * 7
+```
+
+The answer is `{{python}} answer`.
+````
+
+Reading it from the top, with where each part is explained:
+
+1. **Settings**, between the two `---` lines: a title and two formats, a web page and a PDF.
+   They are written in *YAML* (@sec-what-quarto; in full, @sec-yaml).
+2. **A code cell**, the fenced block whose language is in braces: Python that runs when the
+   file is rendered (@sec-qmd-basics).
+3. **Inline code**, `` `{{python}} answer` ``: the cell's result, written into the sentence, so
+   the 42 is computed, not typed (@sec-code-cells).
+
+@sec-first-report then opens a real report of the same kind, which you read and render
+yourself.
 
 ::: pitfall
 Every render prints a line such as `[IPKernelApp] WARNING | Kernel is running over TCP
@@ -486,6 +530,35 @@ afterwards. If a file is missing or says something else, see the Python and Jupy
 @sec-troubleshooting.
 :::
 :::
+
+## Without installing anything: a codespace {#sec-codespace}
+
+A *codespace* is a computer that GitHub runs for you, opened in your browser: a terminal, a
+file browser and an editor, with nothing installed on your own machine. The workshop's
+repository describes one in a *dev container* file, `.devcontainer/devcontainer.json`, which
+lists what to install: Quarto 1.10.20, uv, Git and the GitHub CLI. So in a codespace,
+Steps 1 and 4 are already done.
+
+::: {.you}
+on github.com/project-delphi/quarto-workshop: **Code** → **Codespaces** → **Create codespace on main** · wait while it builds · then, in its terminal, `cd ~`
+:::
+
+The repository appears in your home folder as `~/quarto-workshop`, so every path in this book
+works unchanged. From there, follow Step 2, Step 3 with the agent's Linux command, Step 5 and
+Step 6 in the codespace's terminal. Three things differ from a computer of your own:
+
+- **Previews.** Start them with `quarto preview --port 4848 --host 0.0.0.0 --no-browser`;
+  the codespace offers to open the page in a new browser tab.
+- **Signing in to GitHub.** If `gh auth login` says that `GITHUB_TOKEN` is in use, run
+  `unset GITHUB_TOKEN` first: the codespace's own token reaches only the workshop's
+  repository, not repositories you create.
+- **Cost.** `{python} fact("github.codespaces_free")` (checked
+  `{python} checked("github.codespaces_free")`). Stop the codespace when you finish (the
+  **Codespaces** page lists it), because a running one uses the allowance.
+
+The environment was built from its dev container file and checked on a local computer
+(Quarto, uv, Git and the GitHub CLI present; the first report and the test run rendered); a
+codespace on GitHub's computers was not tested for this edition.
 
 ## Summary {.unnumbered}
 

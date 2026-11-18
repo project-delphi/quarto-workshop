@@ -19,7 +19,9 @@ def dollars(x: float) -> str:
 
 def sources(e: dict) -> str:
     urls = [e["url"], *e.get("also", [])]
-    return ", ".join(f"[{i + 1}]({u})" for i, u in enumerate(urls)) if len(urls) > 1 else f"[page]({urls[0]})"
+    if len(urls) == 1:
+        return f"[source]({urls[0]})"
+    return "sources " + ", ".join(f"[{i + 1}]({u})" for i, u in enumerate(urls))
 ```
 
 Prices, plans, accounts and free allowances change from month to month, so this book keeps
@@ -29,19 +31,19 @@ and a rebuild update every page that mentions it, and this list. Each fact carri
 was checked against the official page linked beside it. By the time you read this, some will
 have changed: follow the link, and trust the page over the book.
 
-## Agents, chats and models {.unnumbered}
-
 ```{python}
 #| output: asis
-by_section = {}
+# One section per group of facts, each fact a short paragraph: a table of four columns does
+# not fit a phone's width.
+sections = {}
 for title, key, e in all_items():
-    by_section.setdefault(title, []).append(e)
-lines = ["| Fact | As the book states it | Checked | Source |", "|---|---|---|---|"]
-for title, entries in by_section.items():
+    sections.setdefault(title, []).append(e)
+for title, entries in sections.items():
+    print(f"## {title} {{.unnumbered}}\n")
     for e in entries:
-        lines.append(f"| {cell(e['label'])} | {cell(e['text'])} | {e['checked']} | {sources(e)} |")
-print("\n".join(lines))
-print("\n: Facts the chapters quote, with the date each was checked. {#tbl-facts}")
+        text = cell(e["text"])
+        print(f"**{cell(e['label'])}.** {text[0].upper() + text[1:]}. Checked {e['checked']}, "
+              f"{sources(e)}.\n")
 ```
 
 ## Model prices {.unnumbered}

@@ -75,6 +75,21 @@ and Python commands run through `uv run`. To follow the slides in another langua
 [Google Translate extension](https://chromewebstore.google.com/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb);
 code blocks stay in English.
 
+### No install rights? Use GitHub Codespaces
+
+If you cannot install software (a locked-down work laptop, or Windows without WSL), run the
+workshop in your browser instead. On this repository's GitHub page choose **Code → Codespaces →
+Create codespace on main**. The [dev container](.devcontainer/devcontainer.json) brings Quarto
+1.10.20, uv, Git and the GitHub CLI, and puts this repository at `~/quarto-workshop`, so it does the work of
+pre-work steps 1 and 4: you install only your coding agent (step 3). In the codespace's terminal, run `cd ~` before making a
+project, install your coding agent with its Linux command, and preview with
+`quarto preview --port 4848 --host 0.0.0.0 --no-browser`; Codespaces offers to open the page.
+If `gh auth login` reports that `GITHUB_TOKEN` is in use, run `unset GITHUB_TOKEN` first: the
+codespace's own token only reaches this repository. Personal accounts get 120 core hours (60 hours
+on the default 2-core machine) and 15 GB of storage a month free
+([billing](https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-codespaces/about-billing-for-github-codespaces),
+checked 2026-11-18); stop the codespace when you finish.
+
 ### How the slides work
 
 Hands-on slides use three coloured boxes:
