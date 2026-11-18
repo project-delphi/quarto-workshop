@@ -1,0 +1,150 @@
+---
+title: "Section feedback sheet"
+subtitle: "A fictional course, with SYNTHETIC marks invented for teaching"
+date: today
+lang: en
+format:
+  typst:
+    papersize: a4
+    margin:
+      x: 2cm
+      y: 1.8cm
+    fontsize: 10pt  # one page per section
+  html:
+    embed-resources: true
+execute:
+  echo: false  # also hides the cell papermill injects with the parameter value
+fig-dpi: 200
+---
+
+```{python}
+#| tags: [parameters]
+# The parameter and its default. Another section:  quarto render feedback.qmd -P section:B
+# Every section, into reports/:                 uv run python scripts/render_sections.py
+section = "A"  # one of the sections in data/gradebook.csv
+```
+
+```{python}
+#| label: setup
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import HTML
+
+GRADEBOOK = Path("data/gradebook.csv")  # SYNTHETIC: invented for teaching
+MIN_STUDENTS = 5  # never describe a smaller group: its figures would point at individuals
+NAMES = {"quiz_1": "Quiz 1", "essay": "Essay", "quiz_2": "Quiz 2", "project": "Project"}
+
+
+def claim(condition: bool, sentence: str) -> None:
+    """Stop the render with `sentence` if the marks do not support it."""
+    if not condition:
+        raise AssertionError(f"The marks no longer support this sentence: {sentence}")
+
+
+book = pd.read_csv(GRADEBOOK, dtype={"section": str})
+sections = sorted(book["section"].unique())
+if section not in sections:
+    raise ValueError(f"section {section!r} is not in {GRADEBOOK}: one of {', '.join(sections)}")
+assert list(book.columns) == ["student_id", "section", *NAMES], "unexpected gradebook columns"
+assert not book.columns.str.contains("name").any(), "the gradebook must hold ids, not names"
+
+marks = book.melt(id_vars=["student_id", "section"], var_name="assignment", value_name="mark")
+mine = marks[marks["section"] == section]
+size = mine["student_id"].nunique()
+assert size >= MIN_STUDENTS, f"section {section} has {size} students, fewer than {MIN_STUDENTS}"
+
+
+def describe(frame: pd.DataFrame) -> pd.DataFrame:
+    """Mean, standard deviation and number submitted, per assignment, rounded as printed."""
+    stats = frame.groupby("assignment", sort=False)["mark"].agg(["mean", "std", "count"])
+    return stats.reindex(list(NAMES)).round({"mean": 1, "std": 1})
+
+
+here, course = describe(mine), describe(marks)
+# Every group the sheet describes, each assignment's submissions included, is large enough.
+too_few = here.index[here["count"] < MIN_STUDENTS].tolist()
+assert not too_few, (f"section {section}: fewer than {MIN_STUDENTS} submissions for "
+                     f"{', '.join(too_few)}: the sheet would point at individuals")
+
+
+def relation(a: float, b: float) -> str:
+    """ "above", "below" or "level with", chosen from the rounded values the sheet prints, so
+    the word cannot disagree with the numbers beside it (no guard needed: code chose it)."""
+    return "above" if a > b else "below" if a < b else "level with"
+
+
+position = {a: relation(here.loc[a, "mean"], course.loc[a, "mean"]) for a in NAMES}
+spread = {a: {"above": "wider than", "below": "narrower than", "level with": "the same as"}[
+    relation(here.loc[a, "std"], course.loc[a, "std"])] for a in NAMES}
+above = sum(word == "above" for word in position.values())
+```
+
+::: {.callout-warning}
+## SYNTHETIC: invented for teaching
+
+Every mark on this sheet comes from `data/gradebook.csv`, a gradebook invented for teaching
+by `scripts/make_gradebook.py`. No student, course or mark is real, and students are ids,
+never names. The sheet shows only section totals, never one student.
+:::
+
+This sheet is for **Section `{python} section`**: `{python} size` students, against the
+whole course of `{python} marks["student_id"].nunique()` students in
+`{python} len(sections)` sections (`{python} ", ".join(sections)`). The section's
+mean mark is above the course mean on `{python} above` of the
+`{python} len(NAMES)` assignments (SYNTHETIC marks).
+
+## Assignment by assignment
+
+```{python}
+#| output: asis
+for a, name in NAMES.items():
+    print(f"- **{name}**: a mean of {here.loc[a, 'mean']:.1f}, {position[a]} the course mean "
+          f"of {course.loc[a, 'mean']:.1f}; a spread (standard deviation) of "
+          f"{here.loc[a, 'std']:.1f}, {spread[a]} the course's {course.loc[a, 'std']:.1f}. "
+          f"{here.loc[a, 'count']} of {size} submitted.")
+```
+
+Marks are out of 100. A mean leaves out work not submitted. The course includes this section.
+With about twenty students a section, a difference of a few marks can be chance: this sheet
+describes the marks and tests nothing.
+
+::: {#tbl-marks}
+
+```{python}
+table = pd.DataFrame({
+    "Assignment": list(NAMES.values()),
+    f"Section {section}: mean (SD)": [f"{m:.1f} ({s:.1f})" for m, s in zip(here["mean"], here["std"])],
+    "Course: mean (SD)": [f"{m:.1f} ({s:.1f})" for m, s in zip(course["mean"], course["std"])],
+    "Difference": [f"{d:+.1f}" for d in (here["mean"] - course["mean"]).round(1) + 0.0],
+    "Submitted": [f"{n} of {size}" for n in here["count"]],
+})
+HTML(table.to_html(index=False))
+```
+
+SYNTHETIC: invented for teaching. Section `{python} section` against the whole course: mean
+mark out of 100 and standard deviation (SD), per assignment.
+
+:::
+
+```{python}
+#| label: fig-means
+#| fig-cap: "SYNTHETIC: invented for teaching. Mean mark per assignment, this section (blue circles) and the whole course (grey squares); each line spans one standard deviation either side of the mean."
+#| fig-alt: "Dot chart with one row per assignment (Quiz 1, Essay, Quiz 2, Project) and marks out of 100 along the horizontal axis. Each row has a blue circle for this section's mean and a grey square for the course mean, each with a horizontal line spanning one standard deviation either side. The table above gives the same numbers."
+fig, ax = plt.subplots(figsize=(6, 2.3), layout="constrained")
+rows = range(len(NAMES))
+for stats, offset, colour, marker, label in [
+        (here, -0.12, "#0072B2", "o", f"Section {section}"),
+        (course, 0.12, "#777777", "s", "Course")]:
+    ax.errorbar(stats["mean"], [r + offset for r in rows], xerr=stats["std"], fmt=marker,
+                color=colour, capsize=3, label=label)
+ax.set_yticks(list(rows), list(NAMES.values()))
+ax.invert_yaxis()
+low = min((here["mean"] - here["std"]).min(), (course["mean"] - course["std"]).min())
+ax.set_xlim(max(0, 10 * (low // 10) - 10), 100)  # marks are out of 100
+ax.set_xlabel("Mark out of 100 (SYNTHETIC)")
+ax.spines[["top", "right"]].set_visible(False)
+fig.legend(frameon=False, loc="outside upper center", ncols=2)
+plt.show()
+```

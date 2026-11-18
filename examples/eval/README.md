@@ -6,11 +6,12 @@ centre calls the likeliest first. This project evaluates three fictional release
 model (v1 to v3, `releases.yml`) on real public data, the UCI Bank Marketing dataset
 (`data/README.md`), and publishes the results as a small website: an evaluation report, a
 model card, a technical white paper and a slide deck, each also as Word or PowerPoint and
-PDF, in one brand.
+PDF, in one brand. Two parameterised documents, rendered once per value by a script, give a
+monthly investor update and a one-page report per customer segment.
 
-This folder is the finished project so far: the state of `checkpoints/18-eval-whitepaper/`
-with this README. It starts from `starters/eval-repo/`, the repository as a team would have
-it before Quarto. A parameterised update is planned for a later chapter and is not here yet.
+This folder is the finished project: the state of `checkpoints/19-eval-params/` with this
+README. It starts from `starters/eval-repo/`, the repository as a team would have it before
+Quarto.
 
 ## Layout
 
@@ -19,10 +20,10 @@ it before Quarto. A parameterised update is planned for a later chapter and is n
 | `AGENTS.md` | The project's rules for a coding agent |
 | `data/` | `bank-full.csv` (real, unchanged, CC BY 4.0), `synthetic_business.csv` (SYNTHETIC), `README.md` |
 | `releases.yml` | The three fictional releases and their months |
-| `src/acme_eval/` | `data.py` (loading, checks, split, age bands), `models.py` (one pipeline per release), `metrics.py` (metrics, bootstrap intervals, calibration, slices), `claims.py` (guards), `brand.py` (brand colours and WCAG contrast) |
+| `src/acme_eval/` | `data.py` (loading, checks, split, age bands), `models.py` (one pipeline per release), `metrics.py` (metrics, bootstrap intervals, calibration, slices), `claims.py` (guards), `brand.py` (brand colours and WCAG contrast), `params.py` (parameter checks, words chosen from numbers) |
 | `scripts/evaluate.py` | Fits every release once and writes `outputs/` |
 | `scripts/make_synthetic_business.py` | Writes the synthetic business figures (fixed seed) |
-| `tests/` | pytest: checksum and shape, no `duration`, metric definitions, output schema, brand contrast |
+| `tests/` | pytest: checksum and shape, no `duration`, metric definitions, output schema, brand contrast, parameter checks |
 | `notebooks/explore.ipynb` | The team's first exploration, saved without outputs |
 | `_quarto.yml` | The website: pages, navbar, footer, social cards, post-render step |
 | `index.qmd` | Home page: the headline result, then a table of the documents |
@@ -44,6 +45,9 @@ it before Quarto. A parameterised update is planned for a later chapter and is n
 | `scripts/pptx_alt_text.py` | Copies each figure's `fig-alt` into `_site/slides.pptx` (after every render) |
 | `scripts/deck_pdf.py` | Prints `_site/slides.html` to `_site/slides.pdf` with headless Chrome and checks every page |
 | `scripts/check_site.py` | Checks the rendered pages: alt text, language, title, description, heading levels, brand contrast |
+| `update.qmd` | Monthly investor update, parameter `month` (default `"latest"`): the month's SYNTHETIC business figures and the release live that month, with its real metrics; html, docx and Typst PDF; not on the site |
+| `segment.qmd` | One page per customer segment, parameters `factor` (`age_band` or `job`) and `segment` (default `60+`): the best release in that segment, real data; html, docx and Typst PDF; not on the site |
+| `scripts/render_params.py` | Renders `update.qmd` for every month and `segment.qmd` for every age band into `reports/`, and checks each file contains its value |
 
 ## Rebuild
 
@@ -56,6 +60,7 @@ uv run quarto render                   # the whole site into _site/ (about 40 s)
 uv run python scripts/check_site.py    # every page passes
 uv run python scripts/deck_pdf.py      # _site/slides.pdf, one page per slide, needs Chrome
 uv run python scripts/check_refs.py    # every DOI in references.bib, before publishing; needs the network
+uv run python scripts/render_params.py # every month and age band into reports/, checked (about 5 min)
 ```
 
 `uv run quarto render` writes every page and format into `_site/`: `index.html`,
@@ -72,7 +77,13 @@ location, or `google-chrome`/`chromium` on PATH. Before publishing, set `site-ur
 `_quarto.yml` to the site's own address (it is a placeholder, `https://example.org/acme-eval/`):
 the social cards' image links are made from it.
 
-`outputs/`, `_site/` and the rendered files are not committed. If a user-level Jupyter kernel
+`scripts/render_params.py` writes `reports/update-2026-01.pdf`, `.docx` and `.html` to
+`reports/update-2026-10.*` and `reports/segment-age-18-29.*` to `reports/segment-age-60plus.*`
+(`2026-06 2026-10` renders those months only; `--formats pdf` only PDFs). One month renders by
+hand with `uv run quarto render update.qmd -P month:2026-06 -M output-file:update-2026-06`,
+next to the source.
+
+`outputs/`, `reports/`, `_site/` and the rendered files are not committed. If a user-level Jupyter kernel
 shadows the project's environment, prefix the render with
 `JUPYTER_PATH="$PWD/.venv/share/jupyter"`.
 
@@ -165,3 +176,23 @@ shadows the project's environment, prefix the render with
   reach Pandoc templates, so the company name is the document's `company` field.
 - **Vector figures in the PDF.** `fig-format: svg` under `typst:` writes the figures as SVG,
   which Typst draws as vector paths; html and docx get PNG at `fig-dpi: 200`.
+- **Parameterised documents are rendered by a script, not by the site.** `update.qmd` and
+  `segment.qmd` hold their parameters and defaults in a cell tagged `parameters`; Quarto
+  passes `-P name:value` to Jupyter through papermill (a dependency for that alone), which
+  adds a cell after it with the values. They are left out of `project.render`: the home page
+  says every number on the site comes from the real bank data, which the update's synthetic
+  business figures would make false, and a site page could show only one month. Quarto 1.10.20
+  then renders each as a single file, writing next to the source (in `_site/` only if it were
+  in `project.render`); `--output-dir` is refused for a single file and `--output` takes no
+  folder, so `scripts/render_params.py` names each output by its value with
+  `-M output-file:update-2026-10` (one run, one execution, every format) and moves it into
+  `reports/`. The html is self-contained (`embed-resources`), so each file can be sent alone.
+- **A parameter is checked before it is used.** `acme_eval.params` stops the render on a month
+  or segment that is not in the data and lists the ones that are. Words that depend on the
+  value (up or down, above or below, first, best so far) come from `params.direction` and
+  `params.relation` on the numbers as printed, guarded by `claim`; sentences only some values
+  need come from `output: asis` cells, and captions that name the value are computed.
+- **Synthetic figures say so, every time.** The update opens with a "SYNTHETIC: invented for
+  teaching" callout, marks each business number "(synthetic)", and starts its table caption
+  with the label; its model figures are said to be real. `render_params.py` fails an update
+  whose text lacks "SYNTHETIC".
