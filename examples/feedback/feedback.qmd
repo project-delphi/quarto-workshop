@@ -63,21 +63,22 @@ def describe(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 here, course = describe(mine), describe(marks)
+# Every group the sheet describes, each assignment's submissions included, is large enough.
+too_few = here.index[here["count"] < MIN_STUDENTS].tolist()
+assert not too_few, (f"section {section}: fewer than {MIN_STUDENTS} submissions for "
+                     f"{', '.join(too_few)}: the sheet would point at individuals")
 
 
 def relation(a: float, b: float) -> str:
-    """ "above", "below" or "level with", on the rounded values the sheet prints."""
-    word = "above" if a > b else "below" if a < b else "level with"
-    claim({"above": a > b, "below": a < b, "level with": a == b}[word], f"{a} is {word} {b}.")
-    return word
+    """ "above", "below" or "level with", chosen from the rounded values the sheet prints, so
+    the word cannot disagree with the numbers beside it (no guard needed: code chose it)."""
+    return "above" if a > b else "below" if a < b else "level with"
 
 
 position = {a: relation(here.loc[a, "mean"], course.loc[a, "mean"]) for a in NAMES}
 spread = {a: {"above": "wider than", "below": "narrower than", "level with": "the same as"}[
     relation(here.loc[a, "std"], course.loc[a, "std"])] for a in NAMES}
 above = sum(word == "above" for word in position.values())
-claim(above == (here["mean"] > course["mean"]).sum(),
-      f"The section's mean is above the course mean on {above} assignments.")
 ```
 
 ::: {.callout-warning}

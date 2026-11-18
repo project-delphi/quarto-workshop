@@ -24,6 +24,7 @@ month = "latest"  # "YYYY-MM", or "latest": the last month in data/synthetic_bus
 ```{python}
 #| label: setup
 import json
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -66,10 +67,12 @@ def change(column: str) -> str:
     text = f"{show(now[column])} {SYNTHETIC}"
     if before is None:
         return text
-    word = params.direction(now[column], before[column])
-    claim({"up": now[column] > before[column], "down": now[column] < before[column],
-           "unchanged": now[column] == before[column]}[word],
-          f"{FIGURES[column][0]} is {word} on {previous_label}.")
+    # The word is chosen from the figures as printed, so "up from £14,000" can never sit
+    # beside two equal printed numbers; the guard checks the printed text agrees.
+    printed_now, printed_before = show(now[column]), show(before[column])
+    word = params.direction(*(float(re.sub(r"[^0-9.-]", "", p)) for p in (printed_now, printed_before)))
+    claim((word == "unchanged") == (printed_now == printed_before),
+          f"{FIGURES[column][0]}: the printed figures agree with '{word}'.")
     if word == "unchanged":
         return f"{text}, unchanged from {previous_label}"
     return f"{text}, {word} from {show(before[column])} {SYNTHETIC} in {previous_label}"

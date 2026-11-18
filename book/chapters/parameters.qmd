@@ -32,6 +32,7 @@ with open(FEEDBACK / "data" / "gradebook.csv", newline="") as f:
 bands = sorted(set(ev.segments().query("factor == 'age_band'")["segment"]))
 n_files = 3 * (len(months) + len(bands))
 text_holds(update.get("month") == "latest", "update.qmd's default month, \"latest\"")
+MIN_STUDENTS = int(re.search(r"^MIN_STUDENTS = (\d+)", (FEEDBACK / "feedback.qmd").read_text(), re.M).group(1))
 FEW = int(re.search(r"^FEW_SUBSCRIBERS = (\d+)", (CHECKPOINT / "src" / "acme_eval" / "params.py").read_text(), re.M).group(1))
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5), in copies of
 # checkpoint 18 and of the feedback example's data, on 2026-11-18; the pitfalls are the ones
@@ -94,9 +95,13 @@ papermill package is required for processing --execute-params".
 
 Two rules make a parameterised document safe. **Validate the value**: a month or a segment that
 is not in the data should stop the render with a message that lists the valid ones, not
-produce a report about nothing. **Let code choose every word that depends on the value**, and
-guard it: "up" or "down", "above" or "below", "the first month in the data, so no change".
-A document rendered for a dozen values is a dozen chances for a typed word to be wrong.
+produce a report about nothing. **Let code choose every word that depends on the value**, from the
+numbers as they are printed: "up" or "down", "above" or "below", "the first month in the data,
+so no change". Chosen from the printed numbers, the word cannot disagree with them; guard what
+code cannot choose, such as a typed caption, and check that the printed text agrees, as the
+finished update does. A guard that repeats the comparison that chose the word can never fail,
+and protects nothing. A document rendered for a dozen values is a dozen chances for a typed
+word to be wrong.
 
 ## The investor update {#sec-params-update}
 
@@ -157,9 +162,10 @@ go out with the rest.
 
 ::: pitfall
 From the test run: a PDF check for the age band "18-29" failed, because the PDF's text gave the
-hyphen back as a different character; the script compares text with dashes normalised. And
-self-contained HTML is large, several megabytes per file here; send the PDF, and keep the HTML
-for the site.
+hyphen back as a soft hyphen; the finished script strips soft hyphens and treats every kind of
+dash as a hyphen before it compares. And self-contained HTML, which carries its libraries
+inside it, is far larger than the same report as a PDF; send the PDF, and keep the HTML for the
+site.
 :::
 
 ## The educator's case: a sheet per section {#sec-params-feedback}
@@ -177,7 +183,7 @@ Create feedback.qmd: one feedback sheet per section of data/gradebook.csv, param
 
 Marks are personal data, so the sheet shows section totals only, never a student, and never a
 group so small that a reader could work out who it is; the finished sheet stops if any group
-has fewer than five. With real marks, the rules of @sec-ai-policy and your institution's data
+it describes, each assignment's submissions included, has fewer than `{python} MIN_STUDENTS`. With real marks, the rules of @sec-ai-policy and your institution's data
 policy come first: build the document on a synthetic gradebook with the same columns, as this
 one is, and render the real one yourself.
 
@@ -203,7 +209,8 @@ where it comes from.
 ::: keyideas
 - A parameter is a value given at render time; its default lives in a cell tagged
   `parameters`, and `-P name:value` replaces it, through papermill.
-- Validate every value, and let code choose every word that depends on it, with a guard.
+- Validate every value, let code choose every word that depends on it from the numbers as
+  printed, and guard what code cannot choose.
 - Name every output by its value, and render and check them all with one script.
 - A parameterised document left out of a site's render list renders beside its source; move
   its outputs where they belong.
