@@ -24,6 +24,7 @@ book: book-html book-epub
 ## (its three.js bundle, Tunja explorer and reused images; book/media/build.py step "deck")
 book-sync:
 	cd $(BOOK) && uv run python scripts/sync_chapters.py
+	cd $(BOOK) && uv run python scripts/thaw.py
 	cd $(BOOK) && uv run python media/build.py deck
 
 book-html: book-sync

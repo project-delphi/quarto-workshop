@@ -82,7 +82,9 @@ user-level `python3` kernelspec can point elsewhere and fail with a `ModuleNotFo
 
 Execution uses `freeze: auto`: a chapter re-runs only when its `.qmd` changes, and its results
 are kept in `_freeze/`, which is committed so that a rebuild gives the same numbers. Freezing
-does not notice changes outside the chapter, so run `make book-fresh` after changing any of:
+does not notice changes outside the chapter. One such input is handled for you: `make` runs
+`scripts/thaw.py`, which clears the frozen results of every page that quotes `facts.yml` (the
+facts that change, Appendix K) when that file changes. Run `make book-fresh` after changing any of:
 
 - `examples/london/data/` or `examples/water/data/`
 - `examples/water/scripts/analysis.py` (Part III imports it and calls `analysis.run()`)
