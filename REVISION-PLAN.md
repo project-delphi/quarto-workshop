@@ -483,7 +483,7 @@ The questions as asked:
 | 2026-11-18 | WP10 and WP11 merged (#145) | After one review: checkpoint 20 regained the parameters review's fixes, and `make book` now checks that the newest checkpoint matches `examples/eval` file for file | A reusable workflow for the three workflows' shared build was declined: three short plain files read better in a chapter |
 | 2026-11-18 | WP12 and WP13 (`revision/wp12-afterword`) | The afterword gains a monthly investor update and a design document with live numbers, both dry-run verbatim (a made-up company; a small package); What you can now do covers Parts III and IV. The deck ends with one ⭐ slide, *After Today: Your Own Work*, linking the professional chapters, checked at 1440 × 1000, 1366 × 768 and 1280 × 720; Appendix I says the material is book-only and the day is unchanged | — |
 | 2026-11-18 | WP12–WP14 merged (#146) | After one review: three afterword prompts end with a check and were re-run as printed; the pointer slide starts readers at the fast path; the Spanish to-do is `translation/PLAN.md` §8.1 | The landing page's EPUB size matches the latest release only once the author cuts one |
-| 2026-11-18 | WP16 (`revision/wp16-prompt-guards`) | `book/scripts/water.py` checks, on import in both editions, every value the water chapters type into prompts: the years, the missing-feature limit, k's range, the seed and n_init, and the naming rule's thresholds (tested by behaviour). Tested by mutating `N_INIT` and the 40% threshold: the import stops with the sentence to rewrite | WP15 (file renames) not done: the approved recommendation was to keep the names |
+| 2026-11-18 | WP16 (`revision/wp16-prompt-guards`) | `scripts/check_prompt_values.py`, run by `make book` and `make deck` on every build, reads the water prompts and rule lists in both editions and the deck and checks each typed value against `analysis.py`: the years, the missing-feature limit, the features, k's range, the seed, n_init, the stability seeds, and the naming rule's thresholds (read from `name_rule()` and confirmed by behaviour on both sides). Mutation-tested: a changed setting, a one-sided threshold change and an edited prompt each stop it, naming the file and value | WP15 (file renames) not done: the approved recommendation was to keep the names |
 
 ### Milestone (WP0–WP5): stopped here for review, as agreed
 
@@ -531,7 +531,7 @@ the Spanish landing page still reads its own preface and setup chapter.
 ### Remaining work packages (after review)
 
 None. WP14 is `translation/PLAN.md` §8.1; WP15 (file renames with aliases) was left out, as
-recommended in Q5; WP16 is the prompt-value check in `book/scripts/water.py`.
+recommended in Q5; WP16 is `scripts/check_prompt_values.py`.
 
 ## 10. Verified while working (2026-11-18)
 

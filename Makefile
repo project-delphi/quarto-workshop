@@ -20,6 +20,7 @@ book: book-html book-epub
 	cd $(BOOK) && uv run python scripts/check_live_links.py $(EPUB:$(BOOK)/%=%)
 	cd $(BOOK) && uv run python scripts/check_scenes.py
 	cd $(BOOK) && uv run python scripts/check_latest_checkpoint.py
+	cd $(BOOK) && uv run python ../scripts/check_prompt_values.py
 
 ## book-sync: chapter lists for both editions, and fresh copies of the deck's assets
 ## (its three.js bundle, Tunja explorer and reused images; book/media/build.py step "deck")
@@ -80,6 +81,7 @@ book-publish:
 ## deck: render the workshop decks into docs/, keeping docs/book/ exactly as it was (a full
 ## render empties docs/). A copy waits in .book-keep/; if the render fails, the next run keeps it.
 deck:
+	cd $(BOOK) && uv run python ../scripts/check_prompt_values.py
 	if [ -d docs/book ]; then rm -rf .book-keep && cp -R docs/book .book-keep; fi
 	QUARTO_PYTHON="$$PWD/.conda/bin/python" JUPYTER_PATH="$$PWD/.conda/share/jupyter" quarto render
 	if [ -d .book-keep ]; then rsync -a --delete .book-keep/ docs/book/ && rm -rf .book-keep; fi
