@@ -1,0 +1,49 @@
+# Rebuild and check the project on every pull request and every push to main: compute
+# outputs/, run the tests, render the site and check it. It only reads the repository. A guard
+# that no longer holds (ClaimError) stops the render, so the job fails and the pull request
+# shows a red cross: that is the point. Action versions: latest releases on 2026-11-18.
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A new push to a pull request's branch cancels the run it makes out of date. Pushes to main
+# are never cancelled, so every commit on main keeps its own green or red result.
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 1.10.20
+
+      # setup-uv publishes no major tag, so the pin is the full version. The cache is keyed
+      # on uv.lock: unchanged dependencies are restored instead of downloaded.
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Compute the results (outputs/)
+        run: uv run python scripts/evaluate.py
+
+      - name: Run the tests
+        run: uv run pytest -q
+
+      - name: Render the site (stops on a guard that no longer holds)
+        run: uv run quarto render
+
+      - name: Check the rendered pages
+        run: uv run python scripts/check_site.py

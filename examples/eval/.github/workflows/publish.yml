@@ -1,0 +1,71 @@
+# Publish the site to GitHub Pages after every push to main (a merged pull request), or by
+# hand from the Actions tab. It runs the same build and checks as check.yml, so a page whose
+# guard fails is never published, then deploys _site/ with GitHub's Pages actions: no
+# gh-pages branch and no `quarto publish`.
+#
+# One-time setting, before the first run: on GitHub, Settings → Pages → Build and deployment →
+# Source: GitHub Actions. Until then the deploy job fails. (No configure-pages step: the
+# deploy does not need it, and in a read-only build job it can fail on a private repository.)
+# Action versions: latest releases on 2026-11-18.
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; a newer one waits rather than cancelling one in progress.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 1.10.20
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Compute the results (outputs/)
+        run: uv run python scripts/evaluate.py
+
+      - name: Run the tests
+        run: uv run pytest -q
+
+      - name: Render the site (stops on a guard that no longer holds)
+        run: uv run quarto render
+
+      - name: Check the rendered pages
+        run: uv run python scripts/check_site.py
+
+      - name: Upload _site/ for Pages
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    # The two permissions a Pages deployment needs: to deploy, and to prove where it came from.
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

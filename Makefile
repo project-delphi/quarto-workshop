@@ -19,6 +19,7 @@ QUARTO_BOOK := cd $(BOOK) && JUPYTER_PATH="$$PWD/.venv/share/jupyter" uv run qua
 book: book-html book-epub
 	cd $(BOOK) && uv run python scripts/check_live_links.py $(EPUB:$(BOOK)/%=%)
 	cd $(BOOK) && uv run python scripts/check_scenes.py
+	cd $(BOOK) && uv run python scripts/check_latest_checkpoint.py
 
 ## book-sync: chapter lists for both editions, and fresh copies of the deck's assets
 ## (its three.js bundle, Tunja explorer and reused images; book/media/build.py step "deck")

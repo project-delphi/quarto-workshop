@@ -475,6 +475,13 @@ The questions as asked:
 | 2026-11-18 | WP5 (`revision/wp5-results`) | Part III, The Craft of Outputs, and its first chapter, One Set of Results: compute once and three kinds of check; a model card as a larger task with a plan first; numbered sections and references; a changed setting to predict and rebuild. Prompts dry-run from checkpoint 14; the dry run found "top 10%" typed in our own checkpoint's labels and captions, now computed or guarded. The water analysis is named instead of numbered (it is Part IV). Sources, copyright, glossary and checkpoints appendices updated | — |
 | 2026-11-18 | WP2b (`revision/wp2b-preface`) | The preface names its readers, the start-up fit and limits, Python-only; reading paths by role (@tbl-reading-paths); three running examples; the landing page's audience copy, pills and project cards (found by page, after the craft part moved the water analysis); `make book-html` fails on an unresolved cross-reference | A landing-page card for the evaluation project needs its own media (`make ebook-media`); deferred |
 
+| 2026-11-18 | WP6 (#140) | Chapter 11, Slides That Carry a Decision: deck vocabulary, a Reveal.js deck, a theme whose contrast a test checks, PDF from print view with headless Chrome, PowerPoint in a house template with alt text checked; checkpoint 16 | — |
+| 2026-11-18 | WP7 (#141) | Chapter 12, A Site and One Brand: `_brand.yml` across html, revealjs and typst, Word and PowerPoint reference documents made from it, a website, `check_site.py`; checkpoint 17 | — |
+| 2026-11-18 | WP8 (#142) | Chapter 13, White Papers and References: cross-referenced sections, equations, tables and figures, one CSL style in every format, `check_refs.py` against DOI registries, a Typst house template; checkpoint 18 | — |
+| 2026-11-18 | Preface (#143, at the author's request) | "Free and open source, nearly all the way": the open-source toolchain and its licences, the agent as the one proprietary, swappable part | — |
+| 2026-11-18 | WP9 (#144) | Chapter 14, Reports That Run Themselves: parameters through papermill, values validated, words chosen from printed numbers, a monthly investor update (business figures synthetic and labelled), segment reports, a checked batch script, and an educator's feedback sheets from a synthetic gradebook (`examples/feedback/`); checkpoint 19 | — |
+| 2026-11-18 | WP10 and WP11 (`revision/wp10-team-ci`) | Part IV, Working in a Team: Chapter 15, Pull Requests and Builds You Can Trust (team rules, a pull request template, check, publish and monthly workflows; checkpoint 20), and Chapter 16, At Work and in a Start-up (vendors' data terms, confidential data, approved tools, proxies, templates, start-ups), every vendor and GitHub claim in `facts.yml` with its date. The water analysis becomes Part V. The plan's Chapters 15 and 16 (pull requests; CI) became one chapter: the pull-request part is short once the fast path has taught it, and CI is what makes the review trustworthy | Pushing, pull requests, the Publish and Monthly runs and branch protection need a GitHub repository; the check workflow was run with act, green and then red on a broken guard |
+
 ### Milestone (WP0–WP5): stopped here for review, as agreed
 
 Checks on the final state (`revision/wp2b-preface`):
@@ -511,7 +518,8 @@ Branches, each stacked on the one before (merge in this order): `revision/wp0-gr
 ### For the Spanish edition (to translate)
 
 New, English-only (`book/_chapters.yml`, `english_only`): `chapters/fast-path.qmd`,
-`part-craft.qmd`, `chapters/results.qmd`, `appendices/k-facts.qmd`. Changed, waiting
+`part-craft.qmd`, `chapters/results.qmd`, `slides.qmd`, `sites.qmd`, `white-papers.qmd`,
+`parameters.qmd`, `part-team.qmd`, `team.qmd`, `at-work.qmd`, `appendices/k-facts.qmd`. Changed, waiting
 (`translation/pending.yml`): the preface, Chapters 1–4 and 8 (01–03, 07), the setup and
 first-chapter references in 08, 04, 05, 09, 10, 12 and the water exercises, Appendices A, E, G, I
 and J, the copyright page, the afterword and the three part pages. `facts.yml` texts are English;
@@ -519,13 +527,9 @@ the Spanish landing page still reads its own preface and setup chapter.
 
 ### Remaining work packages (after review)
 
-WP6 slides, WP7 sites and brand, WP8 white papers and references, WP9 parameters (with the
-investor update and the educator case; papermill needed), WP10 team workflow and CI for readers'
-projects, WP11 at work and in a start-up (vendor data-use facts are already verified in the
-scratch research and will go into `facts.yml`), WP12 afterword projects, WP13 the workshop
-pointer slide, WP14 the Spanish to-do in `translation/PLAN.md`, and optional WP15 (file renames
-with aliases, which the spike showed work as JavaScript redirects) and WP16 (guards for Part V's
-typed prompt values).
+WP12 afterword projects, WP13 the workshop pointer slide, WP14 the Spanish to-do in
+`translation/PLAN.md`, and optional WP15 (file renames with aliases, which the spike showed
+work as JavaScript redirects) and WP16 (guards for Part V's typed prompt values).
 
 ## 10. Verified while working (2026-11-18)
 

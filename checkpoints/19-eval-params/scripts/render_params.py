@@ -3,7 +3,7 @@
 Run from the project root, after `uv run python scripts/evaluate.py`:
 
     uv run python scripts/render_params.py                     # every month and age band
-    uv run python scripts/render_params.py 2026-06 2026-10     # these months only (and the bands)
+    uv run python scripts/render_params.py 2026-06 2026-10     # these two months only (and the bands)
     uv run python scripts/render_params.py --formats pdf       # PDFs only, faster
 
 It renders `update.qmd` for every month in data/synthetic_business.csv (SYNTHETIC) and

@@ -1,0 +1,66 @@
+# Each month: rebuild and check the project, render every month's investor update and every
+# age band's segment page as PDFs into reports/, and keep them as a downloadable artifact of the
+# run (Actions tab → the run → Artifacts). Then check every DOI in references.bib against its
+# registry, which needs the network; a mismatch fails the run after the reports are saved.
+# Action versions: latest releases on 2026-11-18.
+name: Monthly reports
+
+on:
+  schedule:
+    # Cron has five fields: minute, hour, day of month, month, day of week; `*` means any.
+    # "17 6 2 * *" is 06:17 on the 2nd of every month. GitHub reads it in UTC unless a
+    # `timezone:` line beside it names one, such as "Europe/Paris" (06:17 UTC is 07:17 in
+    # Paris in winter, 08:17 in summer); it runs it on the default
+    # branch's latest commit, and may start it late when Actions is busy, as it is at the top
+    # of every hour: hence minute 17, not 0.
+    - cron: "17 6 2 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monthly
+  cancel-in-progress: false
+
+jobs:
+  reports:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 1.10.20
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Compute the results (outputs/)
+        run: uv run python scripts/evaluate.py
+
+      - name: Run the tests
+        run: uv run pytest -q
+
+      - name: Render the site (stops on a guard that no longer holds)
+        run: uv run quarto render
+
+      - name: Check the rendered pages
+        run: uv run python scripts/check_site.py
+
+      - name: Render every month and age band as PDF, checked
+        run: uv run python scripts/render_params.py --formats pdf
+
+      - name: Keep reports/ as an artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: reports-${{ github.run_number }}
+          path: reports/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Check every DOI in references.bib (needs the network)
+        run: uv run python scripts/check_refs.py

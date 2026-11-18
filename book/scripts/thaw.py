@@ -46,6 +46,7 @@ INPUTS = {
                                     "../examples/feedback/feedback.qmd",
                                     "../examples/feedback/data"],
                                    ("19-eval-params",)),
+    "checkpoints/20-eval-ci": (["../checkpoints/20-eval-ci/.github"], ("20-eval-ci",)),
 }
 
 

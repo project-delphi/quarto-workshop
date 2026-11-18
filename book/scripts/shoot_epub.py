@@ -46,9 +46,11 @@ def main(epub: str, names: list[str]) -> None:
             browser = p.chromium.launch(channel="chrome")
             for size, (w, h) in SIZES.items():
                 for theme in ("light", "night"):
-                    page = browser.new_page(viewport={"width": w, "height": h}, device_scale_factor=2,
-                                            color_scheme="dark" if theme == "night" else "light")
                     for f in files:
+                        # A fresh page per file: one page reused for every chapter slows until a
+                        # screenshot times out (seen once the book passed forty files).
+                        page = browser.new_page(viewport={"width": w, "height": h}, device_scale_factor=2,
+                                                color_scheme="dark" if theme == "night" else "light")
                         page.goto(f.as_uri())
                         page.add_style_tag(content=PAGE + (NIGHT if theme == "night" else ""))
                         page.wait_for_timeout(200)
@@ -60,7 +62,7 @@ def main(epub: str, names: list[str]) -> None:
                         for i, y in enumerate(range(0, total, h)):
                             page.evaluate(f"window.scrollTo(0, {y})")
                             page.screenshot(path=str(out / f"{f.stem}-{size}-{theme}-{i:02d}.png"))
-                    page.close()
+                        page.close()
             browser.close()
     print(f"shots in {out}; {problems} sideways element(s)")
 
