@@ -79,6 +79,44 @@ def name_es(name: str) -> str:
 A = _Spanish(analysis) if language() == "es" else analysis
 
 
+def _prompt_values_hold() -> None:
+    """Stop the render if a value typed into a printed prompt no longer matches analysis.py.
+
+    Prompts are literal text, so the water chapters type some settings into them: the years and
+    the missing-feature limit (10-prepare's prompts), k's range, the seed and n_init
+    (11-cluster's), and the naming rule's thresholds (12-interpret's rule list). Both editions
+    import this module, so one check covers both; the naming rule is tested by its behaviour,
+    since its thresholds are literals inside name_rule().
+    """
+    from scripts.prose import text_holds
+    text_holds((analysis.FIRST_YEAR, analysis.LAST_YEAR) == (2016, 2023),
+               "the prepare prompts' years, 2016–2023")
+    text_holds(analysis.MAX_MISSING == 2, "the prepare prompt's 'more than 2 features'")
+    text_holds(list(analysis.K_RANGE) == list(range(2, 9)), "the cluster prompt's k=2–8")
+    text_holds((analysis.SEED, analysis.N_INIT) == (42, 20),
+               "the cluster prompt's random_state=42, n_init=20")
+
+    def name(**z) -> str:
+        p = {"urban_row_share": 0.5, "z_rural_share": 0.0, "z_altitude_m": 0.0,
+             "z_water_coverage": 0.0, "irca_median_band": "Low", **z}
+        return analysis.name_rule(p).split(",")[0]
+    text_holds(name(urban_row_share=0.39) == "Rural" and name(urban_row_share=0.4) == "Towns",
+               "the naming rule's 40% urban threshold")
+    text_holds(name(z_rural_share=-0.5) == "Cities and large towns"
+               and name(z_rural_share=-0.49) == "Towns"
+               and name(z_altitude_m=-0.5) == "Lowland towns"
+               and name(z_altitude_m=0.5) == "Highland towns"
+               and "low-coverage" in analysis.name_rule({"urban_row_share": 0.5, "z_rural_share": 0,
+                   "z_altitude_m": 0, "z_water_coverage": -0.5, "irca_median_band": "Low"})
+               and "low-coverage" not in analysis.name_rule({"urban_row_share": 0.5,
+                   "z_rural_share": 0, "z_altitude_m": 0, "z_water_coverage": -0.49,
+                   "irca_median_band": "Low"}),
+               "the naming rule's half a standard deviation")
+
+
+_prompt_values_hold()
+
+
 def _localize(out: dict) -> dict:
     """A run's cluster names in Spanish (the Spanish edition only)."""
     out = dict(out)
