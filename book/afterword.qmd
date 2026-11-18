@@ -2,8 +2,8 @@
 
 Near the end of the water analysis, one setting changed in one script, and the officials' report, the council's
 slides, the blog post and the dashboard all changed with it, without a number retyped. That moment is
-what the two projects were for. The London guide and the water analysis each started from plain text
-and data, became a shelf of documents for different readers, and rebuild with one command. The projects
+what the book's projects were for. The London guide, the Acme evaluation and the water analysis each
+started from plain text and data, became a shelf of documents for different readers, and rebuild with one command. The projects
 will date. The method will not, and it fits on a card.
 
 ::: {.practice title="Prompt, Check, Publish"}
@@ -33,7 +33,7 @@ makes: who the work is for, and what would make them read it.
 
 ## What you can now do {.unnumbered}
 
-If you worked through the parts that build, you can:
+If you worked through Parts II and V, the London guide and the water analysis, you can:
 
 - explain how Quarto turns one plain-text source into many formats, and why a computed number cannot
   drift from its data;
@@ -42,14 +42,17 @@ If you worked through the parts that build, you can:
   analysis;
 - read an agent's change with `git diff` before you keep it, and undo one with `git restore`;
 - predict which outputs a changed input or setting updates, rebuild, and explain the result;
+- say which edition of this book shows each interactive figure, and why.
+
+If you also worked through Parts III and IV, the Acme evaluation, you can:
+
 - compute results once and have every document read them, with tests, guards and the render
   each catching what the others miss;
 - ask for slides, a branded site and a white paper by name, and check each against what makes
   it work;
 - make one document for many values, and render and check every one with a script;
 - have every pull request rebuilt by CI, so that a guard the results no longer support turns it
-  red;
-- say which edition of this book shows each interactive figure, and why.
+  red.
 
 If one of these is shaky, go back to that part's exercises, starting from a known-good state in
 @sec-checkpoints.
@@ -66,14 +69,17 @@ the approach starts to repay the setup; the first change to the data is where it
 
 ::: {.practice title="Which project first?"}
 Choose the one with a real reader and a date: a brief your manager reads on the first Monday, a
-supplement due with a resubmission, a report due in three weeks. Then check that you are allowed
+supplement due with a resubmission, a report due in three weeks, an update investors expect on
+the 5th, a design review next week. Then check that you are allowed
 to use its data with an agent ([below](#sec-project-start)). If two qualify, start with the smaller. Finish one
 project, fresh clone included, before you start another; the second goes faster.
 :::
 
 ### Start every project the same way {.unnumbered #sec-project-start}
 
-Make the project folder and go into it (@sec-first-files): for the brief, `mkdir ~/metrics-brief`
+The design document is the exception: it lives in a repository you already have, so skip this
+setup and start on a branch there, as in @sec-fast-path. For the others, make the project folder
+and go into it (@sec-first-files): for the brief, `mkdir ~/metrics-brief`
 then `cd ~/metrics-brief`. Make a `data/` folder inside it (`mkdir data`) and copy your files in,
 unchanged; Finder or File Explorer will do. Start the history with `git init -b main` and
 commit the data, `git add data` then `git commit -m "Data, as exported"` (@sec-first-git).
@@ -309,7 +315,7 @@ Add each figure's change from the month before, its wording (up, down or unchang
 
 ::: {.prompt}
 ```default
-Below the figures, include notes/<month>.md, my own words on highlights and asks, and stop with a clear message if that month's notes file is missing. Render the latest month in both formats.
+Below the figures, include notes/<month>.md, my own words on highlights and asks, and stop with a clear message if that month's notes file is missing. Render the latest month in both formats, and show me the notes as they appear in the PDF.
 ```
 :::
 
@@ -358,13 +364,13 @@ your-repository/
 
 ::: {.prompt}
 ```default
-Write rfc/bench.py: time `count_words_loop` against `count_words_counter` from src/textstats/core.py on texts of three sizes, five repeats each, and write rfc/results.json with each one's median time and range, the Python version, the machine and the date it ran. Run it.
+Write rfc/bench.py: time `count_words_loop` against `count_words_counter` from src/textstats/core.py on texts of three sizes, five repeats each, and write rfc/results.json with each one's median time and range, the Python version, the machine and the date it ran. Run it, and show me the medians.
 ```
 :::
 
 ::: {.prompt}
 ```default
-Write rfc/rfc.qmd, a design document in html and typst with sections Context, Proposal, Measurements, Alternatives and Decision. Measurements reads rfc/results.json for a table and a chart with alt text, says what machine and Python it was measured on, and chooses the word faster or slower by code, with a guard. Leave the other sections as a heading and one line saying what goes there. Render it.
+Write rfc/rfc.qmd, a design document in html and typst with sections Context, Proposal, Measurements, Alternatives and Decision. Measurements reads rfc/results.json for a table and a chart with alt text, says what machine and Python it was measured on, and chooses the word faster or slower by code, with a guard. Leave the other sections as a heading and one line saying what goes there. Render it, and show me the sentence with that word.
 ```
 :::
 
@@ -376,13 +382,17 @@ Add a table of the settings in src/textstats/config.py, read from the code at re
 
 **You build** `rfc/rfc.html` and `rfc/rfc.pdf`; the prose of Context, Proposal, Alternatives
 and Decision is yours. From the test run: Quarto runs the document's code from its own folder,
-`rfc/`, so the document reads `results.json`, not `rfc/results.json`, and an agent that copies
-the prompt's path gets "file not found". The rendered files land in `rfc/` too: add them to
+`rfc/`, so every path in it is relative to `rfc/`: the document reads `results.json`, not
+`rfc/results.json`, and reaches the code as `../src/textstats/config.py` or, better, by importing
+the package, as the test run's agent did. An agent that copies the prompt's paths into the code
+gets "file not found". The rendered files land in `rfc/` too: add them to
 `.gitignore`. And alt text cannot be computed in a Python document's cell options (`!expr` is
 for R's knitr only); write alt text that describes the chart without its numbers, and let the
 table carry them.
 
-**Checks only you can do.** Run the benchmark twice. In the test run, the faster function stayed
+**Checks only you can do.** Check the machine's name in `results.json`: on a Mac, Python's
+`platform.processor()` says only "arm", and the test run's agent had to ask the system for the
+chip's name. Run the benchmark twice. In the test run, the faster function stayed
 faster, but medians moved by up to about six per cent between runs, more than five repeats'
 range suggested: report the direction and the ratio, not the third decimal place, and say on
 what machine it ran. Commit `results.json` with the document, so a reviewer reads the numbers
