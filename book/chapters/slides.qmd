@@ -1,0 +1,291 @@
+# Slides That Carry a Decision {#sec-slides}
+
+```{python}
+#| label: slides-setup
+# The evaluation's results (scripts/evaluation.py), and the deck and theme as this chapter
+# leaves them (checkpoint 16; later chapters move the colours into a brand file), with the
+# theme's contrast computed by the formula of its own test.
+import re
+from fractions import Fraction
+
+from scripts import evaluation as ev
+from scripts.prose import number_words, text_holds
+
+S = ev.summary()
+best = S["best_version"]
+WORD = number_words()
+recall = ev.value(best, "recall_top10")["value"]
+share = Fraction(S["top_share"]).limit_denominator(100)
+text_holds(share == Fraction(1, 10), "\"a tenth of the list\" in the headline title")
+
+CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "16-eval-slides"
+scss = (CHECKPOINT / "acme.scss").read_text()
+colour = dict(re.findall(r"^\$(acme-[a-z]+):\s*(#[0-9a-fA-F]{6})", scss, re.M))
+
+
+def luminance(hex_colour: str) -> float:
+    """WCAG 2.2 relative luminance of an sRGB colour."""
+    def channel(c: float) -> float:
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (channel(int(hex_colour[i:i + 2], 16) / 255) for i in (1, 3, 5))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(a: str, b: str) -> float:
+    hi, lo = sorted((luminance(a), luminance(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+ratios = {name: contrast(colour[name], colour["acme-paper"])
+          for name in ("acme-ink", "acme-navy", "acme-link", "acme-muted")}
+text_holds(min(ratios.values()) >= 4.5, "every text colour of the theme passes 4.5:1")
+deck = (CHECKPOINT / "slides.qmd").read_text()
+n_slides = 1 + len(re.findall(r"^## ", deck, re.M))
+text_holds(n_slides == 8, "the deck's eight slides")
+# Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
+# checkpoint 15 on 2026-11-18; the pitfalls are the ones that run, and the build of the
+# finished deck, met.
+```
+
+The report and the model card are for people who read. The decision about which release to
+ship will be made in a meeting, in front of a screen, by people who will look at each slide for
+a few seconds and remember perhaps three of them. A deck for that room is a different document:
+not a report cut into pieces, but a short argument, one claim at a time, ending in what to
+decide.
+
+You will rarely write a Reveal.js option or a line of a theme's stylesheet by hand. You need to
+know what a deck can do, and what each thing is called, so that you can ask for it; how to ask
+so that the result can be checked; and what a good deck looks like when it comes back. This
+chapter builds the evaluation's deck for the product team and its investors, as a web page
+that presents itself, a PDF to send afterwards, and a PowerPoint file in the company's
+template, all from one source that reads the same results as the report.
+
+::: opener
+- Name what makes a technical deck work, and the Reveal.js features that serve it: speaker
+  notes, fragments, columns, themes and print view.
+- Ask for a deck whose titles state claims computed from the results, guarded, with the detail
+  in the notes.
+- Check a theme's colours against the WCAG contrast minimum with a test.
+- Export the deck to PDF and to PowerPoint in a house template, and know what each format
+  loses.
+
+Start from
+: your `acme-eval` repository at the end of @sec-results, or `checkpoints/15-eval-results/`.
+
+You build
+: `slides.qmd` as a Reveal.js deck, a PDF and a PowerPoint file, with a theme, a contrast test
+  and a reference template.
+
+Checkpoint
+: `checkpoints/16-eval-slides/`
+:::
+
+## What makes a technical deck work {#sec-slides-good}
+
+A deck succeeds when the room leaves knowing the claim, the evidence for it, and what was
+decided. Five habits get it there, and each is something you can ask an agent for and check:
+
+| Habit | What it means | You check |
+|---|---|---|
+| One claim per slide | each slide makes one point, with one piece of evidence | no slide needs two sentences to say what it shows |
+| The title states the claim | "v3 reaches 44% of subscribers…", not "Results" | read the titles alone, in order: they are the argument |
+| Numbers computed, words guarded | a title's numbers are inline code; its wording has a guard | the titles agree with `outputs/`, and a guard stops a false one |
+| Detail in the notes | the speaker notes hold what you will say; the slide holds the claim and its evidence | every slide has notes; no slide is a paragraph |
+| End on the decision | the last slide says what is being decided | the room knows what you are asking for |
+
+: Five habits of a technical deck, and how to check each. {#tbl-slides-habits}
+
+The second habit does the most work. Read only the titles of the finished deck, and you have
+its argument: the headline, the comparison, the ranking, who is called, how far the
+probabilities can be trusted, what the results do not show, and the decision. Its headline
+title, for this book's run, is "`{python} best` reaches `{python} ev.percent(recall)` of
+subscribers by calling a tenth of the list", every number and the fraction computed from
+`outputs/`.
+
+## What a deck can do, and what it is called {#sec-slides-vocab}
+
+Quarto makes decks in two formats from one source: Reveal.js, a web page that presents
+itself in any browser, and PowerPoint. Each `##` heading starts a slide in both. The rest is
+vocabulary: features you ask for by name.
+
+| Ask for | Quarto calls it | Notes |
+|---|---|---|
+| speaker notes | a `::: {.notes}` block on the slide | shown in speaker view, not on the screen; in PowerPoint they go to the notes pane |
+| points revealed one at a time | *fragments*: `. . .` between paragraphs, or `::: {.fragment}` | static lists in PowerPoint |
+| two columns | `:::: {.columns}` holding `::: {.column width="50%"}` blocks | PowerPoint's Two Content layout |
+| a slide with more text, smaller | the `{.smaller}` class on the heading; `{.scrollable}` lets it scroll | use rarely: split the slide instead |
+| a stable link to a slide | an ID on the heading, `## … {#decision}` | the address ends `#/decision` |
+| a theme | `theme: [default, acme.scss]`: a built-in theme plus your own Sass file | colours and fonts in one place |
+| a footer and slide numbers | `footer:` and `slide-number: true` | Reveal.js only |
+| a PDF | Reveal.js's *print view*: press E, then print from the browser | there is no `--to pdf` for decks |
+| speaker view | press S while presenting | a second window with the notes |
+| a house PowerPoint template | `reference-doc:` naming a `.pptx` made from Quarto's default | colours, fonts and layouts |
+
+: What a deck can do, what it is called, and where it differs between formats (Quarto 1.10.20). {#tbl-slides-vocab}
+
+## The deck {#sec-slides-deck}
+
+The prompt is the five habits and the vocabulary together, plus two phrases that steer round
+traps met while testing it, explained below. It asks for one deck, as one task, because its
+checks run without you: guards, the render, and the titles it lists.
+
+::: {.prompt .long}
+```default
+Create slides.qmd, a Reveal.js deck at 1280×720 for the product team and investors, from outputs/ only: a plain YAML title and subtitle (no inline code), then seven slides, one claim per slide, each slide's title stating its claim with any number as inline code, speaker notes on each of the seven, the ROC curves and who is called by age band as matplotlib figures with alt text and no `fig-` labels, a two-column slide comparing v2 and v3, and the caveats revealed one at a time. Guard every title whose wording depends on the results. Render it and list the slide titles.
+```
+:::
+
+::: {.agent}
+writes `slides.qmd` · `uv run quarto render slides.qmd` → `slides.html`
+:::
+
+::: {.you}
+open `slides.html` · press S for speaker view, and E for print view
+:::
+
+**Read the titles first**, in the order the agent lists them: they should be the argument.
+Then the source: each title's numbers are inline code, each claim in a title has a guard in
+the cell before it, and each slide has a notes block. **Present it**: press S, and speaker view opens in a second window with the notes, which is
+what you will see while the room sees the slide.
+
+::: pitfall
+Traps met while building and testing the deck, and the reasons for two phrases in the prompt.
+Inline code in the YAML `title` runs before any cell and fails with a `NameError`, and with no
+YAML title Quarto promotes the first heading to the title, uncomputed; hence "a plain YAML
+title". Notes written before the first `##` heading became an extra, blank slide. A figure
+cell labelled `fig-…` adds "Figure 1:" to its caption, which slides rarely want; hence "no
+`fig-` labels". Beyond the prompt: a `fig-dpi` setting gave figures a fixed size that
+overflowed the slide; in another run, with no such setting, the figures filled less than half
+of it. The finished deck's theme gives figures a fixed height, so look at every slide at the
+deck's size. And a count printed straight from pandas read `np.int64(6)` until it was converted
+to a plain `int`: read every rendered title, not only the source.
+:::
+
+## A theme you can read {#sec-slides-theme}
+
+A theme is where a deck's colours and fonts live, and it is where most decks fail their
+audience: pale grey text on white is unreadable on a projector. The Web Content
+Accessibility Guidelines set the minimum: a contrast ratio of 4.5 to 1 between text and its
+background (WCAG 2.2, success criterion 1.4.3). A test can check it, so ask for the test with
+the theme:
+
+::: {.prompt}
+```default
+Add acme.scss, a Reveal.js theme on top of `default`: dark ink on a warm off-white background, a navy for headings and links, system fonts. Add tests/test_deck_contrast.py checking that body text and links have a contrast ratio of at least 4.5:1 on the background (WCAG 2.2), run it, and render the deck.
+```
+:::
+
+::: {.agent}
+writes `acme.scss` and the test · `uv run pytest` · renders the deck
+:::
+
+The finished theme's colours, measured with the guideline's formula:
+
+| Text | Colour | Contrast on the background |
+|---|---|--:|
+| body | `{python} colour["acme-ink"]` | `{python} f"{ratios['acme-ink']:.1f}"`:1 |
+| headings | `{python} colour["acme-navy"]` | `{python} f"{ratios['acme-navy']:.1f}"`:1 |
+| links | `{python} colour["acme-link"]` | `{python} f"{ratios['acme-link']:.1f}"`:1 |
+| captions, footer | `{python} colour["acme-muted"]` | `{python} f"{ratios['acme-muted']:.1f}"`:1 |
+
+: The finished theme's text colours on its background, `{python} colour["acme-paper"]`, computed with the WCAG 2.2 formula. {#tbl-slides-contrast}
+
+The test makes the rule permanent: a later change of colour that fails it fails the test
+suite, before anyone squints at a projector. One thing a theme does not reach: matplotlib draws
+its figures on white, which shows as a white box on an off-white slide. The finished deck
+draws them on a transparent background. Colour is not the only part of a readable deck,
+so keep the other habits too: figure labels legible from the back of the room, colours that
+differ in lightness as well as hue, and alt text on every figure.
+
+## A PDF to send afterwards {#sec-slides-pdf}
+
+After the meeting, someone will ask for the slides. Quarto 1.10.20 has no PDF format for
+Reveal.js decks; the route is Reveal.js's print view, printed by a browser. By hand, open the
+deck, press E, and print to PDF. To make it part of the build, a script can do the same with
+headless Chrome, and check its own result:
+
+::: {.prompt}
+```default
+Write scripts/deck_pdf.py: print slides.html to slides.pdf with headless Chrome at `?print-pdf`, passing `--run-all-compositor-stages-before-draw`, check that the PDF has one page per slide, and retry up to three times if it does not. Run it and tell me the page count.
+```
+:::
+
+The flag and the check are both the point. Printed from the command line, Chrome sometimes
+printed before the deck had laid itself out and wrote a single blank page; in testing for
+this book that happened in most runs without the flag, which makes Chrome finish drawing the
+page before it prints, and in none with it. The check, a page count that must equal the
+slide count, caught every blank print, and catches a slide too tall for its page as well,
+which Reveal.js prints on two. It turns a failure into a retry instead of a blank PDF in a
+client's inbox. The finished deck prints as
+`{python} WORD[n_slides]` pages for its `{python} WORD[n_slides]` slides.
+
+## PowerPoint, in the house template {#sec-slides-pptx}
+
+Many organisations circulate decks as PowerPoint, in a template with their colours, fonts
+and logo. Quarto renders PowerPoint from the same source, and a *reference document* carries
+the template: a `.pptx` file whose theme and slide layouts Quarto copies. Start from Quarto's
+own, so that its layouts have the names Quarto expects:
+
+::: {.prompt .long}
+```default
+Add a PowerPoint version: make templates/acme-reference.pptx from Quarto's default (`quarto pandoc -o templates/acme-reference.pptx --print-default-data-file reference.pptx`) with a script that sets its theme colours and font to the deck's, add pptx to slides.qmd with `reference-doc`, render, and check the slide count and the theme colours in the file.
+```
+:::
+
+::: {.agent}
+`quarto pandoc -o templates/acme-reference.pptx …` · writes a script that edits the template's theme · renders `slides.pptx` · counts slides, reads the theme
+:::
+
+Quarto uses seven of the template's layouts by name: Title Slide, Title and Content, Section
+Header, Two Content, Comparison, Content with Caption and Blank. Your organisation's own
+template works as a reference document if its layouts carry those names; rename them in
+PowerPoint's slide master if they do not. A template is a binary file, so commit the script
+that makes it too: the script can be reviewed in a diff, and the file cannot.
+
+Know what PowerPoint loses. The theme's Sass rules do not apply, fragments become static
+lists, `.smaller` and the footer do nothing, and Quarto 1.10.20 writes the image's file name
+where the figure's alt text should be; the finished project adds it back with a short script
+after the render. Open the PowerPoint file and check each slide, as its reader will.
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/16-eval-slides/README.md
+```
+:::
+
+::: tryit
+Build the deck, its theme and test, the PDF and the PowerPoint file, and present the deck once
+in speaker view.
+
+::: done
+the titles read as the argument; every slide has notes; the contrast test passes; the PDF has
+one page per slide; and the PowerPoint file opens in the template's colours.
+:::
+:::
+
+## Summary {.unnumbered}
+
+::: keyideas
+- A technical deck is a short argument: one claim per slide, each title stating it, the detail
+  in the notes, and the decision on the last slide.
+- Ask for features by name: speaker notes, fragments, columns, a theme, print view, a
+  reference document.
+- A title's numbers are computed and its words are guarded, like any sentence in a report.
+- Check colours with a contrast test, against the WCAG minimum of 4.5:1, so a readable deck
+  stays readable.
+- PDF comes from print view, checked page by page; PowerPoint comes from a reference document,
+  and loses the theme, fragments and alt text, so open it before you send it.
+:::
+
+The deck makes the case once, in a room. The results also need a place where anyone can find
+them, in the company's colours, with every document linked: a site.
+
+## Further reading {.unnumbered}
+
+- Quarto, [Reveal.js](https://quarto.org/docs/presentations/revealjs/index.html),
+  [presenting](https://quarto.org/docs/presentations/revealjs/presenting.html) and
+  [themes](https://quarto.org/docs/presentations/revealjs/themes.html) (checked 2026-11-18).
+- Quarto, [PowerPoint](https://quarto.org/docs/presentations/powerpoint.html), on reference
+  documents and layouts (checked 2026-11-18).
+- W3C, [WCAG 2.2, success criterion 1.4.3, Contrast
+  (Minimum)](https://www.w3.org/TR/WCAG22/#contrast-minimum) (checked 2026-11-18).
