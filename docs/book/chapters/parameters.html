@@ -731,7 +731,7 @@ Table&nbsp;14.1: Parameters, and what each is called (Quarto 1.10.20, Jupyter en
 </figure>
 </div>
 <p>The defaults are part of the document: the finished update’s <code>month</code> defaults to “latest”, which it reads as the last month in its data, so its default never goes stale; the segment report defaults to age_band 60+, and the feedback sheet to section A. Passing <code>-P month:2026-06</code> replaces a default for one render: Quarto adds a cell after the parameters cell that sets the new value, and the document runs as before. That cell is executed through <a href="../appendices/j-glossary.html#gl-papermill" class="glossary-link"><em>papermill</em></a>, a Python package the project must have: without it, a render with <code>-P</code> stops with “The papermill package is required for processing –execute-params”.</p>
-<p>Two rules make a parameterised document safe. <strong>Validate the value</strong>: a month or a segment that is not in the data should stop the render with a message that lists the valid ones, not produce a report about nothing. <strong>Let code choose every word that depends on the value</strong>, and guard it: “up” or “down”, “above” or “below”, “the first month in the data, so no change”. A document rendered for a dozen values is a dozen chances for a typed word to be wrong.</p>
+<p>Two rules make a parameterised document safe. <strong>Validate the value</strong>: a month or a segment that is not in the data should stop the render with a message that lists the valid ones, not produce a report about nothing. <strong>Let code choose every word that depends on the value</strong>, from the numbers as they are printed: “up” or “down”, “above” or “below”, “the first month in the data, so no change”. Chosen from the printed numbers, the word cannot disagree with them; guard what code cannot choose, such as a typed caption, and check that the printed text agrees, as the finished update does. A guard that repeats the comparison that chose the word can never fail, and protects nothing. A document rendered for a dozen values is a dozen chances for a typed word to be wrong.</p>
 </section>
 <section id="sec-params-update" class="level2" data-number="14.2">
 <h2 data-number="14.2" class="anchored" data-anchor-id="sec-params-update"><span class="header-section-number">14.2</span> The investor update</h2>
@@ -798,7 +798,7 @@ Table&nbsp;14.1: Parameters, and what each is called (Quarto 1.10.20, Jupyter en
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>From the test run: a PDF check for the age band “18-29” failed, because the PDF’s text gave the hyphen back as a different character; the script compares text with dashes normalised. And self-contained HTML is large, several megabytes per file here; send the PDF, and keep the HTML for the site.</p>
+<p>From the test run: a PDF check for the age band “18-29” failed, because the PDF’s text gave the hyphen back as a soft hyphen; the finished script strips soft hyphens and treats every kind of dash as a hyphen before it compares. And self-contained HTML, which carries its libraries inside it, is far larger than the same report as a PDF; send the PDF, and keep the HTML for the site.</p>
 </div>
 </div>
 </section>
@@ -813,7 +813,7 @@ Table&nbsp;14.1: Parameters, and what each is called (Quarto 1.10.20, Jupyter en
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Create feedback.qmd: one feedback sheet per section of data/gradebook.csv, parameterised by `section`, with that section's mean and spread for each assignment against the course, a chart with alt text, every sentence labelled synthetic and its wording guarded, and no student identifiers. Then write scripts/render_sections.py to render feedback-&lt;section&gt;.pdf for every section and check each one. Run it.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>Marks are personal data, so the sheet shows section totals only, never a student, and never a group so small that a reader could work out who it is; the finished sheet stops if any group has fewer than five. With real marks, the rules of <a href="02-assistant.html#sec-ai-policy" class="quarto-xref"><span>Section 2.10</span></a> and your institution’s data policy come first: build the document on a synthetic gradebook with the same columns, as this one is, and render the real one yourself.</p>
+<p>Marks are personal data, so the sheet shows section totals only, never a student, and never a group so small that a reader could work out who it is; the finished sheet stops if any group it describes, each assignment’s submissions included, has fewer than 5. With real marks, the rules of <a href="02-assistant.html#sec-ai-policy" class="quarto-xref"><span>Section 2.10</span></a> and your institution’s data policy come first: build the document on a synthetic gradebook with the same columns, as this one is, and render the real one yourself.</p>
 <div class="catchup">
 <p><strong>Stuck for two minutes?</strong> Paste this into your agent. It backs up your work and brings the project to this point; then carry on from here.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/19-eval-params/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -840,7 +840,7 @@ Table&nbsp;14.1: Parameters, and what each is called (Quarto 1.10.20, Jupyter en
 <div class="keyideas">
 <ul>
 <li>A parameter is a value given at render time; its default lives in a cell tagged <code>parameters</code>, and <code>-P name:value</code> replaces it, through papermill.</li>
-<li>Validate every value, and let code choose every word that depends on it, with a guard.</li>
+<li>Validate every value, let code choose every word that depends on it from the numbers as printed, and guard what code cannot choose.</li>
 <li>Name every output by its value, and render and check them all with one script.</li>
 <li>A parameterised document left out of a site’s render list renders beside its source; move its outputs where they belong.</li>
 <li>Label synthetic figures on every number, and keep personal data to group totals.</li>
