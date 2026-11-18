@@ -52,6 +52,9 @@ accounts, accounts_checked = S.assistant_accounts()
 chart = S.cell_figure("book/chapters/05-compute.qmd", "fig-ldn-top10")
 appx = {a["label"]: a for a in toc["appendices"]}
 parts = toc["parts"]
+# The two projects' parts, found by their page rather than their position, which new parts change.
+by_page = {p["href"].rsplit("/", 1)[-1].removesuffix(".html"): p for p in parts}
+london_part, water_part = by_page["part-2"], by_page["part-3"]
 ch2, ch3 = S.chapter("02-assistant"), S.chapter("03-setup")
 
 # The page's <head> and its <title> must agree with the book (scripts/ebook_media.py writes it).
@@ -82,6 +85,9 @@ NEEDS_QUOTED = ("a computer on which you can install software (Windows, Mac or L
 if len(re.split(r", (?:and )?(?![^()]*\))", NEEDS_QUOTED)) != len(NEEDS):
     raise ValueError("the preface's list of what you need no longer matches NEEDS")
 S.quote(PREFACE, "one small piece of work with its files and columns named",
+        "fast path (@sec-fast-path)", "adds Quarto to an existing repository",
+        "takes you from there to a report in three formats in under an hour",
+        "the route from zero sets up your computer",
         "read what changed, look at the result, compare it with the data",
         "An agent can be fluent, fast and wrong, so this step is never skipped, and it is always yours",
         "every output from the checked source the same way every time",
@@ -152,16 +158,16 @@ fan = {f["name"]: f["colour"] for f in formats}
 ch6 = S.chapter("06-audiences")["href"]
 ch11 = S.chapter("11-cluster")["href"]
 raw('<div class="cards">' + P.card(
-    fan["html"], f"{parts[1]['label']} · London", "A visitor guide for London",
+    fan["html"], f"{london_part['label']} · London", "A visitor guide for London",
     f"{london['visits']:,}",
     f"visits in {london['year']} to the {london['name']}, the most of London’s "
     f"{S.words(london['n'])} most visited ALVA member attractions",
     "One guide becomes a web page, a Word brief for partners, a printed flyer, a dashboard for "
     "managers and a published website.",
     P.clip("london-map", "london-map-orbit"),
-    [("Turn the live 3-D map", f"{ch6}#sec-london-3d"), (f"Read {parts[1]['label']}", parts[1]["href"])],
+    [("Turn the live 3-D map", f"{ch6}#sec-london-3d"), (f"Read {london_part['label']}", london_part["href"])],
 ) + P.card(
-    fan["epub"], f"{parts[2]['label']} · Colombia", "Drinking-water risk in Colombia",
+    fan["epub"], f"{water_part['label']} · Colombia", "Drinking-water risk in Colombia",
     f"{water['codes']:,}",
     f"municipalities and areas, every one of DANE’s DIVIPOLA entries, urban and rural, "
     f"{water['first']}–{water['last']}",
@@ -169,7 +175,7 @@ raw('<div class="cards">' + P.card(
     "and publish the analysis as a report, slides, a blog post and a website, all from one "
     "analysis script.",
     P.clip("colombia-relief", "colombia-relief-orbit"),
-    [("Step through k-means", f"{ch11}#sec-kmeans-steps"), (f"Read {parts[2]['label']}", parts[2]["href"])],
+    [("Step through k-means", f"{ch11}#sec-kmeans-steps"), (f"Read {water_part['label']}", water_part["href"])],
 ) + "</div>")
 ```
 
@@ -197,7 +203,7 @@ raw(P.code(S.london_top))
 ::: {}
 [Who it's for]{.eyebrow}
 
-## No programming required {#who-its-for}
+## For people who publish numbers that change {#who-its-for}
 
 ```{python}
 #| output: asis
@@ -205,8 +211,10 @@ raw('<ul class="pills">' + "".join(f"<li>{a[0].upper() + a[1:]}</li>" for a in S
     + "</ul>")
 ```
 
-Anyone who works with data or code and needs to share the results. No programming is
-assumed: the book explains the Python the agent writes, but you do not have to write it.
+Anyone who works with data or code and needs to share the results. If you already use a
+terminal and Git, the fast path takes you from there to a report in three formats in under an
+hour; if not, the route from zero sets up your computer first. No programming is assumed:
+the book explains the Python the agent writes, but you do not have to write it.
 :::
 
 ::: {}

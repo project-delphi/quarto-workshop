@@ -30,11 +30,13 @@ book-sync:
 book-html: book-sync
 	$(QUARTO_BOOK) render --profile html --to html
 	@if grep -rl '<ol class="example"' $(BOOK)/_book/html; then echo "book-html: a line starting '@label.' became an example list in the file(s) above; rewrap it" >&2; exit 1; fi
+	@if grep -rlE '<strong>\?@(sec|tbl|fig|eq)-' $(BOOK)/_book/html --include='*.html'; then echo "book-html: a cross-reference in the file(s) above names a section, table or figure that does not exist" >&2; exit 1; fi
 	cd $(BOOK) && uv run python scripts/lang_switch.py
 
 book-epub: book-sync
 	$(QUARTO_BOOK) render --profile epub --to epub
 	cd $(BOOK) && uv run python scripts/epub_postprocess.py _book/epub/prompt-check-publish.epub
+	@if unzip -p $(EPUB) '*.xhtml' | grep -qE '<strong>\?@(sec|tbl|fig|eq)-'; then echo "book-epub: a cross-reference in the EPUB names a section, table or figure that does not exist" >&2; exit 1; fi
 	$(MAKE) epubcheck
 
 ## book-fresh: re-execute every chapter (after changing examples/*/data or analysis.py)
@@ -126,11 +128,13 @@ book-es-sync: book-sync
 book-es-html: book-es-sync
 	$(QUARTO_BOOK_ES) render --profile html --to html
 	@if grep -rl '<ol class="example"' $(BOOK_ES)/_book/html; then echo "book-es-html: a line starting '@label.' became an example list in the file(s) above; rewrap it" >&2; exit 1; fi
+	@if grep -rlE '<strong>\?@(sec|tbl|fig|eq)-' $(BOOK_ES)/_book/html --include='*.html'; then echo "book-es-html: a cross-reference in the file(s) above names a section, table or figure that does not exist" >&2; exit 1; fi
 	cd $(BOOK) && uv run python scripts/lang_switch.py
 
 book-es-epub: book-es-sync
 	$(QUARTO_BOOK_ES) render --profile epub --to epub
 	cd $(BOOK) && uv run python scripts/epub_postprocess.py ../$(EPUB_ES)
+	@if unzip -p $(EPUB_ES) '*.xhtml' | grep -qE '<strong>\?@(sec|tbl|fig|eq)-'; then echo "book-es-epub: a cross-reference in the EPUB names a section, table or figure that does not exist" >&2; exit 1; fi
 	$(MAKE) epubcheck-es
 
 ## book-es-fresh: re-execute every Spanish chapter
