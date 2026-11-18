@@ -59,8 +59,8 @@ without being fooled by the second?
   `/clear` and `/exit`.
 - Decide where to start an agent, which of its commands to approve and which rules belong
   in `AGENTS.md`.
-- Write a prompt that names its files, asks for one step and ends in a check, and disclose an
-  agent's use in research.
+- Write a prompt that names its files, asks for one step and ends in a check, and size a
+  larger task by how it can be checked.
 :::
 
 ::: tryit
@@ -355,6 +355,63 @@ Paste only what you would be happy to publish. Web chats and agents send your te
 the vendor: no passwords, keys, unpublished data or personal information.
 :::
 
+## Vocabulary, specification, verification {#sec-three-skills}
+
+With an agent doing the typing, you will rarely write a theme's stylesheet, a slide deck's
+options or a PDF template by hand. What you need instead is three skills, and every chapter
+from here on teaches a format through them rather than through its syntax:
+
+1. **Vocabulary**: knowing what is possible and what it is called, so you can ask for it.
+   "Speaker notes", "a cross-reference", "a reference document for Word", "a parameter":
+   an agent can produce any of them, but only if you know to ask, and a name gets you the
+   real feature where a description gets an improvisation.
+2. **Specification**: writing a request the agent can carry out and you can check. It names
+   the files, the settings and the result, and it ends with a check. Rules that must hold in
+   every session, such as "every number comes from `outputs/`", go in `AGENTS.md`
+   (@sec-agents-md), so you state them once.
+3. **Verification**: knowing what good output looks like, and confirming it three ways. Read
+   the diff, to see what changed; inspect the render, as its reader would; and run the checks
+   that can run without you, such as tests and *guards*, lines that stop the render when a
+   sentence no longer matches the data (@sec-water-website).
+
+::: think
+An agent tells you it "added a citation style". Which of the three skills tells you whether
+it did what you needed?
+
+Verification: open the rendered reference list and compare one entry with the style's own
+example, and read the diff to see which setting changed. Vocabulary helped you ask for a
+*citation style* by name; only verification shows that it is the right one.
+:::
+
+## A step or a task? {#sec-step-or-task}
+
+This book's prompts mostly ask for one small step, because a small change is quick to check.
+Experienced readers will soon want to hand an agent a larger task: "add a model card", not
+five prompts that build one. Size the work by how it will be checked, not by how much typing
+it saves.
+
+| Hand over a larger task when | Keep to single steps when |
+|---|---|
+| you can state the finished result and how to check it | you will only know it is right when you see it |
+| the checks run without you: tests, guards, a render | each step needs your judgement before the next |
+| the work is on a branch, so undoing it is one command | the change touches data, publishing or other people's work |
+| a failure would be loud: a red test, a stopped render | a failure would be quiet: a plausible wrong sentence |
+
+: When to give an agent a larger task. {#tbl-step-or-task}
+
+A larger task needs a larger check. Ask for a short plan first and read it before the agent
+starts; have it work on a branch; require it to run the tests and render every output; and
+ask it to end by listing what it changed and anything it could not verify. Then review the
+whole change as you would a colleague's pull request, file by file, before it reaches the
+main line. The professional chapters show this at work: one prompt adds a whole report to an
+existing repository, and its checks are a test suite, a guard and a fresh-clone rebuild.
+
+::: practice
+When a larger task goes wrong, do not fix it with a longer conversation. Undo it
+(`git restore`, or delete the branch), split it into the steps whose checks failed, and ask
+for those one at a time.
+:::
+
 ## How to read the agent boxes {#sec-boxes}
 
 Every hands-on step in this book uses the same three-part box. Here is a simpler version of
@@ -440,16 +497,17 @@ exception for it, so when in doubt, disclose.
 ::: keyideas
 - The model decides, the harness does, and you direct and check; when an agent
   disappoints, either half can be the cause.
-- Choose a model by the task, not by rank: as the pelicans showed, a cheaper model at medium
-  effort is often enough for a small, well-specified step.
-- Cost grows with model size, effort and conversation length, because the whole conversation
-  is sent again each turn, so start a fresh conversation for each unrelated task.
+- Choose a model by the task, not by rank: a cheaper model at medium effort is often enough
+  for a small step, and since the whole conversation is sent again each turn, start a fresh
+  one for each unrelated task.
 - Start an agent only in a folder you created for the work, and read each command before
   you approve it.
 - Rules that must last go in `AGENTS.md`, which is context, not enforcement, so write them
   concretely enough to check.
 - Good prompts are specific, ask for one step and end in a check; in research the agent is
   never an author, and its use is disclosed.
+- Learn each format as vocabulary, specification and verification, and hand over a larger
+  task only when its checks can run without you.
 :::
 
 All of this assumes a computer on which an agent, Quarto and Python are installed and

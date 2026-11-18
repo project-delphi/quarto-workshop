@@ -466,4 +466,34 @@ The questions as asked:
 
 | Date | Package | Done | Deferred, and why |
 |---|---|---|---|
-| 2026-11-18 | Phase 1 | Read the sources, ran the baseline builds (all green), checked the review's findings, wrote this plan | Everything else waits for approval |
+| 2026-11-18 | Phase 1 | Read the sources, ran the baseline builds (all green), checked the review's findings, wrote this plan | — |
+| 2026-11-18 | WP0 (`revision/wp0-groundwork`) | `english_only` chapters (`book/scripts/chapter_list.py`, used by the profiles, roadmaps and Spanish landing page; roadmaps named after their part page); `translation/pending.yml` and `compare.py` reading pending files' English text at their commit; language-switch fallback to the other edition's home; CI workflow `.github/workflows/build.yml` (build and check only), run locally with `act` 0.2.98; README, `AGENTS.md` and `translation/PLAN.md` notes. English and Spanish HTML byte-identical to the published copies apart from sitemaps | The aliases spike was done in a scratch book instead (see §10); no rename needed now |
+| 2026-11-18 | WP1 (`revision/wp1-facts`) | `book/facts.yml`, `scripts/facts.py`, Appendix K *Facts That Change* (English-only), `scripts/thaw.py` (clears frozen pages that quote facts.yml when it changes, run by `make`); Chapter 2's prices and model names, Chapter 4's accounts and chats, the preface's cost note and Chapter 8's hosts' free plans now come from facts.yml; Claude Code's accounts rechecked (now lists Ultra); landing page reads facts.yml in English | — |
+| 2026-11-18 | WP4 (`revision/wp4-novice`, done before WP3 because it needs neither the example nor new chapters) | Glossary links at first use (`filters/glossary.lua`, both editions' formats, EPUBCheck clean); Chapter 4 defines VPN, proxy, API key, apt, curl, Homebrew, package manager; a low-cost route (Antigravity's free tier; API spending caps, each verified 2026-11-18); the test run's file shown with where each part is taught; eight glossary entries | Dev container section, waiting on its test |
+
+## 10. Verified while working (2026-11-18)
+
+Feature spikes in scratch folders, with Quarto 1.10.20 (Pandoc 3.10.0, Typst 0.15.1):
+
+- `_brand.yml` reaches HTML, Reveal.js, dashboards and Typst; **not** DOCX or PPTX, which still
+  need a `reference-doc` (both reference documents work; Word's heading colour also needs the
+  theme's `accent1`).
+- `-P`/`--execute-params` need **papermill** in the project's environment; `--output` and
+  `-M output-file:` name each parameterised output; papermill's injected cell is echoed unless
+  `echo: false`.
+- Reveal.js has **no built-in PDF export** in 1.10.20: print view (E key) and the browser, or
+  headless Chrome with `--run-all-compositor-stages-before-draw` on `?print-pdf`, which was
+  flaky (1 blank in 6), so a script must check the page count. Print options must be set in
+  YAML (`-M` is ignored).
+- APA in HTML, DOCX and Typst alike: `csl: apa.csl` with `citeproc: true` (without it Typst
+  formats the bibliography itself, with its own heading and title case).
+- `quarto render nb.ipynb` does not execute; `--execute` executes **and writes the outputs
+  back into the notebook**. `quarto convert` turns a notebook into a `.qmd`.
+- `aliases` work in a book: relative to the chapter's folder, `/` for the project root;
+  JavaScript-only redirects; ignored by EPUB.
+- Website search is on by default; `about:` templates work; `open-graph` needs `site-url`.
+
+Docs: quarto.org now documents Quarto 1.11.9; the book stays on 1.10.20, as installed, and
+every feature it teaches is rendered with 1.10.20. The UCI Bank Marketing dataset is CC BY 4.0
+(45,211 rows; DOIs 10.24432/C5K306 and 10.1016/j.dss.2014.03.001), and its `duration` column
+leaks the target.
