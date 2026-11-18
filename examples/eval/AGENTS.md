@@ -18,8 +18,22 @@ are real; `data/synthetic_business.csv` is SYNTHETIC and must be labelled so whe
   from `acme_eval.claims.claim` in the cell before it, so the render stops if it becomes false.
 - `duration` is known only after the call: no model may use it.
 - Cite sources from `references.bib` with `[@key]`; verify each entry at its DOI or URL.
-- `outputs/`, `.venv/` and rendered files (`*.html`, `*.docx`, `*.pdf`, `*_files/`) are never
-  committed.
+- `outputs/`, `.venv/` and rendered files (`*.html`, `*.docx`, `*.pdf`, `*.pptx`, `*_files/`)
+  are never committed; `templates/acme-reference.pptx` is a source file and is.
+
+## Deck rules (`slides.qmd`)
+
+- One claim per slide, and the slide's title states it. A number in a title is computed
+  (inline `{python}`), and the title's wording gets a `claim` guard like any sentence.
+- Detail goes in the speaker notes (`::: {.notes}`), on every slide; the slide keeps the claim
+  and its evidence. The title slide's notes go before the first `##` heading.
+- The last slide says what is decided.
+- Figures are static matplotlib images with `fig-alt`, in the report's colour-blind-safe
+  palette: PowerPoint cannot run JavaScript.
+- Colours and fonts live in `acme.scss`; `tests/test_deck_contrast.py` checks that the body, heading, link and muted text colours have WCAG contrast of at least 4.5:1 on the background. Change a colour there and in
+  `scripts/make_pptx_reference.py` together.
+- The PowerPoint deck uses `templates/acme-reference.pptx` as its `reference-doc`. Remake it
+  with `uv run python scripts/make_pptx_reference.py`; never edit it by hand.
 
 ## Commands
 
@@ -30,3 +44,6 @@ The Python environment is `pyproject.toml` and `uv.lock`. Run `python`, `pytest`
 - `uv run pytest -q`
 - `uv run quarto render report.qmd` and `uv run quarto render model-card.qmd` (html, docx
   and pdf each)
+- `uv run quarto render slides.qmd` (revealjs and pptx), then
+  `uv run python scripts/pptx_alt_text.py` (alt text for the pptx figures) and
+  `uv run python scripts/deck_pdf.py` (slides.pdf, checked page by page)
