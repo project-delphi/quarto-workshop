@@ -167,3 +167,20 @@ One file at a time in the order of §1; after each, a pass against `glossary.md`
 the chapter that needed them. I translate sequentially myself; sub-agents could translate
 files in parallel against the glossary, at the cost of more uneven voice. Lines must not start
 with `@label.` after rewrapping (it becomes an example list; `make` checks for it).
+
+## 8. Not yet translated (the 2026-11 revision)
+
+The revision for professional and start-up readers (`REVISION-PLAN.md`) was written in English
+first, at the author's request, without translating it. Two mechanisms keep the Spanish edition
+building and checked meanwhile:
+
+- **New files** (chapters, part pages, appendices) are listed in `book/_chapters.yml` under
+  `english_only`. `book/scripts/chapter_list.py` leaves them out of the Spanish edition's
+  profiles, roadmaps and landing page, and `scripts/lang_switch.py` points their EN | ES switch
+  at the Spanish home page.
+- **Changed files** are listed in `translation/pending.yml` with the commit their Spanish twin
+  matches; `compare.py` compares the twin with the English text of that commit.
+
+To translate one: translate the file (or the changed sections, `git diff <commit> -- book/<file>`),
+remove its line from `pending.yml` or its entry from `english_only`, and run `make book-es`.
+The list of what waits is kept in `REVISION-PLAN.md`, "For the Spanish edition".

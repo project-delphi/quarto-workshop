@@ -277,7 +277,10 @@ the glossary and the checks. Keep these rules:
 - Translate prose, captions, alt text, prompts and on-page strings; keep code, IDs, labels,
   URLs and literals. `python3 translation/compare.py` must report no mismatches, and lists every
   changed code string in `translation/code-strings.md`; `translation/lint.py` checks the glossary.
-- When an English chapter changes, change its Spanish twin in the same branch. Shared scripts
+- When an English chapter changes, change its Spanish twin in the same branch. Exception, the
+  2026-11 revision (`REVISION-PLAN.md`): the author asked for it in English first, so new files
+  are listed under `english_only` in `book/_chapters.yml` and changed ones in
+  `translation/pending.yml` (`translation/PLAN.md`, section 8) until they are translated. Shared scripts
   take their words from the document's `lang` (`scripts/prose.py`, `figures.py`, `scenes.py`,
   `water.py`, `filters/book.lua`, `epub_postprocess.py`); English output must not change.
 - The Spanish EPUB passes EPUBCheck like the English one, and `translation/english_scan.py`

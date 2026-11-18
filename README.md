@@ -251,6 +251,19 @@ quotes is no longer in the book.
 - Render the whole project, inspect every changed slide at 1280 × 720, 1366 × 768 and
   1440 × 1000, check links between both decks, and run `git diff --check`.
 
+### Checks in CI
+
+`.github/workflows/build.yml` runs on every pull request and on pushes to `main`: from a clean
+clone it builds both book editions (`make book`, `make book-es`, with EPUBCheck and the link,
+scene and translation checks), renders the decks and landing pages, runs `make ebook-check`,
+and checks the change for whitespace errors. It builds and checks only: it never publishes or
+pushes. It installs the deck's Python packages with uv rather than conda, so its deck output can
+differ in detail from a local `make deck`; the committed `docs/` still comes from a local build.
+To run it locally, install [`act`](https://github.com/nektos/act) and Docker, then
+`act workflow_dispatch -W .github/workflows/build.yml -P ubuntu-24.04=catthehacker/ubuntu:act-24.04`
+(add `--container-architecture linux/arm64` on Apple silicon); the landing-page step, which needs
+Google Chrome, is skipped there.
+
 Re-render and include `docs/` alongside source edits. Do not hand-edit generated HTML or switch
 this repository to `quarto publish gh-pages` (participants use that command for their own
 repositories). A failed clean render can remove existing output; fix the failure and complete a

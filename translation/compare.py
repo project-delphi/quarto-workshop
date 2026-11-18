@@ -15,6 +15,11 @@ For every pair (same relative path) it checks what must not change in a translat
   shortcodes and inline `{python}` expressions; other inline code is compared as a multiset
   and reported as a warning.
 
+An English file that has changed since its Spanish twin was translated, while that
+translation waits (translation/pending.yml), is compared as it was at the commit the twin
+was translated from, read with `git show`, so the check still holds the translation to its
+original and the Spanish build stays green until the new text is translated.
+
 Run from the repository root:  python3 translation/compare.py [files...]
 With no arguments it compares every Spanish file that exists.
 """
@@ -22,6 +27,7 @@ from __future__ import annotations
 
 import io
 import re
+import subprocess
 import sys
 import tokenize
 from collections import Counter
@@ -30,6 +36,32 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EN, ES = ROOT / "book", ROOT / "book-es"
 REPORT = ROOT / "translation" / "code-strings.md"
+PENDING = ROOT / "translation" / "pending.yml"
+
+
+def pending() -> dict[str, str]:
+    """English files (relative to book/) waiting for translation, each with the commit its
+    Spanish twin matches. A small parser, so that this script needs only the standard library:
+    the file is `  rel/path.qmd: <commit>` lines under `files:`."""
+    if not PENDING.exists():
+        return {}
+    out = {}
+    for line in PENDING.read_text().splitlines():
+        m = re.match(r"^\s+([\w./-]+\.qmd):\s*([0-9a-f]{7,40})\s*(#.*)?$", line)
+        if m:
+            out[m.group(1)] = m.group(2)
+    return out
+
+
+PENDING_FILES = pending()
+
+
+def english(rel: str) -> str:
+    """The English original of book/<rel>: as it is, or as it was at its pending commit."""
+    if rel in PENDING_FILES:
+        return subprocess.run(["git", "show", f"{PENDING_FILES[rel]}:book/{rel}"], cwd=ROOT,
+                              check=True, capture_output=True, text=True).stdout
+    return (EN / rel).read_text()
 CAPTION_OPTIONS = {"fig-cap", "fig-alt", "tbl-cap", "fig-subcap", "lst-cap", "tbl-subcap"}
 FENCE = re.compile(r"^(\s*)(`{3,}|~{3,})(.*)$")
 HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*(\{[^}]*\})?\s*$")
@@ -136,7 +168,10 @@ def repeated_auto_ids() -> set[str]:
     seen, explicit = Counter(), set()
     for pattern in ("*.qmd", "chapters/*.qmd", "appendices/*.qmd"):
         for path in EN.glob(pattern):
-            blocks_ = [b[1] for b in blocks(path.read_text()) if b[0] == "prose"]
+            rel = path.relative_to(EN).as_posix()
+            if not (ES / rel).exists():
+                continue  # not translated yet (english_only): the Spanish edition lacks it
+            blocks_ = [b[1] for b in blocks(english(rel)) if b[0] == "prose"]
             for text in blocks_:
                 explicit |= set(ID.findall(" ".join(re.findall(r"\{[^{}\n]*\}", text))))
                 for line in text.split("\n"):
@@ -183,7 +218,7 @@ EXCEPTIONS = {
 
 
 def compare(rel: str, strings: list) -> tuple[list[str], list[str]]:
-    en, es = (EN / rel).read_text(), (ES / rel).read_text()
+    en, es = english(rel), (ES / rel).read_text()
     be, bs = blocks(en), blocks(es)
     errors, warnings = [], []
     fe = [b for b in be if b[0] == "fence"]
@@ -283,7 +318,8 @@ def main(args: list[str]) -> int:
             failed += 1
             continue
         errors, warnings = compare(rel, strings)
-        status = "ok" if not errors else "MISMATCH"
+        status = ("ok" if not errors else "MISMATCH") + (
+            f" (against {PENDING_FILES[rel]}, translation pending)" if rel in PENDING_FILES else "")
         print(f"{rel}: {status}" + (f" ({len(warnings)} warning)" if warnings else ""))
         for e in errors:
             print(f"  error: {e}")
