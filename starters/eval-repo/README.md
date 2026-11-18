@@ -48,7 +48,7 @@ uv run --with jupyter jupyter lab notebooks/explore.ipynb
 - `segments.csv`: metrics by age band and by `job`, with group sizes.
 - `calibration.csv`: mean predicted probability and observed rate in ten equal-count bins.
 - `curves.csv`: ROC and precision-recall points for plotting.
-- `summary.json`: the best version by ROC AUC, the test-set size, the base rate, the split
-  seed, the data checksum and the package versions.
+- `summary.json`: the best version by ROC AUC, the test-set size, the base rate, the
+  releases evaluated, the seeds, the data checksum and the package versions.
 
 `outputs/` is computed, so it is not committed: rerun the script to rebuild it.

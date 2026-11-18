@@ -31,7 +31,8 @@ def evaluate() -> None:
 
     tables: dict[str, list[pd.DataFrame]] = {
         "metrics": [], "segments": [], "calibration": [], "curves": []}
-    for release in models.load_releases():
+    releases = models.load_releases()
+    for release in releases:
         pipeline = models.build(release)
         pipeline.fit(train[release.features], train[data.TARGET])
         scores = pipeline.predict_proba(test[release.features])[:, 1]
@@ -53,10 +54,11 @@ def evaluate() -> None:
         table = table[[c for c in first if c in table] + [c for c in table if c not in first]]
         table.round(DECIMALS).to_csv(OUTPUTS / f"{name}.csv", index=False)
 
-    write_summary(train, test, pd.concat(tables["metrics"], ignore_index=True))
+    write_summary(train, test, pd.concat(tables["metrics"], ignore_index=True), releases)
 
 
-def write_summary(train: pd.DataFrame, test: pd.DataFrame, scored: pd.DataFrame) -> None:
+def write_summary(train: pd.DataFrame, test: pd.DataFrame, scored: pd.DataFrame,
+                  releases: list[models.Release]) -> None:
     """Write the headline numbers and the settings that produced them."""
     auc = scored[scored["metric"] == "roc_auc"].set_index("version")
     best = auc["value"].idxmax()
@@ -81,6 +83,9 @@ def write_summary(train: pd.DataFrame, test: pd.DataFrame, scored: pd.DataFrame)
         "bootstrap_seed": metrics.BOOTSTRAP_SEED,
         "confidence": metrics.CONFIDENCE,
         "age_edges": data.AGE_EDGES,
+        "releases": [{"version": r.version, "month": r.month, "model": r.model,
+                      "n_features": len(r.features), "description": r.description}
+                     for r in releases],
         "data_file": str(data.DATA_PATH),
         "data_sha256": data.sha256(),
         "packages": {"python": platform.python_version(),
