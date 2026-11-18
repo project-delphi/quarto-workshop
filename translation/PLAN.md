@@ -184,4 +184,3 @@ building and checked meanwhile:
 To translate one: translate the file (or the changed sections, `git diff <commit> -- book/<file>`),
 remove its line from `pending.yml` or its entry from `english_only`, and run `make book-es`.
 The list of what waits is kept in `REVISION-PLAN.md`, "For the Spanish edition".
-

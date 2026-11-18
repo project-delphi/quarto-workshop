@@ -469,7 +469,63 @@ The questions as asked:
 | 2026-11-18 | Phase 1 | Read the sources, ran the baseline builds (all green), checked the review's findings, wrote this plan | — |
 | 2026-11-18 | WP0 (`revision/wp0-groundwork`) | `english_only` chapters (`book/scripts/chapter_list.py`, used by the profiles, roadmaps and Spanish landing page; roadmaps named after their part page); `translation/pending.yml` and `compare.py` reading pending files' English text at their commit; language-switch fallback to the other edition's home; CI workflow `.github/workflows/build.yml` (build and check only), run locally with `act` 0.2.98; README, `AGENTS.md` and `translation/PLAN.md` notes. English and Spanish HTML byte-identical to the published copies apart from sitemaps | The aliases spike was done in a scratch book instead (see §10); no rename needed now |
 | 2026-11-18 | WP1 (`revision/wp1-facts`) | `book/facts.yml`, `scripts/facts.py`, Appendix K *Facts That Change* (English-only), `scripts/thaw.py` (clears frozen pages that quote facts.yml when it changes, run by `make`); Chapter 2's prices and model names, Chapter 4's accounts and chats, the preface's cost note and Chapter 8's hosts' free plans now come from facts.yml; Claude Code's accounts rechecked (now lists Ultra); landing page reads facts.yml in English | — |
-| 2026-11-18 | WP4 (`revision/wp4-novice`, done before WP3 because it needs neither the example nor new chapters) | Glossary links at first use (`filters/glossary.lua`, both editions' formats, EPUBCheck clean); Chapter 4 defines VPN, proxy, API key, apt, curl, Homebrew, package manager; a low-cost route (Antigravity's free tier; API spending caps, each verified 2026-11-18); the test run's file shown with where each part is taught; eight glossary entries | Dev container section, waiting on its test |
+| 2026-11-18 | WP4 (`revision/wp4-novice`, done before WP3 because it needs neither the example nor new chapters) | Glossary links at first use (`filters/glossary.lua`, both editions' formats, EPUBCheck clean); Chapter 4 defines VPN, proxy, API key, apt, curl, Homebrew, package manager; a low-cost route (Antigravity's free tier; API spending caps, each verified 2026-11-18); the test run's file shown with where each part is taught; `.devcontainer/` (Quarto 1.10.20, uv 0.11.32, gh; built and tested locally with the Dev Containers CLI 0.90.0 on arm64: tools present, the first report and the test run render) and a codespace section in Chapter 4 and Appendix A; ten glossary entries | A codespace on GitHub itself, and an amd64 build, were not tested |
+| 2026-11-18 | WP2a (`revision/wp2-front-matter`) | Chapter 1 opens on professional and start-up reports and says where a start-up should keep other tools; Chapter 2 gains "Vocabulary, specification, verification" and "A step or a task?" | The preface waited for the new chapters (WP2b) |
+| 2026-11-18 | WP3 (`revision/wp3-fast-path`) | `starters/eval-repo/` (Acme Signals, fictional; UCI Bank Marketing, CC BY 4.0; tests, a notebook, no Quarto), `checkpoints/14-eval-start/`, `checkpoints/15-eval-results/`, `examples/eval/` (deterministic outputs; 21 tests); Chapter 3, The Fast Path, every prompt dry-run verbatim by a fresh agent in a copy of the starter (8 minutes of agent time; three formats agree; fresh clone agrees); `scripts/evaluation.py` runs the example in its own locked environment; `thaw.py` re-runs pages when the example changes; Part I's two routes; roadmap alt text and Appendix I's agenda now computed (they had typed chapter numbers already out of date) | The pull-request step (`gh repo create`, `git push`, `gh pr create`) was checked against `gh --help` but not run: it needs your GitHub account (see below) |
+| 2026-11-18 | WP5 (`revision/wp5-results`) | Part III, The Craft of Outputs, and its first chapter, One Set of Results: compute once and three kinds of check; a model card as a larger task with a plan first; numbered sections and references; a changed setting to predict and rebuild. Prompts dry-run from checkpoint 14; the dry run found "top 10%" typed in our own checkpoint's labels and captions, now computed or guarded. The water analysis is named instead of numbered (it is Part IV). Sources, copyright, glossary and checkpoints appendices updated | — |
+| 2026-11-18 | WP2b (`revision/wp2b-preface`) | The preface names its readers, the start-up fit and limits, Python-only; reading paths by role (@tbl-reading-paths); three running examples; the landing page's audience copy, pills and project cards (found by page, after the craft part moved the water analysis); `make book-html` fails on an unresolved cross-reference | A landing-page card for the evaluation project needs its own media (`make ebook-media`); deferred |
+
+### Milestone (WP0–WP5): stopped here for review, as agreed
+
+Checks on the final state (`revision/wp2b-preface`):
+
+- `make book`: EPUBCheck 0 fatals / 0 errors / 0 warnings / 0 infos; 7 live links, 0 broken;
+  5 scenes, 0 different. `make book-shots`: 0 sideways elements; new chapters checked by eye at
+  phone width.
+- `make book-es`: EPUBCheck clean; 36 files compared, 0 mismatches; glossary lint clean; 0 English
+  sentences.
+- `make deck`; `make ebook-check` and `make ebook-check EDITION=es`: all checks passed (the
+  standing note that the release EPUB is older than the committed one remains; the author
+  runs `make book-release`). Lighthouse 12.2.1, mobile, on the landing page: performance 99,
+  accessibility 100, best practices 100, SEO 100.
+- CI workflow run locally with `act` (arm64): every step passes; the landing-page step is
+  skipped there because it needs Chrome.
+
+Branches, each stacked on the one before (merge in this order): `revision/wp0-groundwork`,
+`revision/wp1-facts`, `revision/wp4-novice`, `revision/wp2-front-matter`,
+`revision/wp3-fast-path`, `revision/wp5-results`, `revision/wp2b-preface`. Nothing is pushed.
+
+### Not verified, and why
+
+- **The pull-request step of the fast path** needs a GitHub account and pushes to it; this
+  repository's rules hand such pushes to the author. The commands were checked against
+  `gh repo create --help` and `gh pr create --help` (gh 2.69.0). To test: run the fast path's
+  "Review it as a pull request" box once in a private test repository.
+- **Codespaces itself**: the dev container was built and checked locally on arm64; GitHub's
+  amd64 codespace, its port forwarding and its token were not.
+- **Prompts in Codex and Antigravity**: dry runs used Claude Code (Opus 5.5) only, as the book
+  says of its screens.
+- **Word alt text**: Quarto 1.10.20 does not carry `fig-alt` into Word pictures' descriptions
+  (seen in both dry runs); the chapter says so, but no workaround is automated.
+
+### For the Spanish edition (to translate)
+
+New, English-only (`book/_chapters.yml`, `english_only`): `chapters/fast-path.qmd`,
+`part-craft.qmd`, `chapters/results.qmd`, `appendices/k-facts.qmd`. Changed, waiting
+(`translation/pending.yml`): the preface, Chapters 1–4 and 8 (01–03, 07), the setup and
+first-chapter references in 08, 04, 05, 09, 10, 12 and the water exercises, Appendices A, E, G, I
+and J, the copyright page, the afterword and the three part pages. `facts.yml` texts are English;
+the Spanish landing page still reads its own preface and setup chapter.
+
+### Remaining work packages (after review)
+
+WP6 slides, WP7 sites and brand, WP8 white papers and references, WP9 parameters (with the
+investor update and the educator case; papermill needed), WP10 team workflow and CI for readers'
+projects, WP11 at work and in a start-up (vendor data-use facts are already verified in the
+scratch research and will go into `facts.yml`), WP12 afterword projects, WP13 the workshop
+pointer slide, WP14 the Spanish to-do in `translation/PLAN.md`, and optional WP15 (file renames
+with aliases, which the spike showed work as JavaScript redirects) and WP16 (guards for Part V's
+typed prompt values).
 
 ## 10. Verified while working (2026-11-18)
 
@@ -497,4 +553,3 @@ Docs: quarto.org now documents Quarto 1.11.9; the book stays on 1.10.20, as inst
 every feature it teaches is rendered with 1.10.20. The UCI Bank Marketing dataset is CC BY 4.0
 (45,211 rows; DOIs 10.24432/C5K306 and 10.1016/j.dss.2014.03.001), and its `duration` column
 leaks the target.
-
