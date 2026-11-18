@@ -497,4 +497,3 @@ Docs: quarto.org now documents Quarto 1.11.9; the book stays on 1.10.20, as inst
 every feature it teaches is rendered with 1.10.20. The UCI Bank Marketing dataset is CC BY 4.0
 (45,211 rows; DOIs 10.24432/C5K306 and 10.1016/j.dss.2014.03.001), and its `duration` column
 leaks the target.
-
