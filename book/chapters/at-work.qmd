@@ -1,0 +1,157 @@
+# At Work and in a Start-up {#sec-at-work}
+
+```{python}
+#| label: at-work-setup
+# Vendors' data terms, networks and hosting: dated facts from facts.yml (Appendix K).
+from scripts.facts import checked, fact
+
+
+def says(key: str) -> str:
+    """A fact as a sentence of its own, for a table cell."""
+    text = fact(key)
+    return f"{text[0].upper()}{text[1:]}."
+```
+
+Everything so far has used public data on a computer you control. Work is rarely like that.
+The data are confidential, the tools must be approved, the network sits behind a proxy, and
+the documents must look like the organisation's. None of this changes the method; it changes
+what you may send to an agent, which agent, how its traffic leaves the building, and which
+templates the outputs wear. This chapter is the short, practical version, and it ends with the
+case the book has followed throughout: a small company with investors.
+
+::: opener
+- Say what leaves your computer when an agent works, and what each kind of plan does with it.
+- Work on confidential data without sending it to an unapproved tool.
+- Make the tools work behind a proxy, and know what a locked-down machine allows.
+- Fit outputs to an organisation's templates and brand, and decide what a start-up should and
+  should not build this way.
+:::
+
+## What leaves your computer {#sec-at-work-flow}
+
+An agent's model runs on the vendor's servers (@sec-model-harness). So whatever the agent
+reads, a file, a command's output, an error message with a customer's name in it, goes there
+with your prompt. Quarto, Python and Git send nothing anywhere; the agent is the one part of the
+method that does. What happens to it then depends on the plan, not the product:
+
+| Plan | What the vendor says |
+|---|---|
+| Claude, consumer | `{python} says("data.anthropic_consumer")` |
+| Claude, commercial | `{python} says("data.anthropic_commercial")` |
+| OpenAI API | `{python} says("data.openai_api")` |
+| ChatGPT business | `{python} says("data.openai_business")` |
+| Codex | `{python} says("data.codex_signin")` |
+| Antigravity | `{python} says("data.antigravity_terms")` |
+
+: What the vendors say they do with what their agents send, by plan, checked `{python} checked("data.anthropic_commercial")`. The terms change: @sec-facts keeps the current ones, with their sources. {#tbl-at-work-data}
+
+Two facts follow. A personal plan and a company plan of the same agent are different
+arrangements, so ask which one you are on before the first confidential file. And the copy on
+your own machine counts too: `{python} fact("data.claude_local")`, which matters on a shared or
+managed computer.
+
+## Confidential data {#sec-at-work-confidential}
+
+Customer records, payroll, unpublished results, patient or student data, a start-up's revenue
+and its investors' names are not yours to send anywhere you like. Four habits keep the method
+safe with them:
+
+1. **Read the policy first.** Your organisation's AI and data policy says which tools and plans
+   may see which data. If it is silent, ask whoever owns the data, in writing.
+2. **Build on a stand-in.** Make a synthetic file with the same columns and types as the real
+   one, labelled SYNTHETIC in its name and README, as the feedback sheets of
+   @sec-params-feedback do. Let the agent build and test every document against it.
+3. **Render the real thing yourself.** Swap in the real file, without the agent, and render. The
+   agent never reads it, never sees its values in an error, and never puts them in a transcript.
+4. **Keep it out of the history and off public hosts.** List the real file in `.gitignore`,
+   keep the repository private, and publish where your organisation approves:
+   `{python} fact("github.pages_private")` (checked `{python} checked("github.pages_private")`).
+
+::: pitfall
+"Do not paste it" is not enough. An agent can read a file you never mentioned, if a command it
+runs prints it, or a test it writes loads it. Keep real confidential files out of the agent's
+folder altogether until the agent's work is done, and add a rule to `AGENTS.md` that names the
+file and forbids reading it, as a reminder that is not a guarantee.
+:::
+
+## Approved tools and locked-down machines {#sec-at-work-locked}
+
+Many organisations approve one agent, on a company plan, and manage its settings centrally. Claude
+Code, for one, reads a *managed settings* file that an administrator installs and that no user
+setting can override; it can forbid commands, such as pushing or downloading, outright. Ask
+what your organisation has set before you wonder why a command is refused.
+
+A machine where you cannot install software at all still has a route: the browser-based
+environment of @sec-codespace, where your organisation allows GitHub, or a development server
+your IT team provides. The method needs only a terminal, Quarto, uv, Git and an approved agent;
+where any of them is missing, say so to IT in those words, because "I need Quarto 1.10 and uv"
+is a request they can act on.
+
+## Behind a proxy {#sec-at-work-proxy}
+
+Company networks often send traffic through a *proxy* (@sec-setup), and sometimes inspect
+encrypted traffic with the company's own certificate. Both break downloads in ways that look like
+the tools' fault. The settings that fix them are environment variables, set once in your shell:
+
+| Tool | Proxy | Company certificate |
+|---|---|---|
+| uv (Python and packages) | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY` | `UV_SYSTEM_CERTS=1` to use the system's store, or `SSL_CERT_FILE` naming a bundle |
+| Claude Code | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY`; no SOCKS proxies | the system's store, or `NODE_EXTRA_CA_CERTS` naming a bundle |
+
+: Proxy and certificate settings, from uv's and Claude Code's documentation (checked 2026-11-18). {#tbl-at-work-proxy}
+
+Quarto's own documentation says nothing about proxies (checked 2026-11-18); Quarto itself needs
+the network only to install, and the Python it runs comes through uv. If a download still fails,
+ask IT to allow the hosts the tools reach, which Claude Code's network page lists, rather than
+turning certificate checks off.
+
+## House templates and brand rules {#sec-at-work-templates}
+
+An organisation's Word and PowerPoint templates become reference documents (@sec-slides-pptx,
+@sec-sites-templates): ask for the `.dotx` or `.potx` the company uses, save it as a `.docx` or
+`.pptx`, and check that its PowerPoint layouts carry the names Quarto looks for. Its brand
+guidelines become `_brand.yml` (@sec-sites-brand): the colours, the fonts the company licenses,
+and the logo with its alt text. A legal footer or a confidentiality notice becomes a page footer
+or a Typst partial (@sec-wp-template), written once. And an accessibility standard, which many
+organisations have adopted, becomes a check that runs on every page (@sec-sites-checks).
+
+## In a start-up {#sec-at-work-startup}
+
+A start-up has the same constraints with fewer people, and one more reader: the investor. The
+method pays where numbers change and readers check them: the monthly investor update
+(@sec-parameters), the benchmark or evaluation white paper (@sec-white-papers), per-customer
+reports, and a documentation site. It pays less where design or co-editing dominates, and those
+can stay in the tools made for them (@sec-wrong-tool).
+
+Investors' data needs the care of any confidential data: revenue, the cap table and customers'
+names belong in a private repository, built by the agent on synthetic stand-ins and rendered
+for real by you, and sent as a PDF or through a data room, not published. The habit that matters
+most is the cheapest: every number in an update is computed and every sentence about it guarded,
+so the wrong figure that would cost a founder credibility stops the render instead of reaching
+an inbox.
+
+## Summary {.unnumbered}
+
+::: keyideas
+- The agent is the one part of the method that sends anything off your computer, and the plan,
+  not the product, decides what the vendor does with it.
+- Build on a synthetic stand-in with the same columns, and render the real data yourself.
+- Keep confidential files out of the agent's folder, out of Git and off public hosts.
+- Behind a proxy, set the proxy and certificate variables for uv and the agent; do not turn
+  checks off.
+- An organisation's templates, brand, footers and accessibility rules each have a home in the
+  project: reference documents, `_brand.yml`, partials and checks.
+:::
+
+## Further reading {.unnumbered}
+
+- Anthropic, [Claude Code data usage](https://code.claude.com/docs/en/data-usage),
+  [network configuration](https://code.claude.com/docs/en/network-config) and
+  [managed settings](https://code.claude.com/docs/en/settings) (checked 2026-11-18).
+- OpenAI, [Your data](https://developers.openai.com/api/docs/guides/your-data) (checked
+  2026-11-18).
+- Astral, [uv environment variables](https://docs.astral.sh/uv/reference/environment/) and
+  [certificates](https://docs.astral.sh/uv/concepts/authentication/certificates/) (checked
+  2026-11-18).
+- GitHub, [plans](https://docs.github.com/en/get-started/learning-about-github/githubs-plans)
+  (checked 2026-11-18).
