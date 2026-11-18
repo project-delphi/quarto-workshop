@@ -39,6 +39,13 @@ INPUTS = {
                                         "../checkpoints/18-eval-whitepaper/model-card.qmd",
                                         "../checkpoints/18-eval-whitepaper/references.bib"],
                                        ("18-eval-whitepaper",)),
+    "checkpoints/19-eval-params": (["../checkpoints/19-eval-params/update.qmd",
+                                    "../checkpoints/19-eval-params/segment.qmd",
+                                    "../checkpoints/19-eval-params/data",
+                                    "../checkpoints/19-eval-params/src/acme_eval/params.py",
+                                    "../examples/feedback/feedback.qmd",
+                                    "../examples/feedback/data"],
+                                   ("19-eval-params",)),
 }
 
 

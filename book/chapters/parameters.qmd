@@ -1,0 +1,217 @@
+# Reports That Run Themselves {#sec-parameters}
+
+```{python}
+#| label: params-setup
+# The parameterised documents as this chapter leaves them (checkpoint 19, and the feedback
+# example), read from their files: their parameters and defaults, and the values a run renders.
+import csv
+import re
+
+from scripts import evaluation as ev
+from scripts.prose import number_words, text_holds
+
+ROOT = ev.PROJECT.parents[1]
+CHECKPOINT = ROOT / "checkpoints" / "19-eval-params"
+FEEDBACK = ROOT / "examples" / "feedback"
+WORD = number_words()
+
+
+def parameters(path) -> dict:
+    """The defaults in a document's cell tagged `parameters`."""
+    text = path.read_text()
+    cell = re.search(r"```\{python\}\n#\| tags: \[parameters\]\n(.*?)```", text, re.S).group(1)
+    return dict(re.findall(r'^(\w+)\s*=\s*"([^"]*)"', cell, re.M))
+
+
+update, segment, sheet = (parameters(CHECKPOINT / "update.qmd"), parameters(CHECKPOINT / "segment.qmd"),
+                          parameters(FEEDBACK / "feedback.qmd"))
+with open(CHECKPOINT / "data" / "synthetic_business.csv", newline="") as f:
+    months = [row["month"] for row in csv.DictReader(f)]
+with open(FEEDBACK / "data" / "gradebook.csv", newline="") as f:
+    sections = sorted({row["section"] for row in csv.DictReader(f)})
+bands = sorted(set(ev.segments().query("factor == 'age_band'")["segment"]))
+n_files = 3 * (len(months) + len(bands))
+text_holds(update.get("month") == "latest", "update.qmd's default month, \"latest\"")
+FEW = int(re.search(r"^FEW_SUBSCRIBERS = (\d+)", (CHECKPOINT / "src" / "acme_eval" / "params.py").read_text(), re.M).group(1))
+# Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5), in copies of
+# checkpoint 18 and of the feedback example's data, on 2026-11-18; the pitfalls are the ones
+# those runs, and the build of the finished documents, met.
+```
+
+Much of what an organisation publishes is the same document with different numbers: the
+monthly update for investors, one report per customer, region, team or model, a feedback sheet
+for every class. Built by hand, each copy is a chance to paste last month's figure into this
+month's file. Built from one source with a *parameter*, a value given at render time, each
+copy is the same tested document run on a different value, and a script can make every one of
+them and check it.
+
+This chapter makes three: Acme's monthly investor update, a one-page report for each customer
+segment, and, for teachers, a feedback sheet for each section of a course. The update carries
+the company's business figures, which in this book are synthetic and labelled so on every
+number; the model's figures beside them are the real evaluation's.
+
+::: opener
+- Explain what a parameter is, where its default lives, and how a value is passed at render
+  time.
+- Ask for a parameterised document that validates its value and chooses its value-dependent
+  words by code, with guards.
+- Render one document for every value with a script that names and checks each output.
+- Say where the outputs of a parameterised document land in a website project, and why.
+
+Start from
+: your `acme-eval` repository at the end of @sec-white-papers, or
+  `checkpoints/18-eval-whitepaper/`; for the educator's case, `examples/feedback/` without its
+  `feedback.qmd`.
+
+You build
+: `update.qmd`, `segment.qmd` and a script that renders every month and segment; a feedback
+  sheet for every section.
+
+Checkpoint
+: `checkpoints/19-eval-params/`, and `examples/feedback/`
+:::
+
+## One document, many values {#sec-params-vocab}
+
+| Ask for | Quarto calls it | Check |
+|---|---|---|
+| a value set at render time, with a default | a cell tagged `parameters`, `#| tags: [parameters]` | the defaults render on their own |
+| this value, now | `quarto render update.qmd -P month:2026-06` | the output shows that month |
+| many values from a file | `--execute-params params.yml` | each value reaches the document |
+| an output named by its value | `-M output-file:update-2026-06` | one file per value, none overwritten |
+| the engine that injects the values | papermill, in the project's environment | without it the render stops |
+
+: Parameters, and what each is called (Quarto 1.10.20, Jupyter engine). {#tbl-params-vocab}
+
+The defaults are part of the document: the finished update's `month` defaults to
+"`{python} update["month"]`", which it reads as the last month in its data, so its default
+never goes stale; the segment report defaults to `{python} segment["factor"]` `{python} segment["segment"]`,
+and the feedback sheet to section `{python} sheet["section"]`. Passing `-P month:2026-06`
+replaces a default for one render: Quarto adds a cell after the parameters cell that sets the
+new value, and the document runs as before. That cell is executed through *papermill*, a
+Python package the project must have: without it, a render with `-P` stops with "The
+papermill package is required for processing --execute-params".
+
+Two rules make a parameterised document safe. **Validate the value**: a month or a segment that
+is not in the data should stop the render with a message that lists the valid ones, not
+produce a report about nothing. **Let code choose every word that depends on the value**, and
+guard it: "up" or "down", "above" or "below", "the first month in the data, so no change".
+A document rendered for a dozen values is a dozen chances for a typed word to be wrong.
+
+## The investor update {#sec-params-update}
+
+::: {.prompt .long}
+```default
+Add papermill with `uv add papermill`, then create update.qmd, a monthly investor update parameterised by `month` (a cell tagged `parameters` whose default is "latest", meaning the last month in data/synthetic_business.csv): that month's business figures, each labelled synthetic, the release live that month and its real model metrics from outputs/, and the change from the month before with its wording chosen by code and guarded. Stop with a clear message if the month is not in the data. Formats html, docx and typst; render it for 2026-06 with `-P month:2026-06` and tell me where the files went.
+```
+:::
+
+::: {.agent}
+`uv add papermill` · writes `update.qmd` · `uv run quarto render update.qmd -P month:2026-06`
+:::
+
+Check it as an investor would, and as an auditor would. Every business figure says it is
+synthetic, here; in your own update, every figure names its source. The model's figures come
+from `outputs/` and are the real evaluation's. A month before the first release says so, rather
+than inventing a model figure. And a month that is not in the data stops the render: try
+`-P month:2027-01`.
+
+::: pitfall
+Where the files went is the trap. The project is a website, but the update is not in its
+`render` list, and should not be: a site page shows one value, and an investor update is not a
+public page. So Quarto renders it as a single file, beside its source, not in `_site/`, and
+the site's post-render steps do not run for it. In the test run, `--output-dir reports` was
+refused for such a file, and `--output` accepted a file name but not a folder, so the script
+below moves each file into `reports/` itself.
+:::
+
+## One report per segment {#sec-params-segment}
+
+The same pattern makes the per-customer, per-region or per-team report: one document, one
+parameter per dimension.
+
+::: {.prompt}
+```default
+Create segment.qmd: a one-page report for one customer segment, parameterised by `factor` (age_band or job) and `segment` (default 60+), with the best release's metrics for that segment from outputs/segments.csv against the whole list, wording guarded, and a note when the segment has few subscribers. Render it with `-P factor:job -P segment:student`.
+```
+:::
+
+A segment's numbers deserve more caution than the whole list's: a segment with few subscribers
+has wide, noisy rates. The finished report adds its note below `{python} FEW` subscribers, a
+named setting, `FEW_SUBSCRIBERS`, in the project's code; the right threshold is your call, and
+belongs in a setting like that, not in a sentence.
+
+## Every value, checked {#sec-params-all}
+
+::: {.prompt}
+```default
+Write scripts/render_params.py: render update.qmd for every month in data/synthetic_business.csv and segment.qmd for every age band, in html, docx and typst, each file named by its value, into reports/; check that every file exists and contains its value; print a table.
+```
+:::
+
+For the finished project that is `{python} WORD[len(months)]` months and
+`{python} WORD[len(bands)]` age bands in three formats: `{python} f"{n_files:,}"` files, each
+named by its value and each checked for it. The check is what makes a batch trustworthy: one
+file that silently shows the default month, because a value was not passed, would otherwise
+go out with the rest.
+
+::: pitfall
+From the test run: a PDF check for the age band "18-29" failed, because the PDF's text gave the
+hyphen back as a different character; the script compares text with dashes normalised. And
+self-contained HTML is large, several megabytes per file here; send the PDF, and keep the HTML
+for the site.
+:::
+
+## The educator's case: a sheet per section {#sec-params-feedback}
+
+The same method serves a teacher with several sections of one course: one feedback sheet per
+section, comparing the section with the course, from one gradebook. The example's gradebook is
+synthetic, generated with a fixed seed, `{python} WORD[len(sections)]` sections of students
+identified only by number.
+
+::: {.prompt .long}
+```default
+Create feedback.qmd: one feedback sheet per section of data/gradebook.csv, parameterised by `section`, with that section's mean and spread for each assignment against the course, a chart with alt text, every sentence labelled synthetic and its wording guarded, and no student identifiers. Then write scripts/render_sections.py to render feedback-<section>.pdf for every section and check each one. Run it.
+```
+:::
+
+Marks are personal data, so the sheet shows section totals only, never a student, and never a
+group so small that a reader could work out who it is; the finished sheet stops if any group
+has fewer than five. With real marks, the rules of @sec-ai-policy and your institution's data
+policy come first: build the document on a synthetic gradebook with the same columns, as this
+one is, and render the real one yourself.
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/19-eval-params/README.md
+```
+:::
+
+::: tryit
+Make the update, the segment report and the batch script; and, if you teach, the feedback
+sheets.
+
+::: done
+`render_params.py` reports every file present and showing its value, a month outside the data
+stops the update with a list of valid months, and every business figure in the update says
+where it comes from.
+:::
+:::
+
+## Summary {.unnumbered}
+
+::: keyideas
+- A parameter is a value given at render time; its default lives in a cell tagged
+  `parameters`, and `-P name:value` replaces it, through papermill.
+- Validate every value, and let code choose every word that depends on it, with a guard.
+- Name every output by its value, and render and check them all with one script.
+- A parameterised document left out of a site's render list renders beside its source; move
+  its outputs where they belong.
+- Label synthetic figures on every number, and keep personal data to group totals.
+:::
+
+## Further reading {.unnumbered}
+
+- Quarto, [Parameters](https://quarto.org/docs/computations/parameters.html) (checked
+  2026-11-18).
+- papermill, [documentation](https://papermill.readthedocs.io/) (checked 2026-11-18).
