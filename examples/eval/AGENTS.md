@@ -115,6 +115,8 @@ are real; `data/synthetic_business.csv` is SYNTHETIC and must be labelled so whe
 - One coherent change per branch and pull request: a new section, a fix, a dependency
   update. Unrelated fixes you notice go in your report, not in this change.
 - Never commit `outputs/`, `reports/`, `_site/`, `.venv/` or rendered files; CI computes them.
+  The one exception is `templates/acme-reference.docx` and `.pptx`, made from `_brand.yml` by
+  `scripts/make_reference_docs.py`: commit them with the brand change that remade them.
   Check `git status` before every commit: it lists only the files this change needs.
 - Before saying a change is done, run the commands CI runs, in order, and say which passed:
   `uv run python scripts/evaluate.py`, `uv run pytest -q`, `uv run quarto render`,

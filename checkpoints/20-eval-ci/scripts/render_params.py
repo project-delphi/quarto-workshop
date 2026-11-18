@@ -69,7 +69,7 @@ def text_of(path: Path) -> str:
     """The text of a rendered pdf, docx or html file, with runs of white space as one space."""
     if path.suffix == ".pdf":
         raw = " ".join(page.extract_text() or "" for page in PdfReader(path).pages)
-        raw = raw.replace("­\n", "").replace("­", "")  # Typst's soft hyphens
+        raw = raw.replace("\u00ad\n", "").replace("\u00ad", "")  # Typst's soft hyphens
     elif path.suffix == ".docx":
         with zipfile.ZipFile(path) as archive:
             xml = archive.read("word/document.xml").decode("utf-8")
@@ -78,6 +78,8 @@ def text_of(path: Path) -> str:
         parser = Text()
         parser.feed(path.read_text(encoding="utf-8"))
         raw = " ".join(parser.parts)
+    # Hyphens and dashes as one character, so "18-29" matches however a format writes it.
+    raw = re.sub("[\u2010-\u2015\u2212]", "-", raw)
     return re.sub(r"\s+", " ", raw)
 
 
@@ -95,6 +97,7 @@ def render(source: str, stem: str, values: dict[str, str], formats: list[str]) -
     moved = []
     for extension in formats:
         name = f"{stem}.{extension}"
+        (REPORTS / name).unlink(missing_ok=True)  # never let last run's file pass this run's check
         found = next((p for p in (Path(name), SITE / name) if p.exists()), None)
         target = REPORTS / name
         if found is not None:
@@ -105,22 +108,21 @@ def render(source: str, stem: str, values: dict[str, str], formats: list[str]) -
 
 
 def months(argv: list[str]) -> list[str]:
-    """Every month in the synthetic business file, or those from FIRST to LAST."""
+    """Every month in the synthetic business file, or only the months given."""
     present = pd.read_csv("data/synthetic_business.csv", dtype={"month": str})["month"].tolist()
     if not argv:
         return present
-    first, last = argv[0], argv[-1]
-    for month in (first, last):
+    for month in argv:
         if month not in present:
             raise SystemExit(f"{month} is not in data/synthetic_business.csv "
                              f"({present[0]} to {present[-1]})")
-    return [m for m in present if first <= m <= last]
+    return [m for m in present if m in argv]
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("months", nargs="*", metavar="YYYY-MM",
-                        help="first and last month to render (default: every month)")
+                        help="the months to render (default: every month)")
     parser.add_argument("--formats", default="pdf,docx,html",
                         help="comma-separated: pdf, docx, html (default: all three)")
     args = parser.parse_args()

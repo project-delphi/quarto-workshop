@@ -133,15 +133,19 @@ installs whatever is newest is not the same build next month.
 ```bash
 git push -u origin team-rules
 gh pr create --base main --fill
+gh pr merge team-rules --merge
 git push -u origin ci
 gh pr create --base main --fill
 ```
 :::
 
-The second pull request runs the check; on GitHub, its *Checks* tab shows each step as it
-runs. The first run downloads Quarto and every package, which takes a few minutes; later
-runs restore uv's downloads from a cache. Review the template's three checks on the first pull
-request, merge it, then merge the second when its check is green.
+Review the first pull request against its own template's three checks before you merge it.
+Merge it with a merge commit, `--merge`, as above: `ci` starts from `team-rules`, so once
+`team-rules` is on `main` unchanged, the second pull request shows only the workflow, one change
+as the rules ask. (Squashing the first would rewrite its commits, and the second would carry
+them again.) The second pull request runs the check; its *Checks* tab shows each step as it
+runs. The first run downloads Quarto and every package, which takes a few minutes; later runs
+restore uv's downloads from a cache. Merge it when the check is green.
 
 What it costs: `{python} fact("github.actions_free")` (checked
 `{python} checked("github.actions_free")`; @sec-facts). A private repository's check uses

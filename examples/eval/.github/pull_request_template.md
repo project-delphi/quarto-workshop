@@ -8,7 +8,8 @@ Every change passes them, whoever or whatever made it.
 
 - [ ] **Scope.** Only the files this change needs are in *Files changed*. Nothing in `data/`
       (read-only); no `outputs/`, `reports/`, `_site/`, `.venv/` or rendered files
-      (`*.html`, `*.docx`, `*.pdf`, `*.pptx`, `*_files/`); `tests/` changed only if the
+      (`*.html`, `*.docx`, `*.pdf`, `*.pptx`, `*_files/`) except the reference documents in
+      `templates/`; `tests/` changed only if the
       change is to what is tested, and then says why. A change to `_brand.yml` comes with
       the remade `templates/`.
 - [ ] **Correctness.** At least one changed number or sentence checked against its source:
@@ -26,5 +27,3 @@ Every change passes them, whoever or whatever made it.
 
 <!-- Which agent and model, and what it did not verify (for example: "Claude Code; did not
 open the PDF", "Codex; check_refs.py not run, no network"). Write "No" if not. -->
-
-Made with a coding agent? Which, and what did it not verify?
