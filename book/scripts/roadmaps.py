@@ -30,6 +30,7 @@ META = {
     "01-quarto": ("Read: why one source beats copies", ""),
     "02-assistant": ("Read: how to ask for work and check it", ""),
     "fast-path": ("Build: a report in three formats, reviewed as a pull request", "ends at checkpoint 14"),
+    "results": ("Build: a model card and a report with numbered sections", "ends at checkpoint 15"),
     "03-setup": ("Build: a computer that renders the test run", ""),
     "first-report": ("Build: a report you checked, fixed and committed", ""),
     "04-markdown": ("Build: london.md, its rules and environment", "ends at checkpoint 01"),
