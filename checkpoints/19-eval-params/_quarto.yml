@@ -1,0 +1,41 @@
+# The project's website: the home page, the report, the model card, the white paper, the deck
+# and an About page, built together into _site/ by `uv run quarto render`. One _brand.yml styles them.
+project:
+  type: website
+  execute-dir: project  # every page reads outputs/ from the project root
+  render:               # explicit, so README.md, AGENTS.md and notebooks/ never become pages
+    - index.qmd
+    - about.qmd
+    - report.qmd
+    - model-card.qmd
+    - whitepaper.qmd
+    - slides.qmd
+  post-render:
+    - scripts/pptx_alt_text.py  # the PowerPoint figures' alt text, after every render
+
+lang: en
+
+website:
+  title: "Acme Signals · model evaluation"
+  description: "How the contact-ranking model of Acme Signals, a fictional company, performs on the real UCI Bank Marketing data."
+  # A placeholder: set your own address here before publishing, so the social cards'
+  # image links are absolute.
+  site-url: https://example.org/acme-eval/
+  open-graph: true
+  navbar:
+    title: false        # the logo (from _brand.yml) already says "Acme Signals"
+    background: light   # the brand's paper, so the navy logo shows
+    left:
+      - href: report.qmd
+        text: Report
+      - href: model-card.qmd
+        text: Model card
+      - href: whitepaper.qmd
+        text: White paper
+      - href: slides.qmd
+        text: Slides
+      - href: about.qmd
+        text: About
+  page-footer:
+    left: "Acme Signals is a fictional company, made up for teaching."
+    right: "Data: [UCI Bank Marketing](https://doi.org/10.24432/C5K306), Moro, Rita and Cortez (2014), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)."

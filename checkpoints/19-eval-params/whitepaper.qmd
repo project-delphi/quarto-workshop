@@ -1,0 +1,343 @@
+---
+title: "Ranking calls with three releases"
+subtitle: "An evaluation of the contact-ranking model of Acme Signals, a fictional company, on public bank-marketing data"
+description: "A short technical white paper for clients and investors: how the releases of the contact-ranking model were evaluated on public bank-marketing data, what they achieve, and what the evaluation cannot show."
+company: "Acme Signals, a fictional company"  # the PDF's title block and footer
+date: today
+date-format: "D MMMM YYYY"
+number-sections: true
+bibliography: references.bib
+csl: csl/apa.csl  # APA 7th edition, from the official CSL styles repository (README.md)
+format:
+  html:
+    toc: true
+  docx:
+    reference-doc: templates/acme-reference.docx  # scripts/make_reference_docs.py
+  typst:
+    citeproc: true  # Pandoc formats the citations, with csl/apa.csl, as in html and docx
+    papersize: a4
+    margin: {x: 2.2cm, top: 2.8cm, bottom: 2.6cm}
+    fig-format: svg  # vector figures in the PDF
+    template-partials:
+      - templates/whitepaper/typst-show.typ  # Acme's house title block, header and footer
+execute:
+  echo: false
+fig-dpi: 200
+---
+
+```{python}
+#| label: setup
+import json
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import Markdown
+
+from acme_eval.claims import claim
+
+metrics = pd.read_csv("outputs/metrics.csv")
+segments = pd.read_csv("outputs/segments.csv")
+calibration = pd.read_csv("outputs/calibration.csv")
+curves = pd.read_csv("outputs/curves.csv")
+summary = json.loads(open("outputs/summary.json").read())
+
+value = metrics.pivot(index="metric", columns="version", values="value")
+low = metrics.pivot(index="metric", columns="version", values="low")
+high = metrics.pivot(index="metric", columns="version", values="high")
+releases = pd.DataFrame(summary["releases"]).set_index("version")
+versions = list(releases.index)
+first, best = versions[0], summary["best_version"]
+runner_up = value.loc["roc_auc"].drop(best).idxmax()
+contacts = summary["train_rows"] + summary["test_rows"]
+alpha = 1 - summary["confidence"]
+
+gap = (calibration["mean_predicted"] - calibration["observed_rate"]).abs()
+largest_gap = gap.groupby(calibration["version"]).max()
+ages = segments[(segments["factor"] == "age_band") & (segments["version"] == best)]
+ages = ages.set_index("segment")
+most_called, least_called = ages["share_called"].idxmax(), ages["share_called"].idxmin()
+
+# Sentences below whose wording depends on the results.
+claim(len(versions) == 3, "The title and the figure captions say three releases.")
+claim(best == value.loc["roc_auc"].idxmax(), "The best release has the highest ROC AUC.")
+claim(best == versions[-1], "The best release is the latest one.")
+claim((value.loc["roc_auc", versions].diff().dropna() > 0).all(),
+      "ROC AUC rises with every release.")
+claim(value.loc["recall_top10", best] > 2 * value.loc["recall_top10", first]
+      and value.loc["recall_top10", best] < 2.5 * value.loc["recall_top10", first],
+      "The best release reaches about twice the subscribers v1 reaches with the same calls.")
+claim(low.loc["roc_auc", best] <= high.loc["roc_auc", runner_up]
+      and low.loc["recall_top10", best] <= high.loc["recall_top10", runner_up],
+      "The best release's intervals overlap the runner-up's, for ROC AUC and recall.")
+claim(high.loc["roc_auc", first] < low.loc["roc_auc"].drop(first).min(),
+      "v1's ROC AUC interval lies below the intervals of the later releases.")
+claim(largest_gap.idxmin() == best and largest_gap[best] < 0.05,
+      "The best release is the best calibrated, within 5 points in every bin.")
+claim(ages["base_rate"].idxmax() == most_called,
+      "The age band called most often has the highest subscription rate.")
+claim(value.loc["recall_top10", best] - value.loc["recall_top10", runner_up]
+      < value.loc["recall_top10", runner_up] - value.loc["recall_top10", first],
+      "The best release's gain over the runner-up is smaller than the runner-up's over v1.")
+claim(ages["share_called"].max() > 3 * ages["share_called"].min(),
+      "The ranking calls the age bands at very different rates.")
+
+colors = {"v1": "#999999", "v2": "#0072B2", "v3": "#D55E00"}  # Okabe-Ito, as in the report
+# Transparent figures sit on the page's paper colour; Arial, the brand's font, where present.
+plt.rcParams.update({"figure.facecolor": "none", "axes.facecolor": "none", "font.size": 9,
+                     "font.sans-serif": ["Arial", "DejaVu Sans"],
+                     "axes.spines.top": False, "axes.spines.right": False})
+
+
+def percent(share: float, digits: int = 1) -> str:
+    """A share between 0 and 1, as a percentage."""
+    return f"{100 * share:.{digits}f}%"
+
+
+def interval(metric: str, version: str, to: str = " to ", digits: int = 3) -> str:
+    """A value and its interval, as text."""
+    return (f"{value.loc[metric, version]:.{digits}f} ({low.loc[metric, version]:.{digits}f}"
+            f"{to}{high.loc[metric, version]:.{digits}f})")
+
+
+def bounds(metric: str, version: str, digits: int = 3) -> str:
+    """An interval alone, as text."""
+    return f"{low.loc[metric, version]:.{digits}f} to {high.loc[metric, version]:.{digits}f}"
+
+
+def words(n: int) -> str:
+    """A count as a word, as prose writes small numbers."""
+    names = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+    return names[n] if 0 <= n < len(names) else str(n)
+```
+
+```{=typst}
+#whitepaper-abstract[
+```
+
+::: {.content-hidden when-format="typst"}
+## Abstract {.unnumbered .unlisted}
+:::
+
+Acme Signals ranks a bank's marketing contacts so that a call centre calls the likeliest
+subscribers first. We evaluated its `{python} words(len(versions))` releases on
+`{python} f"{summary['test_rows']:,}"` held-out contacts of a public dataset from a
+Portuguese bank. The latest, `{python} best`, ranks best: its ROC AUC is
+`{python} interval("roc_auc", best)`, and calling the top
+`{python} percent(summary["top_share"], 0)` of its list reaches
+`{python} percent(value.loc["recall_top10", best])` of the subscribers, about twice what
+`{python} first` reaches with the same calls. Its predicted probabilities match the
+observed rates to within `{python} f"{100 * largest_gap[best]:.1f}"` percentage points.
+The data are one bank's, years old, and split at random, and the ranking calls age groups
+at very different rates, so a client should re-evaluate it on its own contacts before use.
+
+```{=typst}
+]
+```
+
+## Introduction {#sec-intro}
+
+A call centre cannot call every customer, so the order of its list decides whom it reaches.
+Acme Signals, a fictional two-person company made up for teaching, sells a model that orders
+that list: for each contact it predicts the probability of subscribing to a term deposit, and
+the call centre calls in descending order of it. The company has shipped
+`{python} words(len(versions))` releases, `{python} first` to `{python} best`, between
+`{python} releases.loc[first, "month"]` and `{python} releases.loc[best, "month"]`.
+
+This paper is for the banks that might use the model and for the company's investors. It
+says how the releases were evaluated (@sec-data and @sec-method), what they achieve
+(@sec-results) and what the evaluation cannot show (@sec-limitations). The model card for
+`{python} best`, which follows @mitchell2019modelcards, gives its intended use and its
+results by age and occupation; this paper summarises them. Every number in it is computed,
+when the paper is rendered, from the evaluation's saved results.
+
+## Data {#sec-data}
+
+The data are the UCI Bank Marketing dataset [@moro2014bank], collected for
+@moro2014datadriven: `{python} f"{contacts:,}"` contacts of a Portuguese bank's phone
+campaigns, May 2008 to November 2010, each recording whether the client subscribed. The
+base rate, the share who subscribed, is `{python} percent(summary["base_rate"])` in the test
+set. The data are public under CC BY 4.0 and unchanged from the source.
+
+The unit of analysis is one contact. A stratified random
+`{python} percent(summary["test_size"], 0)` of them
+(`{python} f"{summary['test_rows']:,}"` contacts, seed `{python} summary["split_seed"]`)
+is held out for testing; the releases are trained on the
+other `{python} f"{summary['train_rows']:,}"`. No release uses the call's length,
+`duration`, which is known only after the call, when the outcome is known too.
+
+## Method {#sec-method}
+
+```{python}
+#| label: method-setup
+fields = {version: int(n) for version, n in releases["n_features"].items()}
+claim(list(releases["model"]) == ["logistic_regression", "logistic_regression",
+                                  "gradient_boosting"],
+      "v1 and v2 are logistic regressions; v3 is gradient-boosted trees.")
+claim(fields[versions[1]] == fields[best], "v3 uses the same fields as v2.")
+```
+
+`{python} first` and `{python} versions[1]` are logistic regressions, on
+`{python} fields[first]` and `{python} fields[versions[1]]` fields; `{python} best` is
+gradient-boosted trees on the same `{python} fields[best]` fields, every one known before
+the call. Each
+release scores every test contact with a probability $p_i$ of subscribing, where $y_i = 1$
+if contact $i$ subscribed and $0$ if not.
+
+**Ranking.** The ROC AUC is the area under the ROC curve. It equals the probability that the
+model scores a randomly chosen subscriber above a randomly chosen non-subscriber
+[@fawcett2006roc], counting ties as half:
+
+$$
+\mathrm{AUC} = \Pr(p_i > p_j \mid y_i = 1,\ y_j = 0)
+  + \tfrac{1}{2} \Pr(p_i = p_j \mid y_i = 1,\ y_j = 0).
+$$ {#eq-auc}
+
+A random order has an AUC of one half (@eq-auc with every $p_i$ equal).
+
+**Calls.** The call centre calls the top share $q$ of the list, here
+$q =$ `{python} percent(summary["top_share"], 0)`, or
+`{python} f"{summary['calls_made']:,}"` test contacts. With $T$ the set called, the recall
+is the share of all subscribers reached,
+
+$$
+R_q = \frac{\sum_{i \in T} y_i}{\sum_{i} y_i},
+$$ {#eq-recall}
+
+and the lift is the subscription rate among those called divided by the base rate.
+
+**Probabilities.** The Brier score is the mean squared error of the probabilities,
+$\frac{1}{n} \sum_i (p_i - y_i)^2$, lower being better. A model is calibrated when its
+probabilities match the observed rates; to check, the test contacts are sorted by $p_i$ into
+`{python} words(calibration["bin"].nunique())` equal-sized bins, and each bin's mean prediction is
+compared with its subscription rate.
+
+**Uncertainty.** The bootstrap estimates a statistic's sampling distribution by recomputing
+it on samples drawn from the data with replacement [@efron1979bootstrap]. We draw
+$B =$ `{python} f"{summary['n_bootstrap']:,}"` resamples of the test set, the same for every
+release, and report the percentile interval
+
+$$
+\left[\hat\theta^{*}_{(\alpha/2)},\ \hat\theta^{*}_{(1-\alpha/2)}\right],
+$$ {#eq-interval}
+
+where $\hat\theta^{*}_{(a)}$ is the $a$-quantile of the metric over the resamples and
+$\alpha =$ `{python} f"{alpha:.2f}"`, a `{python} percent(summary["confidence"], 0)`
+interval. It reflects the sampling of the test contacts only, not of the training data.
+
+## Results {#sec-results}
+
+@tbl-results compares the releases on the same test contacts. ROC AUC rises with every
+release (@fig-roc shows the curves), and the
+interval of `{python} first` lies below those of the later releases. With the same
+`{python} f"{summary['calls_made']:,}"` calls, `{python} best` reaches
+`{python} percent(value.loc["recall_top10", best])` of the subscribers (@eq-recall) and
+`{python} first` `{python} percent(value.loc["recall_top10", first])`, about twice as many.
+The lift of `{python} best` is `{python} f"{value.loc['lift_top10', best]:.2f}"`: its calls
+find that many times as many subscribers as the same number of calls to random contacts.
+
+```{python}
+#| label: tbl-results
+#| tbl-cap: "Test-set results of each release, with 95% bootstrap percentile intervals (@eq-interval). ROC AUC (@eq-auc), recall (@eq-recall) and lift: higher is better. Brier score: lower is better. Recall and lift are for the top 10% of the list, the contacts called."
+claim(summary["top_share"] == 0.10 and summary["confidence"] == 0.95,
+      "The caption says 95% and top 10%, which a caption cannot compute.")
+names = {"roc_auc": "ROC AUC", "recall_top10": "Recall, top 10%",
+         "lift_top10": "Lift, top 10%", "brier": "Brier score"}
+rows = [["Model"] + [releases.loc[v, "description"].split(" on ")[0] for v in versions],
+        ["Fields used"] + [str(releases.loc[v, "n_features"]) for v in versions]]
+rows += [[label] + [interval(metric, v, to="–") for v in versions] for metric, label in names.items()]
+lines = ["| | " + " | ".join(versions) + " |", "|:--" + "|--:" * len(versions) + "|"]
+lines += ["| " + " | ".join(row) + " |" for row in rows]
+Markdown("\n".join(lines))
+```
+
+```{python}
+#| label: fig-roc
+#| fig-cap: "ROC curves of the three releases on the test contacts, with each release's ROC AUC. The dashed diagonal is a random order."
+#| fig-alt: "Line chart of true-positive rate against false-positive rate, one curve per release. All three curves rise above the dashed diagonal of a random order; v1's curve is the lowest and v3's the highest, with v2's just below v3's."
+claim((value.loc["roc_auc"] > 0.5).all(), "All three curves rise above the diagonal (alt text).")
+claim(value.loc["roc_auc"].idxmin() == "v1" and best == "v3",
+      "v1's curve is the lowest and v3's the highest (alt text).")
+fig, ax = plt.subplots(figsize=(4.6, 3.3))
+for version, points in curves[curves["curve"] == "roc"].groupby("version"):
+    ax.plot(points["x"], points["y"], color=colors[version], linewidth=1.5,
+            label=f"{version} (AUC {value.loc['roc_auc', version]:.3f})")
+ax.plot([0, 1], [0, 1], linestyle="--", color="#555555", linewidth=1)
+ax.set_xlabel("False-positive rate")
+ax.set_ylabel("True-positive rate")
+ax.legend(frameon=False, loc="lower right")
+fig.tight_layout()
+plt.show()
+```
+
+The gain of `{python} best` over `{python} runner_up` is smaller, and their intervals
+overlap: for ROC AUC, `{python} bounds("roc_auc", runner_up)` for `{python} runner_up`
+against `{python} bounds("roc_auc", best)` for `{python} best`; for recall,
+`{python} bounds("recall_top10", runner_up)` against `{python} bounds("recall_top10", best)`.
+These per-release intervals do not by themselves show that `{python} best` ranks better than
+`{python} runner_up` (@sec-limitations).
+
+A good ranking does not make good probabilities: @niculescumizil2005calibration found that
+some learning methods, boosted trees among them, predict distorted probabilities, and that
+accuracy or ROC AUC is not enough where the probabilities are used. @fig-calibration shows
+that the probabilities of `{python} best` are close to the observed rates. Its largest gap between a bin's mean
+prediction and its observed rate is `{python} f"{100 * largest_gap[best]:.1f}"` percentage
+points, the smallest of the releases
+(`{python} ", ".join(f"{v}: {100 * g:.1f}" for v, g in largest_gap.items())`), and its
+Brier score, `{python} interval("brier", best)`, is the lowest.
+
+```{python}
+#| label: fig-calibration
+#| fig-cap: "Calibration of the three releases on the test contacts: observed subscription rate against mean predicted probability in ten equal-sized bins. Points on the dashed diagonal are perfectly calibrated."
+#| fig-alt: "Line chart of observed rate against mean predicted probability for the three releases, with a dashed diagonal. The points of all three releases lie near the diagonal; v1's predictions span a narrower range than the others'."
+claim(calibration["bin"].nunique() == 10, "The caption says ten bins.")
+claim((largest_gap < 0.1).all(), "All three releases lie near the diagonal (alt text).")
+spread = calibration.groupby("version")["mean_predicted"].agg(lambda p: p.max() - p.min())
+claim(spread.idxmin() == "v1", "v1's predictions span the narrowest range (alt text).")
+claim(value.loc["brier"].idxmin() == best, "The best release has the lowest Brier score.")
+fig, ax = plt.subplots(figsize=(4.6, 3.3))
+for version, points in calibration.groupby("version"):
+    ax.plot(points["mean_predicted"], points["observed_rate"], marker="o", markersize=3,
+            color=colors[version], linewidth=1.2, label=version)
+limit = calibration[["mean_predicted", "observed_rate"]].max().max() * 1.05
+ax.plot([0, limit], [0, limit], linestyle="--", color="#555555", linewidth=1)
+ax.set_xlabel("Mean predicted probability")
+ax.set_ylabel("Observed subscription rate")
+ax.legend(frameon=False, loc="upper left")
+fig.tight_layout()
+plt.show()
+```
+
+## Limitations {#sec-limitations}
+
+- **One bank, years ago.** The contacts come from one Portuguese bank's campaigns of more
+  than a decade ago (@sec-data). A client's customers, products and economy differ; the
+  results say how the model ranks these contacts, not how it will rank theirs.
+- **A random split.** The test contacts are a random sample from the whole period, not the
+  most recent ones, so the results may overstate performance on future campaigns.
+- **Per-release intervals.** The intervals (@eq-interval) describe each release alone.
+  Whether `{python} best` beats `{python} runner_up` needs an interval for the difference on
+  the same resamples, which this evaluation does not yet report.
+- **Who is called.** Under `{python} best`, the calls include
+  `{python} percent(ages.loc[most_called, "share_called"])` of contacts aged
+  `{python} most_called` but `{python} percent(ages.loc[least_called, "share_called"])` of
+  those aged `{python} least_called`: the band called most often also subscribes most often
+  (`{python} percent(ages.loc[most_called, "base_rate"])`). Age is a protected characteristic
+  in UK law [@equalityact2010s4]; the model card discusses it, and a client needs legal
+  review before use.
+- **Probabilities.** They match this dataset's base rate; a campaign with a different rate
+  needs recalibration.
+
+## Conclusion {#sec-conclusion}
+
+Of the `{python} words(len(versions))` releases, `{python} best` ranks the bank's contacts best and
+predicts the best-calibrated probabilities: calling the top
+`{python} percent(summary["top_share"], 0)` of its list reaches
+`{python} percent(value.loc["recall_top10", best])` of the subscribers. Its lead over
+`{python} runner_up` is within the uncertainty of the test set. We recommend
+`{python} best` to clients, on condition that each re-evaluates it on its own recent contacts
+and reviews its use of age before deployment.
+
+## References {.unnumbered}
+
+::: {#refs}
+:::
