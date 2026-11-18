@@ -28,4 +28,4 @@ The steps, run inside `acme-eval/` (by the agent, or by you in a terminal):
 3. Compute and test: `uv run python scripts/evaluate.py && uv run pytest -q` (about 20 seconds; every test passes).
 4. Render, one file at a time: `uv run quarto render report.qmd && uv run quarto render model-card.qmd`.
 5. Check: `model-card.html` has nine numbered sections, two slice tables (age band and job), the calibration figure and a References list with Mitchell et al. (2019); `report.html` has Tables 1 and 2 and Figures 1 and 2; each document also has a `.docx` and a `.pdf`.
-6. Rejoin: your folder now holds the end of these steps. Continue at the box in Chapter 3.
+6. Rejoin: your folder now holds the end of these steps. Continue at the catch-up box of the results chapter, "One Set of Results", after "Sections, numbers and references".

@@ -85,7 +85,7 @@ categories as recorded in the data, including `unknown`). Both are inputs to the
 ## Metrics {#sec-metrics}
 
 The call centre calls the top `{python} percent(summary["top_share"], 0)` of the list, so
-the business metric is **recall in the top 10%**: the share of all subscribers that those
+the business metric is **recall in the top `{python} percent(summary["top_share"], 0)`**: the share of all subscribers that those
 calls reach. For `{python} best` it is `{python} interval("recall_top10")`, against a base
 rate of `{python} percent(summary["base_rate"])`. ROC AUC, `{python} interval("roc_auc")`,
 measures the whole ranking; the Brier score, `{python} interval("brier")`, measures the
@@ -141,7 +141,7 @@ def slice_table(part: pd.DataFrame, label: str) -> HTML:
         "Subscribers": part["subscribers"].map(lambda v: f"{v:,}"),
         "Base rate": part["base_rate"].map(percent),
         "Called": part["share_called"].map(percent),
-        "Recall, top 10%": part["recall_top10"].map(percent),
+        f"Recall, top {percent(summary['top_share'], 0)}": part["recall_top10"].map(percent),
         "ROC AUC": part["roc_auc"].map(lambda v: f"{v:.3f}"),
     })
     return HTML(shown.to_html(index=False))
@@ -150,6 +150,7 @@ def slice_table(part: pd.DataFrame, label: str) -> HTML:
 ```{python}
 #| label: tbl-age
 #| tbl-cap: "Slice metrics by age band on the test contacts. Called: share of the band in the called top 10%. Recall: share of the band's subscribers who are called. ROC AUC: ranking within the band."
+claim(summary["top_share"] == 0.10, "The caption says top 10%, which a caption cannot compute.")
 slice_table(ages, "Age band")
 ```
 
