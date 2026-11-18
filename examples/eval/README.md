@@ -85,7 +85,7 @@ the social cards' image links are made from it.
 
 `scripts/render_params.py` writes `reports/update-2026-01.pdf`, `.docx` and `.html` to
 `reports/update-2026-10.*` and `reports/segment-age-18-29.*` to `reports/segment-age-60plus.*`
-(`2026-06 2026-10` renders those months only; `--formats pdf` only PDFs). One month renders by
+(`2026-06 2026-10` renders those two months only; `--formats pdf` only PDFs). One month renders by
 hand with `uv run quarto render update.qmd -P month:2026-06 -M output-file:update-2026-06`,
 next to the source.
 
@@ -103,7 +103,7 @@ from a fresh clone, so "it builds" means it builds there, not only on one laptop
 |---|---|---|---|
 | `check.yml` (*Check*) | every pull request, every push to `main` | `evaluate.py`, `pytest`, `quarto render`, `check_site.py`; read-only | a green tick or red cross on the pull request and commit; the log under *Actions* |
 | `publish.yml` (*Publish*) | every push to `main`, or *Run workflow* | the same build, then uploads `_site/` and deploys it to GitHub Pages | the site at `https://<owner>.github.io/<repository>/`, linked from the run's *deploy* job |
-| `monthly.yml` (*Monthly reports*) | 06:00 UTC on the 2nd of each month (`cron: "0 6 2 * *"`), or *Run workflow* | the same build, `render_params.py --formats pdf`, then `check_refs.py` | the PDFs as an artifact, `reports-<run number>`, at the foot of the run's page (kept 90 days) |
+| `monthly.yml` (*Monthly reports*) | 06:17 UTC on the 2nd of each month (`cron: "17 6 2 * *"`), or *Run workflow* | the same build, `render_params.py --formats pdf`, then `check_refs.py` | the PDFs as an artifact, `reports-<run number>`, at the foot of the run's page (kept 90 days) |
 
 A guard that the results no longer support (`ClaimError`) stops `quarto render`, so the
 check fails and the pull request shows which sentence to fix; *Publish* runs the same steps,
@@ -114,7 +114,7 @@ so such a page is never published. Each run caches uv's downloads, keyed on `uv.
   `quarto publish`. Set `site-url` in `_quarto.yml` to the Pages address at the same time.
 - **Protect `main`.** Settings → Branches (or Rules): require a pull request and the *Check*
   job to pass before merging, so every change to `main` has been reviewed and rebuilt.
-- **The schedule.** Cron reads UTC and runs on the default branch's latest commit; GitHub may
+- **The schedule.** Cron reads UTC (unless a `timezone:` line names another) and runs on the default branch's latest commit; GitHub may
   start it late when busy, and turns schedules off in a public repository after 60 days with
   no activity (re-enable it under *Actions*). The reference check runs last and fails the run
   on a mismatch, after the reports are saved.

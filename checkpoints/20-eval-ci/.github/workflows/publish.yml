@@ -4,7 +4,8 @@
 # gh-pages branch and no `quarto publish`.
 #
 # One-time setting, before the first run: on GitHub, Settings → Pages → Build and deployment →
-# Source: GitHub Actions. Until then the "Configure Pages" step fails.
+# Source: GitHub Actions. Until then the deploy job fails. (No configure-pages step: the
+# deploy does not need it, and in a read-only build job it can fail on a private repository.)
 # Action versions: latest releases on 2026-11-18.
 name: Publish
 
@@ -48,9 +49,6 @@ jobs:
 
       - name: Check the rendered pages
         run: uv run python scripts/check_site.py
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v6
 
       - name: Upload _site/ for Pages
         uses: actions/upload-pages-artifact@v5

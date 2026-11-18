@@ -124,4 +124,4 @@ The Python environment is `pyproject.toml` and `uv.lock`. Run `python`, `pytest`
 - `uv run quarto render update.qmd -P month:2026-06 -M output-file:update-2026-06` (one month,
   html, docx and pdf, next to the source); `segment.qmd` takes `-P factor:job -P segment:retired`
 - `uv run python scripts/render_params.py` (every month and age band into `reports/`, checked;
-  `2026-06 2026-10` for a range of months, `--formats pdf` for PDFs only)
+  `2026-06 2026-10` for those two months only, `--formats pdf` for PDFs only)
