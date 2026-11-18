@@ -29,6 +29,7 @@ COLORS = ["#2f72b0", "#b07a14", "#7c5cdb", "#2f9e77", "#c2416b", "#3d7fd9", "#8a
 META = {
     "01-quarto": ("Read: why one source beats copies", ""),
     "02-assistant": ("Read: how to ask for work and check it", ""),
+    "fast-path": ("Build: a report in three formats, reviewed as a pull request", "ends at checkpoint 14"),
     "03-setup": ("Build: a computer that renders the test run", ""),
     "first-report": ("Build: a report you checked, fixed and committed", ""),
     "04-markdown": ("Build: london.md, its rules and environment", "ends at checkpoint 01"),
@@ -77,6 +78,20 @@ def title_of(qmd: Path) -> str:
     return re.sub(r"\s*\{.*\}\s*$", "", line[2:]).strip()
 
 
+def alt_entries(part: dict, first_number: int) -> list[str]:
+    """Each chapter of a part for the roadmap's description: its number, its title, and what
+    the reader reads or builds there ("4, Setting Up Your Machine, build: a computer ...")."""
+    out, number = [], first_number
+    for ch in part["chapters"]:
+        stem = Path(ch).stem
+        gain, cp = (META_ES if LANG == "es" else META).get(stem, ("", ""))
+        numbered = not stem.startswith("exercises")
+        words = [str(number) if numbered else "", title_of(SOURCE / ch), gain[:1].lower() + gain[1:], cp]
+        out.append(", ".join(w for w in words if w))
+        number += numbered
+    return out
+
+
 def svg(part_index: int, parts: list[dict], first_number: int) -> str:
     part = parts[part_index]
     rows, y, number = [], 150, first_number
@@ -116,8 +131,11 @@ def svg(part_index: int, parts: list[dict], first_number: int) -> str:
         y += h
         number += numbered
     height = y + 10
-    alt = (WORDS[LANG]["alt"].format(part=html.escape(title_of(SOURCE / part['file'])), n=len(parts))
-           + "; ".join(html.escape(title_of(SOURCE / c)) for c in part["chapters"]) + ".")
+    n_words = (["", "one", "two", "three", "four", "five", "six"] if LANG == "en"
+               else ["", "una", "dos", "tres", "cuatro", "cinco", "seis"])
+    alt = (WORDS[LANG]["alt"].format(part=html.escape(title_of(SOURCE / part['file'])),
+                                     n=n_words[len(parts)] if len(parts) < 7 else len(parts))
+           + "; ".join(html.escape(entry) for entry in alt_entries(part, first_number)) + ".")
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {height}" role="img" aria-labelledby="t d">
 <title id="t">{WORDS[LANG]["where"]}</title>
 <desc id="d">{alt}</desc>
