@@ -93,7 +93,8 @@ def brand_problems() -> list[str]:
 
 
 def main() -> int:
-    pages = sorted(SITE.glob("*.html"))
+    # Every page, in subfolders too (a new section's pages); Quarto's own libraries excepted.
+    pages = sorted(p for p in SITE.rglob("*.html") if "site_libs" not in p.parts)
     if not pages:
         print(f"No pages in {SITE}/: run `uv run quarto render` first.", file=sys.stderr)
         return 1

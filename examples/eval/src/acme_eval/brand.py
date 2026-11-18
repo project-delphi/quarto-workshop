@@ -40,7 +40,9 @@ def text_colours(brand: dict) -> dict[str, str]:
         "body text (foreground)": colour(brand, "foreground"),
         "headings": colour(brand, typography.get("headings", {}).get("color", "foreground")),
         "links": colour(brand, typography.get("link", {}).get("color", "primary")),
-        "muted text (secondary)": colour(brand, "secondary"),
+        # A brand need not set `secondary`; muted text then falls back to the foreground.
+        "muted text (secondary)": colour(brand, "secondary" if "secondary" in brand["color"]
+                                         else "foreground"),
     }
 
 

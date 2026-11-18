@@ -8,6 +8,7 @@ import yaml
 
 from scripts import evaluation as ev
 from scripts.prose import number_words, text_holds
+from scripts.wcag import contrast
 
 CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "17-eval-site"
 brand = yaml.safe_load((CHECKPOINT / "_brand.yml").read_text())
@@ -19,21 +20,28 @@ S = ev.summary()
 best = S["best_version"]
 
 
-def luminance(hex_colour: str) -> float:
-    """WCAG 2.2 relative luminance of an sRGB colour."""
-    def channel(c: float) -> float:
-        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-    r, g, b = (channel(int(hex_colour[i:i + 2], 16) / 255) for i in (1, 3, 5))
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+def resolve(name: str) -> str:
+    """A brand colour by palette name, role or hex value, as the project's
+    acme_eval.brand.colour() resolves it."""
+    for _ in range(3):
+        if name in palette:
+            name = palette[name]
+        elif name in brand["color"] and name != "palette":
+            name = brand["color"][name]
+    return name
 
 
-def contrast(a: str, b: str) -> float:
-    hi, lo = sorted((luminance(a), luminance(b)), reverse=True)
-    return (hi + 0.05) / (lo + 0.05)
-
-
-background = palette[brand["color"]["background"]]
-text_holds(all(contrast(palette[k], background) >= 4.5 for k in ("ink", "navy", "cobalt", "slate")),
+typography = brand.get("typography", {})
+# The text roles the project's contrast test checks (acme_eval.brand.text_colours()).
+TEXT_ROLES = {
+    "body text": "foreground",
+    "headings": typography.get("headings", {}).get("color", "foreground"),
+    "links": typography.get("link", {}).get("color", "primary"),
+    "captions, footer, slide numbers": "secondary" if "secondary" in brand["color"] else "foreground",
+}
+text_colour = {use: resolve(role) for use, role in TEXT_ROLES.items()}
+background = resolve("background")
+text_holds(all(contrast(c, background) >= 4.5 for c in text_colour.values()),
            "every text colour of the brand passes 4.5:1")
 text_holds(set(pages) == {"index.qmd", "about.qmd", "report.qmd", "model-card.qmd", "slides.qmd"},
            "the site's five pages")
@@ -112,13 +120,11 @@ The finished palette, and each text colour's contrast on the background,
 
 ```{python}
 #| output: asis
-lines = ["| Name | Colour | Used for | Contrast |", "|---|---|---|--:|"]
-uses = {"ink": "body text", "navy": "headings, primary", "cobalt": "links",
-        "slate": "captions, footer, slide numbers"}
-for name, use in uses.items():
-    lines.append(f"| {name} | `{palette[name]}` | {use} | {contrast(palette[name], background):.1f}:1 |")
+lines = ["| Used for | Role | Colour | Contrast |", "|---|---|---|--:|"]
+for use, role in TEXT_ROLES.items():
+    lines.append(f"| {use} | `{role}` | `{text_colour[use]}` | {contrast(text_colour[use], background):.1f}:1 |")
 print("\n".join(lines))
-print("\n: The brand's text colours, from the finished `_brand.yml`, with their WCAG 2.2 contrast on its background. {#tbl-sites-palette}")
+print("\n: The brand's text colours, resolved from the finished `_brand.yml`'s roles as its contrast test resolves them, with their WCAG 2.2 contrast on its background. {#tbl-sites-palette}")
 ```
 
 Verify where the brand landed, as the prompt asks: in the site's or deck's CSS, the colours
@@ -156,8 +162,9 @@ those styles explicitly. Checking the file, not the script, is what shows it.
 ::: pitfall
 Two more from the test run. The project's `.gitignore` ignored every `*.docx`, as a rendered
 output, so the new template could not be committed until it was excepted
-(`!templates/*.docx`). And Apple's Quick Look preview showed the body in Times whatever the
-template said; Word itself used the template's font. Check a Word file in Word.
+(`!templates/*.docx`). And Apple's Quick Look preview showed the body in Times, ignoring the
+theme's font; the finished script also names the font in Word's Normal style for viewers like
+it. Check a Word file in Word, and in whatever your readers open it with.
 :::
 
 ## A site from the project {#sec-sites-site}
