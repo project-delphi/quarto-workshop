@@ -53,6 +53,9 @@ accounts, accounts_checked = S.assistant_accounts()
 chart = S.cell_figure("book-es/chapters/05-compute.qmd", "fig-ldn-top10")
 appx = {a["label"]: a for a in toc["appendices"]}
 parts = toc["parts"]
+# The two projects' parts, found by their page rather than their position, which new parts change.
+by_page = {p["href"].rsplit("/", 1)[-1].removesuffix(".html"): p for p in parts}
+london_part, water_part = by_page["part-2"], by_page["part-3"]
 ch2, ch3 = S.chapter("02-assistant"), S.chapter("03-setup")
 
 # The page's <head> and its <title> must agree with the book (scripts/ebook_media.py writes it).
@@ -152,16 +155,16 @@ fan = {f["name"]: f["colour"] for f in formats}
 ch6 = S.chapter("06-audiences")["href"]
 ch11 = S.chapter("11-cluster")["href"]
 raw('<div class="cards">' + P.card(
-    fan["html"], f"{parts[1]['label']} · Londres", "Una guía para visitantes de Londres",
+    fan["html"], f"{london_part['label']} · Londres", "Una guía para visitantes de Londres",
     f"{london['visits']:,}",
     f"visitas en {london['year']} al {london['name']}, la mayor cantidad entre las "
     f"{S.words(london['n'])} atracciones miembro de ALVA más visitadas de Londres",
     "Una sola guía se convierte en una página web, un informe en Word para los socios, un folleto "
     "impreso, un dashboard para la gerencia y un sitio web publicado.",
     P.clip("london-map", "london-map-orbit"),
-    [("Gira el mapa 3-D en vivo", f"{ch6}#sec-london-3d"), (f"Lee la {parts[1]['label']}", parts[1]["href"])],
+    [("Gira el mapa 3-D en vivo", f"{ch6}#sec-london-3d"), (f"Lee la {london_part['label']}", london_part["href"])],
 ) + P.card(
-    fan["epub"], f"{parts[2]['label']} · Colombia", "El riesgo del agua potable en Colombia",
+    fan["epub"], f"{water_part['label']} · Colombia", "El riesgo del agua potable en Colombia",
     f"{water['codes']:,}",
     f"municipios y áreas, cada una de las entradas de la DIVIPOLA del DANE, urbanas y rurales, "
     f"{water['first']}–{water['last']}",
@@ -169,7 +172,7 @@ raw('<div class="cards">' + P.card(
     "y publica el análisis como informe, diapositivas, entrada de blog y sitio web, todo desde un "
     "solo script de análisis.",
     P.clip("colombia-relief", "colombia-relief-orbit"),
-    [("Recorre k-means paso a paso", f"{ch11}#sec-kmeans-steps"), (f"Lee la {parts[2]['label']}", parts[2]["href"])],
+    [("Recorre k-means paso a paso", f"{ch11}#sec-kmeans-steps"), (f"Lee la {water_part['label']}", water_part["href"])],
 ) + "</div>")
 ```
 

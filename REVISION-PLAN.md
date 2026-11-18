@@ -493,7 +493,7 @@ Checks on the final state (`revision/wp2b-preface`):
 
 Branches, each stacked on the one before (merge in this order): `revision/wp0-groundwork`,
 `revision/wp1-facts`, `revision/wp4-novice`, `revision/wp2-front-matter`,
-`revision/wp3-fast-path`, `revision/wp5-results`, `revision/wp2b-preface`. Nothing is pushed.
+`revision/wp3-fast-path`, `revision/wp5-results`, `revision/wp2b-preface`, pushed on 2026-11-18 at the author's request as stacked pull requests #133 to #139, reviewed once with `/code-review` and merged bottom-up.
 
 ### Not verified, and why
 
