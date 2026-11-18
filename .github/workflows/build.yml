@@ -1,0 +1,72 @@
+# Build every edition from a clean clone and run the repository's checks (README.md, "Checks
+# in CI"). It builds and checks only: it never publishes, pushes, or touches gh-pages, because
+# GitHub Pages serves the committed main:/docs (AGENTS.md, "Validation and generated output").
+# Action versions were the latest releases on 2026-11-18.
+name: Build and check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # translation/compare.py reads pending translations' English text from history.
+          fetch-depth: 0
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 1.10.20
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.11.32"
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "11"
+
+      - name: Cache EPUBCheck
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/quarto-book
+          key: epubcheck-5.4.0
+
+      - name: Book, English edition (HTML, EPUB, EPUBCheck, link and scene checks)
+        run: make book
+
+      - name: Book, Spanish edition (and the translation checks)
+        run: make book-es
+
+      # The decks and landing pages render with the Python packages of environment.yml,
+      # installed with uv rather than conda (the deck's own .conda/ is local only).
+      - name: Deck and landing pages
+        run: |
+          uv venv --python 3.12 .ci-deck
+          uv pip install --python .ci-deck ipykernel nbclient nbformat jupyter matplotlib \
+            pandas numpy plotly scikit-learn pyarrow itables tabulate pillow pyyaml
+          QUARTO_PYTHON="$PWD/.ci-deck/bin/python" JUPYTER_PATH="$PWD/.ci-deck/share/jupyter" \
+            quarto render
+
+      # Needs Google Chrome, which GitHub's Ubuntu runners include; skipped under `act`.
+      - name: Landing page checks
+        if: ${{ !env.ACT }}
+        run: make ebook-check
+
+      - name: Whitespace in the change
+        if: github.event_name == 'pull_request'
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
