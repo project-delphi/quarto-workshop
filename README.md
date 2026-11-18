@@ -80,8 +80,8 @@ code blocks stay in English.
 If you cannot install software (a locked-down work laptop, or Windows without WSL), run the
 workshop in your browser instead. On this repository's GitHub page choose **Code → Codespaces →
 Create codespace on main**. The [dev container](.devcontainer/devcontainer.json) brings Quarto
-1.10.20, uv, Git and the GitHub CLI, and puts this repository at `~/quarto-workshop`, so it covers
-pre-work steps 1 and 2 except the coding agent. In the codespace's terminal, run `cd ~` before making a
+1.10.20, uv, Git and the GitHub CLI, and puts this repository at `~/quarto-workshop`, so it does the work of
+pre-work steps 1 and 4: you install only your coding agent (step 3). In the codespace's terminal, run `cd ~` before making a
 project, install your coding agent with its Linux command, and preview with
 `quarto preview --port 4848 --host 0.0.0.0 --no-browser`; Codespaces offers to open the page.
 If `gh auth login` reports that `GITHUB_TOKEN` is in use, run `unset GITHUB_TOKEN` first: the
