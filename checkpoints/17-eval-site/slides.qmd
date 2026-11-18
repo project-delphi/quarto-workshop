@@ -1,0 +1,348 @@
+---
+title: "Which release should the call centre use?"
+subtitle: "The contact-ranking model, evaluated · Acme Signals (a fictional company)"
+description: "The deck for the product team and investors: one claim per slide, ending in the decision on which release to offer."
+date: today
+format:
+  revealjs:
+    theme: [default, acme.scss, brand]
+    width: 1280
+    height: 720
+    slide-number: true
+    footer: "Acme Signals is a fictional company · data: UCI Bank Marketing, real and public"
+    incremental: false
+    pdf-separate-fragments: false
+    show-notes: false
+  pptx:
+    reference-doc: templates/acme-reference.pptx
+filters:
+  - filters/title-notes.lua
+  - filters/description-meta.lua
+execute:
+  echo: false
+fig-dpi: 200
+---
+
+```{python}
+#| label: setup
+import json
+from fractions import Fraction
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+from acme_eval import brand
+from acme_eval.claims import claim
+
+metrics = pd.read_csv("outputs/metrics.csv")
+segments = pd.read_csv("outputs/segments.csv")
+calibration = pd.read_csv("outputs/calibration.csv")
+curves = pd.read_csv("outputs/curves.csv")
+summary = json.loads(open("outputs/summary.json").read())
+
+value = metrics.pivot(index="metric", columns="version", values="value")
+low = metrics.pivot(index="metric", columns="version", values="low")
+high = metrics.pivot(index="metric", columns="version", values="high")
+auc = value.loc["roc_auc"]
+best = summary["best_version"]
+claim(best == auc.idxmax(), "The release called best has the highest ROC AUC.")
+rival = auc.drop(best).idxmax()  # the runner-up, compared with the best on slide 3
+first = auc.index[0]             # the first release, as a reference on the ROC slide
+releases = pd.DataFrame(summary["releases"]).set_index("version")
+calls = summary["calls_made"]
+top_share = summary["top_share"]
+
+# The figures use the report's colour-blind-safe palette (Okabe-Ito) and the brand's ink and paper.
+colors = {"v1": "#999999", "v2": "#0072B2", "v3": "#D55E00"}
+INK, PAPER = (brand.colour(brand.load(), name) for name in ("foreground", "background"))
+plt.rcParams.update({
+    "font.size": 15, "axes.labelsize": 15, "legend.fontsize": 14,
+    "text.color": INK, "axes.labelcolor": INK, "axes.edgecolor": INK,
+    "xtick.color": INK, "ytick.color": INK,
+    "axes.spines.top": False, "axes.spines.right": False,
+    "figure.facecolor": "none", "axes.facecolor": "none",  # the slide shows through
+})
+
+
+def percent(share: float, digits: int = 1) -> str:
+    """A share between 0 and 1, as a percentage."""
+    return f"{100 * share:.{digits}f}%"
+
+
+def fraction_words(share: float) -> str:
+    """A share such as 0.1 in words ("a tenth"), for a title."""
+    words = {2: "half", 3: "a third", 4: "a quarter", 5: "a fifth", 10: "a tenth"}
+    fraction = Fraction(share).limit_denominator(100)
+    claim(fraction.numerator == 1 and fraction.denominator in words,
+          "The called share can be said in words as a simple fraction.")
+    return words[fraction.denominator]
+```
+
+::: {.notes}
+Acme Signals is a fictional two-person company; the bank data are real (UCI Bank Marketing).
+Every number on these slides is read from outputs/, which scripts/evaluate.py writes once.
+The full evidence is in the evaluation report and the model card. The question for today:
+which release the call centre should use for the next campaign, and on what conditions.
+:::
+
+## `{python} best` reaches `{python} percent(value.loc["recall_top10", best])` of subscribers by calling `{python} fraction_words(top_share)` of the list {#headline}
+
+```{python}
+#| label: headline
+claim(value.loc["lift_top10", best] > 1, "The best release finds more subscribers per call than random calls.")
+```
+
+- [`{python} f"{calls:,}"`]{.stat} calls: the top `{python} percent(top_share, 0)` of the
+  `{python} f"{summary['test_rows']:,}"` test contacts
+- [`{python} percent(value.loc["recall_top10", best])`]{.stat} of all their subscribers
+  are among them
+- [`{python} f"{value.loc['lift_top10', best]:.1f}"`×]{.stat} the subscribers per call of
+  calling at random
+
+::: {.notes}
+The call centre calls the top `{python} percent(top_share, 0)` of the ranked list, so the
+business metric is recall in that top share: of all subscribers in the test set, the share
+the calls reach. For `{python} best` it is
+`{python} percent(value.loc["recall_top10", best])`, with a `{python} percent(summary["confidence"], 0)` bootstrap interval of
+`{python} percent(low.loc["recall_top10", best])` to
+`{python} percent(high.loc["recall_top10", best])`. Calling at random would reach about
+`{python} percent(top_share, 0)` of them. The base rate is
+`{python} percent(summary["base_rate"])`: about one contact in
+`{python} f"{1 / summary['base_rate']:.0f}"` subscribes. Lift is the called contacts'
+subscription rate over the base rate. The test set is a held-out
+`{python} percent(summary["test_size"], 0)` of the data, never used in training.
+:::
+
+```{python}
+#| label: compare-setup
+shown = {
+    "roc_auc": ("ROC AUC", True, "{:.3f}"),
+    "average_precision": ("Average precision", True, "{:.3f}"),
+    "brier": ("Brier score, lower is better", False, "{:.3f}"),
+    "recall_top10": (f"Recall, top {percent(top_share, 0)}", True, None),
+    "lift_top10": (f"Lift, top {percent(top_share, 0)}", True, "{:.2f}"),
+}
+better = {m: (value.loc[m, best] > value.loc[m, rival]) == higher
+          for m, (_, higher, _) in shown.items()}
+claim(all(better.values()), "The best release beats the runner-up on every metric shown.")
+models = {"logistic_regression": "Logistic regression", "gradient_boosting": "Gradient boosting"}
+
+
+def release_column(version: str) -> None:
+    """Print one release's column: what it is, then its metrics, the better value in bold."""
+    release = releases.loc[version]
+    print(f"### {version} · released {release['month']}\n")
+    print(f"{release['description']}\n")
+    for metric, (label, higher, form) in shown.items():
+        number = value.loc[metric, version]
+        text = percent(number) if form is None else form.format(number)
+        pair = value.loc[metric, [best, rival]]
+        wins = number == (pair.max() if higher else pair.min())
+        print(f"- {label}: {f'**{text}**' if wins else text}")
+```
+
+## `{python} best` beats `{python} rival` on all `{python} len(shown)` metrics, with the same `{python} f"{calls:,}"` calls {#compare}
+
+:::: {.columns}
+::: {.column .release width="50%"}
+```{python}
+#| output: asis
+release_column(rival)
+```
+:::
+::: {.column .release width="50%"}
+```{python}
+#| output: asis
+release_column(best)
+```
+:::
+::::
+
+::: {.notes}
+Both releases see every field known before the call; `{python} best` swaps logistic
+regression for gradient-boosted trees, which can find interactions between fields.
+The better value of each metric is in bold. ROC AUC and average precision summarise the
+whole ranking; the Brier score checks the probabilities; recall and lift are for the
+`{python} f"{calls:,}"` contacts that are called. All are computed on the same test
+contacts, and the intervals come from the same bootstrap resamples (see the caveats).
+:::
+
+## `{python} best` ranks the whole list best: ROC AUC `{python} f"{auc[best]:.3f}"`, against `{python} f"{auc[first]:.3f}"` for `{python} first` {#roc}
+
+```{python}
+#| label: roc-figure
+#| fig-cap: "ROC curves on the test contacts. The dashed diagonal is a random ranking."
+#| fig-alt: "Line chart of true-positive rate against false-positive rate, one curve per release. Every curve rises above the dashed diagonal of a random ranking; the best release's curve encloses the most area and the first release's the least."
+claim((auc > 0.5).all(), "Every curve rises above the diagonal (alt text).")
+claim(auc.idxmin() == first, "The first release's curve is the lowest (title and alt text).")
+fig, ax = plt.subplots(figsize=(8, 4.2))
+for version, points in curves[curves["curve"] == "roc"].groupby("version"):
+    ax.plot(points["x"], points["y"], color=colors[version], linewidth=2.5,
+            label=f"{version}: ROC AUC {auc[version]:.3f}")
+ax.plot([0, 1], [0, 1], linestyle="--", color="#555555", linewidth=1)
+ax.set_xlabel("False-positive rate")
+ax.set_ylabel("True-positive rate")
+ax.set_aspect("equal")
+ax.legend(frameon=False, loc="center left", bbox_to_anchor=(1.05, 0.5))
+plt.show()
+```
+
+::: {.notes}
+A ROC curve follows the ranking from the top of the list down. The further a curve bows
+towards the top left, the more subscribers come before non-subscribers. ROC AUC is the
+chance that a random subscriber is ranked above a random non-subscriber; a random ranking
+gives the diagonal. `{python} percent(summary["confidence"], 0)` interval for `{python} best`: `{python} f"{low.loc['roc_auc', best]:.3f}"` to
+`{python} f"{high.loc['roc_auc', best]:.3f}"`. The call centre only uses the top of the
+list, which is why the business metric on the previous slides is recall in the top share.
+:::
+
+```{python}
+#| label: age-setup
+ages = segments[(segments["factor"] == "age_band") & (segments["version"] == best)]
+ages = ages.set_index("segment")
+most_called = ages["share_called"].idxmax()
+least_called = ages["share_called"].idxmin()
+claim(ages["share_called"].max() > 3 * ages["share_called"].min(),
+      "The ranking calls the age bands at very different rates.")
+claim(list(ages["share_called"].sort_values().index) == list(ages["base_rate"].sort_values().index),
+      "The ranking calls the age bands in the order of their subscription rates.")
+```
+
+## `{python} best` calls `{python} percent(ages.loc[most_called, "share_called"])` of contacts aged `{python} most_called` but `{python} percent(ages.loc[least_called, "share_called"])` of those aged `{python} least_called` {#who-is-called}
+
+```{python}
+#| label: age-figure
+#| fig-cap: "Test contacts by age band: the share called, and the share who subscribed."
+#| fig-alt: "Horizontal bar chart with two bars per age band: the share of the band that is called and the band's subscription rate. The bands are called in the same order as their subscription rates; the oldest band is called far more often than the others."
+claim(most_called == ages.index[-1], "The oldest band is called most often (alt text).")
+fig, ax = plt.subplots(figsize=(10, 4.2))
+rows = range(len(ages))
+height = 0.38
+ax.barh([r + height / 2 for r in rows], ages["share_called"], height, color=colors[best],
+        label=f"Called by {best}")
+ax.barh([r - height / 2 for r in rows], ages["base_rate"], height, color="#999999",
+        label="Subscribed")
+for r, (called, rate) in enumerate(zip(ages["share_called"], ages["base_rate"])):
+    label = {"va": "center", "fontsize": 13, "zorder": 3,
+             "bbox": {"facecolor": PAPER, "edgecolor": "none", "pad": 1}}
+    ax.text(called + 0.005, r + height / 2, percent(called), **label)
+    ax.text(rate + 0.005, r - height / 2, percent(rate), color="#555555", **label)
+ax.axvline(top_share, color=INK, linestyle=":", linewidth=1.2, zorder=1)
+ax.text(top_share, -0.55, f" whole list: {percent(top_share, 0)} called",
+        fontsize=13, va="bottom")
+ax.set_yticks(list(rows), ages.index)
+ax.invert_yaxis()
+ax.set_ylabel("Age band")
+ax.xaxis.set_major_formatter(lambda x, _: percent(x, 0))
+ax.set_xlim(0, ages[["share_called", "base_rate"]].max().max() * 1.18)
+ax.legend(frameon=False, loc="center right")
+plt.show()
+```
+
+::: {.notes}
+`{python} best` calls the age bands in the order of their subscription rates: it follows
+the outcome. Contacts aged `{python} most_called` subscribe at
+`{python} percent(ages.loc[most_called, "base_rate"])`, against
+`{python} percent(ages.loc[least_called, "base_rate"])` for those aged
+`{python} least_called`. Age is a model input and a protected characteristic in UK equality
+law, so ordering marketing calls by it needs legal review before any UK deployment: see the
+model card's ethical considerations. The smallest band has
+`{python} f"{ages['n'].min():,}"` test contacts, so its estimates are the noisiest.
+:::
+
+```{python}
+#| label: calibration-setup
+cal = calibration[calibration["version"] == best]
+gap = (cal["mean_predicted"] - cal["observed_rate"]).abs()
+claim(gap.max() < 0.05, "The best release's probabilities can be read as rates.")
+```
+
+## `{python} best`'s predicted probabilities are within `{python} f"{100 * gap.max():.1f}"` points of the observed rates {#calibration}
+
+```{python}
+#| label: calibration-figure
+#| fig-cap: "Calibration on the test contacts, in equal-sized bins. Points on the dashed diagonal are perfectly calibrated."
+#| fig-alt: "Points joined by a line: observed subscription rate against mean predicted probability, with a dashed diagonal. The points lie close to the diagonal; most bins have low predicted probabilities and one bin is much higher."
+claim((cal["mean_predicted"] < 0.25).sum() > len(cal) / 2,
+      "Most bins have low predicted probabilities (alt text).")
+fig, ax = plt.subplots(figsize=(8, 4.2))
+limit = cal[["mean_predicted", "observed_rate"]].max().max() * 1.05
+ax.plot([0, limit], [0, limit], linestyle="--", color="#555555", linewidth=1)
+ax.plot(cal["mean_predicted"], cal["observed_rate"], marker="o", markersize=7,
+        linewidth=2.5, color=colors[best], label=best)
+ax.set_xlabel("Mean predicted probability")
+ax.set_ylabel("Observed subscription rate")
+ax.xaxis.set_major_formatter(lambda x, _: percent(x, 0))
+ax.yaxis.set_major_formatter(lambda x, _: percent(x, 0))
+ax.set_aspect("equal")
+plt.show()
+```
+
+::: {.notes}
+Calibrated probabilities can be read as rates: of contacts given a probability near some
+value, about that share subscribe. Each of the `{python} cal["bin"].nunique()` points is a
+bin of about `{python} f"{cal['n'].median():,.0f}"` test contacts; the largest gap between a
+bin's mean prediction and its observed rate is `{python} f"{100 * gap.max():.1f}"`
+percentage points. This matters for planning: the expected number of subscribers from a
+campaign is the sum of the called contacts' probabilities. The probabilities are calibrated
+to this data's base rate, so a client with a different rate needs recalibration.
+:::
+
+```{python}
+#| label: caveat-setup
+recall = metrics[metrics["metric"] == "recall_top10"].set_index("version")
+overlap = recall.loc[best, "low"] <= recall.loc[rival, "high"]
+claim(overlap, "The recall intervals of the best release and the runner-up overlap.")
+
+
+def interval(version: str) -> str:
+    """A release's recall interval, as text."""
+    return f"{percent(recall.loc[version, 'low'])} to {percent(recall.loc[version, 'high'])}"
+```
+
+## These results do not yet show how `{python} best` will do for a client {#caveats .smaller}
+
+::: {.incremental}
+- **One bank's past campaigns.** Re-evaluate on the client's own recent contacts.
+- **A random split.** A split by time would show how the ranking does on future campaigns.
+- **Campaign fields.** `day`, `month` and `campaign` are only known once a campaign has
+  started; a ranking made before it needs a release without them.
+- **A small lead.** `{python} best`'s recall interval (`{python} interval(best)`) overlaps
+  `{python} rival`'s (`{python} interval(rival)`).
+- **Age.** The bands are called at very different rates: legal review comes first.
+:::
+
+::: {.notes}
+Each point appears on a click. The data are a Portuguese bank's phone campaigns, documented
+in data/README.md. The test contacts are a random sample of all dates, so they share
+seasons and conditions with the training rows; a time split is the honest test of a future
+campaign. The intervals are `{python} percent(summary["confidence"], 0)` percentile intervals over
+`{python} f"{summary['n_bootstrap']:,}"` paired bootstrap resamples of the test set: they
+reflect test-set sampling only, not a new bank, a new year or a change in who is called.
+Overlapping intervals do not mean the releases are equal, but the lead is small. The model
+card lists the legal and data-protection reviews as open TODOs.
+:::
+
+```{python}
+#| label: decision-setup
+wins = [value.loc[m, best] == (value.loc[m].max() if higher else value.loc[m].min())
+        for m, (_, higher, _) in shown.items()]
+claim(all(wins), "The best release is best on every metric shown, against every release.")
+```
+
+## We decide: offer `{python} best`, after a legal review of its use of age {#decision}
+
+- **Offer `{python} best`** for the next client campaign: it is the best release on every
+  metric we report.
+- **Before it runs:** the legal review of age and a data-protection review.
+- **Next evaluation:** the client's own recent contacts, split by time, with a release
+  that does not use the campaign fields.
+
+::: {.notes}
+The decision follows from the slides before: `{python} best` reaches the most subscribers
+for the same `{python} f"{calls:,}"` calls, ranks the whole list best and gives usable
+probabilities. Its lead over `{python} rival` is small, so the next evaluation, on the
+client's data and split by time, decides whether the lead holds. For investors: the product
+is the ranking, and each release is measured the same way, from one results file, so the
+next release's deck is a re-render, not a rewrite.
+:::

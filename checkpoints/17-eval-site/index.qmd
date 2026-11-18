@@ -1,0 +1,61 @@
+---
+title: "Which release of the contact-ranking model should a call centre use?"
+subtitle: "Acme Signals (a fictional company), evaluated on the UCI Bank Marketing data"
+hide-description: true  # the first sentence below is the headline
+description: "The headline result of Acme Signals' model evaluation, and the documents behind it: report, model card and slides."
+execute:
+  echo: false
+listing:
+  id: documents
+  type: table
+  contents:
+    - report.qmd
+    - model-card.qmd
+    - slides.qmd
+  sort: false
+  fields: [title, description]
+  field-display-names:
+    title: Document
+    description: What it holds
+  sort-ui: false
+  filter-ui: false
+---
+
+```{python}
+#| label: setup
+import json
+
+import pandas as pd
+
+from acme_eval.claims import claim
+
+metrics = pd.read_csv("outputs/metrics.csv")
+summary = json.loads(open("outputs/summary.json").read())
+value = metrics.pivot(index="metric", columns="version", values="value")
+best = summary["best_version"]
+versions = [release["version"] for release in summary["releases"]]
+claim(best == value.loc["roc_auc"].idxmax(), "The release called best has the highest ROC AUC.")
+claim(value.loc["lift_top10", best] > 1,
+      "The best release finds more subscribers per call than calling at random.")
+
+
+def percent(share: float, digits: int = 1) -> str:
+    """A share between 0 and 1, as a percentage."""
+    return f"{100 * share:.{digits}f}%"
+```
+
+Of releases `{python} versions[0]` to `{python} versions[-1]` of the contact-ranking model,
+**`{python} best`** ranks best: calling the top `{python} percent(summary["top_share"], 0)`
+of its list reaches `{python} percent(value.loc["recall_top10", best])` of the subscribers
+among `{python} f"{summary['test_rows']:,}"` held-out contacts,
+`{python} f"{value.loc['lift_top10', best]:.1f}"` times as many per call as calling at
+random. Acme Signals is a fictional company, made up for teaching; the bank data are real
+and public, and every number on this site is computed from them.
+
+## The documents
+
+::: {#documents}
+:::
+
+The report and the model card are also Word and PDF files (see "Other formats" on each), and
+the slides are also a [PowerPoint deck](slides.pptx).
