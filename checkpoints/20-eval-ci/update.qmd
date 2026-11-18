@@ -1,0 +1,179 @@
+---
+title: "Monthly investor update"
+subtitle: "Acme Signals (a fictional company)"
+description: "One month at Acme Signals, a fictional company: its business figures, which are synthetic and invented for teaching, and the release of its model live that month, measured on real bank data."
+date: today
+format:
+  html:
+    toc: false
+    embed-resources: true  # one self-contained file per month, to send or to move
+  docx:
+    reference-doc: templates/acme-reference.docx  # scripts/make_reference_docs.py
+  typst: default
+execute:
+  echo: false  # also hides the cell papermill injects with the parameter values
+---
+
+```{python}
+#| tags: [parameters]
+# The parameter and its default. Another month:  quarto render update.qmd -P month:2026-06
+# Every month at once, into reports/:          uv run python scripts/render_params.py
+month = "latest"  # "YYYY-MM", or "latest": the last month in data/synthetic_business.csv
+```
+
+```{python}
+#| label: setup
+import json
+from pathlib import Path
+
+import pandas as pd
+from IPython.display import HTML
+
+from acme_eval import params
+from acme_eval.claims import claim
+
+BUSINESS = Path("data/synthetic_business.csv")  # SYNTHETIC: invented for teaching
+claim("synthetic" in BUSINESS.name,
+      "Every business figure in this update is labelled SYNTHETIC: it comes from the synthetic file.")
+business = pd.read_csv(BUSINESS, dtype={"month": str}).set_index("month")
+month = params.month(month, business.index)  # stops on a month that is not in the file
+
+summary = json.loads(Path("outputs/summary.json").read_text())
+metrics = pd.read_csv("outputs/metrics.csv")
+value = metrics.pivot(index="metric", columns="version", values="value")
+low = metrics.pivot(index="metric", columns="version", values="low")
+high = metrics.pivot(index="metric", columns="version", values="high")
+
+period = pd.Period(month, freq="M")
+label = period.strftime("%B %Y")
+previous = str(period - 1)
+previous_label = (period - 1).strftime("%B %Y")
+now = business.loc[month]
+before = business.loc[previous] if previous in business.index else None
+
+SYNTHETIC = "(synthetic)"
+FIGURES = {  # column: (what it is, how it is printed)
+    "customers": ("Paying customers (banks)", lambda v: f"{v:,.0f}"),
+    "pilots": ("Banks in a pilot", lambda v: f"{v:,.0f}"),
+    "monthly_recurring_revenue_gbp": ("Monthly recurring revenue", lambda v: f"£{v:,.0f}"),
+    "calls_ranked": ("Contacts ranked",lambda v: f"{v:,.0f}"),
+}
+
+
+def change(column: str) -> str:
+    """This month's figure, labelled synthetic, and its change on the month before."""
+    _, show = FIGURES[column]
+    text = f"{show(now[column])} {SYNTHETIC}"
+    if before is None:
+        return text
+    word = params.direction(now[column], before[column])
+    claim({"up": now[column] > before[column], "down": now[column] < before[column],
+           "unchanged": now[column] == before[column]}[word],
+          f"{FIGURES[column][0]} is {word} on {previous_label}.")
+    if word == "unchanged":
+        return f"{text}, unchanged from {previous_label}"
+    return f"{text}, {word} from {show(before[column])} {SYNTHETIC} in {previous_label}"
+
+
+def percent(share: float, digits: int = 1) -> str:
+    """A share between 0 and 1, as a percentage."""
+    return f"{100 * share:.{digits}f}%"
+```
+
+This update covers **`{python} label`** (month `{python} month`).
+
+::: {.callout-warning}
+## SYNTHETIC: invented for teaching
+
+Acme Signals is a fictional company. Its business figures below (customers, pilots, revenue
+and contacts ranked) are invented for teaching by `scripts/make_synthetic_business.py`; they
+are not real company data. Each one is marked "(synthetic)".
+:::
+
+## The business
+
+- **Paying customers** (banks): `{python} change("customers")`.
+- **Pilots**: `{python} change("pilots")`.
+- **Monthly recurring revenue**: `{python} change("monthly_recurring_revenue_gbp")`.
+- **Contacts ranked** for customers and pilots: `{python} change("calls_ranked")`.
+
+```{python}
+#| output: asis
+if before is None:
+    print(f"{label} is the first month in `{BUSINESS}`, so there is no change to report.")
+```
+
+::: {#tbl-business}
+
+```{python}
+columns = {label + " " + SYNTHETIC: [FIGURES[c][1](now[c]) for c in FIGURES]}
+if before is not None:
+    columns = {previous_label + " " + SYNTHETIC: [FIGURES[c][1](before[c]) for c in FIGURES],
+               **columns}
+table = pd.DataFrame({"Figure": [FIGURES[c][0] for c in FIGURES], **columns})
+HTML(table.to_html(index=False))
+```
+
+SYNTHETIC: invented for teaching. The business figures of Acme Signals, a fictional company,
+for `{python} label if before is None else previous_label + " and " + label`, from
+`data/synthetic_business.csv`. They are not real company data.
+
+:::
+
+## The model
+
+::: {.callout-note}
+## Real data
+
+The model's figures are real: `scripts/evaluate.py` computes them on the public UCI Bank
+Marketing data, `{python} f"{summary['test_rows']:,}"` contacts held out from training. The
+company and its releases are fictional, and each release is measured by today's evaluation,
+on the same held-out contacts.
+:::
+
+```{python}
+#| output: asis
+releases = sorted(summary["releases"], key=lambda r: r["month"])
+live = [r for r in releases if r["month"] <= month]
+
+
+def released(release: dict) -> str:
+    return pd.Period(release["month"], freq="M").strftime("%B %Y")
+
+
+if not live:
+    claim(releases[0]["month"] > month, "No release was live in the month reported.")
+    print(f"No release in `releases.yml` was live in {label}: the first, "
+          f"**{releases[0]['version']}**, was released in {released(releases[0])}, so this "
+          "month has no model figures.")
+else:
+    release = live[-1]
+    v = release["version"]
+    auc = {r["version"]: round(value.loc["roc_auc", r["version"]], 3) for r in live}
+    if len(live) == 1:
+        standing = "the first release"
+    elif auc[v] == max(auc.values()):
+        standing = "the best-ranking release so far"
+    else:
+        standing = f"not the best-ranking release so far ({max(auc, key=auc.get)} ranks better)"
+    claim(standing.startswith("the first") == (len(live) == 1)
+          and standing.startswith("the best") == (len(live) > 1 and all(
+              auc[v] >= a for a in auc.values())),
+          f"{v} is {standing}.")
+    what = release["description"].rstrip(".")
+    print(f"The release live in {label} was **{v}** ({what[0].lower() + what[1:]}), released "
+          f"in {released(release)} and {standing}. Its ROC AUC is "
+          f"{value.loc['roc_auc', v]:.3f} (95% interval "
+          f"{low.loc['roc_auc', v]:.3f} to {high.loc['roc_auc', v]:.3f}), and calling the top "
+          f"{percent(summary['top_share'], 0)} of its list reaches "
+          f"{percent(value.loc['recall_top10', v])} of the subscribers, "
+          f"{value.loc['lift_top10', v]:.1f} times as many per call as calling at random.")
+    if release["month"] == month and len(live) > 1:
+        old = live[-2]["version"]
+        word = params.relation(auc[v], auc[old])
+        claim({"above": auc[v] > auc[old], "below": auc[v] < auc[old],
+               "level with": auc[v] == auc[old]}[word],
+              f"The ROC AUC of {v} is {word} that of {old}.")
+        print(f"\n\n{v} is new this month. It replaced {old}, and its ROC AUC, "
+              f"{auc[v]:.3f}, is {word} the {auc[old]:.3f} of {old}.")
+```
