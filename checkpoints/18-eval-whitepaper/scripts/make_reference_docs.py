@@ -25,9 +25,8 @@ import zipfile
 from io import BytesIO
 from pathlib import Path
 
-import yaml
+from acme_eval import brand
 
-BRAND = Path("_brand.yml")
 TEMPLATES = Path("templates")
 GENERIC = {"serif", "sans-serif", "monospace", "system-ui", "cursive", "fantasy"}
 
@@ -41,28 +40,30 @@ FIGURE_ACCENTS = {
 }
 
 
-def brand_colours() -> dict[str, str]:
-    """The Office theme's colour slots, from _brand.yml's palette and the figure palette."""
-    palette = yaml.safe_load(BRAND.read_text())["color"]["palette"]
+def brand_colours(b: dict) -> dict[str, str]:
+    """The Office theme's colour slots, from _brand.yml's roles (as acme_eval.brand resolves
+    them, so a role changed in the brand reaches Word and PowerPoint too) and the figure
+    palette."""
+    text = brand.text_colours(b)
 
-    def hex_of(name: str) -> str:
-        return palette[name].lstrip("#").upper()
+    def office(hex_colour: str) -> str:
+        return hex_colour.lstrip("#").upper()
 
     return {
-        "dk1": hex_of("ink"),       # text
-        "lt1": hex_of("paper"),     # background
-        "dk2": hex_of("navy"),      # titles
-        "lt2": hex_of("stone"),     # hairlines
-        "accent1": hex_of("navy"),  # Word's headings
+        "dk1": office(text["body text (foreground)"]),   # text
+        "lt1": office(brand.colour(b, "background")),    # background
+        "dk2": office(text["headings"]),                 # titles
+        "lt2": office(brand.colour(b, "stone")),         # hairlines (decoration, not a role)
+        "accent1": office(text["headings"]),             # Word's headings
         **FIGURE_ACCENTS,
-        "hlink": hex_of("cobalt"),  # links
+        "hlink": office(text["links"]),                  # links
         "folHlink": "5A3D8A",
     }
 
 
-def office_font() -> str:
+def office_font(b: dict) -> str:
     """The last named (not generic) font in the brand's base family list."""
-    family = yaml.safe_load(BRAND.read_text())["typography"]["base"]["family"]
+    family = b["typography"]["base"]["family"]
     names = [f.strip().strip("'\"") for f in family.split(",")]
     return [name for name in names if name not in GENERIC][-1]
 
@@ -106,11 +107,13 @@ def restyle_word(xml: str, colours: dict[str, str], font: str) -> str:
     assert n >= 5, f"only {n} heading colours found"
     # The title (the subtitle is based on it). In a run's properties the colour comes after
     # the fonts and before the size, as the schema orders them.
-    xml, n = re.subn(r'(<w:style w:type="paragraph" w:styleId="Title">.*?)(<w:sz )',
+    # Each pattern stays inside its own <w:style>, so a style without the expected element
+    # fails the assertion instead of editing the style after it.
+    xml, n = re.subn(r'(<w:style w:type="paragraph" w:styleId="Title">(?:(?!</w:style>).)*?)(<w:sz )',
                      rf"\g<1>{navy}\g<2>", xml, count=1, flags=re.S)
     assert n == 1, "no Title style"
     # Links.
-    xml, n = re.subn(r'(<w:style w:type="character" w:styleId="Hyperlink">.*?)<w:color [^>]*/>',
+    xml, n = re.subn(r'(<w:style w:type="character" w:styleId="Hyperlink">(?:(?!</w:style>).)*?)<w:color [^>]*/>',
                      rf'\g<1><w:color w:val="{colours["hlink"]}" w:themeColor="hyperlink" />',
                      xml, count=1, flags=re.S)
     assert n == 1, "no Hyperlink colour"
@@ -141,7 +144,8 @@ def write(name: str, changes: dict) -> None:
 
 
 def main() -> None:
-    colours, font = brand_colours(), office_font()
+    b = brand.load()
+    colours, font = brand_colours(b), office_font(b)
     write("reference.docx", {
         "word/theme/theme1.xml": lambda xml: retheme(xml, colours, font),
         "word/styles.xml": lambda xml: restyle_word(xml, colours, font),
