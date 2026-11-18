@@ -88,15 +88,23 @@ def find_chrome() -> str:
     sys.exit("No Chrome found: set CHROME to the path of Chrome or Chromium.")
 
 
-def print_pdf(chrome: str) -> None:
-    """Print the deck's print view to slides.pdf with a throwaway profile."""
+def print_pdf(chrome: str) -> str:
+    """Print the deck's print view to slides.pdf with a throwaway profile. Returns what went
+    wrong in Chrome itself (a hang, an error exit), or "" when it finished."""
     url = f"{DECK.resolve().as_uri()}?print-pdf"
     with tempfile.TemporaryDirectory() as profile:
-        subprocess.run(
-            [chrome, "--headless", "--disable-gpu", f"--user-data-dir={profile}",
-             "--no-pdf-header-footer", "--run-all-compositor-stages-before-draw",
-             "--virtual-time-budget=20000", f"--print-to-pdf={PDF}", url],
-            check=False, capture_output=True, timeout=180)
+        try:
+            run = subprocess.run(
+                [chrome, "--headless", "--disable-gpu", f"--user-data-dir={profile}",
+                 "--no-pdf-header-footer", "--run-all-compositor-stages-before-draw",
+                 "--virtual-time-budget=20000", f"--print-to-pdf={PDF}", url],
+                check=False, capture_output=True, text=True, timeout=180)
+        except subprocess.TimeoutExpired:
+            return "Chrome did not finish within 180 s"
+    if run.returncode != 0:
+        last = (run.stderr.strip().splitlines() or ["no message"])[-1]
+        return f"Chrome exited with {run.returncode}: {last}"
+    return ""
 
 
 def squash(text: str) -> str:
@@ -109,7 +117,10 @@ def problems(titles: list[str]) -> list[str]:
     """What is wrong with slides.pdf, or nothing."""
     if not PDF.exists():
         return ["Chrome wrote no PDF"]
-    pages = PdfReader(PDF).pages
+    try:
+        pages = PdfReader(PDF).pages
+    except Exception as error:  # a half-written PDF: count it as a failed try, and retry
+        return [f"the PDF could not be read ({error})"]
     if len(pages) != len(titles):
         return [f"{len(pages)} pages for {len(titles)} slides"]
     found = []
@@ -127,8 +138,8 @@ def main() -> int:
     chrome = find_chrome()
     for attempt in range(1, TRIES + 1):
         PDF.unlink(missing_ok=True)
-        print_pdf(chrome)
-        found = problems(titles)
+        chrome_problem = print_pdf(chrome)
+        found = ([chrome_problem] if chrome_problem else []) + problems(titles)
         if not found:
             print(f"Wrote {PDF}: {len(titles)} pages, one per slide (try {attempt} of {TRIES})")
             return 0

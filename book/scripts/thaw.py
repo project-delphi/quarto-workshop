@@ -25,10 +25,13 @@ BOOK = Path(__file__).resolve().parents[1]
 EVAL = "../examples/eval"
 INPUTS = {
     "facts.yml": (["facts.yml"], ("scripts.facts", "facts.yml")),
-    "examples/eval": ([f"{EVAL}/{p}" for p in ("data", "src", "scripts", "releases.yml", "uv.lock",
-                                                    "acme.scss", "slides.qmd")]
-                      + [f"../checkpoints/16-eval-slides/{p}" for p in ("acme.scss", "slides.qmd")],
+    # The evaluation's results: the code and data that compute outputs/.
+    "examples/eval": ([f"{EVAL}/{p}" for p in ("data", "src", "scripts", "releases.yml", "uv.lock")],
                       ("scripts import evaluation", "scripts.evaluation")),
+    # A chapter that quotes a checkpoint's files names that checkpoint's folder.
+    "checkpoints/16-eval-slides": (["../checkpoints/16-eval-slides/acme.scss",
+                                    "../checkpoints/16-eval-slides/slides.qmd"],
+                                   ("16-eval-slides",)),
 }
 
 

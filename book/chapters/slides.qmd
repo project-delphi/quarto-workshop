@@ -10,6 +10,7 @@ from fractions import Fraction
 
 from scripts import evaluation as ev
 from scripts.prose import number_words, text_holds
+from scripts.wcag import contrast, scss_variables
 
 S = ev.summary()
 best = S["best_version"]
@@ -20,25 +21,14 @@ text_holds(share == Fraction(1, 10), "\"a tenth of the list\" in the headline ti
 
 CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "16-eval-slides"
 scss = (CHECKPOINT / "acme.scss").read_text()
-colour = dict(re.findall(r"^\$(acme-[a-z]+):\s*(#[0-9a-fA-F]{6})", scss, re.M))
-
-
-def luminance(hex_colour: str) -> float:
-    """WCAG 2.2 relative luminance of an sRGB colour."""
-    def channel(c: float) -> float:
-        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-    r, g, b = (channel(int(hex_colour[i:i + 2], 16) / 255) for i in (1, 3, 5))
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
-
-
-def contrast(a: str, b: str) -> float:
-    hi, lo = sorted((luminance(a), luminance(b)), reverse=True)
-    return (hi + 0.05) / (lo + 0.05)
-
-
-ratios = {name: contrast(colour[name], colour["acme-paper"])
-          for name in ("acme-ink", "acme-navy", "acme-link", "acme-muted")}
-text_holds(min(ratios.values()) >= 4.5, "every text colour of the theme passes 4.5:1")
+# The colours the theme gives each role, resolved as tests/test_deck_contrast.py resolves them.
+theme = scss_variables(scss)
+ROLES = {"body": "$body-color", "headings": "$presentation-heading-color",
+         "links": "$link-color", "captions, footer": "$text-muted"}
+colour = {role: theme[var] for role, var in ROLES.items()}
+paper = theme["$body-bg"]
+ratios = {role: contrast(c, paper) for role, c in colour.items()}
+text_holds(min(ratios.values()) >= 4.5, "every text colour the test checks passes 4.5:1")
 deck = (CHECKPOINT / "slides.qmd").read_text()
 n_slides = 1 + len(re.findall(r"^## ", deck, re.M))
 text_holds(n_slides == 8, "the deck's eight slides")
@@ -88,7 +78,7 @@ decided. Five habits get it there, and each is something you can ask an agent fo
 | Habit | What it means | You check |
 |---|---|---|
 | One claim per slide | each slide makes one point, with one piece of evidence | no slide needs two sentences to say what it shows |
-| The title states the claim | "v3 reaches 44% of subscribers…", not "Results" | read the titles alone, in order: they are the argument |
+| The title states the claim | "`{python} best` reaches `{python} ev.percent(recall)` of subscribers…", not "Results" | read the titles alone, in order: they are the argument |
 | Numbers computed, words guarded | a title's numbers are inline code; its wording has a guard | the titles agree with `outputs/`, and a guard stops a false one |
 | Detail in the notes | the speaker notes hold what you will say; the slide holds the claim and its evidence | every slide has notes; no slide is a paragraph |
 | End on the decision | the last slide says what is being decided | the room knows what you are asking for |
@@ -152,7 +142,9 @@ what you will see while the room sees the slide.
 Traps met while building and testing the deck, and the reasons for two phrases in the prompt.
 Inline code in the YAML `title` runs before any cell and fails with a `NameError`, and with no
 YAML title Quarto promotes the first heading to the title, uncomputed; hence "a plain YAML
-title". Notes written before the first `##` heading became an extra, blank slide. A figure
+title". Notes written before the first `##` heading became an extra, blank slide, so the prompt
+asks for notes on the seven slides after the title; the finished deck attaches the title
+slide's notes with a short filter, `filters/title-notes.lua`. A figure
 cell labelled `fig-…` adds "Figure 1:" to its caption, which slides rarely want; hence "no
 `fig-` labels". Beyond the prompt: a `fig-dpi` setting gave figures a fixed size that
 overflowed the slide; in another run, with no such setting, the figures filled less than half
@@ -181,14 +173,13 @@ writes `acme.scss` and the test · `uv run pytest` · renders the deck
 
 The finished theme's colours, measured with the guideline's formula:
 
-| Text | Colour | Contrast on the background |
-|---|---|--:|
-| body | `{python} colour["acme-ink"]` | `{python} f"{ratios['acme-ink']:.1f}"`:1 |
-| headings | `{python} colour["acme-navy"]` | `{python} f"{ratios['acme-navy']:.1f}"`:1 |
-| links | `{python} colour["acme-link"]` | `{python} f"{ratios['acme-link']:.1f}"`:1 |
-| captions, footer | `{python} colour["acme-muted"]` | `{python} f"{ratios['acme-muted']:.1f}"`:1 |
-
-: The finished theme's text colours on its background, `{python} colour["acme-paper"]`, computed with the WCAG 2.2 formula. {#tbl-slides-contrast}
+```{python}
+#| output: asis
+lines = ["| Text | Colour | Contrast on the background |", "|---|---|--:|"]
+lines += [f"| {role} | `{colour[role]}` | {ratios[role]:.1f}:1 |" for role in ROLES]
+print("\n".join(lines))
+print(f"\n: The finished theme's text colours on its background, `{paper}`, computed with the WCAG 2.2 formula, from the variables its test checks. {{#tbl-slides-contrast}}")
+```
 
 The test makes the rule permanent: a later change of colour that fails it fails the test
 suite, before anyone squints at a projector. One thing a theme does not reach: matplotlib draws
@@ -216,8 +207,7 @@ this book that happened in most runs without the flag, which makes Chrome finish
 page before it prints, and in none with it. The check, a page count that must equal the
 slide count, caught every blank print, and catches a slide too tall for its page as well,
 which Reveal.js prints on two. It turns a failure into a retry instead of a blank PDF in a
-client's inbox. The finished deck prints as
-`{python} WORD[n_slides]` pages for its `{python} WORD[n_slides]` slides.
+client's inbox.
 
 ## PowerPoint, in the house template {#sec-slides-pptx}
 
@@ -258,7 +248,7 @@ Build the deck, its theme and test, the PDF and the PowerPoint file, and present
 in speaker view.
 
 ::: done
-the titles read as the argument; every slide has notes; the contrast test passes; the PDF has
+the titles read as the argument; every slide after the title has notes; the contrast test passes; the PDF has
 one page per slide; and the PowerPoint file opens in the template's colours.
 :::
 :::

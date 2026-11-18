@@ -30,8 +30,7 @@ are real; `data/synthetic_business.csv` is SYNTHETIC and must be labelled so whe
 - The last slide says what is decided.
 - Figures are static matplotlib images with `fig-alt`, in the report's colour-blind-safe
   palette: PowerPoint cannot run JavaScript.
-- Colours and fonts live in `acme.scss`; `tests/test_deck_contrast.py` checks that every text
-  colour has WCAG contrast of at least 4.5:1 on the background. Change a colour there and in
+- Colours and fonts live in `acme.scss`; `tests/test_deck_contrast.py` checks that the body, heading, link and muted text colours have WCAG contrast of at least 4.5:1 on the background. Change a colour there and in
   `scripts/make_pptx_reference.py` together.
 - The PowerPoint deck uses `templates/acme-reference.pptx` as its `reference-doc`. Remake it
   with `uv run python scripts/make_pptx_reference.py`; never edit it by hand.
