@@ -122,7 +122,9 @@ shown = {
     "recall_top10": (f"Recall, top {percent(top_share, 0)}", True, None),
     "lift_top10": (f"Lift, top {percent(top_share, 0)}", True, "{:.2f}"),
 }
-better = {m: (value.loc[m, best] > value.loc[m, rival]) == higher
+# Strictly better: a tie is not a win, whichever way the metric points.
+better = {m: (value.loc[m, best] > value.loc[m, rival]) if higher
+          else (value.loc[m, best] < value.loc[m, rival])
           for m, (_, higher, _) in shown.items()}
 claim(all(better.values()), "The best release beats the runner-up on every metric shown.")
 models = {"logistic_regression": "Logistic regression", "gradient_boosting": "Gradient boosting"}
@@ -133,12 +135,17 @@ def release_column(version: str) -> None:
     release = releases.loc[version]
     print(f"### {version} · released {release['month']}\n")
     print(f"{release['description']}\n")
+    def shown_as(metric: str, number: float) -> str:
+        form = shown[metric][2]
+        return percent(number) if form is None else form.format(number)
+
     for metric, (label, higher, form) in shown.items():
-        number = value.loc[metric, version]
-        text = percent(number) if form is None else form.format(number)
-        pair = value.loc[metric, [best, rival]]
-        wins = number == (pair.max() if higher else pair.min())
-        print(f"- {label}: {f'**{text}**' if wins else text}")
+        text = shown_as(metric, value.loc[metric, version])
+        texts = {v: shown_as(metric, value.loc[metric, v]) for v in (best, rival)}
+        winner = best if better[metric] else rival
+        # Bold the better value only when the difference shows at the precision printed.
+        bold = version == winner and texts[best] != texts[rival]
+        print(f"- {label}: {f'**{text}**' if bold else text}")
 ```
 
 ## `{python} best` beats `{python} rival` on all `{python} len(shown)` metrics, with the same `{python} f"{calls:,}"` calls {#compare}
@@ -215,6 +222,8 @@ claim(list(ages["share_called"].sort_values().index) == list(ages["base_rate"].s
 #| fig-cap: "Test contacts by age band: the share called, and the share who subscribed."
 #| fig-alt: "Horizontal bar chart with two bars per age band: the share of the band that is called and the band's subscription rate. The bands are called in the same order as their subscription rates; the oldest band is called far more often than the others."
 claim(most_called == ages.index[-1], "The oldest band is called most often (alt text).")
+claim(ages["share_called"].max() > 2 * ages["share_called"].drop(most_called).max(),
+      "The oldest band is called far more often than any other (alt text).")
 fig, ax = plt.subplots(figsize=(10, 4.2))
 rows = range(len(ages))
 height = 0.38
@@ -265,6 +274,8 @@ claim(gap.max() < 0.05, "The best release's probabilities can be read as rates."
 #| fig-alt: "Points joined by a line: observed subscription rate against mean predicted probability, with a dashed diagonal. The points lie close to the diagonal; most bins have low predicted probabilities and one bin is much higher."
 claim((cal["mean_predicted"] < 0.25).sum() > len(cal) / 2,
       "Most bins have low predicted probabilities (alt text).")
+claim(cal["mean_predicted"].max() > 2 * cal["mean_predicted"].median(),
+      "One bin's predictions are much higher than the rest (alt text).")
 fig, ax = plt.subplots(figsize=(8, 4.2))
 limit = cal[["mean_predicted", "observed_rate"]].max().max() * 1.05
 ax.plot([0, limit], [0, limit], linestyle="--", color="#555555", linewidth=1)

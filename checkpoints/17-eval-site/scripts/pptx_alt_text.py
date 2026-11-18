@@ -19,6 +19,8 @@ from html import escape
 from io import BytesIO
 from pathlib import Path
 
+import yaml
+
 SOURCE = Path("slides.qmd")
 DECK = Path("_site/slides.pptx")
 
@@ -27,7 +29,8 @@ def alt_texts(qmd: str) -> dict[str, str]:
     """Each cell label with a `fig-alt` option, mapped to that alt text."""
     found = {}
     for cell in re.findall(r"```\{python\}\n((?:#\|.*\n)+)", qmd):
-        options = dict(re.findall(r'#\|\s*([\w-]+):\s*"?(.*?)"?\s*$', cell, flags=re.M))
+        # Each option is YAML, so quotes and escapes are read as Quarto reads them.
+        options = {k: yaml.safe_load(v) for k, v in re.findall(r"#\|\s*([\w-]+):\s*(.*?)\s*$", cell, flags=re.M)}
         if "label" in options and "fig-alt" in options:
             found[options["label"]] = options["fig-alt"]
     return found
@@ -61,6 +64,12 @@ def main() -> int:
             target.writestr(item, content)
     if missing:
         print(f"No fig-alt in {SOURCE} for: {', '.join(missing)}", file=sys.stderr)
+        return 1
+    if pictures != len(alts):
+        # Nothing replaced (already done, or Pandoc writes descr differently now), or some
+        # figure kept its file name: either way a picture may have no alt text.
+        print(f"Expected {len(alts)} figures with fig-alt in {DECK}, replaced {pictures}",
+              file=sys.stderr)
         return 1
     DECK.write_bytes(out.getvalue())
     print(f"Gave {pictures} pictures in {DECK} their alt text")
