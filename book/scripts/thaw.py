@@ -32,6 +32,9 @@ INPUTS = {
     "checkpoints/16-eval-slides": (["../checkpoints/16-eval-slides/acme.scss",
                                     "../checkpoints/16-eval-slides/slides.qmd"],
                                    ("16-eval-slides",)),
+    "checkpoints/17-eval-site": (["../checkpoints/17-eval-site/_brand.yml",
+                                  "../checkpoints/17-eval-site/_quarto.yml"],
+                                 ("17-eval-site",)),
 }
 
 

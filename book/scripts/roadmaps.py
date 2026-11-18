@@ -32,6 +32,7 @@ META = {
     "fast-path": ("Build: a report in three formats, reviewed as a pull request", "ends at checkpoint 14"),
     "results": ("Build: a model card and a report with numbered sections", "ends at checkpoint 15"),
     "slides": ("Build: a deck as Reveal.js, PDF and PowerPoint, with a tested theme", "ends at checkpoint 16"),
+    "sites": ("Build: a branded site, Word and PowerPoint templates, a page checker", "ends at checkpoint 17"),
     "03-setup": ("Build: a computer that renders the test run", ""),
     "first-report": ("Build: a report you checked, fixed and committed", ""),
     "04-markdown": ("Build: london.md, its rules and environment", "ends at checkpoint 01"),
