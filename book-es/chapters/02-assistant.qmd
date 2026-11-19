@@ -2,6 +2,7 @@
 
 ```{python}
 #| label: ch2-setup
+from scripts.facts import checked, fact, table
 from scripts.prose import alt_text_holds
 # The pelican experiment's costs, from the deck's record of Simon Willison's runs.
 import re
@@ -23,6 +24,16 @@ QUOTED_CENTS = {"haiku-low": 0.09, "haiku-medium": 0.14, "haiku-high": 0.25,
 
 
 alt_text_holds(pelican_cost == QUOTED_CENTS, "fig-pelicans")
+
+# Today's prices live in facts.yml (Appendix K); the chapter quotes only their spread.
+prices = table("models", "prices")
+out_lo = min(r["output"] for r in prices["rows"])
+out_hi = max(r["output"] for r in prices["rows"])
+
+
+def dollars(x: float) -> str:
+    """A price as the table prints it: 50, or 0.50."""
+    return f"{x:g}" if x == int(x) else f"{x:.2f}"
 ```
 
 Simon Willison, un desarrollador, les ha hecho a casi todos los modelos nuevos importantes la
@@ -49,14 +60,14 @@ engañar por lo segundo?
 - Decidir dónde iniciar un agente, qué comandos suyos aprobar y qué reglas van en
   `AGENTS.md`.
 - Escribir un prompt que nombre sus archivos, pida un solo paso y termine en una comprobación, y
-  declarar el uso de un agente en una investigación.
+  dimensionar una tarea más grande según cómo se puede revisar.
 :::
 
 ::: tryit
 No hace falta instalar nada. Pega el prompt de Simon Willison,
-`Generate an SVG of a pelican riding a bicycle`, en un chat web en tu navegador (Claude,
-ChatGPT y Gemini tienen cada uno un plan gratuito, consultado el 2026-11-12), luego pégalo otra
-vez en una conversación nueva y compara las respuestas.
+`Generate an SVG of a pelican riding a bicycle`, en un chat web en tu navegador
+(`{python} fact("chats.free_chats")`; consultado el `{python} checked("chats.free_chats")`), luego
+pégalo otra vez en una conversación nueva y compara las respuestas.
 
 ::: done
 las dos respuestas son distintas, aunque el prompt fue el mismo. Quarto, con la misma fuente,
@@ -130,43 +141,31 @@ cortas y bien especificadas, como corregir una errata o reformatear una tabla. U
 de datos o depurar un renderizado fallido recompensa al modelo más fuerte.
 
 Los prompts de este libro son cortos y específicos, así que basta un modelo mediano con un
-esfuerzo moderado: Sonnet de Claude con esfuerzo medio, o Haiku para ediciones pequeñas, o Sol de
-OpenAI en bajo. Para trabajo difícil y desconocido, los propios proveedores recomiendan empezar
-más arriba: Anthropic sugiere empezar con Opus 5.5 para la mayoría de las cargas de trabajo, y
-OpenAI con GPT-6 Astra para razonamiento complejo y programación. Empieza por lo pequeño y sube
-solo cuando una tarea siga fallando.
+esfuerzo moderado: `{python} fact("models.everyday_models")` (consultado el
+`{python} checked("models.everyday_models")`). Para trabajo difícil y desconocido, los propios
+proveedores recomiendan empezar más arriba: `{python} fact("models.vendor_starting_points")`.
+Los nombres cambian cada pocos meses, y el @sec-facts reúne los actuales; el consejo, no.
+Empieza por lo pequeño y sube solo cuando una tarea siga fallando.
 
 Los modelos se cobran por *token*, un fragmento de texto de unos pocos caracteres, con una tarifa
 para el texto que se le envía al modelo (entrada) y otra para el texto que escribe (salida). Los
-precios que siguen son precios de *API*: lo que paga un programa por token cuando le envía
+precios de lista son precios de *API*: lo que paga un programa por token cuando le envía
 solicitudes al modelo directamente, a través de la interfaz de programación del proveedor (la
 API), en lugar de hacerlo con una suscripción mensual.
 
 ::: practice
-**Los precios cambian cada mes; el principio, no.** Los precios de lista de la @tbl-prices
-eran correctos el 2026-11-12 y no lo serán por mucho tiempo. Léelos como una foto de la
-diferencia entre modelos, no como números para planificar.
+**Los precios cambian cada mes; el principio, no.** El `{python} prices["checked"]`, los precios
+de lista de los ocho modelos de la @tbl-prices iban de \$`{python} dollars(out_lo)` a
+\$`{python} dollars(out_hi)` por millón de tokens de salida, una diferencia de
+`{python} f"{out_hi / out_lo:.0f}"` veces entre el más pequeño y el más grande. Esa tabla, con sus
+fuentes, está en el @sec-facts, el único lugar donde este libro reúne los datos que cambian;
+léela como una foto de la diferencia entre modelos, no como números para planificar. Las
+suscripciones cuentan el uso de otra manera, y los modelos que puedes elegir dependen de tu plan
+y de la versión del agente.
 :::
 
-| Modelo | Para qué dice el proveedor que sirve | Entrada / salida, \$ por millón de tokens |
-|---|---|---|
-| Claude Haiku 5.5 | "tareas de alto volumen y sensibles a la latencia, como clasificación, extracción y enrutamiento" | 0.10 / 0.50 |
-| Claude Sonnet 5.5 | "la mejor combinación de velocidad e inteligencia" | 2 / 10 |
-| Claude Opus 5.5 | "programación agéntica de larga duración y trabajo de conocimiento" | 4 / 20 |
-| Claude Fable 5.2 | "razonamiento exigente y trabajo agéntico de largo horizonte" | 8 / 40 |
-| GPT-6 Luna | "tareas focalizadas y de alto volumen" | 0.10 / 0.50 |
-| GPT-6.1 Terra | "razonamiento visual, uso preciso de la computadora y escritura clara y natural" | 1 / 5 |
-| GPT-6.1 Sol | "rendimiento cercano a Astra para trabajo complejo a menor costo" | 2 / 10 |
-| GPT-6 Astra | "el trabajo más exigente" | 10 / 50 |
-
-: Precios de lista de ocho modelos, en dólares por millón de tokens de entrada y de salida, consultados el 2026-11-12. Las descripciones de los proveedores están traducidas del inglés. {#tbl-prices}
-
-El precio de Haiku es para prompts de hasta 100,000 tokens; los más largos cuestan cinco veces
-más. Las pruebas de los pelícanos de más abajo usaron el predecesor de Fable 5.2, Fable 5.1, con
-un precio de lista de 10 / 50. Las suscripciones cuentan el uso de otra manera que los precios de
-API, y los modelos que puedes elegir dependen de tu plan y de la versión del agente. Fuentes:
-las páginas de modelos y de precios de Anthropic y las páginas de modelos de OpenAI (consultadas
-el 2026-11-12).
+Las pruebas de los pelícanos de más abajo usaron el predecesor de Fable 5.2, Fable 5.1, con un
+precio de lista de 10 / 50 dólares por millón de tokens cuando se hicieron.
 
 El costo de un nivel fijo de capacidad ha bajado rápido. Midiendo el modelo más barato que
 alcanza un puntaje dado en un benchmark, la firma de capital de riesgo a16z encontró que el precio
@@ -320,8 +319,8 @@ Pon la regla en `AGENTS.md`, que se lee al comienzo de cada sesión, y aun así 
 cumpla, porque las reglas son contexto, no una imposición.
 :::
 
-La Parte II escribe las reglas de la guía de Londres en el @sec-markdown, y la Parte III escribe
-las del análisis del agua en el @sec-water-question.
+La Parte II escribe las reglas de la guía de Londres en el @sec-markdown, y el análisis del agua
+escribe las suyas en el @sec-water-question.
 
 ## Cómo pedir trabajo {#sec-prompting}
 
@@ -369,6 +368,66 @@ redactado antes de pegarlo, y corrige cualquier nombre de archivo que no coincid
 ::: pitfall
 Pega solo lo que publicarías sin problema. Los chats web y los agentes le envían tu texto al
 proveedor: nada de contraseñas, claves, datos sin publicar ni información personal.
+:::
+
+## Vocabulario, especificación, verificación {#sec-three-skills}
+
+Con un agente que teclea por ti, rara vez vas a escribir a mano la hoja de estilos de un tema,
+las opciones de una presentación o una plantilla de PDF. Lo que necesitas, en cambio, son tres
+habilidades, y cada capítulo de aquí en adelante enseña un formato de salida a través de ellas y
+no de su sintaxis:
+
+1. **Vocabulario**: saber qué es posible y cómo se llama, para poder pedirlo. "Notas de
+   presentación", "una referencia cruzada", "un documento de referencia para Word", "un
+   parámetro": un agente puede producir cualquiera de ellos, pero solo si sabes pedirlo, y un
+   nombre te da la función real donde una descripción te da una improvisación.
+2. **Especificación**: escribir una solicitud que el agente pueda llevar a cabo y que tú puedas
+   revisar. Nombra los archivos, las opciones y el resultado, y termina con una comprobación.
+   Las reglas que deben cumplirse en cada sesión, como "cada número sale de `outputs/`", van en
+   `AGENTS.md` (@sec-agents-md), así que las dices una sola vez.
+3. **Verificación**: saber cómo se ve una buena salida y confirmarlo de tres maneras. Lee el
+   diff, para ver qué cambió; inspecciona el renderizado, como lo vería quien lo lea; y ejecuta
+   las comprobaciones que pueden correr sin ti, como las pruebas y las *guardas*, líneas que
+   detienen el renderizado cuando una oración ya no coincide con los datos (@sec-water-website).
+
+::: think
+Un agente te dice que "agregó un estilo de citas". ¿Cuál de las tres habilidades te dice si hizo
+lo que necesitabas?
+
+La verificación: abre la lista de referencias renderizada y compara una entrada con el ejemplo
+del propio estilo, y lee el diff para ver qué opción cambió. El vocabulario te ayudó a pedir un
+*estilo de citas* por su nombre; solo la verificación muestra que es el correcto.
+:::
+
+## ¿Un paso o una tarea? {#sec-step-or-task}
+
+Los prompts de este libro piden casi siempre un solo paso pequeño, porque un cambio pequeño se
+revisa rápido. Quienes ya tienen experiencia pronto van a querer darle a un agente una tarea más
+grande: "agrega una ficha del modelo (model card)", no cinco prompts que la construyan.
+Dimensiona el trabajo por cómo se va a revisar, no por cuánto tecleo te ahorra.
+
+| Dale una tarea más grande cuando | Mantente en pasos sueltos cuando |
+|---|---|
+| puedes describir el resultado terminado y cómo revisarlo | solo vas a saber que está bien cuando lo veas |
+| las comprobaciones corren sin ti: pruebas, guardas, un renderizado | cada paso necesita tu criterio antes del siguiente |
+| el trabajo está en una rama, así que deshacerlo es un solo comando | el cambio toca datos, la publicación o el trabajo de otras personas |
+| una falla sería ruidosa: una prueba en rojo, un renderizado detenido | una falla sería silenciosa: una oración plausible y equivocada |
+
+: Cuándo darle a un agente una tarea más grande. {#tbl-step-or-task}
+
+Una tarea más grande necesita una revisión más grande. Pide primero un plan corto y léelo antes
+de que el agente empiece; haz que trabaje en una rama; exígele que ejecute las pruebas y
+renderice cada formato de salida; y pídele que termine con una lista de lo que cambió y de lo que
+no pudo verificar. Luego revisa el cambio entero como revisarías un pull request de alguien de tu
+equipo, archivo por archivo, antes de que llegue a la rama principal. Los capítulos para
+profesionales muestran esto en la práctica: un prompt agrega un informe entero a un repositorio
+existente, y sus comprobaciones son un conjunto de pruebas, una guarda y una reconstrucción desde
+un clon nuevo.
+
+::: practice
+Cuando una tarea más grande sale mal, no la arregles con una conversación más larga. Deshazla
+(`git restore`, o borra la rama), divídela en los pasos cuyas comprobaciones fallaron y pídelos
+uno por uno.
 :::
 
 ## Cómo leer los recuadros del agente {#sec-boxes}
@@ -463,17 +522,17 @@ recomendaciones del ICMJE no hacen ninguna excepción para ella, así que, ante 
 ::: keyideas
 - El modelo decide, el harness hace, y tú diriges y revisas; cuando un agente decepciona,
   cualquiera de las dos mitades puede ser la causa.
-- Elige un modelo por la tarea, no por el ranking: como mostraron los pelícanos, un modelo más
-  barato con esfuerzo medio suele bastar para un paso pequeño y bien especificado.
-- El costo crece con el tamaño del modelo, el esfuerzo y el largo de la conversación, porque la
-  conversación entera se vuelve a enviar en cada turno, así que empieza una conversación nueva
-  para cada tarea sin relación.
+- Elige un modelo por la tarea, no por el ranking: un modelo más barato con esfuerzo medio
+  suele bastar para un paso pequeño, y como la conversación entera se vuelve a enviar en cada
+  turno, empieza una nueva para cada tarea sin relación.
 - Inicia un agente solo en una carpeta que creaste para el trabajo, y lee cada comando antes
   de aprobarlo.
 - Las reglas que deben durar van en `AGENTS.md`, que es contexto, no una imposición, así que
   escríbelas de forma lo bastante concreta como para revisarlas.
 - Los buenos prompts son específicos, piden un solo paso y terminan en una comprobación; en una
   investigación el agente nunca es autor, y su uso se declara.
+- Aprende cada formato de salida como vocabulario, especificación y verificación, y dale a un
+  agente una tarea más grande solo cuando sus comprobaciones puedan correr sin ti.
 :::
 
 Todo esto da por sentado una computadora en la que un agente, Quarto y Python están instalados

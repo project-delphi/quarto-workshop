@@ -518,15 +518,15 @@ Branches, each stacked on the one before (merge in this order): `revision/wp0-gr
 - **Word alt text**: Quarto 1.10.20 does not carry `fig-alt` into Word pictures' descriptions
   (seen in both dry runs); the chapter says so, but no workaround is automated.
 
-### For the Spanish edition (to translate)
+### For the Spanish edition (translated 2026-11-18)
 
-New, English-only (`book/_chapters.yml`, `english_only`): `chapters/fast-path.qmd`,
-`part-craft.qmd`, `chapters/results.qmd`, `slides.qmd`, `sites.qmd`, `white-papers.qmd`,
-`parameters.qmd`, `part-team.qmd`, `team.qmd`, `at-work.qmd`, `appendices/k-facts.qmd`. Changed, waiting
-(`translation/pending.yml`): the preface, Chapters 1–4 and 8 (01–03, 07), the setup and
-first-chapter references in 08, 04, 05, 09, 10, 12 and the water exercises, Appendices A, E, G, I
-and J, the copyright page, the afterword and the three part pages. `facts.yml` texts are English;
-the Spanish landing page still reads its own preface and setup chapter.
+Translated on branch `translation/sync-revision`: every new file (the fast path, Parts III and
+IV with their chapters, Appendix K) and every changed one (the preface, Chapters 1–3 and 7, the
+reference changes in the water chapters, Appendices A, E, G, I and J, the copyright page, the
+afterword and the part pages). `english_only` and `translation/pending.yml` are empty;
+`facts.yml` has a Spanish twin for every string (`_es` keys, read by `scripts/facts.py` and the
+Spanish landing page). The translated prompts have not been dry-run (`translation/PLAN.md`, §8.1,
+step 5).
 
 ### Remaining work packages (after review)
 

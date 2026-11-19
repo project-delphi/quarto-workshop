@@ -369,34 +369,28 @@ def checked_with() -> str:
 
 def assistant_cost() -> tuple[str, str]:
     """What Claude Code needs, as the preface says it, and the date it was checked: from
-    book/facts.yml in English (the preface quotes it from there), and from the Spanish
-    preface's own sentence on the Spanish page, until that is translated."""
-    if LANG != "es":
-        e = english_fact("agents", "claude_code_cost")
-        return e["text"], e["checked"]
-    pattern = r"(Claude Code, por ejemplo, necesita [^(]+?)\s*\(consultado el (\d{4}-\d{2}-\d{2})"
-    m = re.search(pattern, " ".join(read(f"{BOOK_DIR}/index.qmd").split()))
-    return m.group(1), m.group(2)
+    book/facts.yml, which the preface quotes, in the page's language."""
+    e = book_fact("agents", "claude_code_cost")
+    return e["text"], e["checked"]
 
 
-def english_fact(section: str, item: str) -> dict:
-    """One entry of book/facts.yml (the facts that change, Appendix K), its date as text."""
-    e = dict(yaml.safe_load(read("book/facts.yml"))[section]["items"][item])
+def book_fact(section: str, item: str) -> dict:
+    """One entry of book/facts.yml (the facts that change, Appendix K) in the page's language
+    (its `_es` strings on the Spanish page, as scripts/facts.py gives them to the Spanish
+    book), its date as text."""
+    raw = yaml.safe_load(read("book/facts.yml"))[section]["items"][item]
+    e = {k: v for k, v in raw.items() if not k.endswith("_es")}
+    if LANG == "es":
+        e.update({k[:-3]: v for k, v in raw.items() if k.endswith("_es")})
     e["checked"] = str(e["checked"])
     return e
 
 
 def assistant_accounts() -> tuple[str, str]:
     """The setup chapter's list of what each agent's account needs, and its checked date: from
-    book/facts.yml in English, from the Spanish chapter's sentence on the Spanish page."""
-    if LANG != "es":
-        es_ = [english_fact("agents", f"{k}_accounts") for k in ("claude_code", "codex", "antigravity")]
-        return "; ".join(e["text"] for e in es_), max(e["checked"] for e in es_)
-    text = " ".join(read(f"{BOOK_DIR}/chapters/03-setup.qmd").split())
-    m = re.search(r"(Claude Code necesita una [^;]+); (Codex, [^(]+?) \(para facturación por uso, "
-                  r"@sec-choose\); (Antigravity, una cuenta de Google) \(consultado el (\d{4}-\d{2}-\d{2})\)",
-                  text)
-    return f"{m.group(1)}; {m.group(2)}; {m.group(3)}", m.group(4)
+    book/facts.yml, which the chapter quotes, in the page's language."""
+    es_ = [book_fact("agents", f"{k}_accounts") for k in ("claude_code", "codex", "antigravity")]
+    return "; ".join(e["text"] for e in es_), max(e["checked"] for e in es_)
 
 
 # ---- the page's <head>: share card, icons, structured data ---------------------------------

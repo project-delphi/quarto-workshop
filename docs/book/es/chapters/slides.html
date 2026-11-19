@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="keywords" content="Quarto, publicación reproducible, agentes de programación, Markdown, Python, EPUB, análisis de datos, k-means">
+<meta name="description" content="Una guía práctica de publicación reproducible: escribe una sola vez en Markdown, deja que un agente de programación escriba el código, revisa su trabajo y reconstruye una sola fuente como página web, Word, PDF, diapositivas, libro electrónico, sitio web, blog y dashboard. Dos proyectos reales recorren el libro: una guía para visitantes de Londres y un estudio del riesgo del agua potable en los municipios de Colombia.">
+
+<title>11&nbsp; Diapositivas que sostienen una decisión – Pide, revisa, publica</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/sites.html" rel="next">
+<link href="../chapters/results.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No hay resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+
+<!-- lang-switch --><link rel="alternate" hreflang="en" href="https://project-delphi.github.io/quarto-workshop/book/chapters/slides.html"><link rel="alternate" hreflang="es" href="https://project-delphi.github.io/quarto-workshop/book/es/chapters/slides.html"><link rel="alternate" hreflang="x-default" href="https://project-delphi.github.io/quarto-workshop/book/chapters/slides.html"><!-- /lang-switch --></head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-craft.html">Parte III: El oficio de los formatos de salida</a></li><li class="breadcrumb-item"><a href="../chapters/slides.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Diapositivas que sostienen una decisión</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <!-- lang-switch --><nav class="lang-switch lang-switch-top" aria-label="Language / Idioma"><a href="../../chapters/slides.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch --><button type="button" class="btn quarto-search-button" aria-label="Buscar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Pide, revisa, publica</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://project-delphi.github.io/quarto-workshop/ebook/es/" title="La página del libro" class="quarto-navigation-tool px-1" aria-label="La página del libro"><i class="bi bi-book"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/releases/latest/download/prompt-check-publish-es.epub" title="Descarga el EPUB" class="quarto-navigation-tool px-1" aria-label="Descarga el EPUB"><i class="bi bi-download"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book-es/" title="Ejecutar el código" class="quarto-navigation-tool px-1" aria-label="Ejecutar el código"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Alternar modo oscuro"><i class="bi"></i></a>
+</div><!-- lang-switch --><nav class="lang-switch lang-switch-sidebar" aria-label="Language / Idioma"><a href="../../chapters/slides.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch -->
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Buscar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefacio: cómo usar este libro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../copyright.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Derechos de autor</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedicatoria</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sobre Ravi Kalia</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte I: Empieza aquí</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-assistant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un agente de programación</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/fast-path.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">La vía rápida</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Preparar tu computadora</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/first-report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Un primer informe, a mano</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte II: Una guía, muchos públicos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-markdown.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Markdown, renderizado y reglas del proyecto</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-compute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Documentos que calculan</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-audiences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Una guía, cinco públicos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-publish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Publicar y demostrar la reconstrucción</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-london.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte II</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-craft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte III: El oficio de los formatos de salida</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/results.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Un solo conjunto de resultados</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/slides.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Diapositivas que sostienen una decisión</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/sites.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Un sitio y una sola marca</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/white-papers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">White papers y referencias</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/parameters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Informes que se generan solos</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte IV: Trabajar en equipo</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Pull requests y builds confiables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/at-work.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">En el trabajo y en una startup</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte V: Un análisis, muchas publicaciones</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-water-question.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">La pregunta, los datos y las reglas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-explore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Mira antes de modelar</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-prepare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Encontrar tipos de lugares: k-means</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Interpretar los clústeres</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-causation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Correlación no es causalidad</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-publish-many.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-water.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios del análisis del agua</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../afterword.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Epílogo: lo que construiste y cómo seguir</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Apéndices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-windows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Windows: prepara Ubuntu</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-terminal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Teclas, símbolos y hábitos de la terminal</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Hoja de referencia</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/d-troubleshooting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Solución de problemas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/e-checkpoints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Los puntos de control de un vistazo, y respuestas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/f-translation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Leer en otro idioma</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/g-sources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Fuentes de datos, licencias y créditos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/h-how-built.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">H</span>&nbsp; <span class="chapter-title">Cómo está hecho este libro</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/i-workshop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Darlo como taller</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glosario</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/k-facts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">K</span>&nbsp; <span class="chapter-title">Datos que cambian</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Tabla de contenidos</h2>
+   
+  <ul>
+  <li><a href="#sec-slides-good" id="toc-sec-slides-good" class="nav-link active" data-scroll-target="#sec-slides-good"><span class="header-section-number">11.1</span> Qué hace que una presentación técnica funcione</a></li>
+  <li><a href="#sec-slides-vocab" id="toc-sec-slides-vocab" class="nav-link" data-scroll-target="#sec-slides-vocab"><span class="header-section-number">11.2</span> Qué puede hacer una presentación, y cómo se llama</a></li>
+  <li><a href="#sec-slides-deck" id="toc-sec-slides-deck" class="nav-link" data-scroll-target="#sec-slides-deck"><span class="header-section-number">11.3</span> La presentación</a></li>
+  <li><a href="#sec-slides-theme" id="toc-sec-slides-theme" class="nav-link" data-scroll-target="#sec-slides-theme"><span class="header-section-number">11.4</span> Un tema que se puede leer</a></li>
+  <li><a href="#sec-slides-pdf" id="toc-sec-slides-pdf" class="nav-link" data-scroll-target="#sec-slides-pdf"><span class="header-section-number">11.5</span> Un PDF para enviar después</a></li>
+  <li><a href="#sec-slides-pptx" id="toc-sec-slides-pptx" class="nav-link" data-scroll-target="#sec-slides-pptx"><span class="header-section-number">11.6</span> PowerPoint, con la plantilla de la casa</a></li>
+  <li><a href="#resumen" id="toc-resumen" class="nav-link" data-scroll-target="#resumen">Resumen</a></li>
+  <li><a href="#lecturas-adicionales" id="toc-lecturas-adicionales" class="nav-link" data-scroll-target="#lecturas-adicionales">Lecturas adicionales</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../part-craft.html">Parte III: El oficio de los formatos de salida</a></li><li class="breadcrumb-item"><a href="../chapters/slides.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Diapositivas que sostienen una decisión</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="sec-slides" class="quarto-section-identifier"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Diapositivas que sostienen una decisión</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Palabras clave</div>
+    <p>Quarto, publicación reproducible, agentes de programación, Markdown, Python, EPUB, análisis de datos, k-means</p>
+  </div>
+</div>
+
+</header>
+
+
+<p>El informe y la ficha del modelo son para personas que leen. La decisión sobre qué versión lanzar se va a tomar en una reunión, frente a una pantalla, entre personas que van a mirar cada diapositiva unos segundos y van a recordar quizá tres. Una presentación para esa sala es otro documento: no un informe cortado en pedazos, sino un argumento breve, una afirmación a la vez, que termina en lo que hay que decidir.</p>
+<p>Pocas veces vas a escribir a mano una opción de Reveal.js o una línea de la hoja de estilos de un tema. Lo que necesitas es saber qué puede hacer una presentación, y cómo se llama cada cosa, para poder pedirla; cómo pedirla de modo que el resultado se pueda revisar; y cómo se ve una buena presentación cuando vuelve. Este capítulo construye la presentación de la evaluación para el equipo de producto y sus inversionistas, como una página web que se presenta sola, un PDF para enviar después y un archivo de PowerPoint con la plantilla de la empresa, todo desde una sola fuente que lee los mismos resultados que el informe.</p>
+<div class="opener">
+<div class="box-label">
+<strong>En este capítulo</strong>
+</div>
+<ul>
+<li>Nombrar lo que hace funcionar una presentación técnica, y las funciones de Reveal.js que la sirven: notas de presentación, fragmentos, columnas, temas y vista de impresión.</li>
+<li>Pedir una presentación cuyos títulos enuncien afirmaciones calculadas a partir de los resultados, protegidas por guardas, con el detalle en las notas.</li>
+<li>Comprobar con una prueba los colores de un tema contra el mínimo de contraste de WCAG.</li>
+<li>Exportar la presentación a PDF y a PowerPoint con una plantilla de la casa, y saber qué pierde cada formato.</li>
+</ul>
+<div class="opener-meta">
+<p><span class="meta-label"><strong>Partes de</strong></span>tu repositorio <code>acme-eval</code> al final del <a href="results.html" class="quarto-xref"><span>Capítulo 10</span></a>, o <code>checkpoints/15-eval-results/</code>.</p>
+<p><span class="meta-label"><strong>Construyes</strong></span><code>slides.qmd</code> como presentación de Reveal.js, un PDF y un archivo de PowerPoint, con un tema, una prueba de contraste y una plantilla de referencia.</p>
+<p><span class="meta-label"><strong>Punto de control</strong></span><code>checkpoints/16-eval-slides/</code></p>
+</div>
+</div>
+<section id="sec-slides-good" class="level2" data-number="11.1">
+<h2 data-number="11.1" class="anchored" data-anchor-id="sec-slides-good"><span class="header-section-number">11.1</span> Qué hace que una presentación técnica funcione</h2>
+<p>Una presentación tiene éxito cuando la sala sale sabiendo la afirmación, la evidencia que la respalda y lo que se decidió. Cinco hábitos llevan hasta ahí, y cada uno es algo que puedes pedirle a un agente y revisar:</p>
+<div id="tbl-slides-habits" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-slides-habits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;11.1: Cinco hábitos de una presentación técnica, y cómo revisar cada uno.
+</figcaption>
+<div aria-describedby="tbl-slides-habits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Hábito</th>
+<th>Qué significa</th>
+<th>Revisas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Una afirmación por diapositiva</td>
+<td>cada diapositiva plantea una idea, con una sola evidencia</td>
+<td>ninguna diapositiva necesita dos oraciones para decir lo que muestra</td>
+</tr>
+<tr class="even">
+<td>El título enuncia la afirmación</td>
+<td>“v3 reaches 43.6% of subscribers…”, no “Results”</td>
+<td>lee solo los títulos, en orden: son el argumento</td>
+</tr>
+<tr class="odd">
+<td>Números calculados, palabras protegidas</td>
+<td>los números de un título son código en línea; su redacción tiene una guarda</td>
+<td>los títulos coinciden con <code>outputs/</code>, y una guarda detiene uno falso</td>
+</tr>
+<tr class="even">
+<td>El detalle en las notas</td>
+<td>las notas de presentación tienen lo que vas a decir; la diapositiva tiene la afirmación y su evidencia</td>
+<td>cada diapositiva tiene notas; ninguna diapositiva es un párrafo</td>
+</tr>
+<tr class="odd">
+<td>Terminar en la decisión</td>
+<td>la última diapositiva dice qué se está decidiendo</td>
+<td>la sala sabe qué estás pidiendo</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>El segundo hábito es el que más trabajo hace. Lee solo los títulos de la presentación terminada y tienes su argumento: el titular, la comparación, el ordenamiento, a quién se llama, cuánto se puede confiar en las probabilidades, lo que los resultados no muestran, y la decisión. Su título principal, en la ejecución de este libro, es “v3 reaches 43.6% of subscribers by calling a tenth of the list” (llega a esa proporción de quienes se suscriben llamando a una décima parte de la lista), con cada número y la fracción calculados a partir de <code>outputs/</code>.</p>
+</section>
+<section id="sec-slides-vocab" class="level2" data-number="11.2">
+<h2 data-number="11.2" class="anchored" data-anchor-id="sec-slides-vocab"><span class="header-section-number">11.2</span> Qué puede hacer una presentación, y cómo se llama</h2>
+<p>Quarto hace presentaciones en dos formatos desde una sola fuente: Reveal.js, una página web que se presenta sola en cualquier navegador, y PowerPoint. Cada título <code>##</code> empieza una diapositiva en los dos. El resto es vocabulario: funciones que pides por su nombre.</p>
+<div id="tbl-slides-vocab" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-slides-vocab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;11.2: Lo que puede hacer una presentación, cómo se llama y en qué se diferencia entre formatos (Quarto 1.10.20).
+</figcaption>
+<div aria-describedby="tbl-slides-vocab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Pide</th>
+<th>Quarto lo llama</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>notas de presentación</td>
+<td>un bloque <code>::: {.notes}</code> en la diapositiva</td>
+<td>se ven en la vista del presentador, no en la pantalla; en PowerPoint van al panel de notas</td>
+</tr>
+<tr class="even">
+<td>puntos que aparecen de a uno</td>
+<td><em>fragmentos</em>: <code>. . .</code> entre párrafos, o <code>::: {.fragment}</code></td>
+<td>listas estáticas en PowerPoint</td>
+</tr>
+<tr class="odd">
+<td>dos columnas</td>
+<td><code>:::: {.columns}</code> con bloques <code>::: {.column width="50%"}</code> adentro</td>
+<td>el diseño Two Content de PowerPoint</td>
+</tr>
+<tr class="even">
+<td>una diapositiva con más texto, más pequeño</td>
+<td>la clase <code>{.smaller}</code> en el título; <code>{.scrollable}</code> permite desplazarla</td>
+<td>úsalo poco: mejor divide la diapositiva</td>
+</tr>
+<tr class="odd">
+<td>un enlace estable a una diapositiva</td>
+<td>un ID en el título, <code>## … {#decision}</code></td>
+<td>la dirección termina en <code>#/decision</code></td>
+</tr>
+<tr class="even">
+<td>un tema</td>
+<td><code>theme: [default, acme.scss]</code>: un tema incluido más tu propio archivo Sass</td>
+<td>colores y fuentes en un solo lugar</td>
+</tr>
+<tr class="odd">
+<td>un pie de página y números de diapositiva</td>
+<td><code>footer:</code> y <code>slide-number: true</code></td>
+<td>solo Reveal.js</td>
+</tr>
+<tr class="even">
+<td>un PDF</td>
+<td>la <em>vista de impresión</em> de Reveal.js: presiona E y luego imprime desde el navegador</td>
+<td>no hay <code>--to pdf</code> para presentaciones</td>
+</tr>
+<tr class="odd">
+<td>la vista del presentador</td>
+<td>presiona S mientras presentas</td>
+<td>una segunda ventana con las notas</td>
+</tr>
+<tr class="even">
+<td>una plantilla de PowerPoint de la casa</td>
+<td><code>reference-doc:</code> con un <code>.pptx</code> hecho a partir del predeterminado de Quarto</td>
+<td>colores, fuentes y diseños</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="sec-slides-deck" class="level2" data-number="11.3">
+<h2 data-number="11.3" class="anchored" data-anchor-id="sec-slides-deck"><span class="header-section-number">11.3</span> La presentación</h2>
+<p>El prompt reúne los cinco hábitos y el vocabulario, más dos frases que esquivan trampas encontradas al probarlo, que se explican más abajo. Pide una sola presentación, como una sola tarea, porque sus comprobaciones se ejecutan sin ti: las guardas, el renderizado y los títulos que enumera.</p>
+<div class="agent-box">
+<div class="prompt long" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu agente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Crea slides.qmd, una presentación de Reveal.js a 1280×720 para el equipo de producto y los inversionistas, escrita en inglés, solo a partir de outputs/: un título y un subtítulo YAML simples (sin código en línea), y luego siete diapositivas, una afirmación por diapositiva, con el título de cada diapositiva enunciando su afirmación y cualquier número como código en línea, notas de presentación en cada una de las siete, las curvas ROC y a quién se llama por franja de edad como figuras de matplotlib con texto alternativo y sin etiquetas `fig-`, una diapositiva de dos columnas que compare v2 y v3, y las advertencias reveladas de a una. Pon una guarda en cada título cuya redacción dependa de los resultados. Renderízala y enumera los títulos de las diapositivas.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Probablemente ejecute</strong>
+</div>
+<p>escribe <code>slides.qmd</code> · <code>uv run quarto render slides.qmd</code> → <code>slides.html</code></p>
+</div>
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>Tú haces</strong>
+</div>
+<p>abre <code>slides.html</code> · presiona S para la vista del presentador, y E para la vista de impresión</p>
+</div>
+</div>
+<p><strong>Lee primero los títulos</strong>, en el orden en que los enumera el agente: deberían ser el argumento. Luego la fuente: los números de cada título son código en línea, cada afirmación de un título tiene una guarda en la celda anterior, y cada diapositiva tiene un bloque de notas. <strong>Preséntala</strong>: presiona S, y la vista del presentador se abre en una segunda ventana con las notas, que es lo que vas a ver mientras la sala ve la diapositiva.</p>
+<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Advertencia</span>Error frecuente
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Trampas encontradas al construir y probar la presentación, y las razones de dos frases del prompt. El código en línea en el <code>title</code> del YAML se ejecuta antes que cualquier celda y falla con un <code>NameError</code>, y sin título en el YAML, Quarto convierte el primer título de diapositiva en el título de la presentación, sin calcular; de ahí “un título y un subtítulo YAML simples”. Las notas escritas antes del primer título <code>##</code> se convirtieron en una diapositiva extra, en blanco, así que el prompt pide notas en las siete diapositivas que siguen al título; la presentación terminada le agrega las notas a la diapositiva de título con un filtro corto, <code>filters/title-notes.lua</code>. Una celda de figura con la etiqueta <code>fig-…</code> agrega “Figure 1:” a su pie, algo que las diapositivas pocas veces quieren; de ahí “sin etiquetas <code>fig-</code>”. Más allá del prompt: un ajuste <code>fig-dpi</code> les dio a las figuras un tamaño fijo que se salía de la diapositiva; en otra ejecución, sin ese ajuste, las figuras ocupaban menos de la mitad. El tema de la presentación terminada les da a las figuras una altura fija, así que mira cada diapositiva al tamaño de la presentación. Y un conteo impreso directamente desde pandas decía <code>np.int64(6)</code> hasta que se convirtió en un <code>int</code> simple: lee cada título renderizado, no solo la fuente.</p>
+</div>
+</div>
+</section>
+<section id="sec-slides-theme" class="level2" data-number="11.4">
+<h2 data-number="11.4" class="anchored" data-anchor-id="sec-slides-theme"><span class="header-section-number">11.4</span> Un tema que se puede leer</h2>
+<p>Un tema es donde viven los colores y las fuentes de una presentación, y es donde la mayoría de las presentaciones le fallan a su público: un texto gris pálido sobre blanco es ilegible en un proyector. Las Pautas de Accesibilidad para el Contenido Web (WCAG) fijan el mínimo: una relación de contraste de 4.5 a 1 entre el texto y su fondo (WCAG 2.2, criterio de conformidad 1.4.3). Una prueba puede comprobarlo, así que pide la prueba junto con el tema:</p>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu agente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Agrega acme.scss, un tema de Reveal.js sobre `default`: tinta oscura sobre un fondo blanco hueso cálido, un azul marino para los títulos y los enlaces, fuentes del sistema. Agrega tests/test_deck_contrast.py, que compruebe que el texto del cuerpo y los enlaces tengan una relación de contraste de al menos 4.5:1 sobre el fondo (WCAG 2.2), ejecuta la prueba y renderiza la presentación.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Probablemente ejecute</strong>
+</div>
+<p>escribe <code>acme.scss</code> y la prueba · <code>uv run pytest</code> · renderiza la presentación</p>
+</div>
+</div>
+<p>Los colores del tema terminado, medidos con la fórmula de las pautas:</p>
+<div id="tbl-slides-contrast" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-slides-contrast-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;11.3: Los colores de texto del tema terminado sobre su fondo, <code>#fbfaf7</code>, calculados con la fórmula de WCAG 2.2, a partir de las variables que comprueba su prueba.
+</figcaption>
+<div aria-describedby="tbl-slides-contrast-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Texto</th>
+<th>Color</th>
+<th style="text-align: right;">Contraste sobre el fondo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>cuerpo</td>
+<td><code>#1b2733</code></td>
+<td style="text-align: right;">14.5:1</td>
+</tr>
+<tr class="even">
+<td>títulos</td>
+<td><code>#0b3d63</code></td>
+<td style="text-align: right;">10.8:1</td>
+</tr>
+<tr class="odd">
+<td>enlaces</td>
+<td><code>#0b5cad</code></td>
+<td style="text-align: right;">6.4:1</td>
+</tr>
+<tr class="even">
+<td>pies de figura, pie de página</td>
+<td><code>#4a5663</code></td>
+<td style="text-align: right;">7.2:1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>La prueba vuelve permanente la regla: un cambio de color posterior que no la cumpla hace fallar el conjunto de pruebas, antes de que alguien tenga que forzar la vista frente a un proyector. Hay algo a lo que un tema no llega: matplotlib dibuja sus figuras sobre blanco, que se ve como un recuadro blanco sobre una diapositiva blanco hueso. La presentación terminada las dibuja sobre un fondo transparente. El color no es lo único que hace legible una presentación, así que mantén también los otros hábitos: etiquetas de figura legibles desde el fondo de la sala, colores que se diferencien en luminosidad además de en tono, y texto alternativo en cada figura.</p>
+</section>
+<section id="sec-slides-pdf" class="level2" data-number="11.5">
+<h2 data-number="11.5" class="anchored" data-anchor-id="sec-slides-pdf"><span class="header-section-number">11.5</span> Un PDF para enviar después</h2>
+<p>Después de la reunión, alguien va a pedir las diapositivas. Quarto 1.10.20 no tiene un formato PDF para presentaciones de Reveal.js; el camino es la vista de impresión de Reveal.js, impresa por un navegador. A mano: abre la presentación, presiona E e imprime a PDF. Para que sea parte del build, un script puede hacer lo mismo con Chrome sin interfaz (headless) y revisar su propio resultado:</p>
+<div class="agent-box">
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu agente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Escribe scripts/deck_pdf.py: que imprima slides.html a slides.pdf con Chrome headless en `?print-pdf`, pasando `--run-all-compositor-stages-before-draw`, que compruebe que el PDF tenga una página por diapositiva y que lo reintente hasta tres veces si no es así. Ejecútalo y dime la cantidad de páginas.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p>La opción y la comprobación son, las dos, lo importante. Impreso desde la línea de comandos, Chrome a veces imprimía antes de que la presentación terminara de acomodarse y escribía una sola página en blanco; en las pruebas para este libro eso pasó en la mayoría de las ejecuciones sin la opción, que hace que Chrome termine de dibujar la página antes de imprimir, y en ninguna con ella. La comprobación, una cantidad de páginas que debe ser igual a la cantidad de diapositivas, atrapó cada impresión en blanco, y también atrapa una diapositiva demasiado alta para su página, que Reveal.js imprime en dos. Convierte una falla en un reintento en lugar de un PDF en blanco en la bandeja de entrada de un cliente.</p>
+</section>
+<section id="sec-slides-pptx" class="level2" data-number="11.6">
+<h2 data-number="11.6" class="anchored" data-anchor-id="sec-slides-pptx"><span class="header-section-number">11.6</span> PowerPoint, con la plantilla de la casa</h2>
+<p>Muchas organizaciones hacen circular sus presentaciones como PowerPoint, en una plantilla con sus colores, sus fuentes y su logo. Quarto renderiza PowerPoint desde la misma fuente, y un <em>documento de referencia</em> lleva la plantilla: un archivo <code>.pptx</code> cuyo tema y diseños de diapositiva copia Quarto. Parte del de Quarto, para que sus diseños tengan los nombres que Quarto espera:</p>
+<div class="agent-box">
+<div class="prompt long" data-boxed="true">
+<div class="box-label">
+<strong>Pídele a tu agente</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Agrega una versión en PowerPoint: crea templates/acme-reference.pptx a partir del predeterminado de Quarto (`quarto pandoc -o templates/acme-reference.pptx --print-default-data-file reference.pptx`) con un script que fije los colores y la fuente de su tema a los de la presentación, agrega pptx a slides.qmd con `reference-doc`, renderiza y comprueba la cantidad de diapositivas y los colores del tema en el archivo.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Probablemente ejecute</strong>
+</div>
+<p><code>quarto pandoc -o templates/acme-reference.pptx …</code> · escribe un script que edita el tema de la plantilla · renderiza <code>slides.pptx</code> · cuenta las diapositivas, lee el tema</p>
+</div>
+</div>
+<p>Quarto usa siete de los diseños de la plantilla por su nombre: Title Slide, Title and Content, Section Header, Two Content, Comparison, Content with Caption y Blank. La plantilla de tu propia organización funciona como documento de referencia si sus diseños llevan esos nombres; cámbiales el nombre en el patrón de diapositivas de PowerPoint si no los llevan. Una plantilla es un archivo binario, así que haz commit también del script que la crea: el script se puede revisar en un diff, y el archivo no.</p>
+<p>Ten en cuenta lo que pierde PowerPoint. Las reglas Sass del tema no se aplican, los fragmentos se vuelven listas estáticas, <code>.smaller</code> y el pie de página no hacen nada, y Quarto 1.10.20 escribe el nombre de archivo de la imagen donde debería ir el texto alternativo de la figura; el proyecto terminado lo vuelve a agregar con un script corto después del renderizado. Abre el archivo de PowerPoint y revisa cada diapositiva, como lo hará quien lo reciba.</p>
+<div class="catchup">
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu agente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/16-eval-slides/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Importante</span>Pruébalo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Construye la presentación, su tema y su prueba, el PDF y el archivo de PowerPoint, y preséntala una vez en la vista del presentador.</p>
+<div class="done">
+<p><strong>Terminaste cuando</strong> los títulos se leen como el argumento; cada diapositiva después del título tiene notas; la prueba de contraste pasa; el PDF tiene una página por diapositiva; y el archivo de PowerPoint se abre con los colores de la plantilla.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="resumen" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="resumen">Resumen</h2>
+<div class="keyideas">
+<ul>
+<li>Una presentación técnica es un argumento breve: una afirmación por diapositiva, cada título que la enuncia, el detalle en las notas y la decisión en la última diapositiva.</li>
+<li>Pide las funciones por su nombre: notas de presentación, fragmentos, columnas, un tema, vista de impresión, un documento de referencia.</li>
+<li>Los números de un título se calculan y sus palabras se protegen con guardas, como cualquier oración de un informe.</li>
+<li>Revisa los colores con una prueba de contraste, contra el mínimo de WCAG de 4.5:1, para que una presentación legible siga siéndolo.</li>
+<li>El PDF sale de la vista de impresión, revisado página por página; el PowerPoint sale de un documento de referencia, y pierde el tema, los fragmentos y el texto alternativo, así que ábrelo antes de enviarlo.</li>
+</ul>
+</div>
+<p>La presentación expone el caso una vez, en una sala. Los resultados también necesitan un lugar donde cualquiera pueda encontrarlos, con los colores de la empresa y con cada documento enlazado: un sitio.</p>
+</section>
+<section id="lecturas-adicionales" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="lecturas-adicionales">Lecturas adicionales</h2>
+<ul>
+<li>Quarto, <a href="https://quarto.org/docs/presentations/revealjs/index.html">Reveal.js</a>, <a href="https://quarto.org/docs/presentations/revealjs/presenting.html">cómo presentar</a> y <a href="https://quarto.org/docs/presentations/revealjs/themes.html">temas</a> (consultados el <span class="nowrap">2026-11-18</span>).</li>
+<li>Quarto, <a href="https://quarto.org/docs/presentations/powerpoint.html">PowerPoint</a>, sobre documentos de referencia y diseños (consultado el <span class="nowrap">2026-11-18</span>).</li>
+<li>W3C, <a href="https://www.w3.org/TR/WCAG22/#contrast-minimum">WCAG 2.2, criterio de conformidad 1.4.3, Contraste (mínimo)</a> (consultado el <span class="nowrap">2026-11-18</span>).</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/quarto-workshop\/book\/es\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/results.html" class="pagination-link" aria-label="Un solo conjunto de resultados">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Un solo conjunto de resultados</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/sites.html" class="pagination-link" aria-label="Un sitio y una sola marca">
+        <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Un sitio y una sola marca</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

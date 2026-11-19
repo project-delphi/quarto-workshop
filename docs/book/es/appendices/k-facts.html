@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="keywords" content="Quarto, publicación reproducible, agentes de programación, Markdown, Python, EPUB, análisis de datos, k-means">
+<meta name="description" content="Una guía práctica de publicación reproducible: escribe una sola vez en Markdown, deja que un agente de programación escriba el código, revisa su trabajo y reconstruye una sola fuente como página web, Word, PDF, diapositivas, libro electrónico, sitio web, blog y dashboard. Dos proyectos reales recorren el libro: una guía para visitantes de Londres y un estudio del riesgo del agua potable en los municipios de Colombia.">
+
+<title>Apéndice K — Datos que cambian – Pide, revisa, publica</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../appendices/j-glossary.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No hay resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+
+<!-- lang-switch --><link rel="alternate" hreflang="en" href="https://project-delphi.github.io/quarto-workshop/book/appendices/k-facts.html"><link rel="alternate" hreflang="es" href="https://project-delphi.github.io/quarto-workshop/book/es/appendices/k-facts.html"><link rel="alternate" hreflang="x-default" href="https://project-delphi.github.io/quarto-workshop/book/appendices/k-facts.html"><!-- /lang-switch --></head>
+
+<body class="nav-sidebar floating quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../appendices/a-windows.html">Apéndices</a></li><li class="breadcrumb-item"><a href="../appendices/k-facts.html"><span class="chapter-number">K</span>&nbsp; <span class="chapter-title">Datos que cambian</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <!-- lang-switch --><nav class="lang-switch lang-switch-top" aria-label="Language / Idioma"><a href="../../appendices/k-facts.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch --><button type="button" class="btn quarto-search-button" aria-label="Buscar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Pide, revisa, publica</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://project-delphi.github.io/quarto-workshop/ebook/es/" title="La página del libro" class="quarto-navigation-tool px-1" aria-label="La página del libro"><i class="bi bi-book"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/releases/latest/download/prompt-check-publish-es.epub" title="Descarga el EPUB" class="quarto-navigation-tool px-1" aria-label="Descarga el EPUB"><i class="bi bi-download"></i></a>
+    <a href="https://github.com/project-delphi/quarto-workshop/tree/main/book-es/" title="Ejecutar el código" class="quarto-navigation-tool px-1" aria-label="Ejecutar el código"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Alternar modo oscuro"><i class="bi"></i></a>
+</div><!-- lang-switch --><nav class="lang-switch lang-switch-sidebar" aria-label="Language / Idioma"><a href="../../appendices/k-facts.html" hreflang="en" lang="en" title="English">EN</a> <span aria-hidden="true">|</span> <span lang="es" aria-current="true" title="Español">ES</span></nav><!-- /lang-switch -->
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Buscar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefacio: cómo usar este libro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../copyright.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Derechos de autor</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedicatoria</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../about-author.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sobre Ravi Kalia</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte I: Empieza aquí</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Publicar algo que se reconstruye solo</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02-assistant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Trabajar con un agente de programación</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/fast-path.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">La vía rápida</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Preparar tu computadora</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/first-report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Un primer informe, a mano</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte II: Una guía, muchos públicos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04-markdown.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Markdown, renderizado y reglas del proyecto</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05-compute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Documentos que calculan</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06-audiences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Una guía, cinco públicos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07-publish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Publicar y demostrar la reconstrucción</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-london.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios de la Parte II</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-craft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte III: El oficio de los formatos de salida</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/results.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Un solo conjunto de resultados</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/slides.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Diapositivas que sostienen una decisión</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/sites.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Un sitio y una sola marca</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/white-papers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">White papers y referencias</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/parameters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Informes que se generan solos</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte IV: Trabajar en equipo</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Pull requests y builds confiables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/at-work.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">En el trabajo y en una startup</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../part-3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parte V: Un análisis, muchas publicaciones</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08-water-question.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">La pregunta, los datos y las reglas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09-explore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Mira antes de modelar</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10-prepare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">De la tabla a las características</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Encontrar tipos de lugares: k-means</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12-interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Interpretar los clústeres</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13-causation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Correlación no es causalidad</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14-publish-many.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Publicar en muchos formatos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/exercises-water.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ejercicios del análisis del agua</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../afterword.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Epílogo: lo que construiste y cómo seguir</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Apéndices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Alternar sección">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/a-windows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Windows: prepara Ubuntu</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/b-terminal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Teclas, símbolos y hábitos de la terminal</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/c-cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Hoja de referencia</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/d-troubleshooting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Solución de problemas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/e-checkpoints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Los puntos de control de un vistazo, y respuestas</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/f-translation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Leer en otro idioma</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/g-sources.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Fuentes de datos, licencias y créditos</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/h-how-built.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">H</span>&nbsp; <span class="chapter-title">Cómo está hecho este libro</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/i-workshop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">I</span>&nbsp; <span class="chapter-title">Darlo como taller</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/j-glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glosario</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/k-facts.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">K</span>&nbsp; <span class="chapter-title">Datos que cambian</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Tabla de contenidos</h2>
+   
+  <ul>
+  <li><a href="#los-agentes-y-sus-cuentas" id="toc-los-agentes-y-sus-cuentas" class="nav-link active" data-scroll-target="#los-agentes-y-sus-cuentas">Los agentes y sus cuentas</a></li>
+  <li><a href="#lo-que-github-da-gratis" id="toc-lo-que-github-da-gratis" class="nav-link" data-scroll-target="#lo-que-github-da-gratis">Lo que GitHub da gratis</a></li>
+  <li><a href="#chats-web-gratuitos" id="toc-chats-web-gratuitos" class="nav-link" data-scroll-target="#chats-web-gratuitos">Chats web gratuitos</a></li>
+  <li><a href="#los-modelos-y-sus-precios" id="toc-los-modelos-y-sus-precios" class="nav-link" data-scroll-target="#los-modelos-y-sus-precios">Los modelos y sus precios</a></li>
+  <li><a href="#qué-hacen-los-proveedores-con-tus-datos" id="toc-qué-hacen-los-proveedores-con-tus-datos" class="nav-link" data-scroll-target="#qué-hacen-los-proveedores-con-tus-datos">Qué hacen los proveedores con tus datos</a></li>
+  <li><a href="#model-prices" id="toc-model-prices" class="nav-link" data-scroll-target="#model-prices">Precios de los modelos</a></li>
+  <li><a href="#free-plans-for-static-sites" id="toc-free-plans-for-static-sites" class="nav-link" data-scroll-target="#free-plans-for-static-sites">Planes gratuitos para sitios estáticos</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../appendices/a-windows.html">Apéndices</a></li><li class="breadcrumb-item"><a href="../appendices/k-facts.html"><span class="chapter-number">K</span>&nbsp; <span class="chapter-title">Datos que cambian</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="sec-facts" class="quarto-section-identifier">Apéndice K — Datos que cambian</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Palabras clave</div>
+    <p>Quarto, publicación reproducible, agentes de programación, Markdown, Python, EPUB, análisis de datos, k-means</p>
+  </div>
+</div>
+
+</header>
+
+
+<p>Los precios, los planes, las cuentas y las cuotas gratuitas cambian de un mes a otro, así que este libro los guarda en un solo lugar: un archivo de su fuente, <code>book/facts.yml</code>, que este apéndice imprime completo. Los capítulos lo citan en lugar de escribir un precio o un plan, así que cuando un dato cambia, una sola edición y una reconstrucción actualizan cada página que lo menciona, y también esta lista. Cada dato lleva la fecha en que se revisó contra la página oficial enlazada a su lado. Para cuando leas esto, algunos habrán cambiado: sigue el enlace, y confía en la página antes que en el libro.</p>
+<section id="los-agentes-y-sus-cuentas" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="los-agentes-y-sus-cuentas">Los agentes y sus cuentas</h2>
+<p><strong>Qué cuenta necesita Claude Code.</strong> Claude Code necesita una cuenta Pro, Max, Ultra, Team, Enterprise o Console. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://code.claude.com/docs/en/setup">fuente</a>.</p>
+<p><strong>Cuánto cuesta Claude Code.</strong> Claude Code, por ejemplo, necesita un plan de pago o facturación por uso. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://code.claude.com/docs/en/setup">fuente</a>.</p>
+<p><strong>Qué cuenta necesita Codex.</strong> Codex, un inicio de sesión de ChatGPT o una clave de API. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://learn.chatgpt.com/docs/auth">fuente</a>.</p>
+<p><strong>Qué cuenta necesita Antigravity.</strong> Antigravity, una cuenta de Google. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://antigravity.google/docs/faq">fuente</a>.</p>
+<p><strong>El nivel gratuito de Antigravity.</strong> Una cuenta personal de Google puede usar Antigravity en su nivel gratuito, con una cuota que se renueva cada semana. Consultado el <span class="nowrap">2026-11-18</span>, fuentes <a href="https://antigravity.google/docs/plans">1</a>, <a href="https://antigravity.google/docs/faq">2</a>.</p>
+<p><strong>Un tope de gasto para Claude Code con facturación por API.</strong> Una cuenta de Claude Console puede limitar el gasto mensual de Claude Code con un límite de gasto del espacio de trabajo. Consultado el <span class="nowrap">2026-11-18</span>, fuentes <a href="https://code.claude.com/docs/en/costs">1</a>, <a href="https://platform.claude.com/docs/en/manage-claude/workspaces">2</a>.</p>
+<p><strong>Un tope de gasto para Codex con facturación por API.</strong> Una organización o un proyecto de la API de OpenAI puede fijar un límite estricto de gasto mensual, después del cual las solicitudes se detienen. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://developers.openai.com/api/docs/guides/spend-limits">fuente</a>.</p>
+</section>
+<section id="lo-que-github-da-gratis" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="lo-que-github-da-gratis">Lo que GitHub da gratis</h2>
+<p><strong>GitHub Codespaces en una cuenta personal gratuita.</strong> Una cuenta personal gratuita de GitHub incluye 120 horas de cómputo de Codespaces al mes, que en la máquina predeterminada de dos núcleos cuentan doble, o sea unas 60 horas de uso, y 15 GB de almacenamiento. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-codespaces/about-billing-for-github-codespaces">fuente</a>.</p>
+<p><strong>GitHub Pages para repositorios privados.</strong> Una cuenta gratuita de GitHub publica Pages solo desde repositorios públicos; los repositorios privados necesitan un plan de pago, y un sitio que solo tu organización pueda ver necesita GitHub Enterprise Cloud. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://docs.github.com/en/get-started/learning-about-github/githubs-plans">fuente</a>.</p>
+<p><strong>GitHub Actions en una cuenta gratuita.</strong> Los runners estándar de GitHub Actions son gratuitos en los repositorios públicos, y los repositorios privados de una cuenta gratuita reciben 12 dólares estadounidenses de cómputo al mes. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://docs.github.com/en/billing/concepts/product-billing/github-actions">fuente</a>.</p>
+<p><strong>Ramas protegidas en una cuenta gratuita.</strong> En una cuenta gratuita de GitHub, las ramas protegidas y los rulesets funcionan solo en repositorios públicos; los privados necesitan GitHub Pro, Team o Enterprise. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches">fuente</a>.</p>
+</section>
+<section id="chats-web-gratuitos" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="chats-web-gratuitos">Chats web gratuitos</h2>
+<p><strong>Chats web con un plan gratuito.</strong> Claude, ChatGPT y Gemini tienen cada uno un plan gratuito. Consultado el <span class="nowrap">2026-11-12</span>, fuentes <a href="https://claude.com/pricing">1</a>, <a href="https://chatgpt.com/pricing">2</a>, <a href="https://gemini.google/subscriptions/">3</a>.</p>
+</section>
+<section id="los-modelos-y-sus-precios" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="los-modelos-y-sus-precios">Los modelos y sus precios</h2>
+<p><strong>Modelos suficientes para los prompts de este libro.</strong> Sonnet de Claude con esfuerzo medio, o Haiku para ediciones pequeñas, o Sol de OpenAI con esfuerzo bajo. Consultado el <span class="nowrap">2026-11-12</span>, fuentes <a href="https://platform.claude.com/docs/en/about-claude/models/overview">1</a>, <a href="https://developers.openai.com/api/docs/models">2</a>.</p>
+<p><strong>Dónde sugieren empezar los proveedores para el trabajo difícil.</strong> Anthropic sugiere empezar con Opus 5.5 para la mayoría de las cargas de trabajo, y OpenAI con GPT-6 Astra para el razonamiento y la programación complejos. Consultado el <span class="nowrap">2026-11-12</span>, fuentes <a href="https://platform.claude.com/docs/en/about-claude/models/overview">1</a>, <a href="https://developers.openai.com/api/docs/models">2</a>.</p>
+</section>
+<section id="qué-hacen-los-proveedores-con-tus-datos" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="qué-hacen-los-proveedores-con-tus-datos">Qué hacen los proveedores con tus datos</h2>
+<p><strong>Los planes de consumo de Claude.</strong> En los planes Free, Pro, Max y Ultra de Anthropic, Claude Code incluido, las conversaciones se usan para entrenar nuevos modelos cuando tu configuración de privacidad lo permite, y se guardan cinco años si lo permite y treinta días si no. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://code.claude.com/docs/en/data-usage">fuente</a>.</p>
+<p><strong>Los planes comerciales de Claude y la API.</strong> Con las condiciones comerciales de Anthropic (Team, Enterprise, la API), el código y los prompts no se usan para entrenar salvo que el cliente lo acepte, y se guardan treinta días de forma predeterminada; la retención cero de datos está disponible para las cuentas Enterprise que cumplen los requisitos. Consultado el <span class="nowrap">2026-11-18</span>, fuentes <a href="https://code.claude.com/docs/en/data-usage">1</a>, <a href="https://code.claude.com/docs/en/zero-data-retention">2</a>.</p>
+<p><strong>Lo que Claude Code guarda en tu computadora.</strong> Claude Code guarda las transcripciones de las sesiones en texto plano en ~/.claude/projects/ durante treinta días de forma predeterminada. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://code.claude.com/docs/en/data-usage">fuente</a>.</p>
+<p><strong>La API de OpenAI.</strong> Los datos enviados a la API de OpenAI no se usan para entrenar salvo que lo aceptes; los registros de control de abusos se guardan hasta treinta días, y la retención cero de datos necesita la aprobación de OpenAI. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://developers.openai.com/api/docs/guides/your-data">fuente</a>.</p>
+<p><strong>Los planes empresariales de ChatGPT.</strong> Los datos de los espacios de trabajo de ChatGPT Business, Enterprise y Edu no se usan para entrenar los modelos de OpenAI de forma predeterminada. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://learn.chatgpt.com/docs/enterprise/chatgpt-work-cloud-security">fuente</a>.</p>
+<p><strong>Qué política sigue Codex.</strong> La forma en que inicias sesión en Codex, con un plan de ChatGPT o con una clave de API, decide qué política de datos se aplica. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://learn.chatgpt.com/docs/auth">fuente</a>.</p>
+<p><strong>Las condiciones de Antigravity.</strong> Las condiciones de Antigravity dicen que Google usa las interacciones para mejorar sus productos, que sus empleados y contratistas pueden revisarlas y que se puede desactivar en la configuración; piden no enviar información confidencial. Consultado el <span class="nowrap">2026-11-18</span>, <a href="https://antigravity.google/terms">fuente</a>.</p>
+</section>
+<section id="model-prices" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="model-prices">Precios de los modelos</h2>
+<div id="tbl-prices" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-prices-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;K.1: Precios de lista de ocho modelos, en dólares por millón de tokens de entrada y de salida, consultados el <span class="nowrap">2026-11-12</span>.
+</figcaption>
+<div aria-describedby="tbl-prices-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Modelo</th>
+<th>Para qué sirve, según el proveedor</th>
+<th>Entrada / salida, $ por millón de tokens</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Claude Haiku 5.5</td>
+<td>tareas de gran volumen y sensibles a la latencia, como clasificación, extracción y enrutamiento</td>
+<td>0.10 / 0.50</td>
+</tr>
+<tr class="even">
+<td>Claude Sonnet 5.5</td>
+<td>la mejor combinación de velocidad e inteligencia</td>
+<td>2 / 10</td>
+</tr>
+<tr class="odd">
+<td>Claude Opus 5.5</td>
+<td>programación agéntica de larga duración y trabajo de conocimiento</td>
+<td>4 / 20</td>
+</tr>
+<tr class="even">
+<td>Claude Fable 5.2</td>
+<td>razonamiento exigente y trabajo agéntico de largo horizonte</td>
+<td>8 / 40</td>
+</tr>
+<tr class="odd">
+<td>GPT-6 Luna</td>
+<td>tareas acotadas y de gran volumen</td>
+<td>0.10 / 0.50</td>
+</tr>
+<tr class="even">
+<td>GPT-6.1 Terra</td>
+<td>razonamiento visual, uso preciso de la computadora y redacción clara y natural</td>
+<td>1 / 5</td>
+</tr>
+<tr class="odd">
+<td>GPT-6.1 Sol</td>
+<td>un rendimiento cercano al de Astra para trabajo complejo, a menor costo</td>
+<td>2 / 10</td>
+</tr>
+<tr class="even">
+<td>GPT-6 Astra</td>
+<td>el trabajo más exigente</td>
+<td>10 / 50</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>El precio de Haiku es para prompts de hasta 100,000 tokens; los más largos cuestan cinco veces más. Las suscripciones cuentan el uso de otra manera que los precios de la API, y los modelos que puedes elegir dependen de tu plan y de la versión del agente. Fuentes: las páginas de <a href="https://platform.claude.com/docs/en/about-claude/pricing">precios</a> y de <a href="https://platform.claude.com/docs/en/about-claude/models/overview">modelos</a> de Anthropic, y la de <a href="https://developers.openai.com/api/docs/models">modelos</a> de OpenAI.</p>
+<p>Estos son precios de <em>API</em>: lo que paga un programa por token cuando llama directamente al modelo (<a href="../chapters/02-assistant.html#sec-choose" class="quarto-xref"><span>Sección 2.2</span></a>). Léelos como una instantánea de la distancia entre los modelos pequeños y los grandes, no como números para hacer planes.</p>
+</section>
+<section id="free-plans-for-static-sites" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="free-plans-for-static-sites">Planes gratuitos para sitios estáticos</h2>
+<div id="tbl-hosts-free" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-hosts-free-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;K.2: Planes gratuitos de seis servicios de alojamiento de sitios estáticos, consultados en sus páginas oficiales el <span class="nowrap">2026-11-07</span>.
+</figcaption>
+<div aria-describedby="tbl-hosts-free-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Servicio de alojamiento</th>
+<th>Plan gratuito</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://quarto.org/docs/publishing/github-pages.html">GitHub Pages</a></td>
+<td>la ruta de este libro</td>
+</tr>
+<tr class="even">
+<td><a href="https://www.netlify.com/pricing/">Netlify</a></td>
+<td>300 créditos al mes, 15 por despliegue</td>
+</tr>
+<tr class="odd">
+<td><a href="https://developers.cloudflare.com/pages/platform/limits/">Cloudflare</a></td>
+<td>Pages: 500 compilaciones al mes, 20,000 archivos</td>
+</tr>
+<tr class="even">
+<td><a href="https://vercel.com/docs/plans/hobby">Vercel</a></td>
+<td>solo uso personal, no comercial</td>
+</tr>
+<tr class="odd">
+<td><a href="https://docs.gitlab.com/user/project/pages/">GitLab Pages</a></td>
+<td>publica una carpeta <code>public</code></td>
+</tr>
+<tr class="even">
+<td><a href="https://render.com/docs/static-sites">Render</a></td>
+<td>reconstruye en cada push</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>La <a href="../chapters/07-publish.html#sec-hosting" class="quarto-xref"><span>Sección 9.2</span></a> explica las dos formas en que funcionan estos servicios: tú renderizas y subes los archivos, o ellos construyen el sitio a partir de tu repositorio.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/quarto-workshop\/book\/es\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../appendices/j-glossary.html" class="pagination-link" aria-label="Glosario">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">J</span>&nbsp; <span class="chapter-title">Glosario</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

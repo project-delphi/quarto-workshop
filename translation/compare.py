@@ -199,6 +199,9 @@ def headings(prose_parts):
     return hs
 
 
+WP_COUNTS = ("counted() joins an English number word, noun and plural \"s\" (\"three equations\"); "
+            "the Spanish gives each count as a numeral after its noun, which avoids gender and plural errors")
+
 # Differences a translation needs and the checks would otherwise reject, each with its reason.
 # Keyed by file, then by check, then by the exact item; reported as accepted, not as errors.
 EXCEPTIONS = {
@@ -212,6 +215,18 @@ EXCEPTIONS = {
         "inline {python}": {
             "{python} rural_med_band": "an English band name (\"low\") inside a sentence; the "
             "Spanish types \"bajo\", which the cell's own guard on fig-wat-years keeps true",
+        },
+    },
+    "chapters/white-papers.qmd": {
+        "inline {python}": {
+            "{python} counted(len(refs[\"eq\"]), \"equation\")": WP_COUNTS,
+            "{python} counted(len(refs[\"tbl\"]), \"table\")": WP_COUNTS,
+            "{python} counted(len(refs[\"fig\"]), \"figure\")": WP_COUNTS,
+            "{python} counted(len(refs[\"sec\"]), \"section\")": WP_COUNTS,
+            "{python} len(refs[\"eq\"])": WP_COUNTS,
+            "{python} len(refs[\"tbl\"])": WP_COUNTS,
+            "{python} len(refs[\"fig\"])": WP_COUNTS,
+            "{python} len(refs[\"sec\"])": WP_COUNTS,
         },
     },
 }

@@ -11,6 +11,7 @@ S = ev.summary()
 best = S["best_version"]
 versions = [r["version"] for r in S["releases"]]
 WORD = number_words()
+QUOTED_WORD = number_words(lang="en")  # inside the Acme report's own English sentence
 starter = ev.files(ev.STARTER)
 n_tests = sum(1 for f in starter if f.startswith("tests/test_"))
 text_holds(not any(f.endswith(".qmd") or f == "AGENTS.md" for f in starter),
@@ -241,7 +242,7 @@ and fit nothing. **Inspect the render**: open `report.html`, `report.docx` and `
 The render prints `Output created` for the first format only, so look for all three files.
 In the finished project the sentence reads:
 
-> Of the `{python} WORD[len(versions)]` releases, **`{python} best`** ranks best: its ROC AUC on the
+> Of the `{python} QUOTED_WORD[len(versions)]` releases, **`{python} best`** ranks best: its ROC AUC on the
 > `{python} f"{S['test_rows']:,}"` held-out contacts is
 > `{python} ev.interval(best, "roc_auc")`.
 

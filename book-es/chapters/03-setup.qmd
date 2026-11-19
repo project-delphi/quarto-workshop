@@ -1,8 +1,16 @@
 # Preparar tu computadora {#sec-setup}
 
+```{python}
+#| label: ch3-setup
+# What each agent's account must be, from facts.yml (Appendix K), with the date it was checked.
+from scripts.facts import checked, fact
+
+accounts_checked = max(checked(f"agents.{k}_accounts") for k in ("claude_code", "codex", "antigravity"))
+```
+
 Este capítulo termina con un número: 42, impreso en una página web y en un PDF que construyó tu
 propia computadora. Llegar ahí demuestra que el agente, Python, Quarto y Typst funcionan
-juntos. Eso es todo lo que necesitan las partes II y III, porque todo lo que pasa en ellas ocurre
+juntos. Eso es todo lo que necesitan las partes prácticas, porque todo lo que pasa en ellas ocurre
 en tu máquina: el agente escribe archivos en tus carpetas, Quarto los renderiza ahí y tú abres
 los resultados en tu propio navegador y en tu procesador de texto. Son seis pasos, y cada uno
 termina con una comprobación que puedes ver, así que siempre sabes si un paso funcionó antes de
@@ -42,15 +50,33 @@ Punto de control
 los paquetes de Python, el agente mismo y los proyectos de ejemplo con sus datos. El agente
 además le envía cada solicitud a su modelo por internet, así que una conexión débil se nota como
 pausas largas, tiempos de espera agotados e instalaciones a medias, que es fácil confundir con
-errores tuyos. Usa una conexión por cable o un Wi-Fi fuerte, evita las VPN cuando puedas y cuenta
-con que las redes de empresa con proxy bloqueen algunas descargas.
+errores tuyos. Usa una conexión por cable o un Wi-Fi fuerte, y evita una *VPN* (una red privada
+virtual, que envía tu tráfico a través de otra red) cuando puedas. En una red de empresa, cuenta
+con que un *proxy*, un servidor por el que debe pasar todo el tráfico web, bloquee algunas
+descargas; una conexión personal lo evita.
 
 **Dos cuentas.** Una [cuenta gratuita de GitHub](https://github.com/signup), que se usa para
-publicar en las partes II y III, y una cuenta con acceso a un agente de programación. Claude
-Code necesita una cuenta Pro, Max, Team, Enterprise o Console; Codex, iniciar sesión con ChatGPT
-o una clave de API (para facturación por uso, @sec-choose); Antigravity, una cuenta de Google
-(consultado el 2026-11-03). El registro y la verificación del correo pueden tardar horas, así que
-hazlos primero.
+publicar en las partes prácticas, y una cuenta con acceso a un agente de programación.
+`{python} fact("agents.claude_code_accounts")`; `{python} fact("agents.codex_accounts")` (para
+facturación por uso, @sec-choose); `{python} fact("agents.antigravity_accounts")` (consultado el
+`{python} accounts_checked`; el @sec-facts reúne la lista actual). Una *clave de API* es una
+cadena secreta larga que identifica tu cuenta ante la interfaz de programación del proveedor, que
+cobra cada solicitud; mantenla fuera de los archivos que compartes. El registro y la verificación
+del correo pueden tardar horas, así que hazlos primero.
+
+**La ruta de bajo costo.** El libro necesita un agente, no el más caro. Dos rutas mantienen bajo
+el costo. La primera no cuesta nada: `{python} fact("agents.antigravity_free")` (consultado el
+`{python} checked("agents.antigravity_free")`), y cada prompt del libro está escrito para
+funcionar también en Antigravity, aunque sus pantallas no se capturaron (@sec-choose). La segunda
+es pagar solo lo que usas, con una clave de API, después de fijar un tope mensual en el sitio del
+proveedor: `{python} fact("agents.claude_spend_limit")`, y `{python} fact("agents.openai_spend_limit")`
+(los dos consultados el `{python} checked("agents.openai_spend_limit")`). Con cualquiera de las
+dos, elige un modelo pequeño con esfuerzo medio (@sec-cost) y empieza una conversación nueva para
+cada tarea.
+
+**¿No puedes instalar programas?** Si no puedes instalar software, en una laptop de trabajo
+bloqueada o en una computadora con Windows donde no se permite WSL, usa en tu navegador el
+entorno ya preparado del taller (@sec-codespace) y sáltate los pasos 1 y 4.
 
 **Un plan para cuando un paso falle.** Los errores durante la preparación son normales: cada paso
 depende de tu sistema, de tu red y de las versiones de esa semana, así que un error no significa
@@ -58,8 +84,8 @@ que hayas fallado. Te dice qué corregir:
 
 1. Busca el mensaje en el @sec-troubleshooting, cuya tabla de la preparación enumera fallas
    vistas en la práctica, con soluciones probadas.
-2. Si no está ahí, pregúntale a un chat web en tu navegador (Claude, ChatGPT y Gemini tienen
-   cada uno un plan gratuito, consultado el 2026-11-12), no al agente: las instalaciones
+2. Si no está ahí, pregúntale a un chat web en tu navegador (`{python} fact("chats.free_chats")`;
+   consultado el `{python} checked("chats.free_chats")`), no al agente: las instalaciones
    pueden fallar antes de que funcione, y a veces lo que falla es el agente. Pega el comando
    que ejecutaste y el mensaje de error *completo*, con una oración que diga tu sistema ("Mac", o
    "Windows con Ubuntu en WSL") y en qué paso estás.
@@ -84,7 +110,7 @@ Los seis pasos, y cómo sabes que cada uno funcionó:
 ## Paso 1: deja lista la computadora {#sec-step-ready}
 
 Los pasos siguientes dan por sentado dos programas pequeños: `git`, para el control de versiones,
-y `curl`, para descargar. Abre una terminal, la ventana para escribir comandos que explica el
+y `curl`, que descarga un archivo desde una dirección web. Abre una terminal, la ventana para escribir comandos que explica el
 paso 2 (en una Mac: Comando-Espacio, escribe `Terminal`, Enter; en Ubuntu: Ctrl+Alt+T), y
 ejecuta la línea de tu sistema.
 
@@ -105,6 +131,8 @@ En **Ubuntu o Debian** (incluido Ubuntu en Windows):
 sudo apt update && sudo apt install -y curl git
 ```
 
+`apt` es el *gestor de paquetes* de Ubuntu, el programa que instala software de la colección
+propia de Ubuntu y lo mantiene al día; `apt update` actualiza su lista, y `apt install` instala.
 `sudo` ejecuta un comando como administrador y te pide tu contraseña de Linux, que no se ve
 mientras la escribes. En otras distribuciones de Linux, instala `curl` y `git` con tu gestor de
 paquetes de siempre. En **Windows**, sigue primero el @sec-windows: termina con este mismo
@@ -357,7 +385,7 @@ Revisa cuáles de `git`, `curl`, `uv`, `quarto` (1.10 o más reciente) y la CLI 
 :::
 
 ::: {.agent}
-instala uv con su instalador oficial · Quarto desde su página de versiones (o con Homebrew en una Mac) · `gh` desde el repositorio de paquetes de GitHub · imprime las versiones
+instala uv con su instalador oficial · Quarto desde su página de versiones (o con Homebrew, un gestor de paquetes para la Mac, si lo tienes) · `gh` desde el repositorio de paquetes de GitHub · imprime las versiones
 :::
 
 Antes de cada comando que quiere ejecutar, el agente se detiene y pregunta, como en la
@@ -470,11 +498,36 @@ Ejecuta `uv init --bare` y `uv add ipykernel nbclient nbformat pyyaml`. Crea hel
 `/exit`, luego abre la carpeta: `open .` (Mac), `xdg-open .` (Linux) o `explorer.exe .` (WSL), y abre los dos archivos
 :::
 
-La prueba usa cosas que explican los capítulos siguientes, la configuración en YAML, una celda de
-código y código en línea, a propósito: es una comprobación de caja negra de que las herramientas
-funcionan juntas, no una lección. Si te da curiosidad, `hello.qmd` es el archivo que se muestra
-en la @sec-what-quarto, y el @sec-first-report abre un informe real del mismo tipo, que lees y
-renderizas tú.
+La prueba usa, a propósito, tres cosas que enseñan los capítulos siguientes: es una comprobación
+de que las herramientas funcionan juntas, no una lección, así que no necesitas entender el archivo
+para pasarla. Su archivo se va a parecer mucho a este, aunque el del agente puede diferir en
+detalles:
+
+````markdown
+---
+title: "Hello"
+format:
+  html: default
+  typst: default
+---
+
+```{{python}}
+answer = 6 * 7
+```
+
+The answer is `{{python}} answer`.
+````
+
+Leído de arriba abajo, con dónde se explica cada parte:
+
+1. **La configuración**, entre las dos líneas `---`: un título y dos formatos de salida, una
+   página web y un PDF. Está escrita en *YAML* (@sec-what-quarto; completa, en la @sec-yaml).
+2. **Una celda de código**, el bloque delimitado cuyo lenguaje va entre llaves: Python que se
+   ejecuta cuando se renderiza el archivo (@sec-qmd-basics).
+3. **El código en línea**, `` `{{python}} answer` ``: el resultado de la celda, escrito dentro
+   de la oración, así que el 42 se calcula, no se teclea (@sec-code-cells).
+
+Luego el @sec-first-report abre un informe real del mismo tipo, que lees y renderizas tú.
 
 ::: pitfall
 Cada renderizado imprime una línea como `[IPKernelApp] WARNING | Kernel is running over TCP
@@ -493,10 +546,40 @@ del @sec-troubleshooting.
 :::
 :::
 
+## Sin instalar nada: un codespace {#sec-codespace}
+
+Un *codespace* es una computadora que GitHub ejecuta por ti y que abres en tu navegador: una
+terminal, un explorador de archivos y un editor, sin nada instalado en tu propia máquina. El
+repositorio del taller describe uno en un archivo de *contenedor de desarrollo* (dev container),
+`.devcontainer/devcontainer.json`, que enumera lo que hay que instalar: Quarto 1.10.20, uv, Git y
+la CLI de GitHub. Así que, en un codespace, los pasos 1 y 4 ya están hechos.
+
+::: {.you}
+en github.com/project-delphi/quarto-workshop: **Code** → **Codespaces** → **Create codespace on main** · espera mientras se construye · luego, en su terminal, `cd ~`
+:::
+
+El repositorio aparece en tu carpeta personal como `~/quarto-workshop`, así que cada ruta de este
+libro funciona sin cambios. Desde ahí, sigue en la terminal del codespace el paso 2, el paso 3
+con el comando de Linux del agente, el paso 5 y el paso 6. Tres cosas cambian respecto de una
+computadora propia:
+
+- **Las vistas previas.** Inícialas con `quarto preview --port 4848 --host 0.0.0.0 --no-browser`;
+  el codespace ofrece abrir la página en una pestaña nueva del navegador.
+- **El inicio de sesión en GitHub.** Si `gh auth login` dice que `GITHUB_TOKEN` está en uso,
+  ejecuta primero `unset GITHUB_TOKEN`: el token propio del codespace solo llega al repositorio
+  del taller, no a los repositorios que crees tú.
+- **El costo.** `{python} fact("github.codespaces_free", capital=True)` (consultado el
+  `{python} checked("github.codespaces_free")`). Detén el codespace cuando termines (la página
+  **Codespaces** lo enumera), porque uno en ejecución consume la cuota.
+
+El entorno se construyó a partir de su archivo de contenedor de desarrollo y se revisó en una
+computadora local (Quarto, uv, Git y la CLI de GitHub presentes; el primer informe y la prueba se
+renderizaron); un codespace en las computadoras de GitHub no se probó para esta edición.
+
 ## Resumen {.unnumbered}
 
 ::: keyideas
-- Todo lo de las partes II y III ocurre en tu propia máquina, así que la preparación demuestra
+- Todo lo de las partes prácticas ocurre en tu propia máquina, así que la preparación demuestra
   que el agente, Python, Quarto y Typst funcionan juntos ahí.
 - Cada paso termina con una comprobación que puedes ver; sigue adelante solo cuando se cumple.
 - Los comandos van en el indicador de la terminal y las solicitudes, al agente; cuando el

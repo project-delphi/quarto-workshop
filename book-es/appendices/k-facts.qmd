@@ -1,0 +1,81 @@
+# Datos que cambian {#sec-facts}
+
+```{python}
+#| label: facts-setup
+from IPython.display import Markdown
+
+from scripts.facts import all_items, table
+
+
+def cell(text: str) -> str:
+    """Text for a table cell: no line breaks, no stray pipes."""
+    return " ".join(str(text).split()).replace("|", "\\|")
+
+
+def dollars(x: float) -> str:
+    """A price as Chapter 2 prints it: 50, or 0.50."""
+    return f"{x:g}" if x == int(x) else f"{x:.2f}"
+
+
+def sources(e: dict) -> str:
+    urls = [e["url"], *e.get("also", [])]
+    if len(urls) == 1:
+        return f"[fuente]({urls[0]})"
+    return "fuentes " + ", ".join(f"[{i + 1}]({u})" for i, u in enumerate(urls))
+```
+
+Los precios, los planes, las cuentas y las cuotas gratuitas cambian de un mes a otro, así que
+este libro los guarda en un solo lugar: un archivo de su fuente, `book/facts.yml`, que este
+apéndice imprime completo. Los capítulos lo citan en lugar de escribir un precio o un plan, así
+que cuando un dato cambia, una sola edición y una reconstrucción actualizan cada página que lo
+menciona, y también esta lista. Cada dato lleva la fecha en que se revisó contra la página
+oficial enlazada a su lado. Para cuando leas esto, algunos habrán cambiado: sigue el enlace, y
+confía en la página antes que en el libro.
+
+```{python}
+#| output: asis
+# One section per group of facts, each fact a short paragraph: a table of four columns does
+# not fit a phone's width.
+sections = {}
+for title, key, e in all_items():
+    sections.setdefault(title, []).append(e)
+for title, entries in sections.items():
+    print(f"## {title} {{.unnumbered}}\n")
+    for e in entries:
+        text = cell(e["text"])
+        print(f"**{cell(e['label'])}.** {text[0].upper() + text[1:]}. Consultado el {e['checked']}, "
+              f"{sources(e)}.\n")
+```
+
+## Precios de los modelos {#model-prices .unnumbered}
+
+```{python}
+#| output: asis
+prices = table("models", "prices")
+rows = ["| Modelo | Para qué sirve, según el proveedor | Entrada / salida, \\$ por millón de tokens |",
+        "|---|---|---|"]
+for r in prices["rows"]:
+    rows.append(f"| {r['model']} | {cell(r['for'])} | {dollars(r['input'])} / {dollars(r['output'])} |")
+print("\n".join(rows))
+print(f"\n: {prices['caption']}, consultados el {prices['checked']}. {{#tbl-prices}}")
+print(f"\n{cell(prices['note'])} Fuentes: las páginas de [precios]({prices['url']}) y "
+      f"de [modelos]({prices['also'][0]}) de Anthropic, y la de [modelos]({prices['also'][1]}) de OpenAI.")
+```
+
+Estos son precios de *API*: lo que paga un programa por token cuando llama directamente al
+modelo (@sec-choose). Léelos como una instantánea de la distancia entre los modelos pequeños y
+los grandes, no como números para hacer planes.
+
+## Planes gratuitos para sitios estáticos {#free-plans-for-static-sites .unnumbered}
+
+```{python}
+#| output: asis
+hosts = table("hosting", "hosts")
+rows = ["| Servicio de alojamiento | Plan gratuito |", "|---|---|"]
+rows += [f"| [{h['host']}]({h['url']}) | {h['free']} |" for h in hosts["rows"]]
+print("\n".join(rows))
+print(f"\n: Planes gratuitos de seis servicios de alojamiento de sitios estáticos, consultados en sus páginas oficiales el {hosts['checked']}. {{#tbl-hosts-free}}")
+```
+
+La @sec-hosting explica las dos formas en que funcionan estos servicios: tú renderizas y subes
+los archivos, o ellos construyen el sitio a partir de tu repositorio.

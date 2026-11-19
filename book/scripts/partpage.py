@@ -17,7 +17,9 @@ import html
 import re
 from pathlib import Path
 
-BOOK = Path(__file__).resolve().parents[1]
+# The book being rendered: book-es/scripts is a symlink to this folder, and Python imports
+# this module through it, so __file__ (not resolved) names the Spanish book's folder there.
+BOOK = Path(__file__).absolute().parents[1]
 
 
 def roadmap(name: str) -> str:
