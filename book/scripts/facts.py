@@ -32,12 +32,20 @@ def facts() -> dict:
     return yaml.safe_load(FILE.read_text())
 
 
+# The keys whose values are English words, each of which must have its `_es` twin.
+WORDS = ("title", "label", "text", "caption", "note", "for", "free")
+
+
 def localised(d: dict, lang: str | None = None) -> dict:
     """A copy of one mapping in the edition's language: in Spanish, each `<key>_es` value
-    replaces `<key>`; the `_es` keys are dropped in both editions."""
-    spanish = (lang or language()) == "es"
+    replaces `<key>`; the `_es` keys are dropped in both editions. A word key without its
+    twin stops the render in either edition, so the Spanish book never prints English."""
+    missing = [k for k in WORDS if k in d and f"{k}_es" not in d]
+    if missing:
+        raise KeyError(f"facts.yml: {', '.join(missing)} without {', '.join(k + '_es' for k in missing)} "
+                       f"in the entry that begins {str(d)[:80]}")
     out = {k: v for k, v in d.items() if not k.endswith("_es")}
-    if spanish:
+    if (lang or language()) == "es":
         out.update({k[:-3]: v for k, v in d.items() if k.endswith("_es")})
     return out
 
@@ -55,9 +63,10 @@ def _date(value) -> str:
     return value.isoformat() if isinstance(value, dt.date) else str(value)
 
 
-def fact(key: str) -> str:
-    """The fact's text, as it reads in a sentence."""
-    return entry(key)["text"]
+def fact(key: str, capital: bool = False) -> str:
+    """The fact's text, as it reads in a sentence; `capital=True` where it starts one."""
+    text = entry(key)["text"]
+    return text[0].upper() + text[1:] if capital else text
 
 
 def checked(key: str) -> str:
@@ -75,5 +84,9 @@ def table(section: str, name: str) -> dict:
 
 def all_items() -> list[tuple[str, str, dict]]:
     """Every sentence fact, as (section title, key, entry), in the file's order."""
-    return [(localised(sec)["title"], f"{name}.{item}", {**(e := localised(raw)), "checked": _date(e["checked"])})
-            for name, sec in facts().items() for item, raw in sec.get("items", {}).items()]
+    out = []
+    for name, sec in facts().items():
+        for item, raw in sec.get("items", {}).items():
+            e = localised(raw)
+            out.append((localised(sec)["title"], f"{name}.{item}", {**e, "checked": _date(e["checked"])}))
+    return out
