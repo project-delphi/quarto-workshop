@@ -29,6 +29,8 @@ ES = set("el la los las de del y que en un una es son con por para se su sus al 
 SKIP = {"code", "pre", "script", "style", "svg", "math", "kbd", "samp"}
 # English kept on purpose, matched as substrings of a flagged sentence.
 KEPT = [
+    "ranks best:", "held-out contacts is", "Jupyter notebooks and JupyterLab",
+    "A data-driven approach to predict",
     "Generate an SVG of a pelican riding a bicycle", "Claude Code'll be able to read",
     "subject to your permission settings", "Catch me up: follow", "Most visited in 2025",
     "ten most visited ALVA member attractions", "ALVA member attractions",

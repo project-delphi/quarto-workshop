@@ -45,8 +45,8 @@ def _language(info: str) -> str:
 class NumberWords:
     """Words for 1 to 20, the chosen word for 0, and digits with separators beyond."""
 
-    def __init__(self, zero: str = "zero") -> None:
-        spanish = language() == "es"
+    def __init__(self, zero: str = "zero", lang: str | None = None) -> None:
+        spanish = (lang or language()) == "es"
         # The default zero is the edition's own word; a chosen one ("no") is kept as given.
         self.zero = "cero" if spanish and zero == "zero" else zero
         self.words = _WORDS_ES if spanish else _WORDS
@@ -64,8 +64,10 @@ class NumberWords:
         return len(_WORDS)
 
 
-def number_words(zero: str = "zero") -> NumberWords:
-    return NumberWords(zero)
+def number_words(zero: str = "zero", lang: str | None = None) -> NumberWords:
+    """Number words in the edition's language, or in `lang` ("en") for words inside quoted
+    English output, which stays English in both editions."""
+    return NumberWords(zero, lang)
 
 
 def spans(years: Iterable) -> str:

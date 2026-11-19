@@ -1,0 +1,425 @@
+# La vía rápida {#sec-fast-path}
+
+```{python}
+#| label: fast-setup
+# The evaluation project's results, computed by its own script (scripts/evaluation.py), and
+# the starter repository readers copy.
+from scripts import evaluation as ev
+from scripts.prose import number_words, text_holds
+
+S = ev.summary()
+best = S["best_version"]
+versions = [r["version"] for r in S["releases"]]
+WORD = number_words()
+QUOTED_WORD = number_words(lang="en")  # inside the Acme report's own English sentence
+starter = ev.files(ev.STARTER)
+n_tests = sum(1 for f in starter if f.startswith("tests/test_"))
+text_holds(not any(f.endswith(".qmd") or f == "AGENTS.md" for f in starter),
+           "the starter has no Quarto file and no AGENTS.md")
+text_holds("notebooks/explore.ipynb" in starter, "the starter's notebook")
+# Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a fresh
+# copy of starters/eval-repo on 2026-11-18: all four worked, the three formats showed the same
+# numbers, and a fresh clone rebuilt them; the pitfalls below are what that run met.
+```
+
+Ya usas una terminal y Git, y tienes un repositorio lleno de trabajo que termina, de una forma u
+otra, en documentos: un notebook, un script que escribe un archivo de resultados, un conjunto de
+pruebas. Este capítulo agrega Quarto a un repositorio así y lo lleva, en menos de una hora, a un
+informe en HTML, Word y PDF en el que cada número se calcula a partir de los resultados del
+propio repositorio, con una guarda que detiene la construcción cuando una oración deja de ser
+cierta, y revisado como pull request. Está escrito para quienes trabajan como analistas, en
+ciencia de datos o en ingeniería de ML o de investigación, y para quienes fundan una empresa con
+perfil técnico. Si la terminal o Git son nuevos para ti, toma la otra ruta, los capítulos 4 y 5
+(@sec-setup y @sec-first-report), y vuelve a este capítulo después: da por sabido lo que ellos
+enseñan.
+
+El repositorio es pequeño y realista: Acme Signals, una startup ficticia de dos personas, evalúa
+las versiones de un modelo que ordena los contactos de marketing de un banco según la
+probabilidad de que cada uno se suscriba, con datos públicos reales. La Parte III construye el
+resto de sus publicaciones a partir de los mismos resultados. Cada paso funciona igual en un
+repositorio propio, y la última sección dice qué cambiar.
+
+::: opener
+- Agregar Quarto a un repositorio existente sin cambiar cómo se ejecuta su código.
+- Renderizar un notebook existente, y explicar qué le hace `--execute`.
+- Pedir un informe en tres formatos que calcule cada número a partir de los resultados del
+  repositorio, y revisarlo como lo haría quien lo lee.
+- Proteger con una guarda una oración cuyas palabras dependen de los resultados, y revisar el
+  cambio como pull request y desde un clon nuevo.
+
+Partes de
+: Git y una terminal en los que te mueves con soltura, un agente de
+  programación (@sec-assistant) y el repositorio del taller clonado en `~/quarto-workshop`.
+
+Construyes
+: `~/acme-eval`: el repositorio con `AGENTS.md`, un informe en HTML, Word y PDF, una guarda y
+  una rama revisada como pull request.
+
+Punto de control
+: `checkpoints/14-eval-start/`
+:::
+
+## ¿Es esta tu ruta? {#sec-fast-route}
+
+Toma la vía rápida si todo esto es rutina para ti: moverte entre carpetas y leer un error en una
+terminal; `git status`, `git diff`, ramas y commits; instalar un programa de línea de comandos.
+Entonces necesitas cuatro herramientas, en las versiones de abajo, y un agente.
+
+| Herramienta | Comprobación | Necesitas |
+|---|---|---|
+| Git | `git --version` | cualquier versión reciente |
+| uv | `uv --version` | gestiona el Python y los paquetes de cada proyecto (@sec-environments) |
+| Quarto | `quarto --version` | 1.10 o más reciente |
+| GitHub CLI | `gh auth status` | la sesión iniciada, para el pull request |
+
+: Lo que necesita la vía rápida. {#tbl-fast-tools}
+
+Si falta alguna, el agente la instala con el prompt de la @sec-step-tools, y la
+@sec-step-assistant instala el propio agente. Luego clona el repositorio del taller, que contiene
+el punto de partida, si todavía no lo hiciste:
+
+```bash
+git clone https://github.com/project-delphi/quarto-workshop.git ~/quarto-workshop
+```
+
+## El repositorio {#sec-fast-repo}
+
+Copia el punto de partida y conviértelo en un repositorio propio, con un commit, como si lo
+hubieras clonado del repositorio de tu equipo. En la terminal:
+
+::: {.you}
+```bash
+cp -R ~/quarto-workshop/starters/eval-repo ~/acme-eval
+cd ~/acme-eval
+git init -b main
+git add .
+git commit -m "Evaluation repo, as copied"
+```
+:::
+
+Es un proyecto de Python como muchos en la práctica, con `{python} WORD[len(starter)]` archivos y
+ni rastro de Quarto:
+
+| Ruta | Contiene |
+|---|---|
+| `data/` | la tabla Bank Marketing de UCI, real y sin cambios, con su README y su licencia; un archivo pequeño de cifras de negocio marcado SYNTHETIC |
+| `releases.yml` | las `{python} WORD[len(versions)]` versiones del modelo, `{python} ", ".join(versions)` |
+| `src/acme_eval/` | la carga de los datos, los modelos y las métricas, como un paquete |
+| `scripts/evaluate.py` | ajusta cada versión una sola vez y escribe todos los resultados en `outputs/` |
+| `tests/` | `{python} WORD[n_tests]` archivos de pytest: la suma de verificación de los datos, que no haya fuga de información (leakage), las métricas, las salidas |
+| `notebooks/explore.ipynb` | un notebook exploratorio, guardado sin salidas |
+| `pyproject.toml`, `uv.lock` | el entorno, fijado |
+
+: El repositorio de partida. {#tbl-fast-starter}
+
+Ejecuta una vez sus propias comprobaciones, como lo harías con la rama de un colega, para conocer
+la línea base:
+
+::: {.you}
+```bash
+uv run python scripts/evaluate.py
+uv run pytest -q
+```
+:::
+
+El primer comando construye `.venv/` a partir de `uv.lock`, ajusta las versiones y escribe
+`outputs/`; el segundo ejecuta las pruebas. Ninguno de los dos sabe nada de documentos, y nada en
+este capítulo cambia cómo se ejecutan. Ese es el diseño que hay que conservar: **un script
+calcula los resultados una sola vez; todos los documentos los leen.** Así los documentos se pueden
+reconstruir, cambiar de formato y revisar sin volver a ajustar nunca un modelo, y quien revisa
+puede confiar en que el informe y la ficha del modelo (model card) citan la misma ejecución.
+
+## Reglas antes que pedidos {#sec-fast-rules}
+
+Inicia el agente en el repositorio (`claude`, `codex` o `agy`) y dale las reglas del proyecto
+antes de cualquier trabajo. El prompt nombra lo que contiene un archivo de reglas, como el de
+la @sec-agents-md, y le pide al agente que lea primero el código, para que las reglas se ajusten
+a este repositorio y no a uno genérico:
+
+::: {.prompt}
+```default
+Lee README.md, pyproject.toml, scripts/evaluate.py y tests/, y luego escribe AGENTS.md, en inglés, para este repositorio: su alcance (di que la empresa es ficticia); reglas (data/ es de solo lectura; los documentos leen outputs/ y nunca ajustan un modelo; cada número de un documento sale de outputs/ mediante código, nunca escrito a mano; ejecuta python, pytest y quarto con `uv run`; nunca hagas commit de outputs/ ni de los archivos renderizados); y los comandos para evaluar, probar y renderizar. Muéstrame el archivo.
+```
+:::
+
+::: {.agent}
+lee las cuatro fuentes · escribe `AGENTS.md`
+:::
+
+Lee lo que escribió. Cada regla debería ser una que puedas comprobar leyendo un diff: "los
+documentos nunca ajustan un modelo" se puede comprobar, "mantén el código limpio" no. Luego crea
+una rama para el trabajo, como harías con cualquier cambio que piensas revisar, y haz commit de
+las reglas en ella. En una segunda pestaña de la terminal:
+
+::: {.you}
+```bash
+git switch -c add-report
+git add AGENTS.md
+git commit -m "Write the project's rules for agents"
+```
+:::
+
+## Un notebook que ya tienes {#sec-fast-notebook}
+
+La mayoría de los repositorios ya contienen notebooks. Quarto renderiza un archivo `.ipynb`
+directamente, a cualquiera de sus formatos de salida, así que un notebook se puede publicar antes
+de reescribir nada.
+
+::: {.prompt}
+```default
+Ejecuta `uv add ipykernel nbclient nbformat` y luego renderiza notebooks/explore.ipynb a HTML con `uv run quarto render notebooks/explore.ipynb --execute`. Dime dónde quedó el HTML y qué muestra `git status`.
+```
+:::
+
+::: {.agent}
+`uv add …` · `uv run quarto render notebooks/explore.ipynb --execute`
+:::
+
+Los tres paquetes son lo que Quarto necesita para ejecutar código de Python: un kernel y las
+bibliotecas que manejan un notebook. `--execute` importa. Un notebook se renderiza **tal como se
+guardó**: sin la opción, Quarto muestra las salidas guardadas en el archivo, o ninguna, y no
+ejecuta nada. Con ella, Quarto ejecuta primero cada celda y, como parte del vocabulario que hay
+que conocer, *escribe las salidas nuevas de vuelta en el notebook*.
+
+::: think
+Después del renderizado, `git status` muestra `notebooks/explore.ipynb` como modificado, además de
+`pyproject.toml` y `uv.lock`. No pediste que el notebook cambiara. ¿Qué pasó y qué haces?
+
+`--execute` guardó en el notebook las salidas que calculó: en la prueba, varios cientos de líneas
+cambiadas. Conservarlas o no es una decisión del equipo, así que tómala a propósito. Este
+repositorio guarda sus notebooks sin salidas, así que deshaz ese cambio y haz commit solo de los
+dos archivos que registran los paquetes nuevos.
+:::
+
+::: {.you}
+```bash
+git restore notebooks/explore.ipynb
+git add pyproject.toml uv.lock
+git commit -m "Add the packages Quarto needs to run Python"
+```
+:::
+
+El HTML quedó al lado del notebook, `notebooks/explore.html`, con una carpeta de archivos propios;
+`.gitignore` deja afuera los dos.
+
+Un notebook también se puede convertir en un documento de Quarto:
+`quarto convert notebooks/explore.ipynb` escribe `explore.qmd`, texto plano que se compara y se
+revisa línea por línea, y que se ejecuta cada vez que se renderiza. Convierte un notebook cuando
+se está volviendo un documento que otros leen; déjalo como notebook mientras sea un lugar para
+explorar.
+
+## Un informe que lee los resultados {#sec-fast-report}
+
+Ahora, el entregable: un informe de la evaluación para quienes deciden qué versión lanzar. Su
+métrica principal es el *ROC AUC*, la probabilidad de que una versión ponga a un contacto que se
+suscribió, elegido al azar, por encima de uno que no se suscribió, también elegido al azar: 0.5 es
+un orden al azar y 1, uno perfecto. Es un archivo `.qmd` nuevo al lado del código, y es la
+especificación, en un solo prompt, de todo lo que el informe tiene que hacer y de cómo lo vas a
+revisar:
+
+::: {.prompt}
+```default
+Ejecuta `uv run python scripts/evaluate.py`. Crea report.qmd, en inglés (formatos html, docx y typst; oculta el código), que lea solo outputs/: una oración que nombre la mejor versión según el ROC AUC, con su AUC y su intervalo del 95% como código en línea; una tabla con las métricas de cada versión, etiquetada `tbl-metrics`, con pie de tabla y citada en el texto; y las curvas ROC como una figura etiquetada `fig-roc`, con pie de figura y texto alternativo. Renderiza los tres formatos y dime qué AUC muestra cada uno.
+```
+:::
+
+::: {.agent}
+`uv run python scripts/evaluate.py` · escribe `report.qmd` · `uv run quarto render report.qmd` → `report.html`, `report.docx`, `report.pdf`
+:::
+
+Cada frase del prompt es vocabulario que corresponde a una función, y por eso puede ser corto:
+
+| El prompt dice | La función de Quarto | Revisas |
+|---|---|---|
+| formatos html, docx y typst | tres formatos de salida desde un archivo (@sec-formats); Typst hace el PDF | tres archivos, abriendo cada uno |
+| oculta el código | `echo: false` | que no haya código en ninguna salida |
+| código en línea | `` `{{python}} …` `` en una oración (@sec-code-cells) | que el número de la oración sea igual al de `outputs/` |
+| etiquetada `tbl-metrics`, citada en el texto | una referencia cruzada: `@tbl-metrics` se vuelve "Table 1", un enlace | que el texto diga "Table 1", no "??" |
+| pie de figura y texto alternativo | `tbl-cap`, `fig-cap`, `fig-alt` (@sec-cell-options) | que el pie diga qué es; el texto alternativo, qué muestra |
+| que lea solo outputs/ | la regla del proyecto, de `AGENTS.md` | el diff: ningún `fit`, nada de código de modelos |
+
+: El prompt del informe, frase por frase. {#tbl-fast-vocab}
+
+Luego verifícalo de tres maneras (@sec-three-skills). **Lee el diff**: `git status` debería
+mostrar `report.qmd` como nuevo y nada más cambiado, y el archivo debería leer archivos de
+`outputs/` y no ajustar nada. **Inspecciona el renderizado**: abre `report.html`, `report.docx` y
+`report.pdf`. El renderizado imprime `Output created` solo para el primer formato, así que busca
+los tres archivos. En el proyecto terminado, que está en inglés como todo el ejemplo de Acme, la
+oración dice:
+
+> Of the `{python} QUOTED_WORD[len(versions)]` releases, **`{python} best`** ranks best: its ROC AUC on the
+> `{python} f"{S['test_rows']:,}"` held-out contacts is
+> `{python} ev.interval(best, "roc_auc")`.
+
+Es decir: de las versiones, la que está en negrita es la mejor, con su ROC AUC sobre los
+contactos reservados para la prueba y su intervalo del 95%. **Compáralo con la fuente**, sin el
+informe: `grep roc_auc outputs/metrics.csv` imprime el valor de cada versión con su `low` y su `high`, y
+los tres formatos del informe tienen que coincidir con él.
+
+::: pitfall
+Word no recibe el texto alternativo. En las pruebas, Quarto 1.10.20 puso en la descripción de la
+imagen de Word el nombre del archivo de la figura, o nada, nunca el `fig-alt`; el HTML sí lo
+tenía. Si alguien que lee el archivo de Word usa un lector de pantalla, agrega la descripción en
+Word, y revisa cada formato que vaya a usar quien lee.
+:::
+
+## Una guarda para la oración {#sec-fast-guard}
+
+La primera oración del informe nombra a una ganadora. El código en línea mantiene sus números al
+día, pero la *palabra* "best" (la mejor), y el nombre que la acompaña, solo son ciertos mientras
+los datos lo digan. Una *guarda* es una línea de código al lado de una oración así que detiene el
+renderizado si la oración se vuelve falsa (@sec-water-website). Es Python común y corriente, así
+que encaja en el propio paquete del repositorio:
+
+::: {.prompt}
+```default
+Agrega src/acme_eval/claims.py con `claim(condition, sentence)`, que lanza un error que cita la oración cuando la condición es falsa. En report.qmd, protege con ella la oración que nombra la mejor versión, y agrega una regla a AGENTS.md, en inglés: una oración cuyas palabras dependen de los resultados lleva un `claim`. Demuestra que la guarda funciona: renderiza una vez con un nombre de versión equivocado a propósito, muéstrame el error, y luego restaura el correcto y renderiza de nuevo.
+```
+:::
+
+La demostración es lo importante. Una guarda que nunca viste fallar es una guarda que no
+probaste, y el prompt hace que el agente la rompa a propósito y te muestre el mensaje. Para que
+pueda fallar, la versión de la oración tiene que estar escrita en algún lugar donde una persona
+pueda equivocarse, y comprobarse contra `outputs/`: un nombre leído directamente de los resultados
+nunca podría contradecirlos. Cada agente redacta el mensaje a su manera; en el proyecto terminado
+dice:
+
+```text
+ClaimError: The results no longer support this sentence: The best version named in this
+report has the highest ROC AUC in metrics.csv.
+```
+
+Es decir, que los resultados ya no sostienen la oración: la mejor versión que nombra el informe
+tiene que tener el ROC AUC más alto de metrics.csv. Revisa después que el error deliberado ya no
+esté. Un renderizado fallido deja los `report.html`, `.docx` y `.pdf` anteriores donde estaban,
+así que un archivo viejo puede parecer un éxito: lee las últimas líneas del renderizado, y la
+oración en la fuente. Luego haz commit:
+
+::: {.you}
+```bash
+git status
+git add -A
+git commit -m "Add a report that reads outputs/, with a guard"
+```
+:::
+
+`.gitignore` ya deja afuera `outputs/`, `.venv/` y los archivos renderizados, así que
+`git add -A` toma solo fuentes: la regla nueva de `AGENTS.md`, `report.qmd` y `claims.py`. Igual
+lee antes `git status`: en la prueba, un notebook lleno de salidas entró en este commit porque se
+saltó la restauración de arriba, y `git status` fue donde se vio.
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/14-eval-start/README.md
+```
+:::
+
+## Revísalo como pull request {#sec-fast-pr}
+
+Un cambio que hizo un agente se revisa como el de un colega: en una rama, como pull request, con
+el diff leído archivo por archivo antes de que llegue a `main` (@sec-git). Sube el repositorio a
+GitHub, privado, y abre el pull request. En la terminal:
+
+::: {.you}
+```bash
+git switch main
+gh repo create acme-eval --private --source=. --push
+git switch add-report
+git push -u origin add-report
+gh pr create --base main --fill
+```
+:::
+
+`gh repo create … --source=. --push` crea el repositorio a partir de esta carpeta y hace push de
+`main`; `git push -u` hace push de la rama; `gh pr create --fill` abre un pull request con el
+título y la descripción tomados de sus commits, e imprime su dirección. En la pestaña *Files
+changed* del pull request, o con `gh pr diff` en la terminal, revísalo como cualquier otro:
+
+| Revisión | Pregunta | Aquí |
+|---|---|---|
+| Alcance | ¿Cambiaron solo los archivos que quería? | `AGENTS.md`, `report.qmd`, `claims.py`, `pyproject.toml`, `uv.lock`; nada en `data/`, `tests/` ni `notebooks/` |
+| Corrección | ¿Un número coincide con su fuente? | el AUC del informe contra `outputs/metrics.csv` |
+| Reconstrucción | ¿Lo que se subió con commit se construye por sí solo? | un clon nuevo renderiza el mismo informe (abajo) |
+
+: Las tres revisiones de la @tbl-three-checks, aplicadas a un pull request. {#tbl-fast-review}
+
+La última revisión es la que quien revisa no puede hacer leyendo. Clona el repositorio de nuevo y
+constrúyelo desde cero; primero van los resultados, porque `outputs/` se calcula, no se guarda con
+commit:
+
+::: {.you}
+```bash
+git clone ~/acme-eval /tmp/acme-check
+cd /tmp/acme-check
+git switch add-report
+uv run python scripts/evaluate.py
+uv run quarto render report.qmd
+```
+:::
+
+El `report.html` del clon tiene que mostrar el mismo
+`{python} f"{ev.value(best, 'roc_auc')['value']:.3f}"`. Un renderizado antes de la evaluación se
+detiene con `FileNotFoundError` para `outputs/summary.json`: es el clon diciéndote, con razón, que
+los resultados se calculan, no se guardan. Si falla cualquier otra cosa, algo que el informe
+necesita vive solo en tu carpeta: haz commit de eso y vuelve a clonar. Cuando el clon coincida,
+haz merge del pull request. Un servicio de construcción puede ejecutar la misma comprobación con
+un clon nuevo en cada pull request, para que nadie tenga que acordarse de hacerla.
+
+## En tu propio repositorio {#sec-fast-own}
+
+Todo lo anterior se puede trasladar. Apunta los prompts a tus propios archivos:
+
+- **Reglas.** Nombra en `AGENTS.md` tu carpeta de resultados (`outputs/`, `results/`,
+  `reports/data/`) y tus comandos. Si tu código calcula resultados dentro de notebooks, el primer
+  trabajo es un script que los escriba en archivos: los documentos que vuelven a ejecutar un
+  análisis son lentos y pueden contradecirse entre sí.
+- **Dependencias.** `ipykernel`, `nbclient` y `nbformat` se suman a tu entorno, mediante uv,
+  Poetry, pip o conda, según como lo gestione tu proyecto; Quarto en sí es un programa aparte y
+  no agrega ninguna dependencia de Python.
+- **Deja afuera las salidas.** Agrega a `.gitignore` los archivos renderizados y la carpeta de
+  resultados.
+- **Dónde vive el informe.** En la raíz del repositorio, o en `reports/`; un solo archivo `.qmd`
+  no necesita `_quarto.yml`. Una carpeta con varios documentos se convierte en un *proyecto* de
+  Quarto (@sec-london-website).
+
+::: tryit
+Ejecuta los cuatro prompts y el pull request en el punto de partida, o en tu propio repositorio.
+
+::: done
+el pull request muestra las reglas, el informe y la guarda, sus tres formatos coinciden con
+`outputs/metrics.csv` y un clon nuevo renderiza el mismo informe.
+:::
+:::
+
+## Resumen {.unnumbered}
+
+::: keyideas
+- Quarto se suma a un repositorio existente como un archivo `.qmd` y tres paquetes de Python;
+  cómo se ejecuta el código no cambia.
+- Calcula los resultados una sola vez, en un script, y escríbelos en archivos; cada documento lee
+  los archivos y no ajusta nada.
+- Un notebook se renderiza tal como se guardó; `--execute` lo ejecuta y escribe las salidas de
+  vuelta en él.
+- Un prompt hecho de funciones con nombre ("código en línea", "etiquetada `tbl-metrics`", "texto
+  alternativo") obtiene esas funciones, y cada una trae su revisión.
+- Protege con una guarda las oraciones cuyas palabras dependen de los resultados, y mira fallar
+  cada guarda una vez.
+- Revisa el cambio como pull request, y reconstrúyelo desde un clon nuevo.
+:::
+
+El informe es la primera de las publicaciones del proyecto. La Parte III construye el resto a
+partir de los mismos resultados: una ficha del modelo, una presentación para las partes
+interesadas, un sitio del proyecto con una sola marca y un documento técnico (white paper). Si llegaste por la vía
+rápida, la guía de Londres de la Parte II queda ahí como referencia para cuando un capítulo la
+mencione.
+
+## Lecturas adicionales {.unnumbered}
+
+- Quarto, [Jupyter notebooks and JupyterLab](https://quarto.org/docs/tools/jupyter-lab.html):
+  renderizar archivos `.ipynb` y `quarto convert` (consultado el 2026-11-18).
+- Quarto, [Cross References](https://quarto.org/docs/authoring/cross-references.html)
+  (consultado el 2026-11-18).
+- Manual de GitHub CLI, [`gh repo create`](https://cli.github.com/manual/gh_repo_create) y
+  [`gh pr create`](https://cli.github.com/manual/gh_pr_create) (consultados el 2026-11-18).
+- S. Moro, P. Rita y P. Cortez, [Bank Marketing](https://doi.org/10.24432/C5K306), UCI Machine
+  Learning Repository, 2014, CC BY 4.0: los datos (consultado el 2026-11-18).

@@ -17,7 +17,9 @@ import html
 import re
 from pathlib import Path
 
-BOOK = Path(__file__).resolve().parents[1]
+# The book being rendered: cells run from its project folder (`execute-dir: project`), and
+# book-es/scripts is a symlink to this folder, so __file__ would always give the English book.
+BOOK = Path.cwd() if (Path.cwd() / "media" / "roadmaps").is_dir() else Path(__file__).resolve().parents[1]
 
 
 def roadmap(name: str) -> str:

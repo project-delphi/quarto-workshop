@@ -1,0 +1,261 @@
+# White papers y referencias {#sec-white-papers}
+
+```{python}
+#| label: wp-setup
+# The white paper and its references as this chapter leaves them (checkpoint 18), read from
+# their files: the cross-references the paper makes, and every entry of its bibliography.
+import importlib.util
+import re
+
+from scripts import evaluation as ev
+from scripts.prose import number_words, text_holds
+
+CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "18-eval-whitepaper"
+paper = (CHECKPOINT / "whitepaper.qmd").read_text()
+bib = (CHECKPOINT / "references.bib").read_text()
+WORD = number_words()
+
+refs = {kind: sorted(set(re.findall(rf"@{kind}-[\w-]+", paper))) for kind in ("eq", "tbl", "fig", "sec")}
+# The bibliography, read by the project's own parser (scripts/check_refs.py, standard library only).
+spec = importlib.util.spec_from_file_location("check_refs", CHECKPOINT / "scripts" / "check_refs.py")
+check_refs = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(check_refs)
+entries = [{"key": key, "year": f.get("year", ""), "doi": f.get("doi", "")}
+           for key, f in check_refs.entries(bib).items()]
+
+
+def counted(n: int, noun: str) -> str:
+    """'one table', 'two figures'."""
+    return f"{WORD[n]} {noun}" + ("" if n == 1 else "s")
+card = (CHECKPOINT / "model-card.qmd").read_text()
+cited_paper = {e["key"] for e in entries if f"@{e['key']}" in paper}
+cited_card = {e["key"] for e in entries if f"@{e['key']}" in card}
+text_holds(all(e["key"] in cited_paper | cited_card for e in entries),
+           "every entry of the project's bibliography is cited by the paper or the model card")
+how_many = "todos" if len(cited_paper) == len(entries) else f"{WORD[len(cited_paper)]} de ellos"
+text_holds(all(refs[k] for k in refs), "the paper refers to equations, tables, figures and sections")
+# Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
+# checkpoint 17 on 2026-11-18; the pitfalls are the ones that run, and the build of the
+# finished paper, met.
+```
+
+Un documento técnico (white paper) es la única salida que sale del edificio y tiene que
+sostenerse sola. Quien analiza datos para un cliente, quien asesora técnicamente a un inversionista
+o quien investiga con escepticismo lo leerá sin que estés en la sala, y lo revisará: si el método
+está declarado, si los números del texto coinciden con las tablas, si las referencias existen y
+dicen lo que el documento afirma que dicen. Para una startup, un white paper de benchmark o de
+evaluación suele ser lo más creíble que puede publicar, y lo más dañino si alguna de esas
+revisiones falla.
+
+Este capítulo escribe el white paper de la evaluación: secciones numeradas, una ecuación, una
+tabla y figuras a las que el texto se refiere por número, citas en un estilo estándar que se leen
+igual en el PDF, el archivo de Word y la página web, referencias cuya existencia confirma un
+script, y una plantilla de la casa para el PDF. Los proyectos de Londres y del agua terminaban
+cada uno con un white paper opcional (la @sec-london-whitepaper, la @sec-water-dashboard); este es
+el tratamiento completo, en la ruta principal.
+
+::: opener
+- Nombrar las partes de un white paper técnico y la función de Quarto detrás de cada una:
+  secciones numeradas, referencias cruzadas, citas, un estilo de citas y una plantilla.
+- Pedir un documento en el que cada figura, tabla y ecuación se cite por número, y revisar que
+  cada referencia se resuelva en todos los formatos.
+- Citar solo lo que has abierto, en un mismo estilo de citas en HTML, Word y PDF, y revisar cada
+  DOI con un script.
+- Darle al PDF una plantilla de la casa, y saber cuándo usar la de una revista.
+
+Partes de
+: tu repositorio `acme-eval` al final del @sec-sites, o `checkpoints/17-eval-site/`.
+
+Construyes
+: `whitepaper.qmd` en PDF, Word y HTML, con `references.bib`, un estilo de citas, un revisor de
+  referencias y una plantilla de la casa.
+
+Punto de control
+: `checkpoints/18-eval-whitepaper/`
+:::
+
+## De qué está hecho un white paper {#sec-wp-vocab}
+
+| Parte | Quarto lo llama | Revisas |
+|---|---|---|
+| secciones que quien lee puede citar | `number-sections: true`, y `## Data {#sec-data}` | "Section 2" en el texto, en cada formato |
+| una ecuación, citada | `$$ … $$ {#eq-auc}` y `@eq-auc` | "Equation 1", una ecuación de verdad en Word |
+| una tabla o una figura, citada | una celda con etiqueta `tbl-…` o `fig-…`, y `@tbl-…` | "Table 1", "Figure 1"; ningún "??" en ninguna parte |
+| citas | `[@key]` en el texto, entradas en `references.bib` | cada una aparece en la lista de referencias |
+| un estilo de citas | `csl:` con el nombre de un archivo de estilo, como el de APA | el mismo estilo en cada formato |
+| el mismo estilo en el PDF | `citeproc: true` bajo `typst:` | ningún segundo título "Bibliography" |
+| un gestor de referencias | un `.bib` exportado desde él, como el de Zotero | las entradas exportadas coinciden con las fuentes |
+| un aspecto de la casa | un *parcial de plantilla* de Typst; un documento de referencia de Word | el bloque de título y el pie de página, con la marca |
+| el aspecto de una revista | `quarto use template quarto-journals/<name>` | las instrucciones de la propia revista |
+
+: Las partes de un white paper, y cómo se llama cada una (Quarto 1.10.20). {#tbl-wp-vocab}
+
+El white paper terminado remite por número a ecuaciones (`{python} len(refs["eq"])`), tablas
+(`{python} len(refs["tbl"])`), figuras (`{python} len(refs["fig"])`) y secciones
+(`{python} len(refs["sec"])`). Una referencia que no se resuelve se renderiza como "??", así que
+buscarla en cada formato es la revisión que alguien haría a ojo, hecha una sola vez: en los tres
+formatos del documento terminado, revisados el 2026-11-18, no encontró ninguna.
+
+## El documento {#sec-wp-paper}
+
+::: {.prompt .long}
+```default
+Crea whitepaper.qmd, un white paper técnico breve, en inglés, para clientes e inversionistas, solo a partir de outputs/: secciones numeradas (Introduction, Data, Method, Results, Limitations, Conclusion), el resumen escrito en el cuerpo y no en el YAML, la definición de ROC AUC como ecuación numerada, una tabla de resultados y la figura ROC, cada una citada en el texto con @eq-, @tbl- y @fig-, figuras vectoriales para el PDF (`fig-format: svg`), y una guarda en cada oración cuya redacción dependa de los resultados. Formatos html, typst y docx (el documento de referencia existente); agrégalo a la lista de renderizado del sitio y al listado con una descripción. Renderízalo y revisa que ninguna referencia cruzada muestre "??".
+```
+:::
+
+::: {.agent}
+escribe `whitepaper.qmd` · lo agrega a `_quarto.yml` y al listado de la página de inicio · `uv run quarto render whitepaper.qmd`
+:::
+
+Revísalo como lo haría su lector de fuera. **Las referencias se resuelven**: busca "??" en cada
+salida. **Las figuras son vectoriales**: en el PDF, haz zoom sobre las etiquetas de una figura;
+siguen nítidas. **Los números coinciden**: un número del texto de Results es igual al mismo
+número en la tabla. **El resumen se sostiene solo**: quien lea solo el resumen sabe qué se evaluó,
+el resultado principal y su límite principal.
+
+## Referencias que quien lee puede revisar {#sec-wp-refs}
+
+Una lista de referencias es un conjunto de afirmaciones: esta obra existe, y dice lo que decimos
+que dice. Un agente puede producir una referencia verosímil que no existe (la
+@sec-water-dashboard), así que el prompt exige abrir cada una, y solo admite lo que se confirmó:
+
+::: {.prompt .long}
+```default
+Cita, desde references.bib, el conjunto de datos, Moro et al. (2014), Mitchell et al. (2019) y los artículos en los que se basan el análisis ROC, el bootstrap y la calibración. Busca cada DOI con la API de Crossref, o la de DataCite para el conjunto de datos, ábrelo, y agrega solo las entradas cuyos autores, título y año hayas podido confirmar. Descarga apa.csl del repositorio oficial de estilos CSL, úsalo con `citeproc: true` para typst, renderiza los tres formatos y revisa que sus listas de referencias coincidan.
+```
+:::
+
+::: {.agent}
+consulta Crossref · edita `references.bib` · descarga `csl/apa.csl` · renderiza tres formatos
+:::
+
+El `references.bib` del proyecto, que el white paper comparte con la ficha del modelo, reúne
+`{python} WORD[len(entries)]` trabajos, `{python} how_many` citados por el white paper, cada uno
+confirmado en su fuente el 2026-11-18:
+
+```{python}
+#| output: asis
+lines = ["| Clave | Año | DOI | Citado por |", "|---|---|---|---|"]
+for e in entries:
+    doi = f"[{e['doi']}](https://doi.org/{e['doi']})" if e["doi"] else "ninguno: revisado a mano en su fuente"
+    by = ", ".join(d for d, keys in (("white paper", cited_paper), ("ficha", cited_card)) if e["key"] in keys)
+    lines.append(f"| `{e['key']}` | {e['year']} | {doi} | {by} |")
+print("\n".join(lines))
+print("\n: Las referencias del proyecto, tomadas del `references.bib` terminado, y los documentos que citan cada una. {#tbl-wp-refs}")
+```
+
+Un estilo de citas es un archivo. El repositorio oficial del Citation Style Language guarda miles,
+entre ellos APA e IEEE y los de la mayoría de las revistas, cada uno con una licencia Creative
+Commons; descarga el que tus lectores esperan y nómbralo en `csl:`; en el `_quarto.yml` de un
+sitio, para que todos los documentos del sitio citen igual, como hace el proyecto terminado. Los
+gestores de referencias como Zotero exportan el mismo formato `.bib`, así que una biblioteca
+existente puede ser la fuente, y el editor visual de Quarto puede insertar citas directamente
+desde una biblioteca de Zotero. De cualquier manera, la revisión es la misma: cada entrada se
+abrió, y cada afirmación que respalda se leyó allí.
+
+::: pitfall
+Trampas encontradas al construir y probar las referencias. Sin `citeproc: true`, el PDF le pasa
+las citas al procesador propio de Typst, que imprimió otro estilo y un segundo título
+"Bibliography". El estilo de APA pone en minúsculas las palabras de los títulos, así que los
+nombres propios como "Bank Marketing" tienen que ir entre llaves en el `.bib` para conservar sus
+mayúsculas. El DOI del conjunto de datos está registrado en DataCite, no en Crossref, y su
+registro listaba mal a sus autores, así que se cita como lo da la propia página del repositorio.
+Un artículo cuyo DOI se resolvía no se pudo abrir en absoluto; no se cita, y la medida que
+introdujo se define en el texto: cita lo que has leído. Y en el PDF, el año abreviado de una
+conferencia, "ICML '05", salió con una comilla de apertura, porque Typst curva un apóstrofo
+recto según sus propias reglas. El white paper terminado deja esos nombres abreviados fuera de su
+`.bib`; en la prueba, un apóstrofo curvo en el `.bib`, con el formato escrito `typst-smart` en
+lugar de `typst`, lo mantuvo bien.
+:::
+
+## Una revisión para cada DOI {#sec-wp-check}
+
+Abrir cada referencia a mano es la primera revisión; un script que la repite antes de cada
+versión es la segunda, y la que sobrevive a que alguien del equipo agregue una entrada con prisa:
+
+::: {.prompt}
+```default
+Escribe scripts/check_refs.py: para cada entrada de references.bib que tenga DOI, busca el registro (en Crossref, o en DataCite para un DOI de DataCite) y falla si el DOI no se resuelve o si el año, el apellido del primer autor o el título no coinciden con la entrada. Ejecútalo.
+```
+:::
+
+El script necesita la red, así que es una revisión que ejecutas antes de publicar, no parte del
+renderizado, que tiene que funcionar sin conexión. Pruébalo una vez sobre una copia del `.bib`
+rota a propósito: un año equivocado, un título cambiado y un DOI que no existe tienen que hacerlo
+fallar, cada uno.
+
+## Una plantilla de la casa para el PDF {#sec-wp-template}
+
+Quarto escribe un PDF de Typst a partir de una plantilla hecha de partes con nombre, los
+*parciales de plantilla*, y puedes reemplazar una parte por la tuya. La que da estilo al
+documento es `typst-show.typ`; un reemplazo puede darle al documento un bloque de título con el
+logo de la empresa y una etiqueta, un encabezado de página y números de página, en los colores
+de la marca, que Quarto le define a partir de `_brand.yml`:
+
+::: {.prompt .long}
+```default
+Dale al PDF un estilo de la casa: un parcial de Typst, templates/whitepaper/typst-show.typ, usado desde el formato typst de whitepaper.qmd con `template-partials`, que muestre brand/logo.svg, la etiqueta "Technical white paper", la empresa y la fecha en un bloque de título, y "page n of N" en el pie de página, en los colores de la marca. Renderiza el PDF y mira su primera página.
+```
+:::
+
+Los colores y el logo de la marca llegan al parcial, pero su nombre no: en Quarto 1.10.20 solo la
+tipografía de la marca se vuelve una variable de la plantilla, así que el white paper terminado
+nombra a la empresa en un campo `company:` de su propio encabezado YAML. Renderiza el PDF de todo
+el sitio, o borra lo que un renderizado de una sola página con `keep-typ` deja en la carpeta del
+proyecto: en la prueba escribió una carpeta `site_libs/` y la fuente `.typ` junto a las fuentes.
+Una trampa del propio Typst: en un patrón de número de página como `"1 of 1"`, las letras también
+son contadores, así que un patrón escrito `"page 1 of 1"` imprimió "pbge" en la segunda página;
+deja las palabras fuera del patrón. Quarto 1.10.20 solo acepta sus propios nombres de parciales
+(`typst-show.typ`, `typst-template.typ`, `page.typ` y cuatro más); cualquier otro nombre detiene
+el renderizado. Cuando una revista o una conferencia tiene su propio formato, usa el suyo en lugar
+de una plantilla de la casa: las plantillas de revistas de Quarto se instalan con
+`quarto use template quarto-journals/<name>`, y las instrucciones del lugar de publicación van
+primero.
+
+::: catchup
+```default
+Catch me up: follow ../quarto-workshop/checkpoints/18-eval-whitepaper/README.md
+```
+:::
+
+::: tryit
+Escribe el documento, cita y revisa sus referencias, y dale al PDF la plantilla de la casa.
+
+::: done
+cada referencia cruzada se resuelve en el PDF, el archivo de Word y la página web; las tres
+listas de referencias coinciden; `check_refs.py` no informa ningún problema; y el PDF abre con el
+bloque de título de la casa.
+:::
+:::
+
+## Resumen {.unnumbered}
+
+::: keyideas
+- Un white paper se lee sin ti y lo revisan desconocidos: secciones numeradas, figuras, tablas y
+  ecuaciones con referencias cruzadas, y referencias que existen.
+- Las referencias cruzadas son etiquetas (`sec-`, `tbl-`, `fig-`, `eq-`), y el renderizado muestra
+  como "??" cualquiera que falle.
+- Un archivo de estilo CSL fija el estilo de citas; `citeproc: true` hace que un PDF de Typst
+  también lo use.
+- Cita solo lo que has abierto, y deja que un script confirme cada DOI antes de cada versión.
+- Un parcial de plantilla de Typst le da al PDF un aspecto de la casa a partir de la marca; la
+  plantilla de una revista lo reemplaza cuando el lugar de publicación tiene una.
+:::
+
+Con eso se completa el conjunto de la evaluación: un informe, una ficha del modelo, una
+presentación, un sitio y un white paper, todos a partir de una sola ejecución de un solo script.
+
+## Lecturas adicionales {.unnumbered}
+
+- Quarto, [Cross References](https://quarto.org/docs/authoring/cross-references.html) y
+  [Citations](https://quarto.org/docs/authoring/citations.html) (consultados el 2026-11-18).
+- Quarto, [Typst custom formats](https://quarto.org/docs/output-formats/typst-custom.html) y
+  [journal templates](https://quarto.org/docs/journals/templates.html) (consultados el
+  2026-11-18).
+- Quarto, [technical writing in the visual editor](https://quarto.org/docs/visual-editor/technical.html),
+  sobre las citas desde Zotero (consultado el 2026-11-18).
+- Citation Style Language, [styles repository](https://github.com/citation-style-language/styles)
+  (consultado el 2026-11-18).
+- Tom Fawcett, [An introduction to ROC analysis](https://doi.org/10.1016/j.patrec.2005.10.010),
+  *Pattern Recognition Letters* 27 (2006), 861–874 (consultado el 2026-11-18).

@@ -1,0 +1,174 @@
+# En el trabajo y en una startup {#sec-at-work}
+
+```{python}
+#| label: at-work-setup
+# Vendors' data terms, networks and hosting: dated facts from facts.yml (Appendix K).
+from scripts.facts import checked, fact
+
+
+def says(key: str) -> str:
+    """A fact as a sentence of its own, for a table cell."""
+    text = fact(key)
+    return f"{text[0].upper()}{text[1:]}."
+```
+
+Hasta aquí todo ha usado datos públicos en una computadora que controlas. El trabajo rara vez es
+así. Los datos son confidenciales, las herramientas deben estar aprobadas, la red está detrás de
+un proxy y los documentos deben verse como los de la organización. Nada de esto cambia el
+método; cambia lo que puedes enviarle a un agente, qué agente, cómo sale su tráfico del edificio
+y qué plantillas llevan las salidas. Este capítulo es la versión corta y práctica, y termina con
+el caso que el libro ha seguido de principio a fin: una empresa pequeña con inversionistas.
+
+::: opener
+- Decir qué sale de tu computadora cuando trabaja un agente, y qué hace con eso cada tipo de
+  plan.
+- Trabajar con datos confidenciales sin enviarlos a una herramienta no aprobada.
+- Hacer que las herramientas funcionen detrás de un proxy, y saber qué permite una computadora
+  restringida.
+- Adaptar las salidas a las plantillas y la marca de una organización, y decidir qué debería y
+  qué no debería construir así una startup.
+:::
+
+## Lo que sale de tu computadora {#sec-at-work-flow}
+
+El modelo de un agente se ejecuta en los servidores del proveedor (la @sec-model-harness). Así que
+todo lo que el agente lee, un archivo, la salida de un comando, un mensaje de error con el nombre
+de un cliente, va allá junto con tu prompt. Quarto, Python y Git no envían nada a ningún lado; el
+agente es la única parte del método que lo hace. Lo que pasa después depende del plan, no del
+producto:
+
+| Plan | Lo que dice el proveedor |
+|---|---|
+| Claude, para consumidores | `{python} says("data.anthropic_consumer")` |
+| Claude, comercial | `{python} says("data.anthropic_commercial")` |
+| API de OpenAI | `{python} says("data.openai_api")` |
+| ChatGPT para empresas | `{python} says("data.openai_business")` |
+| Codex | `{python} says("data.codex_signin")` |
+| Antigravity | `{python} says("data.antigravity_terms")` |
+
+: Lo que los proveedores dicen que hacen con lo que envían sus agentes, por plan, consultado el `{python} checked("data.anthropic_commercial")`. Las condiciones cambian: el @sec-facts guarda las vigentes, con sus fuentes. {#tbl-at-work-data}
+
+De ahí se siguen dos cosas. Un plan personal y un plan de empresa del mismo agente son acuerdos
+distintos, así que pregunta en cuál estás antes del primer archivo confidencial. Y la copia en tu
+propia computadora también cuenta: `{python} fact("data.claude_local")`, lo que importa en una
+computadora compartida o administrada.
+
+## Datos confidenciales {#sec-at-work-confidential}
+
+Los registros de clientes, la nómina, los resultados no publicados, los datos de pacientes o de
+estudiantes, los ingresos de una startup y los nombres de sus inversionistas no son tuyos para
+enviarlos adonde quieras. Cuatro hábitos mantienen seguro el método con ellos:
+
+1. **Lee primero la política.** La política de IA y de datos de tu organización dice qué
+   herramientas y qué planes pueden ver qué datos. Si no dice nada, pregúntale por escrito a
+   quien sea responsable de los datos.
+2. **Construye sobre un sustituto.** Haz un archivo sintético con las mismas columnas y los
+   mismos tipos que el real, marcado como SYNTHETIC en su nombre y en su README, como las hojas de
+   comentarios de la @sec-params-feedback. Deja que el agente construya y pruebe cada documento
+   con él.
+3. **Renderiza tú el real.** Pon el archivo real en su lugar, sin el agente, y renderiza. El
+   agente nunca lo lee, nunca ve sus valores en un error y nunca los pone en una transcripción.
+4. **Mantenlo fuera del historial y de los servicios de alojamiento públicos.** Pon el archivo
+   real en `.gitignore`, mantén privado el repositorio y publica donde tu organización lo
+   apruebe: `{python} fact("github.pages_private")` (consultado el
+   `{python} checked("github.pages_private")`).
+
+::: pitfall
+"No lo pegues" no basta. Un agente puede leer un archivo que nunca mencionaste, si un comando que
+ejecuta lo imprime o una prueba que escribe lo carga. Mantén los archivos confidenciales reales
+completamente fuera de la carpeta del agente hasta que el agente termine su trabajo, y agrega a
+`AGENTS.md` una regla que nombre el archivo y prohíba leerlo, como un recordatorio que no es una
+garantía.
+:::
+
+## Herramientas aprobadas y computadoras restringidas {#sec-at-work-locked}
+
+Muchas organizaciones aprueban un solo agente, con un plan de empresa, y administran su
+configuración de forma centralizada. Claude Code, por ejemplo, lee un archivo de *managed
+settings* (configuración administrada) que instala el área de TI y que ninguna configuración de
+usuario puede anular; puede prohibir comandos por completo, como hacer push o descargar. Pregunta
+qué ha configurado tu organización antes de preguntarte por qué se rechaza un comando.
+
+Una computadora en la que no puedes instalar ningún software todavía tiene un camino: el entorno
+en el navegador de la @sec-codespace, donde tu organización permita GitHub, o un servidor de
+desarrollo que te dé tu equipo de TI. El método solo necesita una terminal, Quarto, uv, Git y un
+agente aprobado; donde falte alguno, díselo a TI con esas palabras, porque "necesito Quarto 1.10
+y uv" es una petición con la que pueden hacer algo.
+
+## Detrás de un proxy {#sec-at-work-proxy}
+
+Las redes de las empresas a menudo envían el tráfico a través de un *proxy* (el @sec-setup), y a
+veces inspeccionan el tráfico cifrado con un certificado propio de la empresa. Las dos cosas
+rompen las descargas de maneras que parecen culpa de las herramientas. Lo que las arregla son
+variables de entorno, definidas una sola vez en tu shell:
+
+| Herramienta | Proxy | Certificado de la empresa |
+|---|---|---|
+| uv (Python y paquetes) | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY` | `UV_SYSTEM_CERTS=1` para usar el almacén del sistema, o `SSL_CERT_FILE` con la ruta de un paquete de certificados |
+| Claude Code | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY`; no admite proxies SOCKS | el almacén del sistema, o `NODE_EXTRA_CA_CERTS` con la ruta de un paquete de certificados |
+
+: Configuración de proxy y de certificados, según la documentación de uv y de Claude Code (consultada el 2026-11-18). {#tbl-at-work-proxy}
+
+La documentación de Quarto no dice nada sobre proxies (consultada el 2026-11-18); Quarto solo
+necesita la red para instalarse, y el Python que ejecuta llega a través de uv. Si una descarga
+sigue fallando, pídele a TI que permita los hosts a los que se conectan las herramientas, que la
+página de red de Claude Code enumera, en lugar de desactivar la verificación de certificados.
+
+## Plantillas de la casa y reglas de marca {#sec-at-work-templates}
+
+Las plantillas de Word y PowerPoint de una organización se convierten en documentos de referencia
+(la @sec-slides-pptx y la @sec-sites-templates): pide el `.dotx` o el `.potx` que usa la
+empresa, guárdalo como `.docx` o `.pptx`, y comprueba que sus diseños de PowerPoint lleven los
+nombres que Quarto busca. Sus guías de marca se convierten en `_brand.yml` (la @sec-sites-brand):
+los colores, las fuentes para las que la empresa tiene licencia y el logo con su texto
+alternativo. Un pie legal o un aviso de confidencialidad se convierte en un pie de página o en un
+parcial de plantilla de Typst (la @sec-wp-template), escrito una sola vez. Y una norma de
+accesibilidad, que muchas organizaciones han adoptado, se convierte en una comprobación que se
+ejecuta en cada página (la @sec-sites-checks).
+
+## En una startup {#sec-at-work-startup}
+
+Una startup tiene las mismas restricciones con menos personas, y un público más: quienes
+invierten en ella. El método rinde donde los números cambian y quienes leen los revisan: el
+informe mensual para inversionistas (el @sec-parameters), el white paper de un benchmark o de una
+evaluación (el @sec-white-papers), los informes por cliente y un sitio de documentación. Rinde
+menos donde mandan el diseño o la coedición, y eso puede quedarse en las herramientas hechas para
+ello (la @sec-wrong-tool).
+
+Los datos que ven los inversionistas necesitan el cuidado de cualquier dato confidencial: los
+ingresos, la tabla de capitalización y los nombres de los clientes van en un repositorio
+privado, que el agente construye sobre sustitutos sintéticos y que tú renderizas con los datos
+reales, y se envían como PDF o a través de una sala de datos (data room), no se publican. El
+hábito que más importa es el más barato: cada número de un informe se calcula y cada oración sobre él tiene su
+guarda, así que la cifra equivocada que le costaría credibilidad a quien fundó la empresa detiene
+el renderizado en lugar de llegar a una bandeja de entrada.
+
+## Resumen {.unnumbered}
+
+::: keyideas
+- El agente es la única parte del método que envía algo fuera de tu computadora, y es el plan, no
+  el producto, el que decide qué hace el proveedor con eso.
+- Construye sobre un sustituto sintético con las mismas columnas, y renderiza tú los datos
+  reales.
+- Mantén los archivos confidenciales fuera de la carpeta del agente, fuera de Git y fuera de los
+  servicios de alojamiento públicos.
+- Detrás de un proxy, define las variables de proxy y de certificados para uv y para el agente;
+  no desactives las verificaciones.
+- Las plantillas, la marca, los pies de página y las reglas de accesibilidad de una organización
+  tienen cada uno su lugar en el proyecto: documentos de referencia, `_brand.yml`, parciales y
+  comprobaciones.
+:::
+
+## Lecturas adicionales {.unnumbered}
+
+- Anthropic, [uso de datos de Claude Code](https://code.claude.com/docs/en/data-usage),
+  [configuración de red](https://code.claude.com/docs/en/network-config) y
+  [configuración administrada](https://code.claude.com/docs/en/settings) (consultados el
+  2026-11-18).
+- OpenAI, [Your data](https://developers.openai.com/api/docs/guides/your-data) (consultado el
+  2026-11-18).
+- Astral, [variables de entorno de uv](https://docs.astral.sh/uv/reference/environment/) y
+  [certificados](https://docs.astral.sh/uv/concepts/authentication/certificates/) (consultados el
+  2026-11-18).
+- GitHub, [planes](https://docs.github.com/en/get-started/learning-about-github/githubs-plans)
+  (consultado el 2026-11-18).

@@ -30,9 +30,12 @@ def in_words(n: int) -> str:
 
 La mayoría de los informes se hacen a mano. Un analista ejecuta un script, copia un número en
 un documento de Word, pega un gráfico en una diapositiva, vuelve a escribir el mismo número en
-un correo y exporta un PDF para el sitio web. Cada copia es un pequeño acto de fe: que el
-número era correcto y que lo sigue siendo. Cuando los datos cambian, alguien tiene que
-encontrar cada copia, y nadie puede decir con certeza de dónde salió cada una.
+un correo y exporta un PDF para el sitio web. Quien trabaja en aprendizaje automático pega
+los puntajes de una evaluación en un informe, en una presentación para el equipo de producto y
+en una ficha del modelo (model card). Quien funda una startup copia las cifras de este mes en un
+informe para inversionistas. Cada copia es un pequeño acto de fe: que el número era correcto y
+que lo sigue siendo. Cuando los datos cambian, alguien tiene que encontrar cada copia, y nadie
+puede decir con certeza de dónde salió cada una.
 
 Esa fe es el problema, porque la razón para publicar datos es que la gente se apoya en ellos.
 Un trabajo que se puede reproducir se gana la confianza: quien lo lee, lo revisa o lo dirige
@@ -80,9 +83,12 @@ corrige una cifra. En un flujo de copiar y pegar, esa corrección tiene que lleg
 - **Cambios lentos.** Como cada actualización es cara, se dejan de hacer, y los documentos
   envejecen sin que nadie lo note.
 
-Nada de esto es falta de cuidado. Es lo que pasa cuando la *salida* se trata como lo que se
-edita. La solución es estructural: edita la fuente y deja que un programa reconstruya las
-salidas (@fig-drift).
+Las mismas tres fallas aparecen dondequiera que los números se publiquen más de una vez: el
+informe mensual cuyo gráfico contradice su resumen, la evaluación cuya presentación cita el
+puntaje de la semana pasada, el informe para inversionistas que copia una cifra del mes
+equivocado. Nada de esto es falta de cuidado. Es lo que pasa cuando la *salida* se trata como lo
+que se edita. La solución es estructural: edita la fuente y deja que un programa reconstruya
+las salidas (@fig-drift).
 
 ![Una corrección, dos formas de trabajar. A mano, cada copia espera a que alguien la reescriba y algunas quedan viejas; desde una sola fuente, un solo renderizado actualiza cada salida.](../media/diagrams/drift){#fig-drift .on-light fig-alt="Dos maneras de publicar los conteos de atracciones de la guía de Londres después de que ALVA corrige una cifra en attractions.csv. A mano: cada número se copia en cada salida, una por una, así que la guía web y el dashboard reciben el número nuevo mientras el informe en Word, la tarjeta para redes sociales y el documento técnico siguen mostrando el viejo. Una sola fuente: las celdas de código de las páginas .qmd del proyecto leen attractions.csv, y un solo quarto render reconstruye la guía web, el dashboard, el informe en Word, la tarjeta para redes sociales y el documento técnico, todos con el número corregido."}
 
@@ -308,6 +314,12 @@ una línea de comandos y algo de preparación. Ese trato no siempre conviene:
   versión `pptx` el texto alternativo de cada foto. Revisa cada formato que prometas entregar.
 - **Documentos de una sola vez.** Una nota de dos párrafos, sin datos y sin un segundo público,
   gana poco con un sistema de construcción.
+- **Diseño y coedición en una startup.** Una presentación para inversionistas con cada
+  diapositiva diseñada, un sitio de marketing y un plan que el equipo fundador comenta en
+  Google Docs o Notion se van a quedar en esas herramientas, y un equipo que recién empieza
+  puede, con razón, poner la velocidad primero. El método rinde donde cambian los números de una
+  startup: el informe mensual para inversionistas, el documento técnico (white paper) de un
+  benchmark, el informe por cliente y el sitio de documentación del proyecto.
 
 ::: practice
 Una prueba útil: ¿este documento se va a construir una segunda vez? Si los datos van a cambiar,
@@ -331,8 +343,9 @@ probable, usa lo que sea más rápido.
   que los errores se puedan encontrar, no que desaparezcan.
 - Un caché como `freeze` vuelve a ejecutar una página cuando cambia su fuente, no cuando cambian
   sus datos, así que necesita una regla para vaciarlo.
-- Quarto conviene para documentos que se van a construir de nuevo, y no es la herramienta
-  adecuada para coeditar en Word, para diseños maquetados ni para notas de una sola vez.
+- Quarto conviene para documentos que se van a construir de nuevo, como los informes
+  mensuales, las evaluaciones y los informes para inversionistas, y no es la herramienta
+  adecuada para coeditar, para diseños maquetados ni para notas de una sola vez.
 :::
 
 Pero Quarto solo renderiza lo que le dan. En este libro esas fuentes las escribe un agente de

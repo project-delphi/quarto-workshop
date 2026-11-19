@@ -265,6 +265,85 @@ Conventions that apply everywhere:
 | attraction visits | visitas a atracciones | | |
 | WebGL | WebGL | EN | |
 
+## The 2026-11 revision (professional and start-up readers)
+
+GitHub's and Quarto's interface words stay in English where the reader meets them on screen
+(*workflow*, *runner*, *status check*, *pull request*), as section 6 of `PLAN.md` does for code.
+The Acme example (`examples/eval/`, its checkpoints and `starters/eval-repo/`) stays in English:
+its names, files, columns, labels and quoted page text are literals.
+
+| English | Spanish | EN? | Note |
+|---|---|---|---|
+| start-up | startup | | *la* startup, *las* startups |
+| fast path (the route) | vía rápida | | "The Fast Path" → "La vía rápida" |
+| route (reading route) | ruta | | "reading path" → "ruta de lectura" |
+| professional (reader) | profesional | | |
+| evaluation (of a model); eval | evaluación | | `evaluate.py` stays |
+| model card | ficha del modelo (model card) | | "(model card)" on first use only |
+| ROC AUC, precision, recall | ROC AUC, precisión, recall | EN+ES | recall stays, as scikit-learn names it |
+| threshold | umbral | | |
+| baseline | línea base | | |
+| calibration | calibración | | |
+| slice (of the data) | subgrupo | | "a slice of the test set" → "un subgrupo del conjunto de prueba" |
+| leakage, leak (target) | fuga de información (leakage) | | "(leakage)" on first use only |
+| test set, training set | conjunto de prueba, conjunto de entrenamiento | | |
+| notebook | notebook | EN | *el* notebook; Jupyter's term as Spanish users say it |
+| results file | archivo de resultados | | `results.json` stays |
+| investor update | informe para inversionistas | | |
+| white paper | white paper | EN | *el* white paper; first use "documento técnico (white paper)" |
+| brand file | archivo de marca | | `_brand.yml` stays |
+| theme | tema | | |
+| contrast ratio | relación de contraste | | |
+| reference document | documento de referencia | | `reference-doc` stays |
+| template partial | parcial de plantilla | | |
+| fragment (slides) | fragmento | | |
+| speaker notes | notas de presentación | | gender-neutral |
+| print view | vista de impresión | | |
+| social card | tarjeta para redes sociales | | |
+| description (page metadata) | descripción | | |
+| citeproc, CSL, BibTeX | (same) | EN | |
+| bibliography; citation | bibliografía; cita | | |
+| parameter; parameterised report | parámetro; informe parametrizado | | |
+| papermill, cron, `curl`, `apt`, Homebrew | (same) | EN | |
+| continuous integration (CI) | integración continua (CI) | | |
+| workflow (GitHub Actions) | workflow | EN | *el* workflow; a general "way of working" stays "flujo de trabajo" |
+| runner | runner | EN | *el* runner |
+| status check | status check | EN | *el* status check |
+| protected branch | rama protegida | | |
+| ruleset | ruleset | EN | GitHub's setting |
+| pinned action | acción fijada | | "pinned to a commit" → "fijada a un commit" |
+| artifact (CI) | artefacto | | GitHub's Spanish docs say it |
+| secret (GitHub) | secreto | | |
+| pull request template | plantilla de pull request | | |
+| reviewer | revisor o revisora; quien revisa | | gender-neutral where it reads well |
+| package manager | gestor de paquetes | | |
+| codespace; GitHub Codespaces | codespace; GitHub Codespaces | EN | *el* codespace |
+| dev container | contenedor de desarrollo (dev container) | | |
+| API key | clave de API | | |
+| spending limit | límite de gasto | | |
+| zero data retention | retención cero de datos | | |
+| VPN, proxy | VPN, proxy | EN | *la* VPN, *el* proxy |
+| plan (subscription) | plan | | "free plan" → "plan gratuito" |
+| free tier | nivel gratuito | | |
+| consumer / commercial terms | condiciones para consumidores / comerciales | | |
+| facts that change | datos que cambian | | Appendix K |
+| checked (a date) | consultado el | | "checked 2026-11-18" → "consultado el 2026-11-18", as the edition already writes it |
+| release (of a model: v1, v2, v3) | versión | | |
+| build (n., CI) | build | EN | *el* build; "rebuild" stays "reconstrucción" |
+| check (CI job, automated) | comprobación | | the job named *Check* stays |
+| trigger (workflow) | disparador | | |
+| log (CI) | registro | | |
+| house template | plantilla de la casa | | |
+| feedback sheet | hoja de retroalimentación | | |
+| gradebook | registro de calificaciones | | |
+| educator | docente | | |
+| About page | página About | | the page's own English title |
+| speaker view | vista del presentador | | Reveal.js's own view |
+| founder; technical founder | quien funda; persona fundadora con perfil técnico | | gender-neutral |
+| runway; burn | autonomía (runway); gasto mensual (burn) | | |
+| free allowances | cuotas gratuitas | | |
+| the water analysis (Part V) | el análisis del agua | | as the English now says instead of a part number |
+
 ## Titles
 
 Sentence case, as Spanish titles are written. Exercise headings read "Ejercicio II.1: …".
@@ -273,15 +352,27 @@ Sentence case, as Spanish titles are written. Exercise headings read "Ejercicio 
 |---|---|
 | Part I: Foundations | Parte I: Fundamentos |
 | Part II: One Guide, Many Audiences | Parte II: Una guía, muchos públicos |
-| Part III: One Analysis, Many Publications | Parte III: Un análisis, muchas publicaciones |
+| Part I: Start Here | Parte I: Empieza aquí |
+| Part III: The Craft of Outputs | Parte III: El oficio de los formatos de salida |
+| Part IV: Working in a Team | Parte IV: Trabajar en equipo |
+| Part V: One Analysis, Many Publications | Parte V: Un análisis, muchas publicaciones |
 | 1 Publishing That Rebuilds Itself | Publicar algo que se reconstruye solo |
 | 2 Working With a Coding Agent | Trabajar con un agente de programación |
+| The Fast Path | La vía rápida |
 | 3 Setting Up Your Machine | Preparar tu computadora |
+| A First Report, by Hand | Un primer informe, a mano |
 | 4 Markdown, Rendering and Project Rules | Markdown, renderizado y reglas del proyecto |
 | 5 Documents That Compute | Documentos que calculan |
 | 6 One Guide, Five Audiences | Una guía, cinco públicos |
 | 7 Publishing and Proving the Rebuild | Publicar y demostrar la reconstrucción |
 | Exercises for Part II | Ejercicios de la Parte II |
+| One Set of Results | Un solo conjunto de resultados |
+| Slides That Carry a Decision | Diapositivas que sostienen una decisión |
+| A Site and One Brand | Un sitio y una sola marca |
+| White Papers and References | White papers y referencias |
+| Reports That Run Themselves | Informes que se generan solos |
+| Pull Requests and Builds You Can Trust | Pull requests y builds confiables |
+| At Work and in a Start-up | En el trabajo y en una startup |
 | 8 The Question, the Data and the Rules | La pregunta, los datos y las reglas |
 | 9 Look Before You Model | Mira antes de modelar |
 | 10 From Table to Features | De la tabla a las características |
@@ -289,7 +380,7 @@ Sentence case, as Spanish titles are written. Exercise headings read "Ejercicio 
 | 12 Interpreting Clusters | Interpretar los clústeres |
 | 13 Correlation Is Not Causation | Correlación no es causalidad |
 | 14 Publish Many | Publicar en muchos formatos |
-| Exercises for Part III | Ejercicios de la Parte III |
+| Exercises for the Water Analysis | Ejercicios del análisis del agua |
 | Afterword: What You Built, and Where Next | Epílogo: lo que construiste y cómo seguir |
 | A Windows: Get Ubuntu Ready | Windows: prepara Ubuntu |
 | B Keys, Symbols and Terminal Habits | Teclas, símbolos y hábitos de la terminal |
@@ -301,3 +392,4 @@ Sentence case, as Spanish titles are written. Exercise headings read "Ejercicio 
 | H How This Book Is Built | Cómo está hecho este libro |
 | I Running This as a Workshop | Darlo como taller |
 | J Glossary | Glosario |
+| K Facts That Change | Datos que cambian |

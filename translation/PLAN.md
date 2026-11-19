@@ -170,6 +170,12 @@ with `@label.` after rewrapping (it becomes an example list; `make` checks for i
 
 ## 8. Not yet translated (the 2026-11 revision)
 
+Status (2026-11-18): done on branch `translation/sync-revision`. Steps 1–4 of §8.1 are
+complete: `english_only` and `pending.yml` are empty, the glossary has the revision's terms,
+`facts.yml` carries `_es` twins, and the new chapters, part pages and Appendix K are translated.
+Step 5 is not: the translated prompts are printed untested (they keep every literal of the
+tested English ones). The mechanisms below stay for the next English-first revision.
+
 The revision for professional and start-up readers (`REVISION-PLAN.md`) was written in English
 first, at the author's request, without translating it. Two mechanisms keep the Spanish edition
 building and checked meanwhile:
