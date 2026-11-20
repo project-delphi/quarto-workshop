@@ -759,15 +759,15 @@ curl -fsSL https://opencode.ai/v2/install | bash
 ::: {.hint}
 1️⃣ **Pick one:** paste its line, press Enter · 2️⃣ **New tab:** 🪟 Ctrl+Shift+D · 🍎 ⌘T · 🐧 Ctrl+Shift+T
 
-3️⃣ **Start it:** `mkdir -p ~/setup && cd ~/setup`, then `claude`, `codex`, `agy` or `opencode` · trust folder? ↓ Yes, Enter ([👀](#assistant-screens))
+3️⃣ **Start it:** `mkdir -p ~/setup && cd ~/setup`, then `claude`, `codex`, `agy` or `opencode` · trust? ↓ Yes, Enter ([👀](#assistant-screens))
 
-4️⃣ **Sign in:** no browser? Copy its link, whole, into yours · a code? Paste it back · OpenCode: `/connect`
+4️⃣ **Sign in:** no browser? Copy its link into yours · a code? Paste it back · OpenCode: `/connect`, ⚠️ [won't ask](#root-folder)
 :::
 
 ### Exercise · ⏱️ 5 min
 
 ::: {.done}
-the agent answers `hello`. Then `/exit` (OpenCode: Ctrl+C).
+it answers when you type `hello`. Then `/exit` (OpenCode: Ctrl+C).
 :::
 
 ::: {.notes}
@@ -788,7 +788,12 @@ https://antigravity.google/docs/plans, checked 2026-11-18). OpenCode signs in fr
 `/connect`, pick a provider, then `/models` (https://opencode.ai/docs/providers/). It takes a
 ChatGPT Plus/Pro sign-in, GitHub Copilot, an API key, a local model (Ollama, LM Studio), or an
 OpenCode account, which brings its free models (https://opencode.ai/docs/models/); it
-documents no Claude subscription sign-in. WSL cannot open a browser: Claude Code and Antigravity print a URL, which you
+documents no Claude subscription sign-in. Unlike the other three, OpenCode does not ask
+before it edits files or runs commands: its default Build agent starts from an allow-everything
+rule, with only `.env` reads asking, and may reach outside the folder
+(https://opencode.ai/docs/permissions/, https://opencode.ai/docs/agents/, checked
+2026-11-20). Rules with the effect `ask` for the `edit` and `shell` actions in `opencode.jsonc`
+make it ask; otherwise keep it in a small folder made for the work and check with `git diff`. WSL cannot open a browser: Claude Code and Antigravity print a URL, which you
 copy into the Windows browser, then paste the code back; if Codex's browser sign-in fails,
 `codex login --device-auth` (first enable device codes in ChatGPT security settings).
 Sign-up and email verification can take hours, so do not leave them for the day. Account
@@ -804,7 +809,8 @@ All checked 2026-10-30. OpenCode, an open-source agent (MIT licence,
 https://github.com/anomalyco/opencode): the line is the first install on
 https://opencode.ai/docs/, which also lists Homebrew (`brew install anomalyco/tap/opencode-v2`)
 and npm (`npm install -g @opencode/cli`); on Windows it supports WSL, not Windows package
-managers. Start it with `opencode`; it has no `/exit`: Ctrl+C (or Ctrl+X, then Q) quits
+managers. Start it with `opencode`; it has no `/exit`: Ctrl+C on an empty prompt (or Ctrl+X,
+then Q) quits; with text in the box, Ctrl+C first clears it
 (https://opencode.ai/docs/keybinds/). All OpenCode details checked 2026-11-20, from its V2
 docs. Start the agent inside the exercise folder, and never run two
 agents writing to one folder.
@@ -1028,7 +1034,7 @@ conversation.
 
 ## 🐧 The Agent Installs the Tools {#install-tools}
 
-[🏠 before the workshop]{.pace} [🧭 Step 4/6]{.pace} [🪟 in Ubuntu · 👋 `/exit` first · not Claude? `codex`, `agy`, `opencode`]{.pillnote}
+[🏠 before the workshop]{.pace} [🧭 Step 4/6]{.pace} [🪟 in Ubuntu · 👋 quit the agent first · not Claude? `codex`, `agy`, `opencode`]{.pillnote}
 
 ::: {.you}
 ```bash
@@ -1124,7 +1130,7 @@ https://cli.github.com/ (both checked 2026-10-30).
 
 ## 🧪 Test Run: Quarto → PDF {#test-run}
 
-[🏠 before the workshop]{.pace} [🧭 Step 6/6]{.pace} [👋 `/exit` first · not Claude? `codex`, `agy`, `opencode`]{.pillnote}
+[🏠 before the workshop]{.pace} [🧭 Step 6/6]{.pace} [👋 quit the agent first · not Claude? `codex`, `agy`, `opencode`]{.pillnote}
 
 ::: {.you}
 ```bash
@@ -1154,7 +1160,7 @@ you opened both files, each says 42, and you told the organiser.
 ::: {.notes}
 The setup check proves the tools are installed; this proves they work together, which is
 what the first hour needs: the agent is signed in, can write a file and run commands
-you approve, uv builds a project environment, Quarto runs Python through it, and Typst
+you approve (OpenCode runs them without asking), uv builds a project environment, Quarto runs Python through it, and Typst
 writes a PDF. It also fills uv's cache, so Part 1's environment step is quicker. Use
 `codex`, `agy` or `opencode` instead of `claude` if that is your agent. Ask participants to confirm
 before the day (a reply to the invitation is enough) and follow up with anyone who has not,
@@ -1261,8 +1267,11 @@ checked 2026-11-20). Antigravity replaced Gemini CLI for unpaid-tier and Google 
 18 June 2026 (see the install slide's notes). Other agents exist (for example GitHub Copilot CLI and Cursor); we do not install or test them here, so they are left off rather than listed unchecked. Good answer to the check: not
 necessarily. The harness and the model are separate choices (previous slide); vendors' own
 pairs are the easiest to set up, but the best model for a task may come from another vendor.
-The prompts in this workshop are written for any of the four agents; the setup screens were
-captured in Claude Code and Codex only. Sign-in and
+The prompts in this workshop are written for any of the four agents, but were run in Claude
+Code only and the setup screens captured in Claude Code and Codex. OpenCode is untested: its
+default agent does not ask before acting, and its sub-agents run in the background
+(https://opencode.ai/docs/agents/), so warn OpenCode users at the catch-up and 🗂️ audiences
+steps. Sign-in and
 account details are on the install slide.
 :::
 
@@ -1375,7 +1384,7 @@ task done? **saves credits** · files stay
 
 **`/exit`** · `/quit`
 
-leave the agent · type `claude` to return · OpenCode: Ctrl+C
+leave the agent · type `claude` to return · OpenCode: Ctrl+C, empty prompt
 :::
 :::
 
@@ -1406,7 +1415,8 @@ context window; nothing on disk changes, and the project's `AGENTS.md` is read a
 between tasks, and when the agent seems confused. `/exit` ends the session (`/quit` does
 the same in agents that offer it; Ctrl+C twice or Ctrl+D also leave). OpenCode names
 them differently: `/models` picks the model, `/new` starts a fresh session in place of `/clear`,
-and Ctrl+C (or Ctrl+X, then Q) quits, since it has no `/exit`
+and Ctrl+C on an empty prompt (or Ctrl+X, then Q) quits, since it has no `/exit`; with text
+in the box, Ctrl+C first clears it
 (https://opencode.ai/docs/tui/, https://opencode.ai/docs/keybinds/, checked 2026-11-20). Starting it again
 in the folder begins a new session, and the files persist. Good answer to the check:
 `/clear`, because the new task needs none of the old chat. Type `/` alone to list the
@@ -1499,13 +1509,17 @@ a small project folder keeps everything else out of reach
 
 🏠 `pwd` before you start: it prints the root
 
+⚠️ OpenCode never asks first: it edits and runs commands on its own
+
 ::: {.notes}
 When a coding agent starts it treats the current folder as its root, the default world it
 works in: it reads and edits the files there and in the folders below, and runs commands
 from there. The first time you start one in a folder it asks whether you trust that folder
-(the wording differs between Claude Code, Codex and Antigravity; OpenCode's docs mention no
-such question, and its default agent may reach outside the folder:
-https://opencode.ai/docs/agents/, checked 2026-11-20). Trusting it means
+(the wording differs between Claude Code, Codex and Antigravity). OpenCode asks no such
+question and, by default, does not ask before it edits files or runs commands, inside the
+folder or outside it (https://opencode.ai/docs/permissions/, checked 2026-11-20; the install
+slide's notes say how to make it ask), so with OpenCode the folder you start in matters even
+more. Trusting it means
 you allow the agent to read the files and, with your approvals, change them and run
 commands there, so trust only folders you created for the work, never a folder with other
 people's projects, private documents or keys such as `~`, `~/.ssh` or Documents. Project
