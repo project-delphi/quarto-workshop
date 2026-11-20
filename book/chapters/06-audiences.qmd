@@ -142,13 +142,16 @@ agent, the *lead*, waits for all of them and then checks the results.
 ![One lead, three sub-agents. Each writes only its own files and renders nothing; the lead renders the files one at a time.](../media/diagrams/sub-agents){#fig-sub-agents .on-light fig-alt="Your agent, the lead, reads the prompt and starts three sub-agents at once. Each has its own context and writes only its own files: one writes london-dashboard.qmd, one london-email.qmd and london-email-message.md, one london-flyer.qmd. None of them renders. When all three report back, the lead renders the three files one at a time and checks each. Three tasks take about as long as the slowest one, and use more tokens."}
 
 The gain is time: three independent tasks take about as long as the slowest of them. The cost
-is tokens, because each sub-agent does its own reading, reasoning and tool calls. The three
-agents differ in how they offer it (all checked 2026-10-31). Claude Code starts sub-agents
+is tokens, because each sub-agent does its own reading, reasoning and tool calls. The four
+agents differ in how they offer it (checked 2026-10-31; OpenCode, 2026-11-20). Claude Code starts sub-agents
 in parallel when a prompt asks for them. Codex enables sub-agents by default and starts them
 when asked, and its documentation warns both that parallel edits "can create conflicts" and
 that sub-agent runs use more tokens. Antigravity's
 command-line agent can delegate to parallel sub-agents, but its documentation does not say a
-prompt can require it, so it may do the tasks itself.
+prompt can require it, so it may do the tasks itself. OpenCode's sub-agents run in their own
+sessions and always in the background, reporting to the lead when each goes idle; its
+documentation does not say the lead waits for them, so with OpenCode, check that every file
+exists before the lead renders.
 
 Two rules make parallel work safe, and the prompt below states both. **Each sub-agent writes
 only its own files and renders nothing**, so no two of them touch the same file. **The lead
@@ -361,5 +364,6 @@ number to test whether every reader really does get the same fact.
   Typst, [page settings](https://typst.app/docs/reference/layout/page/) (checked 2026-11-12).
 - Sub-agents in [Claude Code](https://code.claude.com/docs/en/sub-agents),
   [Codex](https://learn.chatgpt.com/docs/agent-configuration/subagents) and
-  [Antigravity](https://antigravity.google/docs/subagents?tab=cli) (checked 2026-10-31).
+  [Antigravity](https://antigravity.google/docs/subagents?tab=cli) (checked 2026-10-31), and
+  [OpenCode](https://opencode.ai/docs/agents/) (checked 2026-11-20).
 - [three.js](https://threejs.org/) and its examples gallery (checked 2026-11-06).

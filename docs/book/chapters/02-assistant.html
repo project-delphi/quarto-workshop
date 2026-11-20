@@ -728,7 +728,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="2.1" class="anchored" data-anchor-id="sec-model-harness"><span class="header-section-number">2.1</span> Model plus harness</h2>
 <p>A coding agent is two programs working together (<a href="#fig-agent-loop" class="quarto-xref">Figure&nbsp;<span>2.1</span></a>).</p>
 <p>The <strong>model</strong> is a large language model, such as Anthropic’s Claude, OpenAI’s GPT or Google’s Gemini. It runs on the vendor’s servers. It reads text and writes text, and it can reply with a structured request to use a tool: “read this file”, “run this command”.</p>
-<p>The <strong>harness</strong> is the program on your computer that surrounds the model. Claude Code, Codex and Antigravity are harnesses. The harness gives the model its tools (reading and writing files, running commands, searching), carries out the model’s tool requests, asks you before it does anything consequential, and sends the results back to the model. That loop repeats until the model replies with an answer instead of another request. That loop, run on your own files and commands, is what makes it an <em>agent</em>: it acts in your project folder, one tool request after another, until the step is done, where a web chat hands you text to copy.</p>
+<p>The <strong>harness</strong> is the program on your computer that surrounds the model. Claude Code, Codex, Antigravity and OpenCode are harnesses. The harness gives the model its tools (reading and writing files, running commands, searching), carries out the model’s tool requests, asks you before it does anything consequential, and sends the results back to the model. That loop repeats until the model replies with an answer instead of another request. That loop, run on your own files and commands, is what makes it an <em>agent</em>: it acts in your project folder, one tool request after another, until the step is done, where a web chat hands you text to copy.</p>
 <div id="fig-agent-loop" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="You give the harness a prompt, and it shows you results and asks you to approve commands. The harness (Claude Code, Codex or Antigravity) sends the conversation and tool results to the model (Claude, GPT or Gemini), which runs on the vendor's servers and replies with text or a request to use a tool. The harness carries out tool requests in the project folder, its root: it reads AGENTS.md first, then reads and edits files and runs commands there. The model decides, the harness does, and you direct and check.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-agent-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -756,14 +756,20 @@ Figure&nbsp;2.1: How a coding agent works. The harness on your computer passes t
 </section>
 <section id="sec-choose" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="sec-choose"><span class="header-section-number">2.2</span> Choosing an agent and a model</h2>
-<p>This book covers three agents. Each comes from the same company as its default models:</p>
+<p>This book covers four agents. The first three come from the same company as their default models; OpenCode, an open-source harness, runs whichever model you connect to it:</p>
 <div id="tbl-assistants" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2.1: The agents this book covers. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked <span class="nowrap">2026-11-12</span>).
+Table&nbsp;2.1: The agents this book covers. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked <span class="nowrap">2026-11-12</span>). OpenCode’s licence is in its GitHub repository, and its providers in its documentation (both checked <span class="nowrap">2026-11-20</span>).
 </figcaption>
 <div aria-describedby="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Agent</th>
@@ -791,16 +797,23 @@ Table&nbsp;2.1: The agents this book covers. Antigravity replaced Gemini CLI for
 <td>Google</td>
 <td>Gemini</td>
 </tr>
+<tr class="even">
+<td>OpenCode</td>
+<td><code>opencode</code></td>
+<td>an open-source project (MIT licence)</td>
+<td>any you connect</td>
+</tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>What “covers” means differs between them. For all three, the install command, the account it needs and how it reads project rules were checked against the vendor’s documentation (dated in <a href="03-setup.html" class="quarto-xref"><span>Chapter 4</span></a> and <a href="#sec-agents-md" class="quarto-xref"><span>Section 2.5</span></a>). The first screens of Claude Code and Codex were captured for the workshop on <span class="nowrap">2026-11-07</span>; Antigravity’s were not. Other agents exist; this book does not check them, so it does not list them. Every prompt in the book is written to work in any of the three. A vendor’s own pairing of harness and model is the easiest to set up, but it is not automatically the best fit for a task: the harness and the model are separate choices.</p>
+<p>What “covers” means differs between them. For all four, the install command, the account it needs and how it reads project rules were checked against the vendor’s documentation (dated in <a href="03-setup.html" class="quarto-xref"><span>Chapter 4</span></a> and <a href="#sec-agents-md" class="quarto-xref"><span>Section 2.5</span></a>). The first screens of Claude Code and Codex were captured for the workshop on <span class="nowrap">2026-11-07</span>; Antigravity’s and OpenCode’s were not. Other agents exist; this book does not check them, so it does not list them. Every prompt in the book is written to work in any of the four. OpenCode differs in one way that matters for safety: OpenCode’s default agent edits files and runs commands without asking, inside the folder or outside it, unless rules with the effect ask are added to opencode.jsonc (checked <span class="nowrap">2026-11-20</span>), so the habit of approving each command (<a href="#sec-root-folder" class="quarto-xref"><span>Section 2.4</span></a>) needs those rules first. A vendor’s own pairing of harness and model is the easiest to set up, but it is not automatically the best fit for a task: the harness and the model are separate choices.</p>
 <section id="pick-a-model-by-task-not-by-rank" class="level3" data-number="2.2.1">
 <h3 data-number="2.2.1" class="anchored" data-anchor-id="pick-a-model-by-task-not-by-rank"><span class="header-section-number">2.2.1</span> Pick a model by task, not by rank</h3>
 <p>Each vendor offers a family of models, from small and cheap to large and capable. They are not simply better and worse versions of one thing. Larger, more recent models usually follow longer instructions, plan multi-step work and recover from their own errors better. Small models are faster and cheaper, and often good enough for short, well-specified edits such as fixing a typo or reformatting a table. Joining two datasets or debugging a failed render rewards the stronger model.</p>
 <p>The prompts in this book are short and specific, so a mid-sized model at a moderate effort setting is enough: Claude’s Sonnet on medium effort, or Haiku for small edits, or OpenAI’s Sol on low (checked <span class="nowrap">2026-11-12</span>). For unfamiliar, hard work, the vendors’ own advice starts higher: Anthropic suggests starting with Opus 5.5 for most workloads, and OpenAI with GPT-6 Astra for complex reasoning and coding. The names change every few months, and <a href="../appendices/k-facts.html" class="quarto-xref"><span>Appendix K</span></a> keeps the current ones; the advice does not. Start small, and move up only when a task keeps failing.</p>
+<p><strong>Free models.</strong> Free models might be decent for this book’s prompts, which are short, ask for one task each and end in a check that shows when a model falls short. Two routes cost nothing: a personal Google account can use Antigravity on its free tier, with a quota refreshed weekly (checked <span class="nowrap">2026-11-18</span>), and OpenCode lists models that are free for a limited time once an OpenCode account is connected, and the list changes from week to week (checked <span class="nowrap">2026-11-20</span>). None was tested on the book’s prompts, so treat “might be decent” as an expectation. Read a free model’s terms before you use it (<a href="at-work.html#sec-at-work-flow" class="quarto-xref"><span>Section 16.1</span></a>): some keep what you send, so give them only public data, such as this book’s.</p>
 <p>Models are priced by the <a href="../appendices/j-glossary.html#gl-token" class="glossary-link"><em>token</em></a>, a fragment of text of a few characters, with one rate for the text sent to the model (input) and another for the text it writes (output). List prices are <a href="../appendices/j-glossary.html#gl-api" class="glossary-link"><em>API</em></a> prices: what a program pays per token when it sends requests to the model directly, through the vendor’s programming interface (the API), rather than through a monthly subscription.</p>
 <div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
 <div class="callout-header d-flex align-content-center">
@@ -930,6 +943,7 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 </div>
 </figure>
 </div>
+<p>OpenCode names them differently: <code>/models</code> picks the model, <code>/new</code> starts a fresh session in place of <code>/clear</code>, and, as it has no <code>/exit</code>, Ctrl+C on an empty prompt quits (OpenCode TUI and keybinds documentation, checked <span class="nowrap">2026-11-20</span>).</p>
 <p><code>/clear</code> matters for quality as well as cost. Old instructions and files read earlier keep steering the model while they remain in the conversation; a fresh conversation drops them. Nothing on disk changes, and the project’s rules file is read again.</p>
 <div class="think">
 <div class="box-label">
@@ -948,7 +962,7 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 </section>
 <section id="sec-root-folder" class="level2" data-number="2.4">
 <h2 data-number="2.4" class="anchored" data-anchor-id="sec-root-folder"><span class="header-section-number">2.4</span> The root folder is the agent’s world</h2>
-<p>An agent treats the folder you start it in as its <em>root</em>: it reads and edits files there and in the folders below, and runs commands from there. The first time you start one in a new folder, it asks whether you trust it. Claude Code’s prompt, captured on <span class="nowrap">2026-11-07</span>, warns that “Claude Code’ll be able to read, edit, and execute files here”; Codex asks the same question in a folder that is a Git repository, and says it can read, edit and run files “subject to your permission settings”.</p>
+<p>An agent treats the folder you start it in as its <em>root</em>: it reads and edits files there and in the folders below, and runs commands from there. The first time you start one in a new folder, it asks whether you trust it. Claude Code’s prompt, captured on <span class="nowrap">2026-11-07</span>, warns that “Claude Code’ll be able to read, edit, and execute files here”; Codex asks the same question in a folder that is a Git repository, and says it can read, edit and run files “subject to your permission settings”. OpenCode asks no such question: OpenCode’s default agent edits files and runs commands without asking, inside the folder or outside it, unless rules with the effect ask are added to opencode.jsonc (<a href="#sec-choose" class="quarto-xref"><span>Section 2.2</span></a>). With it, a small folder made for the work, and a look at <code>git diff</code> after each step, matter even more.</p>
 <p>That question deserves a real answer. Trust only a folder you created for the work. Never start an agent in your home folder, in Documents, or anywhere that holds other people’s projects, private documents or keys (such as <code>~/.ssh</code>). Project instructions in a trusted folder are read and followed too, which is another reason to trust only your own folders.</p>
 <p>Starting in a small project folder has three practical benefits. Paths in prompts stay short (<code>data/attractions.csv</code>), the project’s rules file is found, and a mistake stays inside one folder that you can restore. It is not a guaranteed boundary, though: a command can still name a path outside the folder, so read each command before you approve it.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
@@ -973,7 +987,7 @@ Table&nbsp;2.2: Three commands that control cost and context (Claude Code comman
 <li><strong>Rules:</strong> what must always hold (“every number comes from a cited file in <code>data/</code>”).</li>
 <li><strong>Commands:</strong> how to build and check the project.</li>
 </ul>
-<p>All three agents in this book read it (checked <span class="nowrap">2026-10-30</span>). Codex reads <code>AGENTS.md</code> files before doing any work. Antigravity reads <code>AGENTS.md</code> or <code>GEMINI.md</code> in the project’s folders. Claude Code reads <code>AGENTS.md</code> when there is no <code>CLAUDE.md</code> in the working folder or above it, from version 2.1.277; a <code>CLAUDE.md</code> containing the line <code>@AGENTS.md</code> imports it, so one file can serve all three (Claude Code memory documentation, checked <span class="nowrap">2026-11-12</span>). The repository behind this book works exactly that way: its <code>CLAUDE.md</code> imports its <code>AGENTS.md</code>.</p>
+<p>All four agents in this book read it (checked <span class="nowrap">2026-10-30</span> and <span class="nowrap">2026-11-20</span>). Codex reads <code>AGENTS.md</code> files before doing any work. Antigravity reads <code>AGENTS.md</code> or <code>GEMINI.md</code> in the project’s folders. OpenCode reads each <code>AGENTS.md</code> from the working folder upwards, and <code>CLAUDE.md</code> in a folder without one. Claude Code reads <code>AGENTS.md</code> when there is no <code>CLAUDE.md</code> in the working folder or above it, from version 2.1.277; a <code>CLAUDE.md</code> containing the line <code>@AGENTS.md</code> imports it, so one file can serve all four (Claude Code memory documentation, checked <span class="nowrap">2026-11-12</span>). The repository behind this book works exactly that way: its <code>CLAUDE.md</code> imports its <code>AGENTS.md</code>.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1223,6 +1237,7 @@ Figure&nbsp;2.4: What running the first prompt looks like: the agent writes the 
 <li>Claude Code, <a href="https://code.claude.com/docs/en/commands">commands reference</a> and <a href="https://code.claude.com/docs/en/memory">memory and <code>AGENTS.md</code></a> (checked <span class="nowrap">2026-11-12</span>).</li>
 <li>OpenAI, <a href="https://learn.chatgpt.com/docs/codex/cli">Codex CLI</a> and <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md"><code>AGENTS.md</code></a> (checked <span class="nowrap">2026-11-12</span> and <span class="nowrap">2026-10-30</span>).</li>
 <li>Google, <a href="https://antigravity.google/docs/rules">Antigravity rules</a> (checked <span class="nowrap">2026-10-30</span>).</li>
+<li>OpenCode, <a href="https://opencode.ai/docs/providers/">providers</a>, <a href="https://opencode.ai/docs/rules/">rules</a>, <a href="https://opencode.ai/docs/permissions/">permissions</a>, <a href="https://opencode.ai/docs/models/">models</a> and <a href="https://opencode.ai/docs/keybinds/">keybinds</a> (checked <span class="nowrap">2026-11-20</span>).</li>
 <li>Anthropic, <a href="https://platform.claude.com/docs/en/about-claude/models/overview">models overview</a> and <a href="https://platform.claude.com/docs/en/about-claude/pricing">pricing</a>; OpenAI, <a href="https://developers.openai.com/api/docs/models">models</a> (checked <span class="nowrap">2026-11-12</span>).</li>
 <li>Free plans for web chats: <a href="https://claude.com/pricing">Claude</a>, <a href="https://chatgpt.com/pricing">ChatGPT</a> and <a href="https://gemini.google/subscriptions/">Gemini</a> (checked <span class="nowrap">2026-11-12</span>).</li>
 <li>Gemini CLI, <a href="https://geminicli.com/docs/get-started/installation">installation</a>, on its replacement by Antigravity CLI (checked <span class="nowrap">2026-11-12</span>).</li>

@@ -84,7 +84,7 @@ Google's Gemini. It runs on the vendor's servers. It reads text and writes text,
 reply with a structured request to use a tool: "read this file", "run this command".
 
 The **harness** is the program on your computer that surrounds the model. Claude Code,
-Codex and Antigravity are harnesses. The harness gives the model its tools (reading and
+Codex, Antigravity and OpenCode are harnesses. The harness gives the model its tools (reading and
 writing files, running commands, searching), carries out the model's tool requests, asks you
 before it does anything consequential, and sends the results back to the model. That loop
 repeats until the model replies with an answer instead of another request. That loop, run on
@@ -109,22 +109,27 @@ review files after they change.
 
 ## Choosing an agent and a model {#sec-choose}
 
-This book covers three agents. Each comes from the same company as its default models:
+This book covers four agents. The first three come from the same company as their default
+models; OpenCode, an open-source harness, runs whichever model you connect to it:
 
 | Agent | You type | Made by | Default models |
 |---|---|---|---|
 | Claude Code | `claude` | Anthropic | Claude |
 | Codex | `codex` | OpenAI | GPT |
 | Antigravity | `agy` | Google | Gemini |
+| OpenCode | `opencode` | an open-source project (MIT licence) | any you connect |
 
-: The agents this book covers. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked 2026-11-12). {#tbl-assistants}
+: The agents this book covers. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked 2026-11-12). OpenCode's licence is in its GitHub repository, and its providers in its documentation (both checked 2026-11-20). {#tbl-assistants}
 
-What "covers" means differs between them. For all three, the install command, the account it
+What "covers" means differs between them. For all four, the install command, the account it
 needs and how it reads project rules were checked against the vendor's documentation (dated in
 @sec-setup and @sec-agents-md). The first screens of Claude Code and Codex were captured for
-the workshop on 2026-11-07; Antigravity's were not. Other agents exist; this book does not
+the workshop on 2026-11-07; Antigravity's and OpenCode's were not. Other agents exist; this book does not
 check them, so it does not list them. Every prompt in the book is written to work in any of
-the three. A vendor's own pairing of harness and
+the four. OpenCode differs in one way that matters for safety:
+`{python} fact("agents.opencode_permissions")` (checked
+`{python} checked("agents.opencode_permissions")`), so the habit of approving each
+command (@sec-root-folder) needs those rules first. A vendor's own pairing of harness and
 model is the easiest to set up, but it is not automatically the best fit for a task: the
 harness and the model are separate choices.
 
@@ -143,6 +148,14 @@ setting is enough: `{python} fact("models.everyday_models")` (checked
 advice starts higher: `{python} fact("models.vendor_starting_points")`. The names change every
 few months, and @sec-facts keeps the current ones; the advice does not. Start small, and move
 up only when a task keeps failing.
+
+**Free models.** Free models might be decent for this book's prompts, which are short, ask for
+one task each and end in a check that shows when a model falls short. Two routes cost nothing:
+`{python} fact("agents.antigravity_free")` (checked `{python} checked("agents.antigravity_free")`),
+and `{python} fact("agents.opencode_free")` (checked `{python} checked("agents.opencode_free")`).
+None was tested on the book's prompts, so treat "might be decent" as an expectation. Read a
+free model's terms before you use it (@sec-at-work-flow): some keep what you send, so give
+them only public data, such as this book's.
 
 Models are priced by the *token*, a fragment of text of a few characters, with one rate for
 the text sent to the model (input) and another for the text it writes (output). List prices
@@ -236,6 +249,10 @@ the agent itself rather than run in the terminal (@sec-two-places), cover them:
 
 : Three commands that control cost and context (Claude Code commands reference and Codex CLI reference, checked 2026-11-12). Type `/` alone to list your agent's commands. {#tbl-slash}
 
+OpenCode names them differently: `/models` picks the model, `/new` starts a fresh session in
+place of `/clear`, and, as it has no `/exit`, Ctrl+C on an empty prompt quits (OpenCode TUI and
+keybinds documentation, checked 2026-11-20).
+
 `/clear` matters for quality as well as cost. Old instructions and files read earlier keep
 steering the model while they remain in the conversation; a fresh conversation drops them.
 Nothing on disk changes, and the project's rules file is read again.
@@ -255,7 +272,9 @@ and in the folders below, and runs commands from there. The first time you start
 new folder, it asks whether you trust it. Claude Code's prompt, captured on 2026-11-07,
 warns that "Claude Code'll be able to read, edit, and execute files here"; Codex asks the same
 question in a folder that is a Git repository, and says it can read, edit and run files
-"subject to your permission settings".
+"subject to your permission settings". OpenCode asks no such question:
+`{python} fact("agents.opencode_permissions")` (@sec-choose). With it, a small folder made for
+the work, and a look at `git diff` after each step, matter even more.
 
 That question deserves a real answer. Trust only a folder you created for the work. Never
 start an agent in your home folder, in Documents, or anywhere that holds other people's
@@ -284,11 +303,12 @@ has three parts:
 - **Rules:** what must always hold ("every number comes from a cited file in `data/`").
 - **Commands:** how to build and check the project.
 
-All three agents in this book read it (checked 2026-10-30). Codex reads `AGENTS.md` files
-before doing any work. Antigravity reads `AGENTS.md` or `GEMINI.md` in the project's folders.
+All four agents in this book read it (checked 2026-10-30 and 2026-11-20). Codex reads `AGENTS.md` files
+before doing any work. Antigravity reads `AGENTS.md` or `GEMINI.md` in the project's folders. OpenCode reads each
+`AGENTS.md` from the working folder upwards, and `CLAUDE.md` in a folder without one.
 Claude Code reads `AGENTS.md` when there is no `CLAUDE.md` in the working folder or above
 it, from version 2.1.277; a `CLAUDE.md` containing the line `@AGENTS.md` imports it, so one
-file can serve all three (Claude Code memory documentation, checked 2026-11-12). The
+file can serve all four (Claude Code memory documentation, checked 2026-11-12). The
 repository behind this book works exactly that way: its `CLAUDE.md` imports its `AGENTS.md`.
 
 ::: pitfall
@@ -521,6 +541,9 @@ working together. Is yours? @sec-setup gets it there in six checked steps.
   [`AGENTS.md`](https://learn.chatgpt.com/docs/agent-configuration/agents-md) (checked
   2026-11-12 and 2026-10-30).
 - Google, [Antigravity rules](https://antigravity.google/docs/rules) (checked 2026-10-30).
+- OpenCode, [providers](https://opencode.ai/docs/providers/), [rules](https://opencode.ai/docs/rules/),
+  [permissions](https://opencode.ai/docs/permissions/), [models](https://opencode.ai/docs/models/)
+  and [keybinds](https://opencode.ai/docs/keybinds/) (checked 2026-11-20).
 - Anthropic, [models overview](https://platform.claude.com/docs/en/about-claude/models/overview)
   and [pricing](https://platform.claude.com/docs/en/about-claude/pricing); OpenAI,
   [models](https://developers.openai.com/api/docs/models) (checked 2026-11-12).

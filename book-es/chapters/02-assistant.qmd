@@ -84,8 +84,8 @@ de Google. Corre en los servidores del proveedor. Lee texto y escribe texto, y p
 con una solicitud estructurada para usar una herramienta: "lee este archivo", "ejecuta este
 comando".
 
-El **harness** es el programa en tu computadora que envuelve al modelo. Claude Code, Codex y
-Antigravity son harnesses. El harness le da al modelo sus herramientas (leer y escribir archivos,
+El **harness** es el programa en tu computadora que envuelve al modelo. Claude Code, Codex,
+Antigravity y OpenCode son harnesses. El harness le da al modelo sus herramientas (leer y escribir archivos,
 ejecutar comandos, buscar), lleva a cabo las solicitudes de herramientas del modelo, te pregunta
 antes de hacer cualquier cosa con consecuencias y le devuelve los resultados al modelo. Ese ciclo
 se repite hasta que el modelo responde con una respuesta en lugar de otra solicitud. Ese ciclo,
@@ -111,23 +111,27 @@ de que cambian.
 
 ## Elegir un agente y un modelo {#sec-choose}
 
-Este libro cubre tres agentes. Cada uno viene de la misma empresa que sus modelos por
-defecto:
+Este libro cubre cuatro agentes. Los tres primeros vienen de la misma empresa que sus modelos
+por defecto; OpenCode, un harness de código abierto, usa el modelo que le conectes:
 
 | Agente | Escribes | Lo hace | Modelos por defecto |
 |---|---|---|---|
 | Claude Code | `claude` | Anthropic | Claude |
 | Codex | `codex` | OpenAI | GPT |
 | Antigravity | `agy` | Google | Gemini |
+| OpenCode | `opencode` | un proyecto de código abierto (licencia MIT) | el que conectes |
 
-: Los agentes que cubre este libro. Antigravity reemplazó a Gemini CLI para los usuarios del nivel gratuito y de Google One el 18 de junio de 2026 (página de instalación de Gemini CLI, consultada el 2026-11-12). {#tbl-assistants}
+: Los agentes que cubre este libro. Antigravity reemplazó a Gemini CLI para los usuarios del nivel gratuito y de Google One el 18 de junio de 2026 (página de instalación de Gemini CLI, consultada el 2026-11-12). La licencia de OpenCode está en su repositorio de GitHub, y sus proveedores en su documentación (ambos consultados el 2026-11-20). {#tbl-assistants}
 
-Lo que significa "cubre" no es igual para los tres. Para los tres, el comando de instalación, la
+Lo que significa "cubre" no es igual para los cuatro. Para los cuatro, el comando de instalación, la
 cuenta que necesita y cómo lee las reglas del proyecto se revisaron contra la documentación del
 proveedor (con fecha en el @sec-setup y en la @sec-agents-md). Las primeras pantallas de Claude
-Code y de Codex se capturaron para el taller el 2026-11-07; las de Antigravity, no. Existen
+Code y de Codex se capturaron para el taller el 2026-11-07; las de Antigravity y OpenCode, no. Existen
 otros agentes; este libro no los revisa, así que no los enumera. Cada prompt del libro está
-escrito para funcionar en cualquiera de los tres. La combinación de harness y modelo de un mismo
+escrito para funcionar en cualquiera de los cuatro. OpenCode se distingue en algo que importa
+para la seguridad: `{python} fact("agents.opencode_permissions")` (consultado el
+`{python} checked("agents.opencode_permissions")`), así que el hábito de aprobar cada
+comando (@sec-root-folder) necesita primero esas reglas. La combinación de harness y modelo de un mismo
 proveedor es la más fácil de configurar, pero no es automáticamente la que mejor se ajusta a una
 tarea: el harness y el modelo son elecciones separadas.
 
@@ -146,6 +150,15 @@ esfuerzo moderado: `{python} fact("models.everyday_models")` (consultado el
 proveedores recomiendan empezar más arriba: `{python} fact("models.vendor_starting_points")`.
 Los nombres cambian cada pocos meses, y el @sec-facts reúne los actuales; el consejo, no.
 Empieza por lo pequeño y sube solo cuando una tarea siga fallando.
+
+**Modelos gratuitos.** Los modelos gratuitos podrían bastar para los prompts de este libro, que
+son cortos, piden una sola tarea cada uno y terminan en una comprobación que muestra cuándo un
+modelo se queda corto. Dos rutas no cuestan nada:
+`{python} fact("agents.antigravity_free")` (consultado el `{python} checked("agents.antigravity_free")`),
+y `{python} fact("agents.opencode_free")` (consultado el `{python} checked("agents.opencode_free")`).
+Ninguno se probó con los prompts del libro, así que toma "podrían bastar" como una expectativa.
+Lee las condiciones de un modelo gratuito antes de usarlo (@sec-at-work-flow): algunos guardan lo
+que envías, así que dales solo datos públicos, como los de este libro.
 
 Los modelos se cobran por *token*, un fragmento de texto de unos pocos caracteres, con una tarifa
 para el texto que se le envía al modelo (entrada) y otra para el texto que escribe (salida). Los
@@ -242,6 +255,10 @@ en el propio agente y no se ejecutan en la terminal (@sec-two-places), los cubre
 
 : Tres comandos que controlan el costo y el contexto (referencia de comandos de Claude Code y referencia de Codex CLI, consultadas el 2026-11-12). Escribe `/` solo para ver la lista de comandos de tu agente. {#tbl-slash}
 
+OpenCode les da otros nombres: `/models` elige el modelo, `/new` empieza una sesión nueva en lugar
+de `/clear` y, como no tiene `/exit`, Ctrl+C con el prompt vacío lo cierra (documentación de la
+TUI y de los atajos de teclado de OpenCode, consultada el 2026-11-20).
+
 `/clear` importa tanto para la calidad como para el costo. Las instrucciones viejas y los
 archivos leídos antes siguen orientando al modelo mientras estén en la conversación; una
 conversación nueva los descarta. Nada cambia en el disco, y el archivo de reglas del proyecto se
@@ -263,7 +280,9 @@ nueva, te pregunta si confías en ella. El aviso de Claude Code, capturado el 20
 que "Claude Code'll be able to read, edit, and execute files here" (Claude Code podrá leer, editar
 y ejecutar archivos aquí); Codex hace la misma pregunta en una carpeta que es un repositorio de
 Git, y dice que puede leer, editar y ejecutar archivos "subject to your permission settings"
-(según tu configuración de permisos).
+(según tu configuración de permisos). OpenCode no hace esa pregunta:
+`{python} fact("agents.opencode_permissions")` (@sec-choose). Con él, una carpeta pequeña creada
+para el trabajo, y una mirada a `git diff` después de cada paso, importan todavía más.
 
 Esa pregunta merece una respuesta de verdad. Confía solo en una carpeta que creaste para el
 trabajo. Nunca inicies un agente en tu carpeta personal, en Documentos ni en ningún lugar que
@@ -295,11 +314,12 @@ sesión. Uno bueno tiene tres partes:
   cada número sale de un archivo citado en `data/`).
 - **Comandos:** cómo construir y revisar el proyecto.
 
-Los tres agentes de este libro lo leen (consultado el 2026-10-30). Codex lee los archivos
+Los cuatro agentes de este libro lo leen (consultado el 2026-10-30 y el 2026-11-20). Codex lee los archivos
 `AGENTS.md` antes de hacer cualquier trabajo. Antigravity lee `AGENTS.md` o `GEMINI.md` en las
-carpetas del proyecto. Claude Code lee `AGENTS.md` cuando no hay un `CLAUDE.md` en la carpeta de
+carpetas del proyecto. OpenCode lee cada `AGENTS.md` desde la carpeta de trabajo hacia arriba, y
+`CLAUDE.md` en una carpeta que no lo tenga. Claude Code lee `AGENTS.md` cuando no hay un `CLAUDE.md` en la carpeta de
 trabajo ni más arriba, desde la versión 2.1.277; un `CLAUDE.md` que contenga la línea
-`@AGENTS.md` lo importa, así que un solo archivo puede servirles a los tres (documentación de
+`@AGENTS.md` lo importa, así que un solo archivo puede servirles a los cuatro (documentación de
 memoria de Claude Code, consultada el 2026-11-12). El repositorio detrás de este libro funciona
 exactamente así: su `CLAUDE.md` importa su `AGENTS.md`.
 
@@ -547,6 +567,9 @@ y funcionan juntos. ¿La tuya lo está? El @sec-setup la deja así en seis pasos
   2026-11-12 y el 2026-10-30).
 - Google, [reglas de Antigravity](https://antigravity.google/docs/rules) (consultado el
   2026-10-30).
+- OpenCode, [proveedores](https://opencode.ai/docs/providers/), [reglas](https://opencode.ai/docs/rules/),
+  [permisos](https://opencode.ai/docs/permissions/), [modelos](https://opencode.ai/docs/models/) y
+  [atajos de teclado](https://opencode.ai/docs/keybinds/) (consultados el 2026-11-20).
 - Anthropic, [panorama de los modelos](https://platform.claude.com/docs/en/about-claude/models/overview)
   y [precios](https://platform.claude.com/docs/en/about-claude/pricing); OpenAI,
   [modelos](https://developers.openai.com/api/docs/models) (consultados el 2026-11-12).
