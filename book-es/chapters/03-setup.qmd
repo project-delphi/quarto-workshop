@@ -5,7 +5,7 @@
 # What each agent's account must be, from facts.yml (Appendix K), with the date it was checked.
 from scripts.facts import checked, fact
 
-accounts_checked = max(checked(f"agents.{k}_accounts") for k in ("claude_code", "codex", "antigravity"))
+accounts_checked = max(checked(f"agents.{k}_accounts") for k in ("claude_code", "codex", "antigravity", "opencode"))
 ```
 
 Este capítulo termina con un número: 42, impreso en una página web y en un PDF que construyó tu
@@ -58,7 +58,8 @@ descargas; una conexión personal lo evita.
 **Dos cuentas.** Una [cuenta gratuita de GitHub](https://github.com/signup), que se usa para
 publicar en las partes prácticas, y una cuenta con acceso a un agente de programación.
 `{python} fact("agents.claude_code_accounts")`; `{python} fact("agents.codex_accounts")` (para
-facturación por uso, @sec-choose); `{python} fact("agents.antigravity_accounts")` (consultado el
+facturación por uso, @sec-choose); `{python} fact("agents.antigravity_accounts")`;
+`{python} fact("agents.opencode_accounts")` (consultado el
 `{python} accounts_checked`; el @sec-facts reúne la lista actual). Una *clave de API* es una
 cadena secreta larga que identifica tu cuenta ante la interfaz de programación del proveedor, que
 cobra cada solicitud; mantenla fuera de los archivos que compartes. El registro y la verificación
@@ -66,8 +67,12 @@ del correo pueden tardar horas, así que hazlos primero.
 
 **La ruta de bajo costo.** El libro necesita un agente, no el más caro. Dos rutas mantienen bajo
 el costo. La primera no cuesta nada: `{python} fact("agents.antigravity_free")` (consultado el
-`{python} checked("agents.antigravity_free")`), y cada prompt del libro está escrito para
-funcionar también en Antigravity, aunque sus pantallas no se capturaron (@sec-choose). La segunda
+`{python} checked("agents.antigravity_free")`), y `{python} fact("agents.opencode_free")`
+(consultado el `{python} checked("agents.opencode_free")`). Los modelos gratuitos podrían bastar
+para estos prompts cortos y comprobados, aunque ninguno se probó con ellos; lee antes sus
+condiciones, porque algunos guardan lo que envías (@sec-at-work-flow). Cada prompt del libro está
+escrito para funcionar también en Antigravity y en OpenCode, aunque sus pantallas no se
+capturaron (@sec-choose). La segunda
 es pagar solo lo que usas, con una clave de API, después de fijar un tope mensual en el sitio del
 proveedor: `{python} fact("agents.claude_spend_limit")`, y `{python} fact("agents.openai_spend_limit")`
 (los dos consultados el `{python} checked("agents.openai_spend_limit")`). Con cualquiera de las
@@ -235,6 +240,12 @@ curl -fsSL https://chatgpt.com/codex/install.sh | sh
 curl -fsSL https://antigravity.google/cli/install.sh | bash
 ```
 
+**OpenCode** (consultado el 2026-11-20):
+
+```bash
+curl -fsSL https://opencode.ai/v2/install | bash
+```
+
 `curl … | bash` descarga un pequeño script de instalación y lo ejecuta de inmediato. Es lo normal
 con estas herramientas, y también es exactamente por qué solo deberías hacerlo con enlaces de
 confianza, como el comando documentado de cada proveedor.
@@ -259,7 +270,12 @@ cd ~/setup
 claude
 ```
 
-Esa última línea inicia Claude Code; escribe `codex` para Codex, o `agy` para Antigravity.
+Esa última línea inicia Claude Code; escribe `codex` para Codex, `agy` para Antigravity u
+`opencode` para OpenCode. OpenCode no te pide iniciar sesión: escribe `/connect` dentro de él y
+elige un proveedor. A diferencia de los otros tres, no pregunta antes de editar archivos ni de
+ejecutar comandos (@sec-root-folder). Para que pregunte, agrega a `opencode.jsonc` reglas con el
+efecto `ask` para sus acciones `edit` y `shell`, como muestra su
+[documentación de permisos](https://opencode.ai/docs/permissions/) (consultada el 2026-11-20).
 
 El primer arranque pasa por tres pantallas. Las de Claude Code se muestran abajo tal como se
 capturaron el 2026-11-07 (versión 2.1.319, en una carpeta vacía, con los nombres de carpeta
@@ -326,10 +342,12 @@ capturó; la tuya muestra los tuyos.
 :::
 
 ::: tryit
-Instala un agente, inícialo en `~/setup`, inicia sesión y confía en la carpeta.
+Instala un agente, inícialo en `~/setup`, inicia sesión y confía en la carpeta (en OpenCode,
+escribe `/connect` y elige un proveedor: no pregunta nada sobre la carpeta).
 
 ::: done
-el agente responde cuando escribes `hello`. Luego escribe `/exit`.
+el agente responde cuando escribes `hello`. Luego escribe `/exit` (en OpenCode, pulsa Ctrl+C
+con el prompt vacío).
 :::
 :::
 
@@ -346,7 +364,8 @@ ana@laptop:~/setup$ pwd                  <- the terminal: commands
 La primera línea es la terminal, donde van los comandos; la segunda es el agente, donde van
 las solicitudes en lenguaje natural. El agente toma el control de la pestaña de la terminal en
 la que corre: lo que escribes ahí le llega al agente, no a la *shell*, el programa detrás de
-la terminal que ejecuta tus comandos, hasta que sales con `/exit`. Los comandos de los recuadros
+la terminal que ejecuta tus comandos, hasta que sales con `/exit`. OpenCode no tiene `/exit`: donde este libro diga `/exit`, pulsa Ctrl+C
+con el prompt vacío de OpenCode. Los comandos de los recuadros
 **Tú haces** de este libro, como `quarto preview`, van en la terminal; los prompts de los
 recuadros **Pídele a tu agente** van al agente. Cuando el agente está ocupado y
 necesitas la terminal, abre una segunda pestaña, como después de la instalación.
@@ -369,7 +388,7 @@ también funciona, pero termina la conversación.
 Las herramientas que faltan son el propio Quarto, uv, Git y la herramienta de línea de comandos de
 GitHub, `gh`. Cada una tiene su propio método oficial de instalación para cada sistema, que es
 exactamente el tipo de detalle que un agente maneja bien. Inícialo otra vez en la carpeta de la
-preparación, ahora en una sola línea unida con `&&` (con `codex` o `agy` en lugar de `claude` si
+preparación, ahora en una sola línea unida con `&&` (con `codex`, `agy` u `opencode` en lugar de `claude` si
 ese es tu agente, aquí y en los pasos siguientes):
 
 ::: {.you}
@@ -613,7 +632,7 @@ página web con reglas escritas para el agente.
 - [Preparación de Claude Code](https://code.claude.com/docs/en/setup),
   [Codex CLI](https://learn.chatgpt.com/docs/codex/cli) y
   [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli) (consultados el
-  2026-10-30).
+  2026-10-30), y [OpenCode](https://opencode.ai/docs/) (consultado el 2026-11-20).
 - Scott Chacon y Ben Straub, *Pro Git*,
   [Installing Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (consultado el
   2026-11-06).

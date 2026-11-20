@@ -389,7 +389,7 @@ def book_fact(section: str, item: str) -> dict:
 def assistant_accounts() -> tuple[str, str]:
     """The setup chapter's list of what each agent's account needs, and its checked date: from
     book/facts.yml, which the chapter quotes, in the page's language."""
-    es_ = [book_fact("agents", f"{k}_accounts") for k in ("claude_code", "codex", "antigravity")]
+    es_ = [book_fact("agents", f"{k}_accounts") for k in ("claude_code", "codex", "antigravity", "opencode")]
     return "; ".join(e["text"] for e in es_), max(e["checked"] for e in es_)
 
 

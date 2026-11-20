@@ -5,7 +5,7 @@
 # What each agent's account must be, from facts.yml (Appendix K), with the date it was checked.
 from scripts.facts import checked, fact
 
-accounts_checked = max(checked(f"agents.{k}_accounts") for k in ("claude_code", "codex", "antigravity"))
+accounts_checked = max(checked(f"agents.{k}_accounts") for k in ("claude_code", "codex", "antigravity", "opencode"))
 ```
 
 This chapter ends with a number: 42, printed in a web page and a PDF that your own computer
@@ -55,7 +55,8 @@ traffic must pass through, to block some downloads; a personal connection avoids
 **Two accounts.** A free [GitHub account](https://github.com/signup), used to publish in
 the hands-on parts, and an account with access to one coding agent.
 `{python} fact("agents.claude_code_accounts")`; `{python} fact("agents.codex_accounts")` (for
-pay-per-use billing, @sec-choose); `{python} fact("agents.antigravity_accounts")` (checked
+pay-per-use billing, @sec-choose); `{python} fact("agents.antigravity_accounts")`;
+`{python} fact("agents.opencode_accounts")` (checked
 `{python} accounts_checked`; @sec-facts keeps the current list). An *API key* is a long secret
 string that identifies your account to the vendor's programming interface, which bills each
 request; keep it out of files you share. Sign-up and email verification can take hours, so do
@@ -63,8 +64,11 @@ them first.
 
 **The low-cost route.** The book needs one agent, not the most expensive one. Two routes keep
 the cost down. The first costs nothing: `{python} fact("agents.antigravity_free")` (checked
-`{python} checked("agents.antigravity_free")`), and every prompt in the book is written to work in
-Antigravity too, although its screens were not captured for it (@sec-choose). The second is to
+`{python} checked("agents.antigravity_free")`), and `{python} fact("agents.opencode_free")`
+(checked `{python} checked("agents.opencode_free")`). Free models might be decent for these
+short, checked prompts, though none was tested on them; read their terms first, since some keep
+what you send (@sec-at-work-flow). Every prompt in the book is written to work in Antigravity
+and OpenCode too, although their screens were not captured (@sec-choose). The second is to
 pay only for what you use, with an API key, after setting a monthly cap on the vendor's site:
 `{python} fact("agents.claude_spend_limit")`, and `{python} fact("agents.openai_spend_limit")`
 (both checked `{python} checked("agents.openai_spend_limit")`). With either, choose a small
@@ -227,6 +231,12 @@ curl -fsSL https://chatgpt.com/codex/install.sh | sh
 curl -fsSL https://antigravity.google/cli/install.sh | bash
 ```
 
+**OpenCode** (checked 2026-11-20):
+
+```bash
+curl -fsSL https://opencode.ai/v2/install | bash
+```
+
 `curl … | bash` downloads a small install script and runs it immediately. That is normal
 for these tools, and it is also exactly why you should only do it with links you trust, such
 as each vendor's documented command.
@@ -250,7 +260,12 @@ cd ~/setup
 claude
 ```
 
-That last line starts Claude Code; type `codex` for Codex, or `agy` for Antigravity.
+That last line starts Claude Code; type `codex` for Codex, `agy` for Antigravity, or `opencode`
+for OpenCode. OpenCode does not ask you to sign in: type `/connect` inside it and choose a
+provider. Unlike the other three, it does not ask before it edits files or runs
+commands (@sec-root-folder). To make it ask, add rules with the effect `ask` for its `edit` and
+`shell` actions to `opencode.jsonc`, as its
+[permissions documentation](https://opencode.ai/docs/permissions/) shows (checked 2026-11-20).
 
 The first start walks through three screens. Claude Code's are shown below as captured on
 2026-11-07 (version 2.1.319, in an empty folder, with folder names changed); the screens
@@ -316,10 +331,12 @@ that captured it; yours shows your own.
 :::
 
 ::: tryit
-Install one agent, start it in `~/setup`, sign in and trust the folder.
+Install one agent, start it in `~/setup`, sign in and trust the folder (in OpenCode, type
+`/connect` and choose a provider: it asks nothing about the folder).
 
 ::: done
-the agent answers when you type `hello`. Then type `/exit`.
+the agent answers when you type `hello`. Then type `/exit` (in OpenCode, press Ctrl+C at the
+empty prompt).
 :::
 :::
 
@@ -335,7 +352,8 @@ ana@laptop:~/setup$ pwd                  <- the terminal: commands
 
 The agent takes over the terminal tab it runs in: what you type there goes to the
 agent, not to the *shell*, the program behind the terminal that runs your commands, until
-you leave with `/exit`. Commands in this book's **You do** boxes, such as `quarto preview`, go
+you leave with `/exit`. OpenCode has no `/exit`: wherever this book says `/exit`, press Ctrl+C
+at OpenCode's empty prompt instead. Commands in this book's **You do** boxes, such as `quarto preview`, go
 in the terminal; prompts in **Ask your coding agent** boxes go to the agent. When the
 agent is busy and you need the terminal, open a second tab, as after the install.
 
@@ -357,7 +375,7 @@ conversation.
 The remaining tools are Quarto itself, uv, Git and the GitHub command-line tool `gh`. Each has
 its own official install method for each system, which is exactly the kind of detail an
 agent handles well. Start it again in the setup folder, now as one line joined with `&&`
-(with `codex` or `agy` in place of `claude` if that is your agent, here and in the next
+(with `codex`, `agy` or `opencode` in place of `claude` if that is your agent, here and in the next
 steps):
 
 ::: {.you}
@@ -597,7 +615,7 @@ the agent.
 - [Claude Code setup](https://code.claude.com/docs/en/setup),
   [Codex CLI](https://learn.chatgpt.com/docs/codex/cli) and
   [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli) (checked
-  2026-10-30).
+  2026-10-30), and [OpenCode](https://opencode.ai/docs/) (checked 2026-11-20).
 - Scott Chacon and Ben Straub, *Pro Git*,
   [Installing Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (checked
   2026-11-06).
