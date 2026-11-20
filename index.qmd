@@ -368,7 +368,7 @@ starts at 🧰 Ready to Prompt (click its segment in the progress bar).
 ::: {.hint}
 🧭 = do it · 📖 = just read · 🆘 stuck → AI chat, then Discord · ✅ all 6 done? [📖 Read before the day](#read-before)
 
-🎒 **Have ready:** a free [GitHub account](https://github.com/signup) · a paid agent plan or API key · the Discord invite
+🎒 **Have ready:** a free [GitHub account](https://github.com/signup) · an agent plan, API key or a free model ([🆓](#model-choice)) · the Discord invite
 :::
 
 ::: {.notes}
@@ -746,20 +746,28 @@ curl -fsSL https://chatgpt.com/codex/install.sh | sh
 ```bash
 curl -fsSL https://antigravity.google/cli/install.sh | bash
 ```
+
+::: {}
+**🔓 OpenCode** · [docs](https://opencode.ai/docs/)
+:::
+
+```bash
+curl -fsSL https://opencode.ai/v2/install | bash
+```
 :::
 
 ::: {.hint}
 1️⃣ **Pick one:** paste its line, press Enter · 2️⃣ **New tab:** 🪟 Ctrl+Shift+D · 🍎 ⌘T · 🐧 Ctrl+Shift+T
 
-3️⃣ **Start it:** `mkdir -p ~/setup && cd ~/setup`, then `claude`, `codex` or `agy` · trust this folder? ↓ to Yes, then Enter ([👀 screens](#assistant-screens))
+3️⃣ **Start it:** `mkdir -p ~/setup && cd ~/setup`, then `claude`, `codex`, `agy` or `opencode` · trust? ↓ Yes, Enter ([👀](#assistant-screens))
 
-4️⃣ **Sign in:** no browser? Copy the link it prints, whole, into yours · a code appears? Paste it back here
+4️⃣ **Sign in:** no browser? Copy its link into yours · a code? Paste it back · OpenCode: `/connect`, ⚠️ [won't ask](#root-folder)
 :::
 
 ### Exercise · ⏱️ 5 min
 
 ::: {.done}
-the agent answers when you type `hello`. Then type `/exit`.
+it answers when you type `hello`. Then `/exit` (OpenCode: Ctrl+C).
 :::
 
 ::: {.notes}
@@ -775,7 +783,17 @@ at `Paste code here`; if pasting does nothing, right-click or Shift+Insert (same
 Sign in with an account that has access to the tool: Claude
 Code needs a Pro, Max, Team, Enterprise or Console account (https://code.claude.com/docs/en/setup),
 Codex a ChatGPT sign-in or an API key (https://learn.chatgpt.com/docs/auth), Antigravity a
-Google account. WSL cannot open a browser: Claude Code and Antigravity print a URL, which you
+Google account (a personal one can use its free tier, with a quota refreshed weekly:
+https://antigravity.google/docs/plans, checked 2026-11-18). OpenCode signs in from inside:
+`/connect`, pick a provider, then `/models` (https://opencode.ai/docs/providers/). It takes a
+ChatGPT Plus/Pro sign-in, GitHub Copilot, an API key, a local model (Ollama, LM Studio), or an
+OpenCode account, which brings its free models (https://opencode.ai/docs/models/); it
+documents no Claude subscription sign-in. Unlike the other three, OpenCode does not ask
+before it edits files or runs commands: its default Build agent starts from an allow-everything
+rule, with only `.env` reads asking, and may reach outside the folder
+(https://opencode.ai/docs/permissions/, https://opencode.ai/docs/agents/, checked
+2026-11-20). Rules with the effect `ask` for the `edit` and `shell` actions in `opencode.jsonc`
+make it ask; otherwise keep it in a small folder made for the work and check with `git diff`. WSL cannot open a browser: Claude Code and Antigravity print a URL, which you
 copy into the Windows browser, then paste the code back; if Codex's browser sign-in fails,
 `codex login --device-auth` (first enable device codes in ChatGPT security settings).
 Sign-up and email verification can take hours, so do not leave them for the day. Account
@@ -787,7 +805,14 @@ https://antigravity.google/docs/getting-started?tab=cli, which also lists PowerS
 CMD installers for Windows. It replaced Gemini CLI for unpaid-tier and Google One users on
 18 June 2026 (https://www.geminicli.com/docs/get-started/installation); existing Gemini CLI
 settings are migrated on first launch (https://antigravity.google/docs/cli/gcli-migration/).
-All checked 2026-10-30. Start the agent inside the exercise folder, and never run two
+All checked 2026-10-30. OpenCode, an open-source agent (MIT licence,
+https://github.com/anomalyco/opencode): the line is the first install on
+https://opencode.ai/docs/, which also lists Homebrew (`brew install anomalyco/tap/opencode-v2`)
+and npm (`npm install -g @opencode/cli`); on Windows it supports WSL, not Windows package
+managers. Start it with `opencode`; it has no `/exit`: Ctrl+C on an empty prompt (or Ctrl+X,
+then Q) quits; with text in the box, Ctrl+C first clears it
+(https://opencode.ai/docs/keybinds/). All OpenCode details checked 2026-11-20, from its V2
+docs. Start the agent inside the exercise folder, and never run two
 agents writing to one folder.
 :::
 
@@ -948,8 +973,8 @@ later, in a project that is a git repository. Ready: the lines beside Claude Cod
 the signed-in account's model and plan (here the capturing account's: Opus 5.5, Claude Max);
 yours will differ. Only folder paths are changed, to `/home/ana/...` and `~/setup`; the empty
 rows above each input line and the status lines below it (model, effort, permission mode) are
-cut. The `ana@LAPTOP-4K7Q2PM` prompt in the first screen is drawn, not captured. Antigravity (`agy`) is not
-shown. Screens change between versions: re-capture them before each run. 📂 Your Root Folder,
+cut. The `ana@LAPTOP-4K7Q2PM` prompt in the first screen is drawn, not captured. Antigravity (`agy`) and
+OpenCode (`opencode`) are not shown; OpenCode's docs mention no trust question. Screens change between versions: re-capture them before each run. 📂 Your Root Folder,
 in 📖 Read Before the Day, explains what trusting a folder allows.
 :::
 
@@ -1009,7 +1034,7 @@ conversation.
 
 ## 🐧 The Agent Installs the Tools {#install-tools}
 
-[🏠 before the workshop]{.pace} [🧭 Step 4/6]{.pace} [🪟 in Ubuntu · 👋 `/exit` first · not Claude? `codex` or `agy`]{.pillnote}
+[🏠 before the workshop]{.pace} [🧭 Step 4/6]{.pace} [🪟 in Ubuntu · 👋 quit the agent first · not Claude? `codex`, `agy`, `opencode`]{.pillnote}
 
 ::: {.you}
 ```bash
@@ -1057,7 +1082,7 @@ on a Windows machine with an agent: run it once in a fresh Ubuntu before teachin
 
 ## 🛠️ Setup Check {#setup-check}
 
-[🏠 before the workshop]{.pace} [🧭 Step 5/6]{.pace} [🪟 in Ubuntu · ➕ new tab first · not Claude? `codex` or `agy`]{.pillnote}
+[🏠 before the workshop]{.pace} [🧭 Step 5/6]{.pace} [🪟 in Ubuntu · ➕ new tab first · not Claude? `codex`, `agy`, `opencode`]{.pillnote}
 
 ::: {.you}
 ```bash
@@ -1095,7 +1120,7 @@ noreply address). The prompt asks for the identity only when `git config user.na
 you should check the answers are theirs, not placeholders. If `~/quarto-workshop` already exists, the prompt updates it with `git pull`
 instead of cloning, so the checkpoints and catch-up steps are current. `gh auth login` stays
 a typed command: it is an interactive browser sign-in the agent cannot complete. Start
-the agent first (`claude`, `codex` or `agy`) in `~/setup`. The cloned workshop
+the agent first (`claude`, `codex`, `agy` or `opencode`) in `~/setup`. The cloned workshop
 repository supplies the checkpoints and the
 water data. `gh auth status` must show a logged-in account before publishing.
 PDFs use `format: typst`, bundled with Quarto, so no LaTeX is needed:
@@ -1105,7 +1130,7 @@ https://cli.github.com/ (both checked 2026-10-30).
 
 ## 🧪 Test Run: Quarto → PDF {#test-run}
 
-[🏠 before the workshop]{.pace} [🧭 Step 6/6]{.pace} [👋 `/exit` first · not Claude? `codex` or `agy`]{.pillnote}
+[🏠 before the workshop]{.pace} [🧭 Step 6/6]{.pace} [👋 quit the agent first · not Claude? `codex`, `agy`, `opencode`]{.pillnote}
 
 ::: {.you}
 ```bash
@@ -1135,9 +1160,9 @@ you opened both files, each says 42, and you told the organiser.
 ::: {.notes}
 The setup check proves the tools are installed; this proves they work together, which is
 what the first hour needs: the agent is signed in, can write a file and run commands
-you approve, uv builds a project environment, Quarto runs Python through it, and Typst
+you approve (OpenCode runs them without asking), uv builds a project environment, Quarto runs Python through it, and Typst
 writes a PDF. It also fills uv's cache, so Part 1's environment step is quicker. Use
-`codex` or `agy` instead of `claude` if that is your agent. Ask participants to confirm
+`codex`, `agy` or `opencode` instead of `claude` if that is your agent. Ask participants to confirm
 before the day (a reply to the invitation is enough) and follow up with anyone who has not,
 or whose run failed: these are the problems that otherwise surface in Part 1's first block.
 Every render prints `[IPKernelApp] WARNING | Kernel is running over TCP without encryption`;
@@ -1203,7 +1228,7 @@ model + harness in your terminal
 The model is the language model (for example Claude, GPT or Gemini). The harness is the
 program around it: it gives the model tools to read and write files, run commands and
 search, asks you to approve actions, and feeds results back in a loop. The tools on the
-install slide (Claude Code, Codex, Antigravity) are harnesses; many can run several models, so
+install slide (Claude Code, Codex, Antigravity, OpenCode) are harnesses; many can run several models, so
 the same harness behaves differently with a different model, and the same model behaves
 differently in a different harness. That is why the next slide is about choosing a model, and
 why no model is always right: check its work (the "you direct and check" rule).
@@ -1220,26 +1245,33 @@ why no model is always right: check its work (the "you direct and check" rule).
 | **✳️ Claude Code** | `claude` | Anthropic | Claude |
 | **🌀 Codex** | `codex` | OpenAI (also makes ChatGPT) | GPT |
 | **♊ Antigravity** | `agy` | Google | Gemini |
+| **🔓 OpenCode** | `opencode` | open source | any: you pick |
 
 : {tbl-colwidths="[26,16,32,26]"}
 
 :::
 
-✅ The first three are installed in Step 3 · pick **one**
+✅ All four are on Step 3's install slide · pick **one**
 
 ::: {.check}
 💬 Same company for harness and model: does that mean it is the best fit for your task?
 :::
 
 ::: {.notes}
-Each harness comes from a company, and the first three are made by the same company
-as their default models: Claude Code by Anthropic (Claude models), Codex by OpenAI, which also
+Each of the first three harnesses is made by the same company as its default models: Claude Code by Anthropic (Claude models), Codex by OpenAI, which also
 makes the ChatGPT chat app (GPT models), and Antigravity, whose command is `agy`, by Google
-(Gemini models). Antigravity replaced Gemini CLI for unpaid-tier and Google One users on
+(Gemini models). OpenCode is an open-source harness (MIT licence,
+https://github.com/anomalyco/opencode) tied to no model vendor: after `/connect` you pick any
+connected model with `/models`, including its free ones (https://opencode.ai/docs/providers/,
+checked 2026-11-20). Antigravity replaced Gemini CLI for unpaid-tier and Google One users on
 18 June 2026 (see the install slide's notes). Other agents exist (for example GitHub Copilot CLI and Cursor); we do not install or test them here, so they are left off rather than listed unchecked. Good answer to the check: not
 necessarily. The harness and the model are separate choices (previous slide); vendors' own
 pairs are the easiest to set up, but the best model for a task may come from another vendor.
-The prompts in this workshop work in any of the three installed agents. Sign-in and
+The prompts in this workshop are written for any of the four agents, but were run in Claude
+Code only and the setup screens captured in Claude Code and Codex. OpenCode is untested: its
+default agent does not ask before acting, and its sub-agents run in the background
+(https://opencode.ai/docs/agents/), so warn OpenCode users at the catch-up and 🗂️ audiences
+steps. Sign-in and
 account details are on the install slide.
 :::
 
@@ -1260,7 +1292,7 @@ account details are on the install slide.
 
 :::
 
-✅ **Enough today:** Haiku or Sonnet on **medium** · Sol on **low**
+✅ **Enough today:** Haiku or Sonnet on **medium** · Sol on **low** · 🆓 **free models** might be decent too
 
 📉 Expect the same capability **100–1000×** cheaper
 
@@ -1302,6 +1334,19 @@ https://developers.openai.com/api/docs/models,
 https://learn.chatgpt.com/docs/models. Names and prices change often: re-check this table before
 each run. Gemini, used through Antigravity, is not in the table: add it if your group uses it.
 
+🆓 Free models: this workshop's prompts are short, one task each and end in a check, so a
+free model may well manage them; if one keeps failing, the check shows it, and a stronger model is
+the fix. Two free routes: a personal Google account can use Antigravity on its free tier, with a
+quota refreshed weekly (https://antigravity.google/docs/plans, checked 2026-11-18), and
+OpenCode lists models that are free "for a limited time" once an OpenCode account is connected
+(https://opencode.ai/docs/models/, https://opencode.ai/docs/zen/, checked 2026-11-20; the list
+changes week to week, and two were withdrawn on 17 and 18 November 2026). Read each free model's
+privacy line before use: some retain prompts and use them to train or improve the model, and
+NVIDIA's trial endpoints say not to submit personal or confidential data. Use them only with
+public data such as today's, never with private or unpublished data (📜 the AI policy slide).
+No free model was run on this workshop's prompts: "might be decent" is an expectation,
+not a tested result.
+
 📉 The 100–1000× within a few years is our expectation from the trend, not a promise: at a16z's
 10× a year, 100× takes about two years and 1,000× about three. The price of a fixed level of
 capability has fallen fast: for models matching a given benchmark score, a16z measured about 10×
@@ -1339,7 +1384,7 @@ task done? **saves credits** · files stay
 
 **`/exit`** · `/quit`
 
-leave the agent · type `claude` to return
+leave the agent · type `claude` to return · OpenCode: Ctrl+C, empty prompt
 :::
 :::
 
@@ -1368,7 +1413,11 @@ command or status line (type `/` to look). These cost mechanics are written from
 instructions and files read earlier stop steering the agent and stop using up its
 context window; nothing on disk changes, and the project's `AGENTS.md` is read again. Use it
 between tasks, and when the agent seems confused. `/exit` ends the session (`/quit` does
-the same in agents that offer it; Ctrl+C twice or Ctrl+D also leave). Starting it again
+the same in agents that offer it; Ctrl+C twice or Ctrl+D also leave). OpenCode names
+them differently: `/models` picks the model, `/new` starts a fresh session in place of `/clear`,
+and Ctrl+C on an empty prompt (or Ctrl+X, then Q) quits, since it has no `/exit`; with text
+in the box, Ctrl+C first clears it
+(https://opencode.ai/docs/tui/, https://opencode.ai/docs/keybinds/, checked 2026-11-20). Starting it again
 in the folder begins a new session, and the files persist. Good answer to the check:
 `/clear`, because the new task needs none of the old chat. Type `/` alone to list the
 commands of your agent. Command names written from memory and not yet checked against the official lists
@@ -1460,11 +1509,17 @@ a small project folder keeps everything else out of reach
 
 🏠 `pwd` before you start: it prints the root
 
+⚠️ OpenCode never asks first: it edits and runs commands on its own
+
 ::: {.notes}
 When a coding agent starts it treats the current folder as its root, the default world it
 works in: it reads and edits the files there and in the folders below, and runs commands
 from there. The first time you start one in a folder it asks whether you trust that folder
-(the wording differs between Claude Code, Codex and Antigravity). Trusting it means
+(the wording differs between Claude Code, Codex and Antigravity). OpenCode asks no such
+question and, by default, does not ask before it edits files or runs commands, inside the
+folder or outside it (https://opencode.ai/docs/permissions/, checked 2026-11-20; the install
+slide's notes say how to make it ask), so with OpenCode the folder you start in matters even
+more. Trusting it means
 you allow the agent to read the files and, with your approvals, change them and run
 commands there, so trust only folders you created for the work, never a folder with other
 people's projects, private documents or keys such as `~`, `~/.ssh` or Documents. Project
