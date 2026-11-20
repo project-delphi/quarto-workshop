@@ -6,7 +6,7 @@
 workshop as a book. Download the EPUB, or read it online with the live 3-D scenes.
 
 AI-assisted reproducible publishing with Quarto. In a hands-on
-6-hour day (including two 15-minute breaks and a 30-minute meal), participants direct a coding agent (Claude Code, Codex or Antigravity)
+6-hour day (including two 15-minute breaks and a 30-minute meal), participants direct a coding agent (Claude Code, Codex, Antigravity or OpenCode)
 that writes the computations, check its work, and turn plain-text Markdown into **docx, pdf,
 pptx, revealjs slides, a website, a blog and a dashboard** (and, optionally, epub and academic white papers). Each part ends with a task that has no supplied prompt: change an input, rebuild, and explain which outputs update. The slides are the course resource: everything needed to follow along alone is
 on them.
@@ -31,8 +31,10 @@ Quick links: 📖 Book ([free e-book](https://project-delphi.github.io/quarto-wo
    [uv](https://docs.astral.sh/uv/getting-started/installation/) (it brings Python automatically), Git,
    an editor, the [GitHub CLI](https://cli.github.com/) (run `gh auth login`), and one
    coding agent ([Claude Code](https://code.claude.com/docs/en/setup),
-   [Codex](https://github.com/openai/codex) or Google's
-   [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli), `agy`).
+   [Codex](https://github.com/openai/codex), Google's
+   [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli) (`agy`) or the open-source
+   [OpenCode](https://opencode.ai/docs/) (`opencode`)). A paid plan is not required: Antigravity's free
+   tier and OpenCode's free models might be decent for the workshop's short prompts (untested; keep private data out of them).
    *Windows users:* follow the [Windows setup page](https://project-delphi.github.io/quarto-workshop/windows-setup.html) first: it installs Ubuntu (WSL) step by step, and everything afterwards happens inside Ubuntu. Mac users run `xcode-select --install` first, so the Command Line Tools pop-up does not interrupt the agent later; Ubuntu and Debian users run `sudo apt update && sudo apt install -y curl git`.
    Install one coding agent first, then ask it (the deck has the prompt) to install the other tools.
 
@@ -50,7 +52,7 @@ Quick links: 📖 Book ([free e-book](https://project-delphi.github.io/quarto-wo
    git config --global user.name "Your Name"
    git config --global user.email "you@example.com"
    ```
-   Jupyter "not available" from `quarto check` is fine: uv handles Python per project. With another agent, run `codex --version` or `agy --version` instead. Skip the `git config` lines if they are already set.
+   Jupyter "not available" from `quarto check` is fine: uv handles Python per project. With another agent, run `codex --version`, `agy --version` or `opencode --version` instead. Skip the `git config` lines if they are already set.
 
 4. **Do the 🧪 test run** ([slide](https://project-delphi.github.io/quarto-workshop/#/test-run)):
    In a terminal, create a test directory and launch your coding agent:
@@ -58,7 +60,7 @@ Quick links: 📖 Book ([free e-book](https://project-delphi.github.io/quarto-wo
    mkdir -p ~/quarto-test && cd ~/quarto-test
    claude
    ```
-   Or `codex` / `agy` instead of `claude`.
+   Or `codex` / `agy` / `opencode` instead of `claude`.
    Paste this prompt into your agent:
    ```default
    Run `uv init --bare` and `uv add ipykernel nbclient nbformat pyyaml`. Create hello.qmd (html and typst formats): a Python cell computing `6 * 7` and an inline-code sentence showing it. Render it with `uv run quarto render hello.qmd`; check hello.html and hello.pdf both say 42.

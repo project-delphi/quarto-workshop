@@ -162,7 +162,7 @@ uv run quarto publish gh-pages --no-prompt
 
 ## 6. Prompting Coding Agents Effectively
 
-To get reliable, reproducible results when working with agents (Claude Code, Codex, Antigravity):
+To get reliable, reproducible results when working with agents (Claude Code, Codex, Antigravity, OpenCode):
 
 1. **Be explicit about inputs and outputs**:
    - Name source files, target files, and specific columns in backticks (`data/visits.csv`, `year`, `visits`).

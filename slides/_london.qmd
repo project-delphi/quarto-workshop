@@ -124,7 +124,7 @@ claude
 ```
 :::
 
-or `codex` / `agy` instead of `claude`
+or `codex` / `agy` / `opencode` instead of `claude`
 :::
 ::::
 
@@ -133,7 +133,8 @@ or `codex` / `agy` instead of `claude`
 ::: {.notes}
 The catch-up reaches outside the start folder, so the agent asks permission: Claude Code
 reads it only after approval, or start it with `claude --add-dir ../quarto-workshop`
-(Codex: `codex --add-dir ../quarto-workshop`; Antigravity: approve the prompt).
+(Codex: `codex --add-dir ../quarto-workshop`; Antigravity: approve the prompt; OpenCode's default
+agent allows access outside the folder: https://opencode.ai/docs/agents/, checked 2026-11-20).
 Create `london-guide/` next to the cloned `quarto-workshop/` (not inside it), so the
 checkpoints are always at `../quarto-workshop/checkpoints/`. Start the coding agent
 inside `london-guide/`. Every hands-on slide has a copyable "Catch me up" prompt naming a
@@ -275,7 +276,7 @@ how to build and check it
 
 **Every session**
 
-Claude Code, Codex and Antigravity read it first
+Claude Code, Codex, Antigravity and OpenCode read it first
 :::
 :::
 
@@ -288,7 +289,9 @@ Claude Code, Codex and Antigravity read it first
 the start of every session, so rules written there survive a restart, a new day and a
 catch-up. Codex "reads `AGENTS.md` files before doing any work"
 (https://learn.chatgpt.com/docs/agent-configuration/agents-md); Antigravity reads
-`AGENTS.md` or `GEMINI.md` in the project's folders (https://antigravity.google/docs/rules).
+`AGENTS.md` or `GEMINI.md` in the project's folders (https://antigravity.google/docs/rules);
+OpenCode reads each `AGENTS.md` from the folder upwards, or `CLAUDE.md` where there is none
+(https://opencode.ai/docs/rules/, checked 2026-11-20).
 Claude Code (v2.1.277 or later) reads `AGENTS.md` when no `CLAUDE.md`, `.claude/CLAUDE.md`
 or `CLAUDE.local.md` is in the folder or above it, and prints "AGENTS.md loaded"; if it
 does not, ask it to create a `CLAUDE.md` containing `@AGENTS.md`
@@ -1210,7 +1213,8 @@ no two agents edit or render the same file
 
 [[Claude Code](https://code.claude.com/docs/en/sub-agents) ·
 [Codex](https://learn.chatgpt.com/docs/agent-configuration/subagents) ·
-[Antigravity](https://antigravity.google/docs/subagents?tab=cli) · checked 2026-10-31]{.source}
+[Antigravity](https://antigravity.google/docs/subagents?tab=cli) · checked 2026-10-31 ·
+[OpenCode](https://opencode.ai/docs/agents/) · checked 2026-11-20]{.source}
 
 ::: {.notes}
 A sub-agent is a separate agent session that the lead starts for one task: it has its
@@ -1224,7 +1228,9 @@ by default and starts them when asked; its docs warn that parallel edits "can cr
 conflicts" and that sub-agent runs use more tokens
 (https://learn.chatgpt.com/docs/agent-configuration/subagents). Antigravity's CLI lets its
 primary agent delegate to parallel subagents (https://antigravity.google/docs/subagents?tab=cli);
-the docs do not say a prompt can require it, so `agy` may do the tasks itself. All checked
+the docs do not say a prompt can require it, so `agy` may do the tasks itself. OpenCode's
+sub-agents run "with fresh context in their own child sessions", and it ships General and
+Explore sub-agents (https://opencode.ai/docs/agents/, checked 2026-11-20). All checked
 2026-10-31. Two rules keep parallel work safe, and the prompt states both: each sub-agent
 writes only its own files and renders nothing, and the lead renders the files one at a
 time, because two Quarto renders, or two `uv run` environment updates, in one folder can
