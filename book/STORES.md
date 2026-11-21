@@ -6,6 +6,17 @@ Both listings are free. The website edition and the GitHub downloads stay as the
 Requirements checked on Apple's and Google's own pages on 2026-11-16 (links below). Stores
 change their rules: read the linked page again if a step here no longer matches.
 
+## Live listings
+
+Both editions are on Apple Books, free, since 2026-11-17, in every storefront checked
+(us, co, gb, es, mx; iTunes lookup API, 2026-11-21):
+
+- English: <https://books.apple.com/us/book/prompt-check-publish/id6835827715>
+- Spanish: <https://books.apple.com/co/book/pide-revisa-publica/id6835859903>
+
+The landing pages' buttons read these from `APPLE_BOOKS` in `ebook/_source.py`; change them
+there, then rerun `make ebook-media STEPS=head` (and `EDITION=es`) for the JSON-LD.
+
 ## 1. Make the files (the agent can run this)
 
 ```bash

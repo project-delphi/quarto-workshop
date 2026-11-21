@@ -18,10 +18,12 @@ e = lambda s: html.escape(str(s), quote=True)  # noqa: E731
 # The page's own words, by S.LANG ("es" for ebook/es/index.qmd).
 WORDS = {
     "en": {
-        "download": "Download the EPUB", "read": "Read online, free", "how_inapp":
+        "download": "Download the EPUB", "read": "Read online, free", "apple": "Free on Apple Books",
+        "how_inapp":
         "In LinkedIn’s, Instagram’s or another app’s browser, the download often fails. Open this "
         "page in Safari or Chrome first: tap ⋯ or ⋮, then Open in browser.",
-        "how_ios": "On an iPhone or iPad: once it has downloaded, open it (Safari: tap ⬇ beside the "
+        "how_ios": "On an iPhone or iPad, the quickest way: tap {apple}, then Get. "
+        "To use the EPUB instead: once it has downloaded, open it (Safari: tap ⬇ beside the "
         "address; Chrome: tap Open in… at the bottom). If Books does not open, use the share sheet "
         "(Safari: tap Share first): tap Books in the row of apps or, if it is not there, swipe "
         "that row to its end and tap More.",
@@ -39,10 +41,12 @@ WORDS = {
         "sticky_read": "Read online", "switch": "Language",
     },
     "es": {
-        "download": "Descarga el EPUB", "read": "Léelo en línea, gratis", "how_inapp":
+        "download": "Descarga el EPUB", "read": "Léelo en línea, gratis", "apple": "Gratis en Apple Books",
+        "how_inapp":
         "En el navegador de LinkedIn, Instagram u otra app, la descarga suele fallar. Abre antes "
         "esta página en Safari o Chrome: toca ⋯ o ⋮ y elige Abrir en el navegador.",
-        "how_ios": "En un iPhone o iPad: cuando termine la descarga, ábrelo (Safari: toca ⬇ junto a la "
+        "how_ios": "En un iPhone o iPad, lo más rápido: toca {apple} y luego Obtener. "
+        "Para usar el EPUB: cuando termine la descarga, ábrelo (Safari: toca ⬇ junto a la "
         "dirección; Chrome: toca Abrir en… abajo). Si no se abre Libros, usa la hoja de compartir "
         "(Safari: toca antes Compartir): toca Libros en la fila de apps o, si no está, desliza esa "
         "fila hasta el final y toca Más.",
@@ -82,6 +86,7 @@ ICON = {
     "down": '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14"/></svg>',
     "right": '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6-6m6 6-6 6"/></svg>',
     "link": '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+    "book": '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5m0-13c2-1.5 5-2 8-1.5v13c-3-.5-6 0-8 1.5m0-13v13"/></svg>',
     "share": '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5V19M6 5.5v.01M10.5 19v-5.5a3 3 0 0 1 6 0V19m-6-9.5V19"/></svg>',
 }
 
@@ -100,6 +105,7 @@ def size(rel: str) -> tuple[int, int]:
 def cta_buttons(size_text: str, where: str) -> str:
     return f"""<div class="ctas">
   <a class="btn primary" href="{S.EPUB_URL}" data-phone="{S.epub_site_url()}" data-where="{where}">{ICON["down"]}<span>{w("download")}</span><span class="size">{size_text}</span></a>
+  <a class="btn secondary" href="{S.APPLE_URL}" data-store="apple" data-where="{where}">{ICON["book"]}<span>{w("apple")}</span></a>
   <a class="btn secondary" href="{S.BOOK_URL}">{w("read")}{ICON["right"]}</a>
 </div>"""
 
@@ -107,15 +113,20 @@ def cta_buttons(size_text: str, where: str) -> str:
 HOWTO = ("inapp", "ios", "android")
 
 
+def how(k: str) -> str:
+    """One phone's steps, naming the Apple Books button by its own label."""
+    return w("how_" + k).format(apple=w("apple"))
+
+
 def howto() -> str:
     """How to get the EPUB into a reader, for the phone or in-app browser ebook.js detects;
     hidden until then. The FAQ's "open it on my phone" answer shows all three without it."""
-    return "".join(f'<p class="howto" data-for="{k}" hidden>{e(w("how_" + k))}</p>' for k in HOWTO)
+    return "".join(f'<p class="howto" data-for="{k}" hidden>{e(how(k))}</p>' for k in HOWTO)
 
 
 def howto_faq() -> str:
     """The FAQ answer: every phone's steps, escaped as the hints are."""
-    return "<ul>" + "".join(f"<li>{e(w('how_' + k))}</li>" for k in HOWTO) + "</ul>"
+    return "<ul>" + "".join(f"<li>{e(how(k))}</li>" for k in HOWTO) + "</ul>"
 
 
 
