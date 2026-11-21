@@ -19,6 +19,10 @@ const T = document.documentElement.lang.startsWith("es")
   const inApp = /LinkedInApp|FBAN|FBAV|FB_IAB|Instagram| Line\/|MicroMessenger|Snapchat|musical_ly|BytedanceWebview|; wv\)/i.test(ua);
   const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   const phone = inApp ? "inapp" : ios ? "ios" : /Android/i.test(ua) ? "android" : "";
+  // Apple Books cannot deliver the book to an Android phone: show its button only elsewhere.
+  if (/Android/i.test(ua)) {
+    document.querySelectorAll('a[data-store="apple"]').forEach((a) => { a.hidden = true; });
+  }
   if (phone) {
     document.querySelectorAll(`.howto[data-for="${phone}"]`).forEach((el) => { el.hidden = false; });
     // In-app web views may not handle a file served to display: they keep the release link.

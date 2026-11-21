@@ -442,7 +442,8 @@ def head_html() -> str:
              "encodingFormat": "application/epub+zip", "url": EPUB_URL},
             {"@type": "Book", "bookFormat": "https://schema.org/EBook",
              "encodingFormat": "text/html", "url": m["site_url"]},
-            {"@type": "Book", "bookFormat": "https://schema.org/EBook", "url": APPLE_URL},
+            {"@type": "Book", "bookFormat": "https://schema.org/EBook",
+             "encodingFormat": "application/epub+zip", "url": APPLE_URL},
         ],
     }
     e = lambda s: html.escape(s, quote=True)  # noqa: E731

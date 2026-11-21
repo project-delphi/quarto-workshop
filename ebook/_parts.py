@@ -22,7 +22,7 @@ WORDS = {
         "how_inapp":
         "In LinkedIn’s, Instagram’s or another app’s browser, the download often fails. Open this "
         "page in Safari or Chrome first: tap ⋯ or ⋮, then Open in browser.",
-        "how_ios": "On an iPhone or iPad, the quickest way: tap Free on Apple Books, then Get. "
+        "how_ios": "On an iPhone or iPad, the quickest way: tap {apple}, then Get. "
         "To use the EPUB instead: once it has downloaded, open it (Safari: tap ⬇ beside the "
         "address; Chrome: tap Open in… at the bottom). If Books does not open, use the share sheet "
         "(Safari: tap Share first): tap Books in the row of apps or, if it is not there, swipe "
@@ -45,7 +45,7 @@ WORDS = {
         "how_inapp":
         "En el navegador de LinkedIn, Instagram u otra app, la descarga suele fallar. Abre antes "
         "esta página en Safari o Chrome: toca ⋯ o ⋮ y elige Abrir en el navegador.",
-        "how_ios": "En un iPhone o iPad, lo más rápido: toca Gratis en Apple Books y luego Obtener. "
+        "how_ios": "En un iPhone o iPad, lo más rápido: toca {apple} y luego Obtener. "
         "Para usar el EPUB: cuando termine la descarga, ábrelo (Safari: toca ⬇ junto a la "
         "dirección; Chrome: toca Abrir en… abajo). Si no se abre Libros, usa la hoja de compartir "
         "(Safari: toca antes Compartir): toca Libros en la fila de apps o, si no está, desliza esa "
@@ -105,7 +105,7 @@ def size(rel: str) -> tuple[int, int]:
 def cta_buttons(size_text: str, where: str) -> str:
     return f"""<div class="ctas">
   <a class="btn primary" href="{S.EPUB_URL}" data-phone="{S.epub_site_url()}" data-where="{where}">{ICON["down"]}<span>{w("download")}</span><span class="size">{size_text}</span></a>
-  <a class="btn secondary" href="{S.APPLE_URL}" data-where="{where}">{ICON["book"]}<span>{w("apple")}</span></a>
+  <a class="btn secondary" href="{S.APPLE_URL}" data-store="apple" data-where="{where}">{ICON["book"]}<span>{w("apple")}</span></a>
   <a class="btn secondary" href="{S.BOOK_URL}">{w("read")}{ICON["right"]}</a>
 </div>"""
 
@@ -113,15 +113,20 @@ def cta_buttons(size_text: str, where: str) -> str:
 HOWTO = ("inapp", "ios", "android")
 
 
+def how(k: str) -> str:
+    """One phone's steps, naming the Apple Books button by its own label."""
+    return w("how_" + k).format(apple=w("apple"))
+
+
 def howto() -> str:
     """How to get the EPUB into a reader, for the phone or in-app browser ebook.js detects;
     hidden until then. The FAQ's "open it on my phone" answer shows all three without it."""
-    return "".join(f'<p class="howto" data-for="{k}" hidden>{e(w("how_" + k))}</p>' for k in HOWTO)
+    return "".join(f'<p class="howto" data-for="{k}" hidden>{e(how(k))}</p>' for k in HOWTO)
 
 
 def howto_faq() -> str:
     """The FAQ answer: every phone's steps, escaped as the hints are."""
-    return "<ul>" + "".join(f"<li>{e(w('how_' + k))}</li>" for k in HOWTO) + "</ul>"
+    return "<ul>" + "".join(f"<li>{e(how(k))}</li>" for k in HOWTO) + "</ul>"
 
 
 
