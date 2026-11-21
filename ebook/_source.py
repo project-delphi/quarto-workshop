@@ -32,6 +32,11 @@ EPUB_URL = f"{REPO}/releases/latest/download/{EPUB_NAME}"
 # Links inside the site are relative to docs/ebook/, so they work locally and when published.
 BOOK_URL = "../book/"
 DECK_URL = "../"
+# Each edition's free Apple Books listing (book/STORES.md); both are sold in every storefront,
+# and Apple sends a reader to their own country's store.
+APPLE_BOOKS = {"en": "https://books.apple.com/us/book/prompt-check-publish/id6835827715",
+               "es": "https://books.apple.com/co/book/pide-revisa-publica/id6835859903"}
+APPLE_URL = APPLE_BOOKS["en"]
 
 OG_IMAGE = "media/og-image.png"
 OG_SIZE = (1200, 627)
@@ -57,7 +62,7 @@ MONTHS_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "ag
 
 def use(lang: str) -> None:
     """Point the page at one edition: "en" (book/) or "es" (book-es/)."""
-    global LANG, BOOK, BOOK_DIR, PAGE_DIR, SHARED, HEAD, PAGE_URL, EPUB_NAME, EPUB_URL, BOOK_URL, DECK_URL
+    global LANG, BOOK, BOOK_DIR, PAGE_DIR, SHARED, HEAD, PAGE_URL, EPUB_NAME, EPUB_URL, BOOK_URL, DECK_URL, APPLE_URL
     if lang != "es":
         return
     LANG, BOOK_DIR, BOOK = "es", "book-es", ROOT / "book-es"
@@ -66,6 +71,7 @@ def use(lang: str) -> None:
     EPUB_NAME = "prompt-check-publish-es.epub"
     EPUB_URL = f"{REPO}/releases/latest/download/{EPUB_NAME}"
     BOOK_URL, DECK_URL = "../../book/es/", "../../"
+    APPLE_URL = APPLE_BOOKS["es"]
 
 
 def epub_site_url() -> str:
@@ -436,6 +442,7 @@ def head_html() -> str:
              "encodingFormat": "application/epub+zip", "url": EPUB_URL},
             {"@type": "Book", "bookFormat": "https://schema.org/EBook",
              "encodingFormat": "text/html", "url": m["site_url"]},
+            {"@type": "Book", "bookFormat": "https://schema.org/EBook", "url": APPLE_URL},
         ],
     }
     e = lambda s: html.escape(s, quote=True)  # noqa: E731
