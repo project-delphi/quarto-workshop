@@ -141,15 +141,15 @@ facts that change, Appendix K) when that file changes. Run `make book-fresh` aft
   side in the HTML edition. `grid(3, square=True)` lays three panels out 2 × 2 in the EPUB, so
   the chart is not taller than a page; the cell then unpacks four axes.
 - A picture given a width above 40% (a screenshot or a page of a PDF) gets the class `scaled`,
-  which widens it to the column on a phone. No image is shown taller than 60% of the screen
-  (`max-height: 60vh`, without distorting it).
+  which widens it to the column on a phone. No image is shown taller than 55% of the screen
+  (`max-height: 55vh`, without distorting it).
 - **One page per unit** (PLAN-improvement.md §3). A unit is the smallest piece the EPUB keeps
   whole: a table, figure, quote, code block, aside, story, card, half of a Pause and think
   (question; answer), part of an agent box (prompt; agent; you), item of an opener or key
   ideas. The larger boxes may break between their units. `make book-pages` lays each chapter
   out page by page and fails if a unit splits, or is taller than its budget in
   `pagefit.yml`, at phone size with 16 px text: 0.45 of a page for text, tables and code,
-  0.6 for a prompt, 0.65 for a figure. The budgets leave room for larger text and for the
+  0.6 for a prompt, 0.7 for a figure. The budgets leave room for larger text and for the
   Spanish edition, which runs about 10% longer; Spanish can only condense its wording, not
   change a unit, since `translation/compare.py` keeps the two editions' structure the same.
   Rules of thumb at that size: an aside, story or card of at most about 80 words; a Pause and

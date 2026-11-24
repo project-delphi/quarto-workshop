@@ -70,11 +70,11 @@ book-shots:
 ## book-pages: lay the EPUB out page by page as e-readers do, and fail if a table, figure, quote,
 ## box or code block splits over two pages or runs over its budget (book/pagefit.yml). The report
 ## is _book/pages/<edition>.md. EDITION=es checks the Spanish EPUB, PAGES_EPUB=… another (a store
-## EPUB), ONLY="chapters/slides.qmd ch019" some chapters; PAGES_FLAGS=--report-only never fails.
-PAGES_EPUB ?= $(if $(filter es,$(EDITION)),../$(EPUB_ES),$(EPUB:$(BOOK)/%=%))
+## EPUB; a path from the repository root), ONLY="chapters/slides.qmd ch019" some chapters; PAGES_FLAGS=--report-only never fails.
+PAGES_EPUB ?= $(if $(filter es,$(EDITION)),$(EPUB_ES),$(EPUB))
 book-pages:
 	cd $(BOOK) && uv run --with playwright python scripts/paginate_epub.py --self-test
-	cd $(BOOK) && uv run --with playwright python scripts/paginate_epub.py $(PAGES_EPUB) \
+	cd $(BOOK) && uv run --with playwright python scripts/paginate_epub.py $(abspath $(PAGES_EPUB)) \
 	  $(if $(ONLY),--only $(ONLY)) $(PAGES_FLAGS)
 
 ## book-publish: copy the HTML edition and the EPUB into docs/book/ for GitHub Pages

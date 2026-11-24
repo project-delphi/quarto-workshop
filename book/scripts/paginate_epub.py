@@ -119,7 +119,7 @@ MEASURE = """([side, W, top, pageH, visualSel]) => {
 
   const kind = e => {
     const tag = e.tagName.toLowerCase();  // XHTML keeps tag names in lower case
-    if (e.matches('.agent-box > .prompt')) return 'prompt';
+    if (e.matches('.agent-box > .prompt, .agent-box')) return 'prompt';
     if (tag === 'table' || (tag === 'figure' && e.querySelector('table'))) return 'table';
     if (tag === 'figure' || tag === 'img') return 'figure';
     if (e.matches('div.sourceCode, pre, .transcript')) return 'code';
@@ -183,10 +183,23 @@ def chapter_files(book: Path) -> list[str]:
     return [*profile["book"]["chapters"], *profile["book"].get("appendices", [])]
 
 
-def find_book(epub: Path) -> Path:
+def epub_language(epub: Path) -> str:
+    """The EPUB's dc:language ("en-GB", "es"), from its package file."""
+    with zipfile.ZipFile(epub) as z:
+        opf = next((n for n in z.namelist() if n.endswith(".opf")), None)
+        text = z.read(opf).decode("utf-8") if opf else ""
+    start = text.find("<dc:language")
+    return text[text.find(">", start) + 1:text.find("</dc:language>", start)].strip() if start >= 0 else ""
+
+
+def find_book(epub: Path, spanish: bool) -> Path:
+    """The book project whose chapter list the EPUB follows: the first folder above the EPUB
+    with a _quarto-epub.yml, or, for a Spanish EPUB found under book/ (a store edition is
+    made there), its sibling book-es/."""
     for parent in epub.resolve().parents:
         if (parent / "_quarto-epub.yml").exists():
-            return parent
+            sibling = parent.with_name(parent.name + "-es")
+            return sibling if spanish and not parent.name.endswith("-es") and sibling.exists() else parent
     sys.exit(f"paginate_epub: no _quarto-epub.yml above {epub}; pass --book")
 
 
@@ -215,7 +228,8 @@ def main() -> None:
         return
     args = ap.parse_args()
 
-    book = (args.book or find_book(args.epub)).resolve()
+    spanish = epub_language(args.epub).startswith("es")
+    book = (args.book or find_book(args.epub, spanish)).resolve()
     here = Path(__file__).resolve().parents[1]  # book/, where pagefit.yml lives
     config = yaml.safe_load((args.config or here / "pagefit.yml").read_text(encoding="utf-8"))
     budgets = config["budgets"]
@@ -223,7 +237,7 @@ def main() -> None:
     units_sel = f"{UNITS}, {AGENT_BOX[agent_box]}"
     extra = args.extra_css.read_text(encoding="utf-8") if args.extra_css else ""
     sources = chapter_files(book)
-    edition = ("es" if book.name.endswith("-es") else "en") + ("-store" if "store" in args.epub.parts else "")
+    edition = ("es" if spanish else "en") + ("-store" if "store" in args.epub.parts else "")
     out = (args.out or book / "_book" / "pages").resolve()
     shots = out / f"{edition}-shots"
     out.mkdir(parents=True, exist_ok=True)
@@ -271,7 +285,8 @@ def main() -> None:
                 page = chapter.pop("_page", None)
                 if page:
                     p = PROFILES[BUDGET_PROFILE]
-                    for start in sorted({u["start"] for u in chapter["failures"] if u["profile"] == BUDGET_PROFILE}):
+                    for start in sorted({u["start"] for u in chapter["failures"] if u["profile"] == BUDGET_PROFILE
+                                         and not u.get("excepted") and u["start"] >= 0}):
                         page.evaluate(f"window.scrollTo({start * p.width}, 0)")
                         page.screenshot(path=str(shots / f"{f.stem}-p{start + 1:02d}.png"))
                     page.close()
@@ -315,17 +330,21 @@ def summarise(results: dict, config: dict, profiles: list[str]) -> str:
     lines = [f"# Page fit: {results['edition']} edition", "",
              f"Agent boxes measured as {results['agent_box']}; budgets at {BUDGET_PROFILE}: "
              + ", ".join(f"{k} {v}" for k, v in config["budgets"].items()) + ".", "",
+             "Split and Over budget leave out units excepted in pagefit.yml.", "",
              "| Profile | Pages | Units | Split | Over budget | Pages > ⅓ blank | ≥ ½ blank | Walls | Words |",
              "|---|--:|--:|--:|--:|--:|--:|--:|--:|"]
     for pname in profiles:
         ms = [(c, c["profiles"][pname]) for c in chapters.values() if pname in c["profiles"]]
         units = [u for _, m in ms for u in m["units"]]
+        rules = config.get("exceptions") or []
+        split = sum(u["pages"] > 1 and not any(matches(r, c["source"], u) for r in rules)
+                    for c, m in ms for u in m["units"])
         over = [u for c in chapters.values() for u in c["failures"]
                 if u["profile"] == pname and "budget" in u["why"] and not u.get("excepted")]
         gaps = [g for _, m in ms for g in m["gaps"]]
         walls = [w for c, m in ms if c["source"] not in walls_exempt for w in m["walls"]]
         lines.append(f"| {pname}{' (gate)' if PROFILES[pname].gate else ''} | {sum(m['pages'] for _, m in ms)} "
-                     f"| {len(units)} | {sum(u['pages'] > 1 for u in units)} | {len(over)} | {len(gaps)} "
+                     f"| {len(units)} | {split} | {len(over)} | {len(gaps)} "
                      f"| {sum(g['blank'] >= 50 for g in gaps)} | {len(walls)} | {sum(m['words'] for _, m in ms)} |")
     open_ = [(k, c, u) for k, c in chapters.items() for u in c["failures"] if not u.get("excepted")]
     excepted = [(k, c, u) for k, c in chapters.items() for u in c["failures"] if u.get("excepted")]
@@ -407,15 +426,17 @@ def self_test() -> None:
         run = [sys.executable, __file__, str(epub), "--book", str(book), "--no-shots", "--out", str(book / "out")]
         ok = subprocess.run([*run, "--only", "good.qmd"], capture_output=True, text=True)
         ko = subprocess.run([*run, "--only", "bad.qmd"], capture_output=True, text=True)
-        report = (book / "out" / "en.md").read_text(encoding="utf-8")
+        failed = [u for c in json.loads((book / "out" / "en.json").read_text(encoding="utf-8"))["chapters"].values()
+                  for u in c["failures"]]
     problems = []
     if ok.returncode != 0:
         problems.append(f"a chapter that fits failed:\n{ok.stdout}{ok.stderr}")
     if ko.returncode == 0:
         problems.append("a chapter with a table taller than a page passed")
-    for want in ("tbl-tall", "split over", "prompt"):
-        if want not in report:
-            problems.append(f"the report does not mention {want!r}")
+    if not any(u["id"] == "tbl-tall" and "split over" in u["why"] for u in failed):
+        problems.append("the table taller than a page was not reported as split")
+    if not any(u["kind"] == "prompt" and "budget" in u["why"] for u in failed):
+        problems.append("the long prompt was not reported as over its budget")
     if problems:
         sys.exit("paginate_epub self-test failed:\n- " + "\n- ".join(problems))
     print("paginate_epub self-test: a fitting chapter passes; a too-tall table and a long prompt fail")
