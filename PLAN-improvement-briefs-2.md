@@ -43,6 +43,13 @@ They override the notes and briefs below where they differ.
    (L40) with the Typst message Chapter 1's Try it uses, "error: file not found", for a missing
    image. The workshop's `TROUBLESHOOTING.md` entry is removed. Older Quarto versions are not
    tested or described.
+8. **No Quarto 1.6.40 in the book** (the author, 2026-11-24: "Don't bother with older 1.6.40").
+   Chapter 9 drops story T4 and the "observed with 1.6.40 and not re-tested with 1.10.20"
+   aside (`07-publish.qmd` ~250–262): the first publish is the reader's, typed in the
+   terminal, because Quarto's GitHub Pages guide asks for one local publish before automated
+   ones (https://quarto.org/docs/publishing/github-pages.html; D2 opens the page and dates
+   the check); later updates can be the agent's with `--no-prompt`. No other chapter adds a
+   note about an older version.
 
 ## Notes that cross packages
 
@@ -783,7 +790,7 @@ and the "not re-tested" aside out of the way of the second.
 
 (62 words.) The GitHub and GitHub Pages clause moves to §9.2.
 
-### Story box (T4), in §9.4 in place of L255–258
+### Story box (T4), in §9.4 in place of L255–258 — DROPPED by lead decision 8; keep the section's trim without it
 
 ```markdown
 ::: story
