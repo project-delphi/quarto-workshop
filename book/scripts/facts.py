@@ -33,7 +33,7 @@ def facts() -> dict:
 
 
 # The keys whose values are English words, each of which must have its `_es` twin.
-WORDS = ("title", "label", "text", "caption", "note", "for", "free")
+WORDS = ("title", "label", "text", "caption", "note", "for", "free", "trains", "kept")
 
 
 def localised(d: dict, lang: str | None = None) -> dict:
@@ -63,9 +63,10 @@ def _date(value) -> str:
     return value.isoformat() if isinstance(value, dt.date) else str(value)
 
 
-def fact(key: str, capital: bool = False) -> str:
-    """The fact's text, as it reads in a sentence; `capital=True` where it starts one."""
-    text = entry(key)["text"]
+def fact(key: str, capital: bool = False, field: str = "text") -> str:
+    """The fact's text, as it reads in a sentence; `capital=True` where it starts one. `field`
+    picks another phrase of the entry, such as a data entry's short `trains` or `kept`."""
+    text = entry(key)[field]
     return text[0].upper() + text[1:] if capital else text
 
 
