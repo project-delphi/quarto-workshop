@@ -1,0 +1,38 @@
+# Page fit: what scripts/paginate_epub.py (make book-pages) holds the EPUB to
+# (PLAN-improvement.md §1 and §3). Both editions use this file.
+
+# How agent boxes are measured: "parts" (prompt, agent and you each kept whole; the box may break
+# between them) or "whole" (the box kept on one page). It must match epub.css.
+agent_box: parts
+
+# A unit's natural height, in pages, at phone size with 16 px text. Text grows with the
+# reader's text size and Spanish runs about 10% longer, so these leave room for both.
+budgets:
+  text: 0.45      # asides, story boxes, cards, Pause and think halves, opener and key-ideas items
+  table: 0.45
+  code: 0.45      # code blocks and terminal transcripts
+  prompt: 0.6     # the prompt part of an agent box: copied whole, so allowed a little more
+  figure: 0.7     # images do not grow with the text size; epub.css caps them at 55vh (0.61 page
+                  # on a phone), so a capped image with a two-line caption fits
+  figure_tablet: 0.8
+
+# Units allowed to split or run over budget, each with its reason. `unit` is a figure or table
+# id, a section id, the unit's first words, or "*" for the whole file.
+exceptions:
+  - file: appendices/j-glossary.qmd
+    unit: "*"
+    reason: a flowing definition list read by looking up one entry; each entry is short
+  - file: back-cover.qmd
+    unit: "*"
+    reason: the EPUB's last page is one full-page image of the back cover, by design
+
+# Pages without a figure, table, box, quote or code are expected here.
+walls_exempt:
+  - appendices/j-glossary.qmd
+  - appendices/k-facts.qmd
+
+# Screenshots of rendered pages: figure id (or the start of the alt text) -> the height of the
+# page's body text in the image's own pixels, from its capture script. The report multiplies it
+# by the scale the image is shown at, and flags text a reader sees smaller than min_text_px.
+screenshots: {}
+min_text_px: 9

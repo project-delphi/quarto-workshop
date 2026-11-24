@@ -21,6 +21,16 @@
 --    It is labelled "Pause and think"; the answer goes in a .think-answer div labelled
 --    "Answer", set apart so a reader can stop and answer first.
 -- 7. Key ideas. ::: keyideas holds a chapter summary's list of takeaways; it only styles them.
+-- 11. Stories. ::: story is a short incident a reader could meet in that chapter, labelled
+--    "From the build log" (true, with a <!-- source: … --> comment naming where it is recorded),
+--    or, with the class .illustration, "An illustration" (a composite scene with no invented
+--    numbers or results). PLAN-improvement.md §2, D2.
+-- 12. Cards. ::: cards holds a definition list; each term and its definitions become one
+--    .card, which the EPUB keeps on one page while the list may break between cards (a table
+--    too long for a page, set as cards). A title="…" attribute adds a label kept with the
+--    first card; ::: {.cards .ledger title="…"} is Part V's Tunja ledger.
+-- 13. Payoff. ::: payoff holds the picture of a chapter's finished output, labelled
+--    "What you will build", kept with the picture.
 
 -- 10. Language. Every label above is written in the document's `lang`: English, or the
 --    Spanish edition's (book-es/, translation/glossary.md) when `lang` starts "es".
@@ -32,6 +42,7 @@ local LABELS = {
     done = "You’re done when", stuck = "Stuck for two minutes?",
     catchup = "Paste this into your agent. It backs up your work and brings the project to "
       .. "this point; then carry on from here.",
+    story = "From the build log", illustration = "An illustration", payoff = "What you will build",
   },
   es = {
     prompt = "Pídele a tu agente", agent = "Probablemente ejecute", you = "Tú haces",
@@ -40,6 +51,8 @@ local LABELS = {
     done = "Terminaste cuando", stuck = "¿Dos minutos sin avanzar?",
     catchup = "Pega esto en tu agente. Respalda tu trabajo y lleva el proyecto hasta "
       .. "este punto; luego sigue leyendo desde aquí.",
+    story = "De la bitácora del proyecto", illustration = "Una ilustración",
+    payoff = "Lo que vas a construir",
   },
 }
 local L = LABELS.en
@@ -153,9 +166,43 @@ local function think(div)
   return div
 end
 
+-- ::: story: a labelled incident, true or an illustration.
+local function story(div)
+  div.content:insert(1, labelled(div.classes:includes("illustration") and L.illustration or L.story))
+  return div
+end
+
+-- ::: cards: each definition-list item becomes a .card (its term, then its definitions).
+local function cards(div)
+  local out = pandoc.Blocks({})
+  if div.attributes.title then
+    out:insert(labelled(div.attributes.title))
+    div.attributes.title = nil
+  end
+  for _, block in ipairs(div.content) do
+    if block.t == "DefinitionList" then
+      for _, item in ipairs(block.content) do
+        local card = pandoc.Blocks({ pandoc.Div({ pandoc.Plain(item[1]) }, pandoc.Attr("", { "card-term" })) })
+        for _, def in ipairs(item[2]) do card:extend(def) end
+        out:insert(pandoc.Div(card, pandoc.Attr("", { "card" })))
+      end
+    else
+      out:insert(block)
+    end
+  end
+  div.content = out
+  return div
+end
+
 local function aside(div)
   if div.classes:includes("opener") then return opener(div) end
   if div.classes:includes("think") then return think(div) end
+  if div.classes:includes("story") then return story(div) end
+  if div.classes:includes("cards") then return cards(div) end
+  if div.classes:includes("payoff") then
+    div.content:insert(1, labelled(L.payoff))
+    return div
+  end
   for name, spec in pairs(ASIDE) do
     if div.classes:includes(name) then
       div.classes:insert(1, spec[1])

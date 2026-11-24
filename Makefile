@@ -11,7 +11,7 @@ EPUBCHECK_JAR := $(EPUBCHECK_DIR)/epubcheck-$(EPUBCHECK_VERSION)/epubcheck.jar
 QUARTO_BOOK := cd $(BOOK) && JUPYTER_PATH="$$PWD/.venv/share/jupyter" uv run quarto
 
 .PHONY: book book-sync book-html book-epub book-fresh epubcheck media book-shots book-publish deck site \
-	ebook-media ebook-check book-release book-es book-es-sync book-es-html book-es-epub book-es-fresh \
+	ebook-media ebook-check book-release book-es book-es-sync book-es-html book-es-epub book-es-fresh book-pages \
 	book-es-publish epubcheck-es book-store
 
 ## book: render the HTML and EPUB editions, post-process the EPUB, run epubcheck, check the
@@ -66,6 +66,16 @@ media:
 ## book-shots: screenshot EPUB chapters at phone and tablet widths, light and night
 book-shots:
 	cd $(BOOK) && uv run --with playwright python scripts/shoot_epub.py $(EPUB:$(BOOK)/%=%)
+
+## book-pages: lay the EPUB out page by page as e-readers do, and fail if a table, figure, quote,
+## box or code block splits over two pages or runs over its budget (book/pagefit.yml). The report
+## is _book/pages/<edition>.md. EDITION=es checks the Spanish EPUB, PAGES_EPUB=… another (a store
+## EPUB; a path from the repository root), ONLY="chapters/slides.qmd ch019" some chapters; PAGES_FLAGS=--report-only never fails.
+PAGES_EPUB ?= $(if $(filter es,$(EDITION)),$(EPUB_ES),$(EPUB))
+book-pages:
+	cd $(BOOK) && uv run --with playwright python scripts/paginate_epub.py --self-test
+	cd $(BOOK) && uv run --with playwright python scripts/paginate_epub.py $(abspath $(PAGES_EPUB)) \
+	  $(if $(ONLY),--only $(ONLY)) $(PAGES_FLAGS)
 
 ## book-publish: copy the HTML edition and the EPUB into docs/book/ for GitHub Pages
 ## (build both first: it stops before touching docs/book/ if either is missing). Quarto copies

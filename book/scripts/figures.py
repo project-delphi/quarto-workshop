@@ -68,11 +68,18 @@ def is_epub() -> bool:
     return target() == "epub"
 
 
-def grid(n: int) -> tuple[int, int]:
-    """Rows and columns for n panels: one row in HTML; in the EPUB a column, or 2 x 2 for four."""
+def grid(n: int, square: bool = False) -> tuple[int, int]:
+    """Rows and columns for n panels: one row in HTML; in the EPUB a column, or 2 x 2 for four.
+
+    square=True lays three panels out 2 x 2 in the EPUB too (the fourth cell is left for a
+    legend or a note, which the cell draws or hides), so the chart is not taller than a page
+    (PLAN-improvement.md §3.2). A cell that asks for it must unpack four axes and describe the
+    layout in its caption and alt text; cells that do not are unchanged."""
     if not is_epub() or n == 1:
         return 1, n
-    return (2, 2) if n == 4 else (n, 1)
+    if n == 4 or (square and n == 3):
+        return 2, 2
+    return n, 1
 
 
 def figsize(w: float, h: float, rows: int = 1, epub: tuple[float, float] | None = None
