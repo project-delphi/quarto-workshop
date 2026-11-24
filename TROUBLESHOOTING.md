@@ -85,12 +85,6 @@ This guide collects tested solutions for common issues encountered during the Qu
   1. Do not run manual `quarto render` commands while `quarto preview` is actively running. Quarto preview automatically detects file changes and re-renders pages on save.
   2. If switching to multi-format exports (`docx`, `pdf`, `pptx`), stop the preview server (`Ctrl+C` in the terminal where preview is running), run `uv run quarto render`, and restart preview afterward.
 
-### PDF generation fails in Typst: `cannot parse length '60px'`
-- **Cause**: Quarto's bundled Typst engine does not accept CSS pixel units (`px`) in Markdown image dimension attributes.
-- **Fix**: Use unitless numbers for height/width (which Typst parses as points) or relative percentages:
-  - ❌ Incorrect: `![](image.png){height=60px}`
-  - ✅ Correct: `![](image.png){height=60}` or `![](image.png){width="30%"}`
-
 ### Plotly charts appear twice inside Quarto Dashboard cards
 - **Cause**: A cell calls `fig.show()` or returns the figure object multiple times, causing Quarto's dashboard renderer to insert both the standard output and the returned object.
 - **Fix**: Do not call `fig.show()`. Simply assign the figure and end the cell with the figure name:

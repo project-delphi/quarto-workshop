@@ -36,6 +36,13 @@ They override the notes and briefs below where they differ.
    ("not stated") rather than filled.
 6. **Structure** (Chapters 6, 14, 15, 16, 20–21, 23; exercises V.x; the appendices as cards):
    accepted as briefed. Appendix H's new "What was not tested" section belongs to package E.
+7. **A wrong error message, found by the Chapter 1 pilot and checked by the lead.** The book says
+   `{height=60px}` makes Typst fail with "cannot parse length '60px'". Quarto 1.10.20, the only
+   version the book and its checks target, renders it without error (run 2026-11-24). D2 drops
+   the claim from Chapter 6's pitfall (`04-markdown.qmd` 681–683); E replaces Appendix D's row
+   (L40) with the Typst message Chapter 1's Try it uses, "error: file not found", for a missing
+   image. The workshop's `TROUBLESHOOTING.md` entry is removed. Older Quarto versions are not
+   tested or described.
 
 ## Notes that cross packages
 
