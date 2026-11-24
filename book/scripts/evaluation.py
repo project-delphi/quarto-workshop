@@ -71,6 +71,19 @@ def value(version: str, metric: str) -> pd.Series:
     return m[(m["version"] == version) & (m["metric"] == metric)].iloc[0]
 
 
+def rival() -> str:
+    """The release with the next-highest ROC AUC after the best one: the version whose number a
+    planted error puts under the best release's name (Chapters 3, 11 and 15, and Appendix E's
+    answers; PLAN-improvement-briefs-2.md, lead decision 1). Each plant guards that the two
+    numbers differ as printed."""
+    m = metrics()
+    auc = m[m["metric"] == "roc_auc"].sort_values("value", ascending=False)
+    best = summary()["best_version"]
+    if auc["version"].iloc[0] != best:
+        raise ValueError(f"metrics.csv ranks {auc['version'].iloc[0]} first by roc_auc, summary.json {best}")
+    return str(auc["version"].iloc[1])
+
+
 def interval(version: str, metric: str, digits: int = 3) -> str:
     """'0.799 (0.785 to 0.813)': a value and its 95% interval, as the report writes it."""
     r = value(version, metric)
