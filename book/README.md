@@ -109,6 +109,17 @@ facts that change, Appendix K) when that file changes. Run `make book-fresh` aft
   matches EPUB) and `when-format="epub"` for its EPUB stand-in.
 - Asides are divs with the classes `why`, `pitfall`, `practice` and `tryit`, turned into
   callouts by `filters/book.lua`; prompts use the deck's `prompt`, `agent` and `you` boxes.
+- Three more components (`filters/book.lua`, styled in both editions):
+  - `::: story` is a short incident a reader could meet in that chapter, after the opening
+    paragraph, never before it. Labelled "From the build log", it is true, and a
+    `<!-- source: … -->` comment inside it says where it is recorded; with the class
+    `.illustration` it is labelled "An illustration": a composite scene with no numbers or
+    results except ones a cell computes.
+  - `::: cards` holds a definition list; each term and its definitions become a card kept on
+    one page, while the list may break between cards. Use it for a table too long for a page.
+    `::: {.cards .ledger title="…"}` is Part V's Tunja ledger.
+  - `::: payoff` holds the picture of a chapter's finished output, labelled "What you will
+    build"; its text must be legible on a phone (below).
 - Every numbered chapter has the same frame, which `filters/book.lua` labels:
   - `::: opener` after the opening paragraphs: three or four objectives as a bullet list, each
     starting with a verb the reader could be checked on ("Explain", "Render", "Decide"),
@@ -127,10 +138,25 @@ facts that change, Appendix K) when that file changes. Run `make book-fresh` aft
 - Charts use `scripts/figures.py`: `style()`, and `figsize()` and `grid()` for their size and
   panels. A cell runs once per edition, so in the EPUB `figsize()` draws a chart 4.6 inches
   wide (its 11 pt labels stay legible on a phone) and `grid()` stacks panels that sit side by
-  side in the HTML edition.
+  side in the HTML edition. `grid(3, square=True)` lays three panels out 2 × 2 in the EPUB, so
+  the chart is not taller than a page; the cell then unpacks four axes.
 - A picture given a width above 40% (a screenshot or a page of a PDF) gets the class `scaled`,
-  which widens it to the column on a phone. Tables, figures and boxes ask readers not to split
-  them across pages, so each is kept to about one phone screen.
+  which widens it to the column on a phone. No image is shown taller than 60% of the screen
+  (`max-height: 60vh`, without distorting it).
+- **One page per unit** (PLAN-improvement.md §3). A unit is the smallest piece the EPUB keeps
+  whole: a table, figure, quote, code block, aside, story, card, half of a Pause and think
+  (question; answer), part of an agent box (prompt; agent; you), item of an opener or key
+  ideas. The larger boxes may break between their units. `make book-pages` lays each chapter
+  out page by page and fails if a unit splits, or is taller than its budget in
+  `pagefit.yml`, at phone size with 16 px text: 0.45 of a page for text, tables and code,
+  0.6 for a prompt, 0.65 for a figure. The budgets leave room for larger text and for the
+  Spanish edition, which runs about 10% longer; Spanish can only condense its wording, not
+  change a unit, since `translation/compare.py` keeps the two editions' structure the same.
+  Rules of thumb at that size: an aside, story or card of at most about 80 words; a Pause and
+  think question of about 60 and an answer of about 80; key-ideas items of about 25; a table
+  of about 350 characters of cell text and three columns; a prompt of about 500 characters; a
+  code block of about 18 lines once wrapped at 39 characters; a caption of two sentences; a
+  quote of about 60 words; a screenshot whose text a phone shows at 9 px or more.
 - Figures drawn in dark ink on a transparent background carry the class `on-light`, which puts
   them on a light panel in both editions, so they stay visible in night themes.
 - Prose has no emoji; the deck's emoji survive only inside quoted prompts.
@@ -216,12 +242,20 @@ Sizes in decimal units, as built on 2026-11-12 (the `md-` animations on 2026-11-
    or anchor that the website edition (or the deck) does not have, and with
    `scripts/check_scenes.py`, which fails if a live scene's data differ from the deck's.
    EPUBCheck runs with `--failonwarnings`, so a warning stops the build.
-2. `make book-shots` saves the title page, the Contents page and each EPUB chapter, screen by screen, at phone (390 × 844) and tablet
+2. `make book-pages` lays every chapter out page by page in Chrome, as Apple Books and
+   Readium-based readers do, at phone (390 × 844; 16 and 19 px text) and tablet (820 × 1180;
+   18 px) sizes, and fails if a unit splits or is over its budget (`pagefit.yml`). Its report,
+   `_book/pages/en.md` (`es.md` with `EDITION=es`), also lists pages left more than a third
+   blank and the unit pushed to the next page, runs of three pages with no figure or box, and
+   images shrunk by the height cap; `_book/pages/en-shots/` has a picture of each failing
+   page. `ONLY="chapters/slides.qmd"` checks some chapters; `PAGES_FLAGS=--report-only` never
+   fails. It uses the fonts `epub.css` names, which macOS has; CI runs it report-only.
+3. `make book-shots` saves the title page, the Contents page and each EPUB chapter, screen by screen, at phone (390 × 844) and tablet
    (820 × 1180) sizes, in a light and a simulated night theme, to `_book/shots/`, and reports
    anything that sticks out sideways. Look at the changed chapters.
-3. `scripts/shoot_html.py` does the same for HTML pages at desktop (1440 × 1000) and laptop
+4. `scripts/shoot_html.py` does the same for HTML pages at desktop (1440 × 1000) and laptop
    (1366 × 768) sizes, light and dark, and reports images that failed to load.
-4. In the HTML edition, check that each changed live scene draws and that its view buttons work.
+5. In the HTML edition, check that each changed live scene draws and that its view buttons work.
 
 ## Publishing
 

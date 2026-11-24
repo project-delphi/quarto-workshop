@@ -78,6 +78,14 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: make ebook-check
 
+      # Page fit of both EPUBs (book/README.md, "Checking a build"). Report only: the runners lack
+      # the fonts epub.css names, so pages break differently there; the gate is local.
+      - name: Page fit (report)
+        if: ${{ !env.ACT }}
+        run: |
+          make book-pages PAGES_FLAGS="--report-only --no-shots"
+          make book-pages EDITION=es PAGES_FLAGS="--report-only --no-shots"
+
       - name: Whitespace in the change
         if: github.event_name == 'pull_request'
         # The base commit, not the base branch, which may be deleted once a stacked PR merges.

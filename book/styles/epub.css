@@ -4,8 +4,11 @@
      night) stay in control. Tints use rgba so they work on any background.
    - Code wraps (no horizontal scrolling on phones).
    - Transparent figures with dark ink (diagrams, charts) get a light panel; photos do not.
-   - Tables, figures and boxes ask not to be split across two pages (page-break-inside and
-     break-inside); the chapters keep each short enough to fit one phone screen.
+   - Each unit (a table, figure, quote, code block, aside, card, half of a Pause and think,
+     part of an agent box, item of an opener or key ideas) asks not to be split across two
+     pages; the larger boxes may break between their units. scripts/paginate_epub.py (make
+     book-pages) lays every chapter out page by page and checks that each unit fits within its
+     budget (pagefit.yml), which leaves room for larger text and the Spanish edition.
    - Quarto writes some rules inline after this stylesheet (callouts, captions): rules here
      that must win use a more specific selector or !important.
    Sans-serif stack used throughout: "Avenir Next", Avenir, "Helvetica Neue", Helvetica,
@@ -43,7 +46,8 @@ a.uri { hyphens: manual; -webkit-hyphens: manual; }
 /* "Chapter 3", "Figure 1.1" and dates such as 2026-11-12 stay on one line (the post-processor
    and filters/book.lua mark them). */
 .nowrap, a.quarto-xref, .caption-label { white-space: nowrap; }
-blockquote { margin: 1em 0 1em 1em; padding-left: 0.8em; border-left: 3px solid rgba(128, 128, 128, 0.5); }
+blockquote { margin: 1em 0 1em 1em; padding-left: 0.8em; border-left: 3px solid rgba(128, 128, 128, 0.5);
+  page-break-inside: avoid; break-inside: avoid; }
 ul, ol { margin: 0 0 0.75em; padding-left: 1.4em; }
 li { margin: 0.2em 0; }
 hr { border: none; border-top: 1px solid rgba(128, 128, 128, 0.4); margin: 1.5em 0; }
@@ -111,12 +115,16 @@ div.sourceCode + dl dd { margin: 0 0 0.4em 1.2em; }
 .transcript pre { border-left-color: rgba(47, 158, 119, 0.8); }
 
 /* ---- Agent boxes: one card in up to three parts ------------------------------- */
-/* No overflow: hidden (see pre > code.sourceCode above): the parts round their own corners. */
-.agent-box { margin: 1.3em 0; border: 1px solid rgba(128, 128, 128, 0.35); border-radius: 0.4em; }
-.agent-box > div:first-child { border-top-left-radius: 0.35em; border-top-right-radius: 0.35em; }
-.agent-box > div:last-child { border-bottom-left-radius: 0.35em; border-bottom-right-radius: 0.35em; }
+/* No overflow: hidden (see pre > code.sourceCode above): the parts round their own corners.
+   The outline is drawn on the parts, not on the box: a box that breaks between two parts takes
+   up the rest of the page, so an outline on the box would run down to the foot of the page. */
+.agent-box { margin: 1.3em 0; }
 .agent-box > div { margin: 0; padding: 0.6em 0.8em 0.65em; border-left: 4px solid;
-  page-break-inside: avoid; break-inside: avoid; }
+  border-right: 1px solid rgba(128, 128, 128, 0.35); page-break-inside: avoid; break-inside: avoid; }
+.agent-box > div:first-child { border-top: 1px solid rgba(128, 128, 128, 0.35);
+  border-top-left-radius: 0.35em; border-top-right-radius: 0.35em; }
+.agent-box > div:last-child { border-bottom: 1px solid rgba(128, 128, 128, 0.35);
+  border-bottom-left-radius: 0.35em; border-bottom-right-radius: 0.35em; }
 .agent-box > div + div { border-top: 1px solid rgba(128, 128, 128, 0.25); }
 .agent-box .prompt { border-left-color: #7c5cdb; background-color: rgba(124, 92, 219, 0.09); }
 .agent-box .agent { border-left-color: #c58a1e; background-color: rgba(197, 138, 30, 0.09); font-size: 0.95em; }
@@ -160,7 +168,12 @@ div.catchup pre { margin-top: 0.2em; }
   font-size: 0.74em; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 0.4em; }
 /* In this chapter: bookended by two rules, so it reads as the chapter's map, not an aside. */
 .opener { margin: 1.4em 0 1.8em; padding: 0.8em 0 0.7em; border-top: 2px solid rgba(63, 127, 191, 0.75);
-  border-bottom: 1px solid rgba(128, 128, 128, 0.4); page-break-inside: avoid; break-inside: avoid; }
+  border-bottom: 1px solid rgba(128, 128, 128, 0.4); }
+/* The opener, key ideas and Pause and think may break between their parts, never inside one:
+   a page turn between question and answer is the moment to stop and think. */
+.opener > .box-label, .think > .box-label { page-break-after: avoid; break-after: avoid; }
+.opener > ul > li, .keyideas > ul > li, .opener-meta, .think-question, .think-answer {
+  page-break-inside: avoid; break-inside: avoid; }
 .opener > ul { margin: 0 0 0.6em; padding-left: 1.2em; }
 /* The opener's bottom rule already separates it from the first section. */
 .opener + section > h2 { border-top: none; padding-top: 0; margin-top: 1.2em; }
@@ -171,19 +184,27 @@ div.catchup pre { margin-top: 0.2em; }
 .opener-meta .meta-label { display: inline-block; width: 8.25em; text-indent: 0;
   font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 0.8em; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
-/* Pause and think: a question, then the answer set apart under a dashed rule. */
-.think { margin: 1.4em 0; padding: 0.7em 0.9em; border: 1px solid rgba(91, 107, 123, 0.4);
-  border-left: 4px solid #5b6b7b; border-radius: 0 0.35em 0.35em 0; background-color: rgba(91, 107, 123, 0.07);
-  page-break-inside: avoid; break-inside: avoid; }
+/* Pause and think: a question, then the answer set apart under a dashed rule. The box may
+   break between question and answer, so its shading and outline are drawn on the label,
+   question and answer, not on the box (which would shade the rest of the page). */
+.think { margin: 1.4em 0; }
+.think > .box-label, .think-question, .think-answer { padding-left: 0.9em; padding-right: 0.9em;
+  border-left: 4px solid #5b6b7b; border-right: 1px solid rgba(91, 107, 123, 0.4);
+  background-color: rgba(91, 107, 123, 0.07); }
+.think > .box-label { margin-bottom: 0; padding-top: 0.7em; padding-bottom: 0.4em;
+  border-top: 1px solid rgba(91, 107, 123, 0.4); border-top-right-radius: 0.35em; }
+.think-question { padding-bottom: 0.7em; }
+.think-question:last-child, .think-answer { border-bottom: 1px solid rgba(91, 107, 123, 0.4);
+  border-bottom-right-radius: 0.35em; }
 .think-question p { margin-bottom: 0.4em; }
 .think-question p:last-child { margin-bottom: 0; }
-.think-answer { margin-top: 0.7em; padding-top: 0.5em; border-top: 1px dashed rgba(128, 128, 128, 0.55);
+.think-answer { padding-top: 0.5em; padding-bottom: 0.7em; border-top: 1px dashed rgba(128, 128, 128, 0.55);
   font-size: 0.95em; }
 .think-answer > :last-child { margin-bottom: 0; }
 /* Key ideas: the summary's takeaways, numbered so the text can refer back to them, and
    bookended like the opener. */
 .keyideas { margin: 0.8em 0 1.4em; padding: 0.8em 0 0.4em; border-top: 2px solid rgba(63, 127, 191, 0.75);
-  border-bottom: 1px solid rgba(128, 128, 128, 0.4); page-break-inside: avoid; break-inside: avoid; }
+  border-bottom: 1px solid rgba(128, 128, 128, 0.4); }
 .keyideas > ul { list-style-type: decimal; padding-left: 1.6em; }
 .keyideas > ul > li { margin: 0 0 0.5em; }
 
@@ -194,7 +215,7 @@ h2.exercise .exercise-label { display: block; margin-bottom: 0.35em; font-size: 
 
 /* ---- Figures and tables -------------------------------------------------------------- */
 figure { margin: 1.3em 0; page-break-inside: avoid; break-inside: avoid; }
-figure img, img { max-width: 100%; height: auto; }
+figure img, img { max-width: 100%; height: auto; max-height: 60vh; object-fit: contain; }
 /* Beats Quarto's inline figcaption rule (a smaller, centred caption). */
 figure > figcaption, figure > figcaption.quarto-float-caption { font-size: 0.86em; line-height: 1.4; text-align: left;
   margin: 0.6em 0 0; }
@@ -208,7 +229,7 @@ img.on-light, .on-light img { background-color: #f1f0eb; padding: 0.4em; border-
 /* Screenshots and page images set at a width (filters/book.lua: "scaled") fill a phone's
    column, where a percentage of it would leave their text too small to read. */
 @media (max-width: 40em) {
-  img.scaled { width: auto !important; max-width: 100%; max-height: 40em; }
+  img.scaled { width: auto !important; max-width: 100%; }
 }
 /* Pictures of rendered pages (filters/book.lua: "screenshot") get a thin frame, so they do not
    read as the book's own text. */
@@ -227,6 +248,29 @@ thead th { font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Aria
   hyphens: manual; -webkit-hyphens: manual; }
 tr.even td { background-color: rgba(128, 128, 128, 0.06); }
 caption { font-size: 0.9em; margin-bottom: 0.4em; text-align: left; }
+
+/* ---- Stories, cards, the Tunja ledger and payoff pictures (filters/book.lua 11–13) ---------- */
+.story > .box-label, .cards > .box-label, .payoff > .box-label {
+  font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.74em; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 0.4em;
+  page-break-after: avoid; break-after: avoid; }
+.story { margin: 1.4em 0; padding: 0.7em 0.9em 0.75em; border-left: 4px solid #b0603a;
+  border-radius: 0 0.35em 0.35em 0; background-color: rgba(176, 96, 58, 0.07);
+  page-break-inside: avoid; break-inside: avoid; }
+.story.illustration { border-left-color: #8a7a5c; background-color: rgba(138, 122, 92, 0.07); }
+.story.illustration > .box-label { font-style: italic; }
+.story > p:last-child { margin-bottom: 0; }
+.cards { margin: 1.1em 0 1.3em; }
+.card { margin: 0 0 0.55em; padding: 0.5em 0.75em 0.55em; border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 0.35em; font-size: 0.95em; page-break-inside: avoid; break-inside: avoid; }
+.card-term { font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 600;
+  margin-bottom: 0.25em; }
+.card p { margin: 0 0 0.4em; }
+.card > :last-child { margin-bottom: 0; }
+.ledger { padding: 0.7em 0 0.2em; border-top: 2px solid rgba(47, 158, 119, 0.75); }
+.ledger .card { border-left: 4px solid #2f9e77; }
+.payoff { margin: 1.3em 0 1.7em; }
+.payoff figure { margin-top: 0.3em; }
 
 /* ---- Live versions: a card with the link. Chapter 6's also has a QR code, which the
    post-processor puts first, in its own paragraph, so it floats to the right of the text --- */
@@ -294,11 +338,15 @@ nav#toc li.toc-group > ol > li > a > .header-section-number { float: left; width
   div.callout.callout-important { border-left-color: #b9a0ed !important; }
   div.callout.callout-warning { border-left-color: #f08a7e !important; }
   div.done { border-left-color: #79d4b2; }
-  .think { border-left-color: #aab6c2; }
+  .think > .box-label, .think-question, .think-answer { border-left-color: #aab6c2; }
+  .story { border-left-color: #e0a07a; }
+  .story.illustration { border-left-color: #c8b896; }
+  .ledger .card { border-left-color: #79d4b2; }
 }
 
 /* ---- Back cover: the last page is one image (back-cover.qmd); its heading stays for
    assistive technology but is not drawn, and the page leaves the contents (epub_postprocess) */
 h1.back-cover { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0;
   overflow: hidden; clip: rect(0 0 0 0); border: 0; }
-img.back-cover-image { display: block; width: 100%; max-width: 100%; height: auto; margin: 0 auto; }
+img.back-cover-image { display: block; width: 100%; max-width: 100%; height: auto; max-height: 88vh;
+  margin: 0 auto; }
