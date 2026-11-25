@@ -5,7 +5,7 @@
 import pandas as pd
 
 from scripts.scenes import london_map, scene_html
-from scripts.prose import alt_text_holds, number_words
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 visits = pd.read_csv("../examples/london/data/visits.csv")
 churches = pd.read_csv("../examples/london/data/churches.csv")
@@ -25,10 +25,19 @@ alt_text_holds(len(attractions) == 10
                and attractions.loc[attractions["visits_2025"].idxmax(), "attraction"]
                .startswith("Natural History Museum")
                and (first_year, last_year) == (2015, 2025), "fig-london-dashboard")
+# The payoff's and the phone dashboard's alt texts name the top attraction and the year.
+alt_text_holds(last_year == 2025 and attractions.loc[attractions["visits_2025"].idxmax(),
+               "attraction"].startswith("Natural History Museum"),
+               "fig-london-audiences, fig-london-dashboard-phone")
 # The square advert's alt text names the top attraction and says it is free to enter.
 top_row = attractions.loc[attractions["visits_2025"].idxmax()]
 alt_text_holds(top_row["attraction"].startswith("Natural History Museum")
                and top_row["admission"].startswith("Free"), "fig-london-social")
+
+# The build-log story quotes the total in the phone-width capture of 2026-11-25
+# (media/capture/london_outputs.py, step dashboard), whose last figure ran past the box's edge.
+total_visits = f"{attractions['visits_2025'].sum():,}"
+text_holds(total_visits == "39,692,434", "the clipped total in the dashboard story")
 
 ldn = london_map()
 top_sight = ldn["top"]["place"]
@@ -36,24 +45,26 @@ top_sight_m = f"{ldn['top']['visits'] / 1e6:.1f}"
 paid_sights = " y el ".join(ldn["paid"]["place"])
 ```
 
-Corrige un dato y luego cuenta los documentos que lo repiten. Hechos a mano, un dashboard, un
-informe para socios y un folleto impreso tienen cada uno su propia copia de los mismos datos, y
-hay que encontrar y corregir cada copia. La que se pasa por alto es la que contradice a las demás
-en público.
+Alguien de la gerencia abre el dashboard entre dos reuniones y le dedica unos segundos. Un socio
+reenvía el informe a un colega sin volver a leerlo. Alguien que pasa frente a la oficina de
+turismo toma un folleto, le echa un vistazo y se lo guarda en el bolsillo. Tres lectores, tres
+vistazos, y cada uno debe quedarse con los mismos datos. Escritos a mano en cada documento, esos
+datos se vuelven tres copias; corrige una, y la copia que se pasa por alto es la que contradice a
+las demás en público.
 
-Este capítulo escribe los tres en un solo paso: un dashboard para la gerencia, un informe en Word
-y su correo de presentación para los socios, y un folleto para quienes entran de la calle. El
-dashboard y el informe leen el mismo archivo de datos, así que un conteo corregido llega a los
-dos; el folleto copia sus datos de `data/sights.csv`, una decisión a la que vuelve
-la @sec-london-change. Ninguno de los tres necesita que exista otro, y eso los convierte en el primer
-trabajo de este libro que vale la pena repartir entre varios agentes a la vez, y en la primera
-oportunidad de preguntarse cuándo eso vale lo que cuesta.
+Un documento correcto que su lector no usa también fracasó, así que este capítulo elige cada
+formato según cómo se lo va a encontrar su lector, y le pone a cada salida una sola prueba: ¿ese
+lector lo leería, y actuaría en consecuencia? Escribe los tres en un solo paso: un dashboard para
+la gerencia, un informe en Word y su correo de presentación para los socios, y un folleto A5 para
+quienes entran de la calle. Ninguno necesita que exista otro, y eso los convierte en el primer
+trabajo de este libro que vale la pena repartir entre varios agentes. El dashboard y el informe
+calculan sus cifras de visitantes a partir de los datos; los rangos de precio y las estaciones del
+folleto se copian en su texto desde `data/sights.csv`, una decisión a la que vuelve
+la @sec-london-change.
 
-Que sea correcto no basta. Un documento cumple su función solo cuando su lector se involucra con
-él, y cada lector se lo encuentra de una manera distinta: alguien de la gerencia recorre un
-dashboard en segundos, un socio reenvía un informe, alguien que pasa le echa un vistazo a un
-folleto. Así que cada formato de aquí se elige según cómo lo va a usar su lector, y la prueba para
-cada salida es la misma: ¿ese lector lo leería, y actuaría en consecuencia?
+::: payoff
+![Tres salidas al ancho de un teléfono: el primer cuadro de valor del dashboard, el comienzo del informe para socios (su fuente renderizada como página web) y la parte de arriba del folleto. Renderizadas desde `examples/london`.](../media/figures/london-audiences.png){#fig-london-audiences width=50% fig-alt="Tres recortes en inglés, uno encima de otro. Un cuadro de valor azul del dashboard con un trofeo: Most visited: Natural History Museum, y sus visitas de 2025 en cifras grandes. El título del informe para socios, Why London, sobre una viñeta con las visitas de 2025 a las diez atracciones miembro de ALVA más visitadas de Londres. La parte de arriba del folleto: Visit London, Five sights for one great day."}
+:::
 
 ::: opener
 - Elegir un formato para cada público, y configurarlo.
@@ -74,8 +85,8 @@ Punto de control
 ## El contenido una vez, un formato por público {#sec-content-once}
 
 Cada público recibe el formato que le conviene, y cada formato es una opción de configuración.
-Este capítulo hace las tres primeras salidas de la @tbl-audiences y el anuncio opcional; el
-@sec-publish hace el sitio web.
+Aquí se atiende a tres de los cinco públicos de la @tbl-audiences, a un cuarto de forma opcional,
+y al quinto, los visitantes, en el @sec-publish.
 
 | Público | Salida | Opción |
 |---|---|---|
@@ -89,9 +100,8 @@ Este capítulo hace las tres primeras salidas de la @tbl-audiences y el anuncio 
 
 **Un dashboard** es una página de gráficos y cifras clave organizados en una cuadrícula. En un
 archivo `.qmd` con `format: dashboard`, un título de nivel 1 empieza una página, un título de
-nivel 2 empieza una fila, y la salida de cada celda se convierte en una tarjeta de esa fila
-(documentación de dashboards de Quarto, consultada el 2026-10-31). El dashboard de la guía tiene
-dos páginas; su estructura, sin el código, es:
+nivel 2 empieza una fila, y la salida de cada celda se convierte en una tarjeta de esa fila. El
+dashboard de la guía tiene dos páginas; su estructura, sin el código, es:
 
 ```markdown
 # Attractions
@@ -114,8 +124,6 @@ celda. Un cuadro de valor se escribe como un *div*: un bloque de Markdown entre 
 signos de dos puntos, cuya clase entre llaves, `.valuebox`, le dice a Quarto qué hacer con él. Los
 otros bloques especiales de Quarto, como los recuadros (callouts), usan la misma sintaxis.
 
-![La página Attractions del dashboard terminado: tres cuadros de valor, las diez atracciones miembro de ALVA más visitadas de Londres en 2025 y las visitas a las cinco atracciones por año. Renderizada desde `examples/london/london-dashboard.qmd`.](../media/figures/london-dashboard.png){#fig-london-dashboard fig-alt="Un dashboard en inglés titulado London attractions dashboard, con las pestañas Attractions y Churches. Tres cuadros de valor: la atracción más visitada, el Natural History Museum, con sus visitas de 2025; el total de visitas a las diez; y cuántas de las diez tienen entrada gratuita. Debajo, un gráfico de barras horizontales de las visitas de 2025 a las diez atracciones miembro de ALVA más visitadas de Londres, y un gráfico de líneas de las visitas por año de 2015 a 2025 para cinco atracciones, con una caída profunda en 2020 y 2021."}
-
 También necesita un segundo archivo de datos. `data/visits.csv` contiene las visitas anuales a las
 cinco atracciones de `{python} first_year` a `{python} last_year`, de las tablas anuales de ALVA.
 Lo acompañan dos notas, del README de los datos. Los años 2020 y 2021 son años de pandemia, no
@@ -124,40 +132,42 @@ reabiertos, así que, para ese museo, 2024 y 2025 no son comparables con los añ
 `data/churches.csv` enumera las `{python} word(n_churches)` catedrales e iglesias de la propia
 lista de Visit London, una elección editorial sin cifras de visitantes.
 
+![La página Attractions del dashboard terminado: tres cuadros de valor, las diez atracciones miembro de ALVA más visitadas de Londres en 2025 y las visitas a las cinco atracciones por año. Renderizada desde `examples/london/london-dashboard.qmd`.](../media/figures/london-dashboard.png){#fig-london-dashboard fig-alt="Un dashboard en inglés titulado London attractions dashboard, con las pestañas Attractions y Churches. Tres cuadros de valor: la atracción más visitada, el Natural History Museum, con sus visitas de 2025; el total de visitas a las diez; y cuántas de las diez tienen entrada gratuita. Debajo, un gráfico de barras horizontales de las visitas de 2025 a las diez atracciones miembro de ALVA más visitadas de Londres, y un gráfico de líneas de las visitas por año de 2015 a 2025 para cinco atracciones, con una caída profunda en 2020 y 2021."}
+
 **Un informe en Word** convierte los títulos de Markdown en los estilos de título de Word, así que
 la copia del socio tiene un esquema navegable y enlaces que funcionan. Su correo de presentación
 no se renderiza: es un archivo de Markdown simple cuyo mensaje está en un bloque `text`, para
 copiarlo en un cliente de correo, con el informe adjunto. El correo a propósito no cita ninguna
-cifra de visitantes. Las cifras se quedan en el informe, donde se calculan y se citan, como exigen
-las reglas del proyecto.
+cifra de visitantes: se quedan en el informe, donde se calculan y se citan, como exigen las reglas
+del proyecto.
 
 **Un folleto** es un PDF de Typst de una página en papel A5. `papersize` acepta cualquiera de los
-nombres de papel de Typst (`a5`, `a4`, `us-letter`, etc.), y `margin` fija los márgenes
-(documentación de Typst de Quarto, consultada el 2026-10-30).
+nombres de papel de Typst (`a5`, `a4`, `us-letter`, etc.), y `margin` fija los márgenes.
 
-![El folleto A5 terminado, un PDF de Typst de una página. Renderizado desde `examples/london/london-flyer.qmd`.](../media/figures/london-flyer.png){#fig-london-flyer width=55% .on-light fig-alt="Una página A5 en inglés titulada Visit London, Five sights for one great day, con la fotografía del Big Ben, una tabla de las cinco atracciones con su rango de precio y su estación de metro más cercana, la Tower of London marcada Paid y las demás Free, un consejo de un local sobre los museos gratuitos y un enlace al planificador de viajes de TfL."}
+![El folleto A5 terminado, un PDF de Typst de una página (`examples/london/london-flyer.qmd`).](../media/figures/london-flyer.png){#fig-london-flyer width=55% .on-light fig-alt="Una página A5 en inglés titulada Visit London, Five sights for one great day, con la fotografía del Big Ben, una tabla de las cinco atracciones con su rango de precio y su estación de metro más cercana, la Tower of London marcada Paid y las demás Free, un consejo de un local sobre los museos gratuitos y un enlace al planificador de viajes de TfL."}
 
 ## Subagentes: una sesión principal, muchas manos {#sec-sub-agents}
 
-Las tres salidas son independientes: ninguna necesita que exista otra. Eso las hace candidatas
-para los *subagentes*, sesiones de agente separadas que tu agente inicia para una tarea cada
-una (@fig-sub-agents). Cada subagente tiene su propio contexto, hace su tarea e informa; tu
-agente, la *sesión principal*, los espera a todos y luego revisa los resultados.
+Las tres salidas son independientes, y eso las hace candidatas para los *subagentes*, sesiones de
+agente separadas que tu agente inicia para una tarea cada una (@fig-sub-agents). Cada subagente
+tiene su propio contexto, hace su tarea e informa; tu agente, la *sesión principal*, los espera a
+todos y luego revisa los resultados.
 
 ![Una sesión principal, tres subagentes. Cada uno escribe solo sus propios archivos y no renderiza nada; la sesión principal renderiza los archivos uno por uno.](../media/diagrams/sub-agents){#fig-sub-agents .on-light fig-alt="Tu agente, la sesión principal, lee el prompt e inicia tres subagentes a la vez. Cada uno tiene su propio contexto y escribe solo sus propios archivos: uno escribe london-dashboard.qmd, otro london-email.qmd y london-email-message.md, otro london-flyer.qmd. Ninguno renderiza. Cuando los tres informan, la sesión principal renderiza los tres archivos uno por uno y revisa cada uno. Tres tareas tardan más o menos lo que la más lenta, y usan más tokens."}
 
 La ganancia es tiempo: tres tareas independientes tardan más o menos lo que la más lenta de ellas.
 El costo son tokens, porque cada subagente hace su propia lectura, su propio razonamiento y sus
-propias llamadas a herramientas. Los cuatro agentes lo ofrecen de maneras distintas
-(consultado el 2026-10-31; OpenCode, el 2026-11-20). Claude Code inicia subagentes en paralelo cuando un prompt los pide.
-Codex tiene los subagentes activados por defecto y los inicia cuando se le pide, y su
-documentación advierte tanto que las ediciones en paralelo "pueden crear conflictos" como que las
-ejecuciones de subagentes usan más tokens. El agente de línea de comandos de Antigravity puede
-delegar en subagentes en paralelo, pero su documentación no dice que un prompt pueda exigirlo, así
-que puede hacer las tareas por su cuenta. Los subagentes de OpenCode corren en sus propias
-sesiones y siempre en segundo plano, y le informan al agente principal cuando cada uno queda
-inactivo; su documentación no dice que el principal los espere, así que con OpenCode comprueba
-que todos los archivos existan antes de que el principal renderice.
+propias llamadas a herramientas. Los cuatro agentes ofrecen los subagentes de maneras
+distintas (@tbl-sub-agents).
+
+| Agente | Ejecuta subagentes |
+|---|---|
+| Claude Code | en paralelo, si se le piden |
+| Codex | si se le piden (activos por defecto); su documentación advierte que las ediciones en paralelo "pueden crear conflictos" |
+| Antigravity | en paralelo, pero puede hacerlas por su cuenta |
+| OpenCode | en segundo plano: antes de renderizar, comprueba cada archivo |
+
+: Cómo ejecuta subagentes cada agente, según su documentación. {#tbl-sub-agents}
 
 Dos reglas hacen seguro el trabajo en paralelo, y el prompt de abajo dice las dos. **Cada
 subagente escribe solo sus propios archivos y no renderiza nada**, así que dos de ellos nunca tocan
@@ -165,6 +175,15 @@ el mismo archivo. **La sesión principal renderiza los archivos uno por uno**, p
 renderizados de Quarto, o dos actualizaciones del entorno por `uv run`, en la misma carpeta pueden
 chocar. Los subagentes también leen `AGENTS.md`, así que las reglas del proyecto se siguen
 aplicando a su trabajo.
+
+::: {.story .illustration}
+A dos ayudantes se les pide una página a cada uno, en la misma carpeta. Terminan y renderizan a la
+vez. Cada renderizado escribe sus archivos de trabajo con los mismos nombres, así que uno falla,
+con un mensaje sobre un archivo que su informe no menciona. La sesión principal, ante dos
+resúmenes confiados, solo ve que falta una salida. Las dos páginas estaban bien: la carpeta era
+compartida y los renderizados no se turnaron. Deja el renderizado a la sesión principal, un
+archivo a la vez.
+:::
 
 ::: practice
 Usa subagentes cuando las tareas sean independientes, sustanciales y escriban archivos distintos.
@@ -186,38 +205,91 @@ luego reparte el trabajo.
 
 ## Un prompt, tres públicos {#sec-audiences-do}
 
-::: {.prompt .long}
+El prompt hace tres cosas: dice cómo se reparte el trabajo, le da a cada subagente sus propios
+archivos para escribir y le deja el renderizado a la sesión principal. Llega en dos mensajes.
+Primero, las instrucciones para la sesión principal:
+
+::: {.prompt}
 ```default
-Ejecuta tres subagentes en paralelo, uno por elemento (¿no hay? haz los elementos uno tras otro). Cada uno lee london.qmd, data/ e images/, oculta el código, sigue AGENTS.md y solo escribe sus propios archivos: nada de renderizar. Los textos de las salidas, en inglés.
+Ejecuta tres subagentes en paralelo, uno por elemento de mi próximo mensaje (¿no hay? haz los elementos uno tras otro). Cada uno lee london.qmd, data/ e images/, oculta el código, sigue AGENTS.md y solo escribe sus propios archivos: nada de renderizar. Los textos de las salidas, en inglés. Luego renderiza tú los tres archivos .qmd, uno por uno, y revisa cada uno. Espera los elementos.
+```
+:::
+
+Luego los tres elementos, uno por recuadro. Copia el primer recuadro y pégalo en el agente, pega
+después el segundo y el tercero, y presiona Enter solo cuando estén los tres: numerados del 1 al 3,
+llegan como un solo mensaje. Si por error enviaste uno solo, envía los otros dos juntos; a la
+sesión principal se le pidió que esperara los elementos.
+
+::: {.prompt}
+```default
 1. london-dashboard.qmd (format: dashboard): página Attractions (cuadros de valor: la atracción más visitada, el total de `visits_2025`, cuántas son gratuitas; barras de Plotly por atracción; una línea de Plotly de las visitas por `year` desde data/visits.csv; termina cada celda de gráfico con `fig`, asignando `fig = fig.update_layout(…)`); página Churches (data/churches.csv, con los nombres enlazados a `visit_london`).
+```
+:::
+
+::: {.prompt}
+```default
 2. london-email.qmd: un informe docx para socios (las cifras de 2025 como código en línea, las cinco atracciones con sus enlaces oficiales, cómo moverse, fuentes); london-email-message.md: su correo de presentación en un bloque text, sin cifras.
+```
+:::
+
+::: {.prompt}
+```default
 3. london-flyer.qmd: una página A5 de Typst (papersize: a5): la foto del Big Ben, las cinco atracciones con su rango de precio y su metro más cercano, el consejo de un local.
-Luego renderiza tú los tres archivos .qmd, uno por uno, y revisa cada uno.
 ```
 :::
 
 ::: {.agent}
-inicia tres subagentes · espera · renderiza los tres archivos `.qmd` uno por uno
+espera los elementos · inicia tres subagentes · espera · renderiza los tres archivos `.qmd` uno por uno
 :::
 
 ::: {.you}
-apruebas sus comandos · abres las cuatro salidas
+envías el mensaje de la sesión principal y luego los tres elementos juntos · apruebas sus comandos · abres las cuatro salidas
 :::
 
-Los renderizados de la sesión principal son `uv run quarto render london-dashboard.qmd`, luego
-`london-email.qmd` y luego `london-flyer.qmd`, y va informando el avance de cada subagente. El
-prompt es largo porque son tres especificaciones en una, cada una tan concreta como lo sería un
-prompt individual. La sesión principal revisa cada archivo que renderiza; las revisiones de la
-oficina son tuyas. Abre cada salida como lo haría su lector: ¿alguien de la gerencia encuentra la
-atracción más visitada sin leer una oración?, ¿un socio puede reenviar el informe y su correo tal
-como están?, ¿el folleto cabe en una página A5?
+<!-- Prueba del 2026-11-25 de la versión en inglés de este prompt, literal, con los dos mensajes
+(los tres elementos como uno), en una copia del punto de control 02-london-qmd: un subagente de
+Claude Code con Sonnet 5.5 y otro con Haiku 5.5. Cada uno esperó los elementos. Ninguno pudo
+iniciar subagentes propios, así que los dos tomaron la alternativa del prompt e hicieron los
+elementos uno tras otro; la ruta en paralelo no se puso a prueba. Los dos renderizaron los tres
+archivos uno por uno: un dashboard con tres cuadros de valor y dos gráficos de Plotly, un informe
+en Word cuyas cifras coinciden con data/, y un folleto A5 de una página (el de Haiku cupo en su
+tercer renderizado). Los dos contaron "number free" como los valores de admission que empiezan con
+"Free". El primer renderizado del dashboard de Sonnet falló porque DataFrame.to_markdown necesita
+tabulate; escribió la tabla a mano. data/ e images/ quedaron sin cambios. -->
 
-Luego revisa tú las dos reglas antes de hacer commit. `git status` debería enumerar los cuatro
-archivos nuevos que nombró el prompt, `london-dashboard.qmd`, `london-email.qmd`,
-`london-email-message.md` y `london-flyer.qmd`, y nada más: ningún cambio en `london.qmd`,
-`data/` ni `images/`, y ninguno de los archivos renderizados, que `.gitignore` deja afuera. Un
-subagente que se salió de sus propios archivos aparece aquí, diga lo que diga el informe de la
-sesión principal. Luego `git add .` y haz commit con un mensaje que diga por qué.
+La sesión principal renderiza `london-dashboard.qmd`, `london-email.qmd` y luego
+`london-flyer.qmd` con `uv run quarto render`, y va informando el avance de cada subagente. Revisa
+cada archivo que renderiza; las revisiones de la oficina son tuyas, y la primera no necesita
+ninguna salida.
+
+::: think
+Tres subagentes informaron que todo salió bien. Antes de abrir nada: ¿qué debería enumerar
+`git status`, exactamente?
+
+Los cuatro archivos fuente que nombró el prompt, `london-dashboard.qmd`, `london-email.qmd`,
+`london-email-message.md` y `london-flyer.qmd`, y nada más: ningún archivo renderizado, que
+`.gitignore` deja afuera, y nada en `data/`, `images/` ni `london.qmd`. Una quinta entrada es un
+subagente que se salió de sus propios archivos, diga lo que diga el resumen de la sesión
+principal.
+:::
+
+Luego abre cada salida como lo haría su lector: ¿alguien de la gerencia encuentra la atracción más
+visitada sin leer una oración?, ¿un socio puede reenviar el informe y su correo tal como están?,
+¿el folleto cabe en una página A5?
+
+::: story
+<!-- source: book/media/capture/london_outputs.py, paso dashboard, y PLAN-improvement.md
+sección 14 (paquete M): el dashboard capturado al ancho de un teléfono el 2026-11-25. -->
+Cuando este libro capturó el dashboard terminado al ancho de un teléfono, el 2026-11-25, la última
+cifra de su total, `{python} total_visits`, se salió del borde del cuadro de valor. Nada falló: el
+renderizado pasó, y el número de la fuente era correcto. Mira cada salida al tamaño que usa su
+lector y, si los lectores de un dashboard usan teléfonos, pide los totales grandes en una forma más
+corta, como millones.
+:::
+
+![El dashboard en un teléfono: la última cifra del total queda en parte cortada.](../media/figures/london-dashboard-phone.png){#fig-london-dashboard-phone width=50% fig-alt="Tres cuadros de valor en inglés, uno encima de otro, como muestra el dashboard un teléfono. Azul: Most visited: Natural History Museum, con sus visitas de 2025. Morado: Visits to the top 10 (ALVA members), 2025, cuyo total se sale del borde derecho del cuadro, así que su última cifra queda en parte cortada. Verde: Top 10 with free entry, con cuántas de las diez son gratuitas."}
+
+Cuando pasen las tres revisiones, `git add .` y haz commit con un mensaje que diga por qué.
 
 ::: think
 Un socio pide el total de visitas de este año en el propio correo de presentación. ¿Dónde debería
@@ -228,20 +300,22 @@ simple que nunca se renderiza, así que un número escrito ahí es una copia que
 datos.
 :::
 
-::: pitfall
-"Termina cada celda de gráfico con `fig`" está ahí por una falla vista en la práctica: un gráfico
-de Plotly aparece dos veces en una tarjeta del dashboard cuando la celda llama a `fig.show()` y
-además devuelve la figura. Asigna la figura, termina la celda con su nombre, y nada más. Si la
-leyenda de un gráfico se ve cortada, pide una leyenda horizontal con un `entrywidth` fijo; si el
-folleto se pasa a una segunda página, pide una foto más pequeña.
-:::
+"Termina cada celda de gráfico con `fig`" está en el prompt por una falla vista en la práctica, la
+primera fila de la @tbl-audiences-fixes.
+
+| Ves | Pide |
+|---|---|
+| un gráfico de Plotly dos veces en una tarjeta, de una celda que llama a `fig.show()` y devuelve la figura | la figura asignada, y la celda terminada con `fig` |
+| la leyenda de un gráfico cortada | una leyenda horizontal con un `entrywidth` fijo |
+| el folleto en dos páginas | una foto más pequeña |
+
+: Tres fallas que buscar después de los renderizados, y qué pedir. {#tbl-audiences-fixes}
 
 ::: tryit
-Pega el prompt y aprueba los renderizados.
+Envía ambos mensajes; aprueba lo que pida.
 
 ::: done
-puedes abrir un dashboard de dos páginas, un informe en Word y su correo, y un folleto de una
-página.
+abres un dashboard de dos páginas, un informe en Word y su correo, y un folleto de una página.
 :::
 
 ::: catchup
@@ -273,31 +347,29 @@ los bordes, así que su página no tiene margen:
 
 ![El anuncio cuadrado terminado, con estilo de anuncio para redes sociales: una foto a sangre bajo un borde interior, un degradado que mantiene legible el texto y una llamada a la acción dorada. Renderizado desde `examples/london/london-social.qmd`.](../media/figures/london-social.jpg){#fig-london-social width=70% fig-alt="Un anuncio cuadrado en inglés. Una fotografía de la torre del reloj del Big Ben lo llena, con la aguja subiendo más allá de un borde blanco fino separado de los bordes. Sobre la parte inferior oscurecida: Visit London en letras blancas grandes, una línea dorada corta, la etiqueta Top ALVA member attraction 2025, el Natural History Museum con su conteo de visitas de 2025, una insignia dorada Free to enter a la derecha y una línea pequeña con el crédito de las visitas y de la foto."}
 
-Todo lo que hay en la página lo coloca Typst sin procesar: la foto llena el cuadrado
-(`fit: "cover"`), un rectángulo con un degradado azul marino oscurece su mitad inferior y
-`place()` ubica el borde, el texto y la insignia. Los datos se siguen calculando. Una celda de
-Python lee `attractions.csv` y los imprime como variables de Typst
-(`#let top-name = "Natural History Museum"`), que usa el diseño, así que un conteo corregido llega
-al anuncio en el siguiente renderizado como a cualquier otra salida.
+Todo lo que hay en la página lo coloca Typst sin procesar, pero los datos se siguen calculando:
+una celda de Python lee `attractions.csv` y los imprime como variables de Typst
+(`#let top-name = "Natural History Museum"`), así que un conteo corregido llega al anuncio en el
+siguiente renderizado como a cualquier otra salida.
+
+<!-- Probado con Quarto 1.10.20 y su Typst integrado el 2026-11-12. -->
 
 El anuncio terminado no tiene título ni título de nivel 1: cualquiera de los dos caería en una
-página del tamaño por defecto antes de la cuadrada. Esto se probó con Quarto 1.10.20 y su Typst
-integrado el 2026-11-12. Un bloque sin procesar es una salida de emergencia útil, y costosa: ata la
-fuente a un solo formato, así que úsalo solo para lo que la configuración del formato no puede
-expresar.
+página del tamaño por defecto antes de la cuadrada, con Quarto 1.10.20 y su Typst integrado. Un
+bloque sin procesar es una salida de emergencia útil, y costosa: ata la fuente a un solo formato,
+así que úsalo solo para lo que la configuración del formato no puede expresar.
 
-Si el anuncio no sale como una sola página cuadrada, sáltatelo: nada de lo que sigue depende de
-él. La versión terminada es `../quarto-workshop/examples/london/london-social.qmd`, que puedes
-copiar a tu carpeta y renderizar.
+Si el anuncio no sale como una sola página cuadrada, sáltatelo, o copia a tu carpeta el
+`../quarto-workshop/examples/london/london-social.qmd` terminado: nada de lo que sigue depende de
+él.
 
 ## Las atracciones en tres dimensiones (opcional) {#sec-london-3d}
 
 Los datos de la guía también se pueden dibujar como un mapa: las cinco atracciones como columnas
 tan altas como sus visitas de `{python} ldn['year']`, las `{python} word(n_churches)` iglesias de
 Visit London como marcadores bajos y los distritos de Londres alrededor del
-Támesis (@fig-london-map). Nada cambia en el proyecto: la escena se dibuja a partir de los mismos archivos.
-La columna más alta es la del `{python} top_sight`, con `{python} top_sight_m` millones de visitas;
-la única atracción de pago es la `{python} paid_sights`.
+Támesis (@fig-london-map). La columna más alta es la del `{python} top_sight`, con
+`{python} top_sight_m` millones de visitas; la única atracción de pago es la `{python} paid_sights`.
 
 ::: {.content-visible when-format="html:js"}
 ::: {#fig-london-map}
@@ -321,13 +393,12 @@ Gira el mapa por tu cuenta
 :::
 :::
 
-Cada punto, altura y límite se calcula a partir de los archivos del proyecto: las coordenadas de
-`data/places.csv` (de Wikidata, CC0), las visitas de `data/visits.csv`, los rangos de precio de
-`data/sights.csv` y los límites de los distritos de la Office for National Statistics, recortados
-en la línea de pleamar para que el Támesis, con sus mareas, aparezca como el hueco entre los
-distritos de sus dos orillas. Un script escrito para las diapositivas del taller, con la biblioteca
-three.js, solo los dibuja. Los tonos de los distritos distinguen a los vecinos y no codifican
-ningún dato.
+Cada punto, altura y límite se calcula a partir de los archivos del proyecto (las coordenadas de
+`data/places.csv`, de Wikidata, y las visitas y los rangos de precio de `visits.csv` y
+`sights.csv`) y de los límites de los distritos de la Office for National Statistics, recortados
+en la línea de pleamar para que el Támesis, con sus mareas, aparezca como el hueco entre ellos. Un
+script escrito para las diapositivas del taller, con la biblioteca three.js, solo los dibuja; los
+tonos de los distritos no codifican ningún dato.
 
 ### Pedir three.js {#asking-for-three.js}
 
@@ -343,12 +414,11 @@ Crea visits-3d.html con `three.js` desde una CDN: una barra 3-D con etiqueta por
 ![Un gráfico de barras 3-D de las visitas de 2025 a cinco atracciones miembro de ALVA, dibujado por three.js a partir de este prompt (en su versión en inglés). Una prueba de Claude Code (Opus 5.5) del 2026-11-06, siguiendo el prompt en una carpeta de pruebas; tu página se verá distinta.](../media/deck/threejs-visits.png){#fig-threejs-visits width=60% fig-alt="Un gráfico de barras 3-D sobre un piso oscuro, dibujado por three.js: las visitas de 2025 a cinco atracciones miembro de ALVA. Natural History Museum 7.1 millones, British Museum 6.4 millones, Tate Modern 4.5 millones, National Gallery 4.1 millones, Tower of London 2.8 millones."}
 
 three.js es una biblioteca de JavaScript gratuita (licencia MIT) que dibuja escenas 3-D con
-WebGL, los gráficos 3-D integrados en el navegador, así que quien lee no instala nada. Dos
-detalles del prompt importan. Pide que los números se escriban dentro de la página, porque una
-página abierta con doble clic no puede leer archivos locales. Y la página carga three.js desde una
-red de distribución de contenidos (CDN), así que necesita internet para funcionar; una página
-publicada conserva esa dependencia, y por eso este libro, como las diapositivas del taller, lleva
-su propia copia de la biblioteca.
+WebGL, los gráficos 3-D integrados en el navegador, así que quien lee no instala nada. El prompt
+pide que los números se escriban dentro de la página, porque una página abierta con doble clic no
+puede leer archivos locales, y la página carga three.js desde una red de distribución de
+contenidos (CDN), así que necesita internet; por eso este libro, como las diapositivas del taller,
+lleva su propia copia.
 
 ::: pitfall
 Un gráfico 3-D tiene que ganarse su tercera dimensión. La perspectiva hace que las barras sean más

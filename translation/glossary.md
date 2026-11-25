@@ -51,6 +51,8 @@ Conventions that apply everywhere:
 | illustration; An illustration | ilustración; Una ilustración | | `.illustration` story label |
 | What you will build | Lo que vas a construir | | `::: payoff` label |
 | card (`::: cards`) | tarjeta | | "the cards below" → "las tarjetas que siguen" |
+| dry run (of a prompt) | prueba | | "a dry run by Claude Code" → "una prueba de Claude Code"; source comments say which language's prompt was run |
+| the lead's message; the items (a prompt in two messages) | el mensaje de la sesión principal; los elementos | | Chapter 6 |
 
 ## The loop and the agent
 
@@ -276,6 +278,10 @@ Conventions that apply everywhere:
 | visitor guide | guía para visitantes | | |
 | attraction visits | visitas a atracciones | | |
 | WebGL | WebGL | EN | |
+| partner brief; covering email | informe para socios; correo de presentación | | Chapter 6's Word brief and the plain email sent with it |
+| flyer; walk-ins | folleto; quienes entran de la calle | | Chapter 6's A5 audience, gender-neutral |
+| Git, Agent and Preview tabs | pestañas de Git, del agente y de vista previa | | Chapter 4's three terminal tabs; labels **Git**, **Agente**, **Vista previa** |
+| a number out of date (the planted value) | un número con un año de atraso; desactualizado | | Part II's exercises; "stale" is "desactualizado" or "queda viejo" |
 
 ## The 2026-11 revision (professional and start-up readers)
 
