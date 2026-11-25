@@ -5,7 +5,9 @@
 # The evaluation project's results, computed by its own script (scripts/evaluation.py), and
 # the starter repository readers copy.
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
+import re
+
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 S = ev.summary()
 best = S["best_version"]
@@ -41,6 +43,12 @@ header, *rows = (ev.run() / "metrics.csv").read_text().splitlines()
 text_holds(header.split(",")[:4] == ["version", "month", "metric", "value"], "metrics.csv's first four columns")
 auc_lines = [",".join(row.split(",")[i] for i in (0, 2, 3)) for row in rows if "roc_auc" in row]
 text_holds(len(auc_lines) == len(versions), "one ROC AUC row per release in metrics.csv")
+# The payoff picture (media/capture/eval_outputs.py, step report) is checkpoint 14's report.html;
+# its alt text quotes the report's title and subtitle.
+report_head = (ev.PROJECT.parents[1] / "checkpoints" / "14-eval-start" / "report.qmd").read_text()
+alt_text_holds(dict(re.findall(r'^(title|subtitle): "(.*)"$', report_head, re.M)) == {
+    "title": "Evaluation of the contact-ranking model, v1 to v3",
+    "subtitle": "Acme Signals (a fictional company), on the UCI Bank Marketing data"}, "fig-fast-report")
 ```
 
 Somewhere in a repository you work on, a sentence states a result: in a README, on a
@@ -65,6 +73,10 @@ is what the script wrote, each release with its ROC AUC, as
 #| output: asis
 print("```text\n" + "\n".join(auc_lines) + "\n```")
 ```
+:::
+
+::: payoff
+![The report this chapter builds, at a phone's width. Rendered from `checkpoints/14-eval-start/report.qmd`.](../media/figures/eval-report.png){#fig-fast-report width=85% fig-alt="A web page at a phone's width. At the top, the report's title, Evaluation of the contact-ranking model, v1 to v3, and its subtitle, Acme Signals (a fictional company), on the UCI Bank Marketing data. Below them, the date it was published and the report's first paragraph, which names the best release, gives its ROC AUC on the held-out contacts with its interval, and says what share of the subscribers calling the top of its list reaches."}
 :::
 
 The repository is a small, realistic one: Acme Signals, a fictional two-person start-up,
@@ -163,16 +175,14 @@ uv run pytest -q
 The first command builds `.venv/` from `uv.lock`, fits the releases and writes `outputs/`;
 the second runs the tests. Neither knows anything about documents, and nothing in this
 chapter changes how they run. That is the design to keep: **one script computes the results
-once; every document reads them.** The documents can then be rebuilt, reformatted and
-reviewed without ever re-fitting a model, and a reviewer can trust that the report and the
-model card quote the same run.
+once; every document reads them**, so documents can be rebuilt and reviewed without re-fitting
+a model, and the report and the model card quote the same run.
 
 ## Rules before requests {#sec-fast-rules}
 
 Start the agent in the repository (`claude`, `codex`, `agy` or `opencode`) and give it the
-project's rules before any work. The prompt names what a rule file holds (@sec-agents-md), and asks
-the agent to read the code first, so that the rules fit this repository rather than a
-generic one:
+project's rules before any work. The prompt names what a rule file holds (@sec-agents-md) and
+has the agent read the code first, so that the rules fit this repository:
 
 ::: {.prompt}
 ```default
