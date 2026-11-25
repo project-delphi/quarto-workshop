@@ -50,15 +50,20 @@ for title, entries in sections.items():
 
 ```{python}
 #| output: asis
+# The prices as a table, which @tbl-prices names (Chapter 2), and what each vendor says its
+# model is for as cards: the quotations are sentences, too long for a table on a phone.
 prices = table("models", "prices")
-rows = ["| Model | What the vendor says it is for | Input / output, \\$ per million tokens |",
-        "|---|---|---|"]
+rows = ["| Model | Input / output, \\$ per million tokens |", "|---|---|"]
 for r in prices["rows"]:
-    rows.append(f"| {r['model']} | \"{cell(r['for'])}\" | {dollars(r['input'])} / {dollars(r['output'])} |")
+    rows.append(f"| {r['model']} | {dollars(r['input'])} / {dollars(r['output'])} |")
 print("\n".join(rows))
 print(f"\n: {prices['caption']}, checked {prices['checked']}. {{#tbl-prices}}")
-print(f"\n{cell(prices['note'])} Sources: Anthropic's [pricing]({prices['url']}) and "
-      f"[models]({prices['also'][0]}) pages and OpenAI's [models]({prices['also'][1]}) pages.")
+print(f"\n{cell(prices['note'])}\n\nWhat each vendor says its model is for:\n\n::: cards")
+for r in prices["rows"]:
+    print(f"{r['model']}\n:   \"{cell(r['for'])}\"\n")
+print(":::")
+print(f"\nSources: Anthropic's [pricing]({prices['url']}) and [models]({prices['also'][0]}) "
+      f"pages and OpenAI's [models]({prices['also'][1]}) pages.")
 ```
 
 These are *API* prices: what a program pays per token when it calls the model directly

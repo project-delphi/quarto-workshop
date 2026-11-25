@@ -156,12 +156,11 @@ and only one is right.
 #| label: team-plant
 # D5-b: the card's recall sentence with ev.rival()'s figures under the best release's name.
 S = ev.summary()
-best, rival = S["best_version"], ev.rival()
+TP = ev.team_plant()
+best, rival = TP["best"], TP["rival"]
 card = (CHECKPOINT / "model-card.qmd").read_text()
 text_holds('For `{python} best` it is `{python} interval("recall_top10")`, against a base' in card,
            "the model card's recall sentence")
-r = ev.value(rival, "recall_top10")
-text_holds(f"{r['value']:.3f}" != f"{ev.value(best, 'recall_top10')['value']:.3f}", "the planted recall")
 share = ev.percent(S["top_share"], 0)
 m = ev.metrics()
 csv_rows = m[(m["metric"] == "recall_top10") & m["version"].isin([best, rival])]
@@ -172,8 +171,8 @@ A pull request changes one sentence of the model card, the second below. Its des
 
 > The call centre calls the top `{python} share` of the list, so the business metric is recall
 > in the top `{python} share`: the share of all subscribers that those calls reach. For
-> `{python} best` it is `{python} f"{r['value']:.3f}"` (`{python} ev.percent(S["confidence"], 0)`
-> interval `{python} f"{r['low']:.3f}"` to `{python} f"{r['high']:.3f}"`), against a base rate
+> `{python} best` it is `{python} TP["value"]` (`{python} ev.percent(S["confidence"], 0)`
+> interval `{python} TP["low"]` to `{python} TP["high"]`), against a base rate
 > of `{python} ev.percent(S["base_rate"])`.
 
 The file's rows for that metric, `recall_top10`:
@@ -186,7 +185,8 @@ for _, row in csv_rows.iterrows():
 ```
 
 ::: tryit
-Review the pull request against `outputs/metrics.csv`, as its template's three checks ask.
+Review the pull request against `outputs/metrics.csv`, as its template's three checks ask;
+@sec-checkpoints has the answer.
 
 ::: done
 you can say which figure is wrong, whose it is, and which of the three checks found it.
@@ -266,7 +266,8 @@ is merged.
 ::: practice
 For this edition the check workflow was run on a local runner (act), green and then red; the
 steps that need GitHub (pushes, pull requests, the uv cache, publishing, the schedule and
-branch protection) were checked against GitHub's documentation, not run.
+branch protection) were checked against GitHub's documentation, not run ([what was not
+tested](../appendices/h-how-built.qmd#sec-not-tested)).
 :::
 
 ## Publish from `main` {#sec-team-publish}
