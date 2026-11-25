@@ -44,6 +44,20 @@ yr = prepared[prepared["year"] == tj_zero[0]]["water_coverage"]
 z_urban_median = (prepared.loc[(prepared["year"] == tj_zero[0]) & (prepared["zone"] == "urban"),
                                "water_coverage"].median() - yr.mean()) / yr.std(ddof=0)
 text_holds(tj_zero_row["z_water_coverage"] < -1 and z_urban_median > 0, "Tunja's zero as missing")
+# @tbl-tunja-steps: Tunja's piped-water coverage in the last year, as published and after each step.
+tj_pub = raw[(raw["divipola"] == "15001") & (raw["year"] == A.LAST_YEAR)].set_index("zone")
+tj_last = tjp[tjp["year"] == A.LAST_YEAR].set_index("zone")
+rural_med = prepared.loc[(prepared["year"] == A.LAST_YEAR) & (prepared["zone"] == "rural")
+                         & prepared["water_coverage_imputed"].eq(0), "water_coverage"].median()
+tj_total = tj_pub.loc["urban", "water_coverage_total"]
+text_holds(tj_pub["water_coverage"].isna().all() and tj_pub["water_coverage_total"].nunique() == 1
+           and tj_last.loc["urban", "water_coverage_from_total"] == 1
+           and tj_last.loc["urban", "water_coverage_imputed"] == 0
+           and tj_last.loc["rural", "water_coverage_imputed"] == 1
+           and tj_last.loc["rural", "water_coverage_from_total"] == 0
+           and np.isclose(tj_last.loc["urban", "water_coverage"], tj_total)
+           and np.isclose(tj_last.loc["rural", "water_coverage"], rural_med), "@tbl-tunja-steps")
+text_holds(tj_from_total == tj_imputed == n_window // 2, "Tunja's coverage filled the same way every year")
 
 # Why capitals' urban rows take the municipal total (step 2): most of a capital's people live
 # in its head town, and elsewhere the total usually exceeds the rural figure.
@@ -73,17 +87,30 @@ Z = [f"z_{c}" for c in A.FEATURES]
 zdiff = (two[Z].iloc[0] - two[Z].iloc[1]).abs()
 zdiff.index = A.FEATURES
 share_raw, share_z = diff ** 2 / (diff ** 2).sum(), zdiff ** 2 / (zdiff ** 2).sum()
+# @tbl-two-rows leaves out the features under 1% of the distance both ways, and says which.
+two_shown = [c for c in A.FEATURES if max(share_raw[c], share_z[c]) >= 0.01]
+def label_in_text(c: str) -> str:
+    """A feature's short label inside a sentence: "rural share", but "IRCA" and "MDM" as they are."""
+    label = A.SHORT_LABELS[c]
+    return label if label[1:2].isupper() else label[0].lower() + label[1:]
+
+
+left = [label_in_text(c) for c in A.FEATURES if c not in two_shown]
+text_holds(bool(left), "the features @tbl-two-rows leaves out")
+two_left = ", ".join(left[:-1]) + " and " + left[-1] if len(left) > 1 else left[0]
 text_holds(len(two) == 2 and share_raw["altitude_m"] > 0.9 and share_raw["water_coverage"] < 0.01
            and share_z["water_coverage"] > 0.1 and share_z.idxmax() == "altitude_m"
            and two["altitude_m"].iloc[0] > two["altitude_m"].iloc[1], "Tunja and Cartagena")
 ```
 
-A clustering algorithm does not read a table the way a person does. It sees numbers, measures
-distances between rows, and groups rows that are close. Everything about the result depends on
-which rows it sees, which numbers, on what scale, and what it is given where a number is
-missing. *Preparation* is the name for those decisions, and they shape the clusters as much as
-the algorithm does. Four of them stand between the water table and the clustering, and each has a
-price, counted in rows and in guesses.
+Tunja stands high in the Andes; Cartagena lies on the Caribbean coast. Put their head towns side
+by side in the water table for `{python} A.LAST_YEAR` and ask how far apart they are. In the
+table's own units, the answer is nearly all altitude: metres of height make up
+`{python} f"{share_raw['altitude_m']:.0%}"` of the squared distance between the two rows, and a
+`{python} f"{diff['water_coverage']:.0f}"`-point gap in piped water hardly registers. A clustering
+algorithm sees nothing but such distances. So before it runs, someone decides which rows it sees,
+which numbers, on what scale, and what stands in for a number that is missing. Those decisions are
+preparation, and each has a price.
 
 ::: opener
 - Explain the four preparation steps and what each one costs.
@@ -103,30 +130,23 @@ Checkpoint
 
 ## Four steps from table to features {#sec-prepare-steps}
 
-**1. Select.** Keep the years `{python} A.FIRST_YEAR` to `{python} A.LAST_YEAR`, because the
-municipal performance index (MDM), one of the features, starts in `{python} mdm_first`. Keep
-municipalities only: San Andrés has none of DNP's values and the non-municipalised areas are nearly
-empty. Keep only rows with an IRCA value, since water safety is the point of the analysis. IRCA is
-the one feature never filled: its gaps may depend on the risk itself (@sec-water-bands), so a filled
-score would be a guess at exactly what the analysis is about.
+*Preparation* takes four steps here, each with a price counted in rows or in guesses.
 
-**2. Transform.** Transfers for water per person (SGP) are heavily *skewed*: most are moderate and a
-few are very large. So the analysis uses their logarithm, which measures ratios rather than
-differences: every doubling of a transfer adds the same amount, and the few very large transfers no
-longer sit far from all the rest. Department capitals have no urban and rural split for coverage, so
-their urban rows use the municipality's total coverage instead, and a flag column records that they
-did. The total suits the urban row because most of a capital's people live in its head town
-(`{python} f"{cap_urban.median():.0%}"` in the median capital in `{python} A.LAST_YEAR`). It would
-not suit the rural row: in other municipalities the total exceeds the rural figure in
-`{python} f"{total_above_rural:.0%}"` of rural zone-years, so the capitals' rural rows are filled in
-the next step instead.
+**1. Select.** Keep the municipalities' rows from `{python} A.FIRST_YEAR` to `{python} A.LAST_YEAR`
+that have an IRCA: the municipal performance index (MDM) starts in `{python} mdm_first`, San Andrés
+and the non-municipalised areas are nearly empty, and water safety is the point. IRCA is never
+filled, because its gaps may depend on the risk itself (@sec-water-bands).
 
-**3. Impute, with flags.** To *impute* is to fill a missing value with an estimate. Drop rows missing
-more than `{python} WORD[A.MAX_MISSING]` of the `{python} WORD[len(A.FEATURES)]` features. Fill the
-remaining gaps with the median of the same year and zone, and add a flag column, such as
-`water_coverage_imputed`, that marks every filled value. The median, because a few extreme values
-cannot pull it; the same year and zone, because rural and urban zones differ (@sec-water-bands) and
-years shift.
+**2. Transform.** Transfers for water per person (SGP) are *skewed*, mostly moderate with a few very
+large, so the analysis takes their logarithm, under which every doubling adds the same amount.
+Department capitals have no urban and rural split for coverage, so their urban rows take the
+municipality's total, marked in a *flag column*.
+
+**3. Impute, with flags.** To *impute* is to fill a missing value with an estimate: rows missing
+more than `{python} WORD[A.MAX_MISSING]` of the `{python} WORD[len(A.FEATURES)]` features go, and
+the rest are filled with the median of their year and zone, each fill flagged, as in
+`water_coverage_imputed`. The median, because a few extreme values cannot pull it; the year and
+zone, because zones differ and years shift.
 
 **4. Standardise within each year.** Replace each feature by its *z-score* within its year:
 
@@ -138,21 +158,41 @@ roughly, the typical distance of a value from the mean, in the feature's own uni
 means one standard deviation above that year's average; a z-score has no unit.
 
 ::: why
-Why within each year rather than over all years? Two reasons. SGP is in nominal pesos, not adjusted
-for inflation, so its values drift upwards over time for reasons unrelated to any municipality. And
-other features shift as a whole from year to year, as rural IRCA does in @fig-wat-years.
-Standardising within each year removes both shifts. A zone is compared only with that year's other
+Why within each year? SGP is in nominal pesos, not adjusted for inflation, so it drifts upwards for
+reasons unrelated to any municipality, and other features shift as a whole from year to year, as
+rural IRCA does in @fig-wat-years. Within its year, a zone is compared only with that year's other
 zones, so a nationwide shift, real or an artefact of sampling, does not move it between clusters,
-and one clustering over all years gives labels that mean the same relative position in every year.
-The price is that a real improvement shared by every zone is invisible to the clusters too.
+and a cluster means the same relative position in every year.
 :::
+
+The price is that a real improvement shared by every zone is invisible to the clusters too.
+
+@tbl-tunja-steps follows one value through the steps: Tunja's piped-water coverage in
+`{python} A.LAST_YEAR`, in its two zones.
+
+```{python}
+#| label: tbl-tunja-steps
+#| tbl-cap: "Tunja's piped-water coverage (%) in the last year: as published, where each zone's value is empty beside the municipal total, and after each step that changes it."
+#| output: asis
+u, r = tj_last.loc["urban"], tj_last.loc["rural"]
+zu, zr = (f"z = {v:+.2f}".replace("-", "−") for v in (u["z_water_coverage"], r["z_water_coverage"]))
+print("| Step | Tunja, urban | Tunja, rural |\n|---|---|---|")
+print(f"| As published | empty; total {tj_total:.1f} | empty; total {tj_total:.1f} |")
+print(f"| Transform | takes the total, {u['water_coverage']:.1f}, flagged | unchanged |")
+print(f"| Impute | nothing to fill | {r['water_coverage']:.1f}, its year's rural median, flagged |")
+print(f"| Standardise | {zu} | {zr} |")
+```
+
+The total suits a capital's urban row because most of its people live in the head town
+(`{python} f"{cap_urban.median():.0%}"` in the median capital in `{python} A.LAST_YEAR`). It would
+not suit the rural row, since elsewhere the total exceeds the rural figure in
+`{python} f"{total_above_rural:.0%}"` of rural zone-years, so a capital's rural row waits for step 3.
 
 ::: pitfall
 Every fill is a guess, and an unflagged guess becomes indistinguishable from data. The flags make the
 guesses countable and checkable later: a cluster made mostly of imputed values would be a cluster of
-medians, not of places. The data's README says it of the capitals' coverage ("Do not do it
-silently"), and the project's `AGENTS.md`, written from that README, carries its caveats to the
-agent: nothing is filled silently.
+medians, not of places. The data's README says it of the capitals' coverage: "Do not do it
+silently."
 :::
 
 ## What the steps keep {#sec-prepare-counts}
@@ -177,14 +217,11 @@ never sampled or have no utility (@sec-water-bands). So the rural cluster that a
 *sampled* rural systems only. The imputed values are coverage values: the rural rows of capitals, and
 municipalities whose split is missing in some years.
 
-Tunja shows both treatments of a capital, and loses none of its `{python} n_window` zone-years from
-`{python} A.FIRST_YEAR` to `{python} A.LAST_YEAR`. Its `{python} tj_from_total` urban rows took the municipal total for
-coverage, flagged in `water_coverage_from_total`, and its `{python} tj_imputed` rural rows took the
-rural median of their year, flagged in `water_coverage_imputed`. The check also turns up something
-the flags do not mark: the total that the urban row for `{python} tj_zero[0]` took is the 0 that
-the Tunja section (@sec-tunja) flagged as probably "not reported". The analysis keeps it as published, as the data's README
-does. Treating such zeros as missing would be a defensible change, but one to make in `prepare()`
-and report, never silently.
+Tunja loses none of its `{python} n_window` zone-years, and each year is filled as in
+@tbl-tunja-steps. The check also turns up something the flags do not mark: the total that the urban row for `{python} tj_zero[0]` took is the 0 that @sec-tunja found
+probably "not reported". The analysis keeps it as published, as the data's README does. Treating
+such zeros as missing would be a defensible change, but one to make in `prepare()` and report,
+never silently.
 
 ::: think
 Suppose `prepare()` treated Tunja's reported 0 as missing. What would happen to that row, and to its
@@ -237,27 +274,24 @@ rainfall's, so it would dominate even rainfall; after z-scores, the log keeps a 
 transfers from sitting far from every other row, cutting the largest z-score from
 `{python} f"{z_max_raw:.1f}"` to `{python} f"{z_max_log:.1f}"`.
 
-Two real rows show what scaling changes (@tbl-two-rows): the urban zones of Tunja, high in the
-Andes, and Cartagena, on the Caribbean coast, in `{python} A.LAST_YEAR`. Both are capitals, so their
-coverage is each municipality's total. In raw units, their difference in altitude makes up
-`{python} f"{share_raw['altitude_m']:.0%}"` of their squared distance, and a
-`{python} f"{diff['water_coverage']:.0f}"`-point gap in piped-water coverage makes up less than 1%. In
-z-scores, coverage counts for `{python} f"{share_z['water_coverage']:.0%}"`, and altitude still leads,
-at `{python} f"{share_z['altitude_m']:.0%}"`, because height is where the two towns really differ
-most. Scaling does not make every difference count the same; it stops the units from deciding.
+The two rows that opened the chapter show what scaling changes (@tbl-two-rows). Both are capitals,
+so their coverage is each municipality's total. In raw units, their coverage gap makes up less than
+1% of their squared distance; in z-scores, it counts for `{python} f"{share_z['water_coverage']:.0%}"`,
+and altitude still leads, at `{python} f"{share_z['altitude_m']:.0%}"`, because height is where the
+two towns really differ most. Scaling does not make every difference count the same; it stops the
+units from deciding. The table leaves out `{python} two_left`, under 1% either way.
 
 ```{python}
 #| label: tbl-two-rows
-#| tbl-cap: "The urban zones of Tunja and Cartagena in the last year of the analysis: how far apart they are on each feature, in raw units (coverage, poverty, IRCA and MDM in points), and each feature's share of their squared distance, in raw units and in z-scores. Computed from the prepared rows."
+#| tbl-cap: "The two head towns in the last year: each feature's difference, in its unit (points are percentage points or index points; rural share and log SGP per person have none), and its share of their squared distance."
 #| output: asis
 def pct(v: float) -> str:
     return "<1%" if 0 < v < 0.005 else f"{v:.0%}"
 
 
 lines = ["| Feature | Difference | Share, raw | Share, z |", "|---|--:|--:|--:|"]
-for c in A.FEATURES:
-    unit, dp = UNIT[c]
-    d = f"{diff[c]:,.{dp}f}" + (f" {unit}" if unit in ("m", "mm") else "")
+for c in two_shown:
+    d = f"{diff[c]:,.{UNIT[c][1]}f} {UNIT[c][0]}".strip()  # units as in @sec-water-features
     lines.append(f"| {A.SHORT_LABELS[c]} | {d} | {pct(share_raw[c])} | {pct(share_z[c])} |")
 print("\n".join(lines))
 ```
@@ -272,15 +306,17 @@ cancels, because a z-score divides a distance from the mean by the standard devi
 same unit.
 :::
 
+Scaling also leaves two features that say much the same thing. Water and sewer coverage are
+strongly correlated: r = `{python} f"{r_cov:.2f}"` over the kept rows, where the correlation
+coefficient r runs from −1 to 1, and 1 would mean they rise together along a straight line.
+
 ::: practice
 Equal weight is itself a choice, not a neutral default.
 `{python} WORD[len(A.FEATURES)].capitalize()` z-scored features count equally, so the
 `{python} WORD[len(WATER)]` safety-and-coverage variables count for `{python} f"{water_share:.0%}"`
-of the distance and context for the rest. Equal weight per feature is not equal weight per idea,
-either: water and sewer coverage are strongly correlated (r = `{python} f"{r_cov:.2f}"` over the
-kept rows, where the correlation coefficient r runs from −1 to 1 and 1 would mean they rise together
-along a straight line), so what they share counts twice. If water safety should weigh more, that is
-a decision to make explicitly and report, not to leave to the units the data happened to come in.
+of the distance and context for the rest. Nor is equal weight per feature equal weight per idea:
+what the two coverages share counts twice. If water safety should weigh more, decide so explicitly
+and report it; do not leave it to the units the data happened to come in.
 :::
 
 ## Building `prepare()` {#sec-prepare-do}
@@ -317,8 +353,8 @@ In prepare(), drop rows missing more than 2 features, fill the rest with the `ye
 edits `prepare()` · `uv run python scripts/analysis.py`
 :::
 
-The finished project's version of the imputation and scaling, slightly trimmed, shows how little code
-each decision takes once it is clear:
+The finished project's imputation and scaling, slightly trimmed, show how little code each
+decision takes:
 
 ```python
 n_missing = d[FEATURES].isna().sum(axis=1)
@@ -351,6 +387,21 @@ the printed counts match @tbl-prepare-counts: `{python} w.fmt(s["kept"])` rows k
 Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md
 ```
 :::
+:::
+
+::: {.cards .ledger title="Tunja so far"}
+Kept
+: all `{python} n_window` zone-years, `{python} A.FIRST_YEAR`–`{python} A.LAST_YEAR`.
+
+Filled, and flagged
+: `{python} tj_from_total` urban rows took the municipal total for coverage;
+  `{python} tj_imputed` rural rows, their year's rural median.
+
+Not flagged
+: the 0 reported for `{python} tj_zero[0]`, kept as published.
+
+What may be said
+: the same facts, on the scale every place shares. Its rural coverage is now a guess.
 :::
 
 ## Summary {.unnumbered}

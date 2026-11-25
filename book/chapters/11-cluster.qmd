@@ -48,6 +48,7 @@ text_holds("altitude_m" in cl["pc3_top"], "the third component's altitude")
 tj_cl = clusters[clusters["divipola"] == "15001"]
 tj_in = {z: sorted(int(c) for c in tj_cl.loc[tj_cl["zone"] == z, "cluster"].unique())
          for z in ("urban", "rural")}
+text_holds(tj_in["urban"] == tj_in["rural"], "Tunja's zones sharing a cluster (the think before @sec-relief)")
 
 
 def clusters_text(cs: list[int]) -> str:
@@ -76,15 +77,15 @@ text_holds(np.isclose((X ** 2).sum(), len(X) * n_feat), "inertia of one cluster"
 # @tbl-k-selection: choose_k()'s rule, row by row.
 def verdict(j: int) -> str:
     if j < 3:
-        return "excluded: the urban–rural split"
+        return "excluded"
     if not sil_ok[j]:
-        return "silhouette too far below the best"
+        return "silhouette too low"
     if nxt[j] >= A.ELBOW_DROP:
-        return f"one more still cuts {A.ELBOW_DROP:.0%} or more"
-    return "chosen: the smallest that passes" if j == k else "passes, but larger"
+        return f"one more still cuts ≥ {A.ELBOW_DROP:.0%}"
+    return "chosen" if j == k else "passes, larger"
 
 
-if (verdict(k) != "chosen: the smallest that passes"
+if (verdict(k) != "chosen"
         or any(verdict(j).startswith("chosen") for j in ktab.index if j != k)):
     raise ValueError("choose_k()'s rule and @tbl-k-selection disagree: rewrite the verdicts")
 
@@ -113,15 +114,14 @@ text_holds(rural_c_share > 0.5 and rural_c_alt > rl["alt_med"][rural_c], "the ru
 
 The water data now have `{python} w.fmt(s["kept"])` prepared rows, each described by
 `{python} WORD[n_feat]` z-scores. Nobody can read that many rows. Clustering turns them into a few
-*kinds* that a person can name, compare and act on: these municipal zones are like each other, and
+kinds that a person can name, compare and act on: these municipal zones are like each other, and
 unlike those. An official can ask which kinds need which help; a council can see which kind its own
 zones belong to. Clustering needs no labels, so it is a first look at data nobody has categorised,
 and an odd cluster can point to a data error or a special case. What it cannot do is explain:
 clusters describe, they do not show causes.
 
-If the mathematics sounds daunting, it need not be. The algorithm is simple enough to watch step by
-step, and the judgement it needs, how many kinds to look for, is a decision you can write down and
-check before seeing the answer.
+You will not write this algorithm. The normal route copies the finished script (@sec-routes), and
+your work is to check what it chose: how many kinds, by what rule, and how close the call was.
 
 ::: opener
 - Describe the k-means loop, and why it needs many starts and a fixed seed.
@@ -150,16 +150,8 @@ two moves until they change nothing:
 4. **Repeat** 2 and 3 until nothing changes.
 
 Neither move ever raises the *inertia*, the sum of squared distances from each point to its
-centre,
-
-$$\text{inertia} = \sum_{i} \lVert x_i - c_{\ell(i)} \rVert^2 ,$$
-
-where $x_i$ is point $i$ (for the water data, a row's nine z-scores), $c_{\ell(i)}$ is the centre it
-is assigned to, and $\lVert x_i - c_{\ell(i)} \rVert$ is the straight-line distance between them
-(@sec-scaling). On z-scores, inertia is in squared standard deviations, a unit with no everyday
-meaning, so only its changes matter. There are only finitely many ways to group the points, so the
-algorithm always stops. It does not
-always stop at the best answer: a bad start can trap it in a worse grouping. @fig-kmeans-steps shows
+centre. There are only finitely many ways to group the points, so the algorithm always stops. It
+does not always stop at the best answer: a bad start can trap it in a worse grouping. @fig-kmeans-steps shows
 the algorithm on `{python} len(km["toy"])` synthetic points in three groups, which are toy data made up
 for the illustration, not the water data.
 
@@ -211,6 +203,17 @@ with style():
     fig.tight_layout()
     plt.show()
 ```
+
+::: why
+As a formula, the inertia is
+
+$$\text{inertia} = \sum_{i} \lVert x_i - c_{\ell(i)} \rVert^2 ,$$
+
+where $x_i$ is point $i$ (for the water data, a row's nine z-scores), $c_{\ell(i)}$ is the centre it
+is assigned to, and $\lVert x_i - c_{\ell(i)} \rVert$ is the straight-line distance between them
+(@sec-scaling). On z-scores, inertia is in squared standard deviations, a unit with no everyday
+meaning, so only its changes matter.
+:::
 
 Different starts can end in different groupings, so the real analysis runs k-means from
 `{python} A.N_INIT` starts (scikit-learn's `n_init`) and keeps the one with the lowest inertia. The
@@ -264,10 +267,9 @@ The rule, written into `choose_k()` in the analysis script, has three parts, and
 applies it row by row:
 
 - **k = 2 is excluded.** Two clusters mostly split urban from rural rows, which we knew already:
-  they match the zone for `{python} f"{agree2:.0%}"` of rows. The script measures this with the
-  *adjusted Rand index* (ARI), which scores how far two groupings agree beyond what chance would
-  give: 1 means identical, 0 no better than chance. Here it is
-  `{python} f"{ktab.loc[2, 'ari_vs_zone']:.2f}"`.
+  they match the zone for `{python} f"{agree2:.0%}"` of rows (an *adjusted Rand index*, the
+  script's score of agreement beyond chance, where 1 means identical and 0 no better than chance,
+  of `{python} f"{ktab.loc[2, 'ari_vs_zone']:.2f}"`).
 - **The elbow:** take the smallest k from 3 up after which one more cluster cuts inertia by less than
   `{python} f"{A.ELBOW_DROP:.0%}"`. Here that is k = `{python} k`: a `{python} ORDINAL[k + 1]` cluster cuts
   inertia by only `{python} f"{next_drop:.0%}"`.
@@ -277,7 +279,7 @@ applies it row by row:
 
 ```{python}
 #| label: tbl-k-selection
-#| tbl-cap: "`choose_k()`'s rule, row by row, on the kept rows: how much one more cluster would cut inertia, the silhouette (on the fixed sample) and the verdict. Computed by the finished project's `analysis.py`."
+#| tbl-cap: "`choose_k()`'s rule, row by row, on the kept rows: how much one more cluster would cut inertia, the silhouette, and the verdict."
 #| output: asis
 lines = ["| k | One more cluster cuts | Silhouette | Verdict |", "|--:|--:|--:|---|"]
 for j in ktab.index:
@@ -304,11 +306,9 @@ same numbers and colours.
 ::: pitfall
 A silhouette near 0.2 is low. In the subjective reading Rousseeuw and colleagues propose, a best
 average silhouette of 0.25 or less means that "no substantial structure has been found" (Struyf,
-Hubert and Rousseeuw, 1997, Table 2), and the best here, at any k, is `{python} f"{sil_best:.2f}"`. The kinds overlap: they
-summarise a continuum rather than separate islands of data. So treat k as a judgement call, and do
-not force a number of clusters to make a nicer story. Writing the rule down before seeing the result
-is what keeps such a choice honest; `choose_k()` at least makes the rule explicit, so anyone can
-check it and see how close the call was.
+Hubert and Rousseeuw, 1997, Table 2), and the best here, at any k, is `{python} f"{sil_best:.2f}"`.
+The kinds overlap: they summarise a continuum rather than separate islands of data. So treat k as a
+judgement call, and do not force a number of clusters to make a nicer story.
 :::
 
 ::: think
@@ -388,6 +388,16 @@ Turn the cloud yourself
 :::
 :::
 
+::: think
+Tunja's rural water scored in the high-risk band for years, and its urban water never did
+(@sec-tunja). k-means has now placed all `{python} len(tj_cl)` of its prepared zone-years. Before
+you read on: do its two zones fall in the same cluster?
+
+Yes: `{python} tj_text`. k-means places a row by all `{python} WORD[n_feat]` features at once, and
+several of them belong to the municipality, not the zone, so both of Tunja's rows carry the same
+values for them (@sec-water-features). @sec-tunja-kind works out which features decided it.
+:::
+
 ## Where the clusters stand {#sec-relief}
 
 Altitude carries the third component's largest loading. A map shows altitude directly
@@ -425,7 +435,7 @@ Cluster `{python} rl["high"]`'s urban zones stand highest, with a median altitud
 `{python} rl["low"]`'s stand lowest, at `{python} f"{rl['alt_med'][rl['low']]:,.0f}"` m, and
 `{python} f"{rl['region_top'][rl['low']].iloc[0]:.0%}"` of them are in
 `{python} rl["region_top"][rl["low"]].index[0]`. This shows where the kinds are, not why they
-differ. Tunja's head town stands at `{python} f"{rl['tunja_alt']:,.0f}"` m, and `{python} tj_text`.
+differ. Tunja's head town stands at `{python} f"{rl['tunja_alt']:,.0f}"` m.
 
 The map draws urban zones only, one column per municipality, because the altitude is the head
 town's. So it shows little of cluster `{python} rural_c`, whose zone-years are
@@ -517,11 +527,10 @@ open `clusters.html` in your browser
 :::
 
 ::: tryit
-Take one route through the model, then build the clusters page.
+Take one route, then build the clusters page.
 
 ::: done
-`outputs/clusters.parquet` exists, you can say what k is and why, and `clusters.html` shows the elbow,
-the silhouette and the PCA picture.
+you can say what k is and why, and `clusters.html` shows the elbow, silhouette and PCA picture.
 :::
 
 ::: catchup
@@ -529,6 +538,17 @@ the silhouette and the PCA picture.
 Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
 ```
 :::
+:::
+
+::: {.cards .ledger title="Tunja so far"}
+Grouped
+: `{python} tj_text`.
+
+How firm
+: k = `{python} k` by a written rule and a narrow margin; the kinds overlap.
+
+What may be said
+: which kind each zone-year was grouped with. Not why, and not yet what the kind is.
 :::
 
 ## Summary {.unnumbered}
