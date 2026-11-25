@@ -133,9 +133,9 @@ def step_explore() -> None:
     shutil.copytree(CHECKPOINT, work, ignore=shutil.ignore_patterns(".venv", ".quarto", "*_files", "*.html"))
     shutil.copytree(EXAMPLE / "data", work / "data", ignore=shutil.ignore_patterns("raw"))
     env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}  # uv picks the folder's own
-    subprocess.run(["uv", "sync"], cwd=work, env=env, check=True)
+    subprocess.run(["uv", "sync", "--frozen"], cwd=work, env=env, check=True)
     env["JUPYTER_PATH"] = str(work / ".venv" / "share" / "jupyter")  # not a user-level kernel
-    subprocess.run(["uv", "run", "quarto", "render", "explore.qmd"], cwd=work, env=env, check=True)
+    subprocess.run(["uv", "run", "--frozen", "quarto", "render", "explore.qmd"], cwd=work, env=env, check=True)
     png = OUT / "water-explore.png"
     got = shoot_explore(work / "explore.html", png)
     # For pagefit.yml's screenshots: the text's height in the image's own pixels.
@@ -150,8 +150,11 @@ STEPS = {"outputs": step_outputs, "explore": step_explore}
 
 def main(names: list[str]) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    names = names or os.environ.get("CAPTURE_STEPS", "").split() or list(STEPS)
+    # CAPTURE_STEPS is read by every capture script that `make media STEPS=capture` runs, so
+    # names another script owns are left to it; names given as arguments must exist here.
+    named = os.environ.get("CAPTURE_STEPS", "").split()
     unknown = [n for n in names if n not in STEPS]
+    names = names or ([n for n in named if n in STEPS] if named else list(STEPS))
     if unknown:
         raise SystemExit(f"unknown step(s) {unknown}; the steps are {list(STEPS)}")
     for name in names:

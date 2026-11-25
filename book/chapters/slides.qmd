@@ -41,6 +41,25 @@ captured = json.loads((Path(ev.__file__).resolve().parents[1] / "media" / "figur
                        / "eval-deck-titles.json").read_text(encoding="utf-8"))
 TITLES = captured["titles"]
 text_holds(len(TITLES) == n_slides and TITLES[1] == headline, "the captured titles")
+# Every number the captured titles print, rebuilt from outputs/ as the deck builds it, so a
+# capture older than the results stops the render (rerun eval_outputs.py, step deck).
+releases = [r["version"] for r in S["releases"]]
+auc = {v: ev.value(v, "roc_auc")["value"] for v in releases}
+seg = ev.segments()
+ages = seg[(seg["factor"] == "age_band") & (seg["version"] == best)].set_index("segment")["share_called"]
+cal = ev.calibration()
+cal = cal[cal["version"] == best]
+gap = (cal["mean_predicted"] - cal["observed_rate"]).abs().max()
+expected = {
+    3: f"{best} ranks the whole list best: ROC AUC {auc[best]:.3f}, against "
+       f"{auc[releases[0]]:.3f} for {releases[0]}",
+    4: f"{best} calls {ev.percent(ages.max())} of contacts aged {ages.idxmax()} but "
+       f"{ev.percent(ages.min())} of those aged {ages.idxmin()}",
+    5: f"{best}'s predicted probabilities are within {100 * gap:.1f} points of the observed rates",
+}
+text_holds(all(TITLES[i].replace("\u2019", "'") == t for i, t in expected.items())
+           and TITLES[2].endswith(f"with the same {S['calls_made']:,} calls"),
+           "the captured titles' numbers match outputs/")
 meta = dict(re.findall(r'^(title|subtitle): "(.*)"$', deck, re.M))
 alt_text_holds([TITLES[0], captured["subtitle"]] == [meta["title"], meta["subtitle"]] == [
     "Which release should the call centre use?",

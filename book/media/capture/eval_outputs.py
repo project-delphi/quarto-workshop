@@ -51,6 +51,13 @@ def project_copy(checkpoint: str) -> tuple[Path, dict]:
 
 def step_deck() -> None:
     work, env = project_copy("16-eval-slides")
+    try:
+        _deck(work, env)
+    finally:
+        shutil.rmtree(work.parent, ignore_errors=True)
+
+
+def _deck(work: Path, env: dict) -> None:
     for command in (["uv", "run", "--frozen", "python", "scripts/evaluate.py"],
                     ["uv", "run", "--frozen", "quarto", "render", "slides.qmd", "--to", "revealjs"]):
         subprocess.run(command, cwd=work, env=env, check=True)
@@ -88,12 +95,12 @@ def step_deck() -> None:
         if phone < MIN_TEXT:
             sys.exit(f"eval-deck-title.png: the subtitle would show at {phone:.1f} px on a phone, "
                      f"under {MIN_TEXT}: crop tighter")
+        expected = 1 + len(re.findall(r"^## ", (work / "slides.qmd").read_text(), re.M))
+        if len(titles) != expected or not all(titles):
+            sys.exit(f"eval-deck-titles.json: expected {expected} titled slides, found {titles}")
         page.screenshot(path=str(OUT / "eval-deck-title.png"), clip=clip)
         chrome = browser.version
         browser.close()
-    expected = 1 + len(re.findall(r"^## ", (work / "slides.qmd").read_text(), re.M))
-    if len(titles) != expected or not all(titles):
-        sys.exit(f"eval-deck-titles.json: expected {expected} titled slides, found {titles}")
     quarto = subprocess.run(["quarto", "--version"], capture_output=True, text=True,
                             check=True).stdout.strip()
     # The PNG's own size, from its header (the clip is in fractional CSS pixels).
@@ -112,12 +119,17 @@ def step_deck() -> None:
     for name in ("eval-deck-title.png", "eval-deck-titles.json"):
         print("figure", (OUT / name).relative_to(BOOK))
     print(f"subtitle: {box['subtitle_px'] * SCALE:.0f} px in the image, about {phone:.1f} px on a phone")
-    shutil.rmtree(work.parent, ignore_errors=True)
 
 
 STEPS = {"deck": step_deck}
 
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
-    for name in sys.argv[1:] or os.environ.get("CAPTURE_STEPS", "").split() or list(STEPS):
+    # Steps named as arguments must exist; CAPTURE_STEPS is read by every capture script that
+    # `make media STEPS=capture` runs, so names another script owns are left to it.
+    unknown = [n for n in sys.argv[1:] if n not in STEPS]
+    if unknown:
+        sys.exit(f"eval_outputs.py: no step {', '.join(unknown)}; steps: {', '.join(STEPS)}")
+    named = os.environ.get("CAPTURE_STEPS", "").split()
+    for name in sys.argv[1:] or ([n for n in named if n in STEPS] if named else list(STEPS)):
         STEPS[name]()

@@ -241,8 +241,18 @@ Tunja's `{python} len(tjr)` rows, from `water_municipal.csv`. Pick a view (the d
 #| fig-cap: "Tunja, 2010–2023: utility-supplied IRCA by zone, the municipality's aqueduct coverage and its infant mortality (deaths under one year per 1,000 live births), from `water_municipal.csv`."
 #| fig-alt: "Three small charts in a two-by-two grid, with the legend in the fourth cell. Top left: Tunja's urban IRCA is in the low-risk band in the first two years and near zero after that, while its rural IRCA is much higher, in the high-risk band until 2014, and falls to the low and medium bands from 2016. Top right: the municipality's aqueduct coverage moves between about 60 and 100 percent, with a hollow point at 0 in the one year reported as 0, which probably means not reported rather than no service. Bottom left: infant mortality falls smoothly to 2016, drops in 2017 where the method changes, and then jumps up and down from year to year, with 2020 drawn hollow."
 #| classes: on-light
+tj_urban = tjr[tjr["zone"] == "urban"].set_index("year")["irca"].sort_index()
+tj_cov = tjr.drop_duplicates("year").set_index("year")["water_coverage_total"]
+tj_cov = tj_cov[tj_cov > 0]
 alt_text_holds((first, last) == (2010, 2023) and tj_full and tj_rural_high_to == 2014
-               and len(tj_zero) == 1 and im_smooth and im_jumpy, "fig-tunja")
+               and len(tj_zero) == 1 and im_smooth and im_jumpy
+               # urban low for two years, near zero after; rural low or medium from 2016
+               and A.irca_band(tj_urban.iloc[:2]).astype(str).eq("Low").all()
+               and (tj_urban.iloc[2:] < 2).all()
+               and A.irca_band(tj_rural.loc[2016:]).astype(str).isin(["Low", "Medium"]).all()
+               # coverage "between about 60 and 100 percent"; infant mortality "drops in 2017"
+               and 55 <= tj_cov.min() < 65 and tj_cov.max() == 100
+               and tj_im[2017] < tj_im[2016], "fig-tunja")
 p_irca = tj["pivot"]["irca"]
 p_cov = tj["pivot"]["water_coverage_total"]["urban"]
 rows, cols = grid(3, square=True)

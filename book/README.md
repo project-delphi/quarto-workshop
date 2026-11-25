@@ -91,6 +91,9 @@ facts that change, Appendix K) when that file changes. Run `make book-fresh` aft
 - `scripts/water.py`, `scripts/scenes.py`, `scripts/figures.py` or `scripts/roadmaps.py`
 - `media/examples/` (the toy files Chapters 5 and 6 print; rerun
   `media/capture/toy_examples.py` first, so their pictures match)
+- `starters/first-report/data/` (Chapters 1 and 5 read the starter's rows)
+- a capture's JSON in `media/figures/`, such as `eval-deck-titles.json` (Chapter 11 prints the
+  titles it holds; its guards stop the render when they no longer match the results)
 
 ## Conventions
 
