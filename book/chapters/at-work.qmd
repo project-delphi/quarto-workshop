@@ -4,20 +4,31 @@
 #| label: at-work-setup
 # Vendors' data terms, networks and hosting: dated facts from facts.yml (Appendix K).
 from scripts.facts import checked, fact
+from scripts.prose import text_holds
+
+# The grid's rows: each vendor's short `trains` and `kept` phrases.
+GRID = ["data.anthropic_consumer", "data.anthropic_commercial", "data.openai_api",
+        "data.openai_business", "data.antigravity_terms"]
+GRID_CHECKED = checked(GRID[0])
+text_holds(all(checked(key) == GRID_CHECKED for key in GRID), "the grid's one date")
 
 
-def says(key: str) -> str:
-    """A fact as a sentence of its own, for a table cell."""
-    text = fact(key)
-    return f"{text[0].upper()}{text[1:]}."
+def trains(key: str) -> str:
+    return fact(key, capital=True, field="trains")
+
+
+def kept(key: str) -> str:
+    return fact(key, capital=True, field="kept")
 ```
 
-Everything so far has used public data on a computer you control. Work is rarely like that.
-The data are confidential, the tools must be approved, the network sits behind a proxy, and
-the documents must look like the organisation's. None of this changes the method; it changes
-what you may send to an agent, which agent, how its traffic leaves the building, and which
-templates the outputs wear. This chapter is the short, practical version, and it ends with the
-case the book has followed throughout: a small company with investors.
+A render fails. You do what you have done all through this book: copy the error and hand it
+to the agent. The agent reads it, reads the file it points to, and fixes the cell. Only
+afterwards do you look at what the error said. It quoted the row that broke the code, and the
+row was a customer's: a name, an account, a balance. They have left your computer, and no
+command brings them back. Until now every file in this book was public. At work, most are not.
+
+None of this changes the method. It changes what an agent may see, which agent and which plan,
+how its traffic leaves the building, and which templates the outputs wear.
 
 ::: opener
 - Say what leaves your computer when an agent works, and what each kind of plan does with it.
@@ -32,19 +43,35 @@ case the book has followed throughout: a small company with investors.
 An agent's model runs on the vendor's servers (@sec-model-harness). So whatever the agent
 reads, a file, a command's output, an error message with a customer's name in it, goes there
 with your prompt. Quarto, Python and Git send nothing anywhere; the agent is the one part of the
-method that does. What happens to it then depends on the plan, not the product:
+method that does. What happens to it then depends on the plan, not the product. Here is what
+the vendors say they do with what an agent sends, checked `{python} GRID_CHECKED`; @sec-facts
+has their own wording and sources:
 
-| Plan | What the vendor says |
-|---|---|
-| Claude, consumer | `{python} says("data.anthropic_consumer")` |
-| Claude, commercial | `{python} says("data.anthropic_commercial")` |
-| OpenAI API | `{python} says("data.openai_api")` |
-| ChatGPT business | `{python} says("data.openai_business")` |
-| Codex | `{python} says("data.codex_signin")` |
-| Antigravity | `{python} says("data.antigravity_terms")` |
-| OpenCode | `{python} says("data.opencode_free_terms")` |
+::: {.cards title="Does the vendor train on it, and how long is it kept?"}
+Claude, personal plans
+: **Trains on it:** `{python} trains("data.anthropic_consumer")`. **Kept:**
+  `{python} kept("data.anthropic_consumer")`.
 
-: What the vendors say they do with what their agents send, by plan, checked `{python} checked("data.anthropic_commercial")` (OpenCode, `{python} checked("data.opencode_free_terms")`). The terms change: @sec-facts keeps the current ones, with their sources. {#tbl-at-work-data}
+Claude, company plans and the API
+: **Trains on it:** `{python} trains("data.anthropic_commercial")`. **Kept:**
+  `{python} kept("data.anthropic_commercial")`.
+
+OpenAI API
+: **Trains on it:** `{python} trains("data.openai_api")`. **Kept:**
+  `{python} kept("data.openai_api")`.
+
+ChatGPT business plans
+: **Trains on it:** `{python} trains("data.openai_business")`. **Kept:**
+  `{python} kept("data.openai_business")`.
+
+Antigravity
+: **Trains on it:** `{python} trains("data.antigravity_terms")`. **Kept:**
+  `{python} kept("data.antigravity_terms")`.
+:::
+
+For two more agents, it depends on how you connect them.
+`{python} fact("data.codex_signin", capital=True)`. And in OpenCode,
+`{python} fact("data.opencode_free_terms")`.
 
 Two facts follow. A personal plan and a company plan of the same agent are different
 arrangements, so ask which one you are on before the first confidential file. And the copy on
@@ -54,8 +81,29 @@ managed computer.
 ## Confidential data {#sec-at-work-confidential}
 
 Customer records, payroll, unpublished results, patient or student data, a start-up's revenue
-and its investors' names are not yours to send anywhere you like. Four habits keep the method
-safe with them:
+and its investors' names are not yours to send anywhere you like. Before a file meets an
+agent, ask two questions of it (@fig-may-this-file).
+
+![May this file meet this agent? Two questions, about the file and about the agent's plan.](../media/diagrams/may-this-file){#fig-may-this-file .on-light fig-alt="A flow chart of two questions. 1, The file: is it public, or yours to share? If no, an arrow leads to Keep it out: build on a synthetic stand-in, with the real columns and none of its rows, and render the real file yourself. If yes, 2, The agent: is this agent, on this plan, approved for this file? If no, the same Keep it out box; if yes, Go ahead: the agent may use the file. A note below says the questions are about the file and the plan, not your intentions."}
+
+::: think
+A colleague says: "I never paste confidential data into the agent, so we are fine." Using the
+diagram, what has that rule missed?
+
+Pasting is one route of three. An agent also reads files it finds, and the output of the
+commands it runs, an error message included, as in the scene that opened this chapter. The
+diagram asks about the file and the plan, not about your intentions: a confidential file in
+the agent's folder is one `ls` from the conversation.
+:::
+
+::: {.story .illustration}
+Nobody pasted the file. The analyst asked for a chart of monthly totals and named only the
+summary table. To write a test, the agent listed the folder, found the full export beside
+it and opened the first rows to learn the columns. Every step was reasonable, and each was
+shown before it ran. The rows were in the conversation before anyone thought to say no.
+:::
+
+Four habits keep the method safe with confidential data:
 
 1. **Read the policy first.** Your organisation's AI and data policy says which tools and plans
    may see which data. If it is silent, ask whoever owns the data, in writing.
@@ -73,6 +121,16 @@ safe with them:
 runs prints it, or a test it writes loads it. Keep real confidential files out of the agent's
 folder altogether until the agent's work is done, and add a rule to `AGENTS.md` that names the
 file and forbids reading it, as a reminder that is not a guarantee.
+:::
+
+::: tryit
+Take one file you work with. Answer the diagram's two questions for it, and write the header
+row of its synthetic stand-in.
+
+::: done
+you can name the plan you are on, and your stand-in has the real file's columns and none of
+its rows.
+:::
 :::
 
 ## Approved tools and locked-down machines {#sec-at-work-locked}
@@ -99,12 +157,10 @@ the tools' fault. The settings that fix them are environment variables, set once
 | uv (Python and packages) | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY` | `UV_SYSTEM_CERTS=1` to use the system's store, or `SSL_CERT_FILE` naming a bundle |
 | Claude Code | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY`; no SOCKS proxies | the system's store, or `NODE_EXTRA_CA_CERTS` naming a bundle |
 
-: Proxy and certificate settings, from uv's and Claude Code's documentation (checked 2026-11-18). {#tbl-at-work-proxy}
+: Proxy and certificate settings, from uv's and Claude Code's documentation. {#tbl-at-work-proxy}
 
-Quarto's own documentation says nothing about proxies (checked 2026-11-18); Quarto itself needs
-the network only to install, and the Python it runs comes through uv. If a download still fails,
-ask IT to allow the hosts the tools reach, which Claude Code's network page lists, rather than
-turning certificate checks off.
+If a download still fails, ask IT to allow the hosts the tools reach, rather than turning
+certificate checks off.
 
 ## House templates and brand rules {#sec-at-work-templates}
 
@@ -118,11 +174,12 @@ organisations have adopted, becomes a check that runs on every page (@sec-sites-
 
 ## In a start-up {#sec-at-work-startup}
 
-A start-up has the same constraints with fewer people, and one more reader: the investor. The
-method pays where numbers change and readers check them: the monthly investor update
-(@sec-parameters), the benchmark or evaluation white paper (@sec-white-papers), per-customer
-reports, and a documentation site. It pays less where design or co-editing dominates, and those
-can stay in the tools made for them (@sec-wrong-tool).
+Acme Signals, the fictional two-person company this book has followed, now has a report, a
+model card, a deck, a site and a white paper, an investor update that renders itself each month
+(@sec-parameters), and a build that goes red when a sentence stops being true, all from one run
+of one script. It did not build its pitch deck or its marketing site this way, and should not:
+there, design and co-editing matter more than numbers that change (@sec-wrong-tool has the
+list). The method pays where numbers change and readers check them.
 
 Investors' data needs the care of any confidential data: revenue, the cap table and customers'
 names belong in a private repository, built by the agent on synthetic stand-ins and rendered
@@ -136,6 +193,7 @@ an inbox.
 ::: keyideas
 - The agent is the one part of the method that sends anything off your computer, and the plan,
   not the product, decides what the vendor does with it.
+- An agent reads more than you paste: files it finds and the output of what it runs.
 - Build on a synthetic stand-in with the same columns, and render the real data yourself.
 - Keep confidential files out of the agent's folder, out of Git and off public hosts.
 - Behind a proxy, set the proxy and certificate variables for uv and the agent; do not turn

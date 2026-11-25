@@ -30,7 +30,8 @@ PHONE, SCALE = 390, 2  # CSS pixels wide, and device pixels per CSS pixel
 PAD = 12  # CSS pixels kept round the web page's crop
 GAP = 16  # CSS pixels between the crops, with a dashed rule across the middle
 
-# The file Chapter 4 shows the agent writing (03-setup.qmd, Step 6), as the chapter prints it.
+# The file Chapter 4's Step 6 has the agent write, as Chapter 1 prints it (01-quarto.qmd); Chapter 4
+# points to that listing.
 HELLO = '''---
 title: "Hello"
 format:

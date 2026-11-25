@@ -84,6 +84,38 @@ def rival() -> str:
     return str(auc["version"].iloc[1])
 
 
+def fast_plant() -> dict:
+    """The planted error that opens Chapter 3 (chapters/fast-path.qmd): the best release's name
+    with the ROC AUC of rival(). Returns the sentence, the wrong and the right ROC AUC as
+    printed, and whose the wrong one is. The chapter prints it and Appendix E answers it, both
+    by calling this, so the two cannot drift."""
+    from scripts.prose import text_holds
+
+    best, other = summary()["best_version"], rival()
+    wrong = f"{value(other, 'roc_auc')['value']:.3f}"
+    right = f"{value(best, 'roc_auc')['value']:.3f}"
+    text_holds(wrong != right, "the planted ROC AUC differs from the best release's as printed")
+    from scripts.prose import language
+
+    words = "es la mejor, con un ROC AUC de" if language() == "es" else "ranks best, with a ROC AUC of"
+    return {"sentence": f"{best} {words} {wrong}.", "wrong": wrong, "right": right, "rival": other}
+
+
+def team_plant() -> dict:
+    """The planted recall of Chapter 15 (chapters/team.qmd): rival()'s recall in the top tenth,
+    with its interval, under the best release's name. Returns the best and rival releases and,
+    as printed to three decimals, the planted value, low and high, and the best release's own
+    value. The chapter prints it and Appendix E answers it, both by calling this."""
+    from scripts.prose import text_holds
+
+    best, other = summary()["best_version"], rival()
+    r, own = value(other, "recall_top10"), value(best, "recall_top10")
+    planted, right = f"{r['value']:.3f}", f"{own['value']:.3f}"
+    text_holds(planted != right, "Chapter 15's two recalls differing at three decimals")
+    return {"best": best, "rival": other, "value": planted, "low": f"{r['low']:.3f}",
+            "high": f"{r['high']:.3f}", "right": right}
+
+
 def interval(version: str, metric: str, digits: int = 3) -> str:
     """'0.799 (0.785 to 0.813)': a value and its 95% interval, as the report writes it."""
     r = value(version, metric)
