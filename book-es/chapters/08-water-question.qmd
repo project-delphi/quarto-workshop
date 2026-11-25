@@ -180,17 +180,17 @@ El promedio nacional cae en el nivel medio y esconde la brecha entre lo urbano y
 eso los datos de esta parte mantienen separadas las dos zonas de cada municipio.
 
 ::: why
-Las muestras de vigilancia del agua del grifo se analizan contra límites sanitarios. Cada
-característica analizada tiene un puntaje de riesgo: *Escherichia coli* 25, coliformes totales 15,
-turbiedad 15, cloro residual libre 15, color aparente 6 y pH 1.5, entre otras. El IRCA de una
-muestra es el puntaje de las características que no cumplen su límite, como porcentaje del puntaje
-de todas las analizadas, y el IRCA de un mes es la media de sus muestras (artículos 13 y 14). Por
+Las muestras de vigilancia del agua de la llave se comparan con límites sanitarios. Cada
+parámetro analizado tiene un puntaje de riesgo: *Escherichia coli* 25, coliformes totales 15,
+turbiedad 15, cloro residual libre 15, color aparente 6 y pH 1.5, entre otros. El IRCA de una
+muestra es el puntaje de los parámetros que no cumplen su límite, como porcentaje del puntaje
+de todos los analizados, y el IRCA de un mes es la media de sus muestras (artículos 13 y 14). Por
 eso 0 significa que se aprobaron todas las pruebas y 100, que se reprobaron todas.
 :::
 
 El IRCA de los datos de esta parte no es la cifra del informe nacional. Viene de una tabla abierta
 que publica el Instituto Nacional de Salud, el INS (datos.gov.co `nxt2-39c3`). El README de los
-datos (advertencia 1) registra una revisión contra el informe nacional: en los
+datos (advertencia 1) registra un cotejo con el informe nacional: en los
 `{python} inca_all` departamentos de su Tabla 4, el valor de 2023 de la tabla es igual a la
 columna de prestadores del informe; es igual a su cifra total en solo `{python} inca_total` de los
 `{python} inca_all`.
@@ -228,8 +228,8 @@ los mapas) y `README.md`, que documenta cada columna, fuente, licencia y adverte
 @sec-sources las enumera todas).
 
 **Una fila es la zona urbana o rural de un municipio en un año**, una *zona-año*: esta es la unidad
-de análisis. La zona urbana es la cabecera municipal; la zona rural son los centros poblados más
-pequeños y el campo disperso. La tabla cubre cada una de las `{python} w.fmt(n_codes)` entradas de
+de análisis. La zona urbana es la cabecera municipal; la zona rural son los centros poblados y el
+área rural dispersa. La tabla cubre cada una de las `{python} w.fmt(n_codes)` entradas de
 la DIVIPOLA del DANE, las dos zonas y cada año de `{python} first` a `{python} last`:
 `{python} w.fmt(n_rows)` filas y `{python} n_cols` columnas. De esas entradas,
 `{python} w.fmt(n_munis)` son municipios; el resto son la isla de San Andrés y áreas que no son
@@ -266,7 +266,7 @@ solo los describen.
 Las **características**, que ve el agrupamiento, son `{python} WORD[n_feat]` variables sobre el
 agua, el gobierno, y la gente y el lugar. Las **variables de resultado**, que el análisis solo
 compara, son la mortalidad infantil, el puntaje de Saber 11 y la deserción escolar
-(@tbl-water-features, @tbl-water-features-place, @tbl-water-outcomes).
+(tablas [-@tbl-water-features], [-@tbl-water-features-place] y [-@tbl-water-outcomes]).
 
 ```{python}
 #| label: tbl-water-features
@@ -334,7 +334,7 @@ camino crearía tipos que son artefactos del cambio.
 
 ### Saber 11, y lo que cubre un promedio {#sec-water-measures}
 
-Una variable de resultado necesita una palabra más. **Saber 11** es el examen nacional que presentan
+Una de las variables de resultado merece una aclaración. **Saber 11** es el examen nacional que presentan
 los estudiantes que terminan la educación media, a cargo del ICFES. Se califica de 0 a 500, en una
 escala fijada para que los años se puedan comparar.
 
@@ -345,7 +345,7 @@ presentaron el examen en colegios de ese municipio y esa zona, así que no dice 
 estudiantes que habían dejado el colegio. Ten presentes los dos hechos en cada comparación que
 sigue.
 
-## Calcular una vez, publicar muchas {#sec-compute-once}
+## Calcular una vez, publicar en muchos formatos {#sec-compute-once}
 
 La Parte II calculaba en cada página. El análisis del agua calcula una vez (@fig-compute-once). Un solo
 script importable, `scripts/analysis.py`, hace todo el cálculo y escribe sus resultados en
@@ -358,7 +358,7 @@ contradecir a otra, porque hay un solo resultado que contradecir. Los resultados
 Parquet, que conserva los tipos de las columnas (un código como `05001` sigue siendo texto en lugar
 de convertirse en el número 5001), y como CSV donde la gente los va a abrir.
 
-![Calcular una vez, publicar muchas. Un solo script convierte los datos en resultados una vez; cada publicación los lee, y ninguna los recalcula.](../media/diagrams/compute-once){#fig-compute-once .on-light fig-alt="El archivo de datos water_municipal.csv alimenta un solo script, scripts/analysis.py, que Quarto ejecuta antes de cada renderizado. El script prepara las características, elige k, ajusta k-means y calcula los perfiles de los clústeres y las comparaciones de las variables de resultado, y luego los escribe una vez en outputs/: clusters.parquet, cluster_profiles.csv, k_selection.csv, outcomes_by_year.csv, irca_infant.csv y summary.json. Cada página lee esos archivos y ninguna los vuelve a calcular: las páginas de exploración y de clústeres, el informe en html, docx, pdf y epub, las diapositivas para el concejo en revealjs y pptx, una entrada de blog y un dashboard. Juntas forman un sitio web, publicado en GitHub Pages."}
+![Calcular una vez, publicar en muchos formatos. Un solo script convierte los datos en resultados una vez; cada publicación los lee, y ninguna los recalcula.](../media/diagrams/compute-once){#fig-compute-once .on-light fig-alt="El archivo de datos water_municipal.csv alimenta un solo script, scripts/analysis.py, que Quarto ejecuta antes de cada renderizado. El script prepara las características, elige k, ajusta k-means y calcula los perfiles de los clústeres y las comparaciones de las variables de resultado, y luego los escribe una vez en outputs/: clusters.parquet, cluster_profiles.csv, k_selection.csv, outcomes_by_year.csv, irca_infant.csv y summary.json. Cada página lee esos archivos y ninguna los vuelve a calcular: las páginas de exploración y de clústeres, el informe en html, docx, pdf y epub, las diapositivas para el concejo en revealjs y pptx, una entrada de blog y un dashboard. Juntas forman un sitio web, publicado en GitHub Pages."}
 
 ## Preparar el proyecto: datos, reglas y entorno {#sec-water-rules}
 
@@ -403,13 +403,13 @@ tamaños
 Los datos están fuera de la carpeta nueva, en `../quarto-workshop/`, así que el agente pregunta
 antes de leer ahí: apruébalo, como con la guía de Londres (@sec-brief).
 
-Luego escribe las reglas. Si nunca agrupaste nada, la preocupación es justa: el agente puede
+Luego escribe las reglas. Si nunca agrupaste nada, es razonable preocuparse: el agente puede
 escribir un análisis que se ejecuta, se renderiza y está equivocado. Te proteges de eso revisando,
-no escribiendo tú el código, y una revisión necesita algo contra lo cual revisar.
+no escribiendo tú el código, y una revisión necesita algo con qué comparar.
 
 ::: {.prompt}
 ```default
-Lee data/README.md y luego crea AGENTS.md para este proyecto, en inglés. Alcance: describir la calidad del agua municipal y la mortalidad infantil en Colombia solo a partir de data/. Reglas: deja data/ sin cambios, llama al IRCA IRCA de prestadores (utility-supplied, prestadores), nunca agrupes según variables de resultado, y di que las comparaciones son descriptivas, no causales. Muéstrame el archivo.
+Lee data/README.md y luego crea AGENTS.md para este proyecto, en inglés. Alcance: describir la calidad del agua municipal y la mortalidad infantil en Colombia solo a partir de data/. Reglas: deja data/ sin cambios, llama al IRCA «IRCA de prestadores» (utility-supplied), nunca agrupes según variables de resultado, y di que las comparaciones son descriptivas, no causales. Muéstrame el archivo.
 ```
 :::
 
@@ -464,7 +464,7 @@ limpio.
 :::
 :::
 
-Aquí no hay recuadro para ponerte al día. Si te trabas, el del final del @sec-explore restaura el
+Aquí no hay recuadro para ponerte al día. Si te atascas, el del final del @sec-explore restaura el
 trabajo de este capítulo y el del siguiente juntos.
 
 ::: {.cards .ledger title="Tunja hasta aquí"}
@@ -476,7 +476,7 @@ Revisado
 : nada todavía. Sus valores están tal como se publicaron.
 
 Lo que se puede decir
-: nada todavía: ningún valor se ha leído contra las advertencias del README.
+: nada todavía: ningún valor se ha cotejado con las advertencias del README.
 :::
 
 ## Resumen {.unnumbered}

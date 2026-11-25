@@ -67,7 +67,7 @@ circulan en las oficinas: Word y PDF. El concejo municipal los va a ver en una p
 reunión, y va a buscar la conclusión en la última diapositiva. Los dos van a buscar dónde actuar, y
 cualquier otra persona necesita un enlace. Así que el proyecto recibe un informe, diapositivas y un
 sitio web con una entrada de blog, y ninguno de ellos puede calcular nada. Cada uno lee `outputs/`, y
-eso es lo que hace justa la última prueba del capítulo: cambia una opción del análisis, predice lo
+eso es lo que hace válida la última prueba del capítulo: cambia una opción del análisis, predice lo
 que sigue, reconstruye y comprueba que cada publicación lo siguió.
 
 ::: opener
@@ -98,7 +98,7 @@ Punto de control
 
 ::: {.prompt}
 ```default
-Crea report.qmd, en inglés (formatos html, docx, typst), a partir de outputs/: resumen, pregunta, datos (IRCA = IRCA de prestadores, utility-supplied prestadores IRCA), método, mapa de calor, variables de resultado, correlación ≠ causalidad (un gráfico de la mediana de infant_mortality por nivel del IRCA en cada clúster), límites, fuentes. Figuras de matplotlib con pie y texto alternativo; oculta el código. Renderiza todos los formatos; informa los errores.
+Crea report.qmd, en inglés (formatos html, docx, typst), a partir de outputs/: resumen, pregunta, datos (IRCA = «IRCA de prestadores», utility-supplied prestadores IRCA), método, mapa de calor, variables de resultado, correlación ≠ causalidad (un gráfico de la mediana de infant_mortality por nivel del IRCA en cada clúster), límites, fuentes. Figuras de matplotlib con pie y texto alternativo; oculta el código. Renderiza todos los formatos; informa los errores.
 ```
 :::
 
@@ -133,7 +133,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/10-water-report/README.md
 
 ::: {.prompt}
 ```default
-Crea slides.qmd, en inglés (revealjs y pptx), para el concejo municipal, 6 diapositivas con el título: la pregunta, una tabla de los clústeres con nombre, el mapa de calor, las variables de resultado por clúster, lo que esto muestra y lo que no. Lee outputs/, usa matplotlib, oculta el código. Renderiza los dos; cuenta las diapositivas.
+Crea slides.qmd, en inglés (revealjs y pptx), para el concejo municipal, 6 diapositivas, contando la del título: la pregunta, una tabla de los clústeres con nombre, el mapa de calor, las variables de resultado por clúster, lo que esto muestra y lo que no. Lee outputs/, usa matplotlib, oculta el código. Renderiza los dos; cuenta las diapositivas.
 ```
 :::
 
@@ -168,7 +168,7 @@ En report.qmd, agrega un formato epub (toc: true), fija lang: en y agrega ePub a
 :::
 
 Un EPUB es un conjunto comprimido de páginas web cuyo texto se reacomoda al tamaño de la pantalla del
-lector. La mayoría de los lectores de libros electrónicos no ejecutan JavaScript, así que las figuras
+lector. La mayoría de las apps de lectura de libros electrónicos no ejecutan JavaScript, así que las figuras
 tienen que ser imágenes estáticas, como ya lo son las del informe. `lang: en` registra el idioma del
 libro (sin él, el archivo declara uno desconocido), y `toc: true` agrega una tabla de contenidos. Abre
 el resultado en Libros, en una Mac, o en Calibre: debería contener las tres figuras y las fuentes.
@@ -222,7 +222,7 @@ listing:
 
 ::: {.prompt}
 ```default
-Convierte esta carpeta en un sitio web de Quarto, en inglés: _quarto.yml (execute-dir: project, `pre-render` scripts/analysis.py, freeze: false, lista render, barra de navegación), index.qmd con el listado de posts/, y una entrada titulada con el k real, por ejemplo "Four kinds of municipal zone". Renderízalo; revisa los enlaces.
+Convierte esta carpeta en un sitio web de Quarto, en inglés: _quarto.yml (execute-dir: project, `pre-render` scripts/analysis.py, freeze: false, lista de renderizado, barra de navegación), index.qmd con el listado de posts/, y una entrada titulada con el k real, por ejemplo "Four kinds of municipal zone". Renderízalo; revisa los enlaces.
 ```
 :::
 
@@ -236,8 +236,8 @@ El título de la entrada dice la cantidad de clústeres, así que un cambio en e
 equivocado. La entrada terminada se protege con una línea en su celda de preparación, `assert k == 4`,
 que hace fallar el renderizado si el análisis encuentra alguna vez un k distinto
 (@fig-water-post-phone). Esa línea es una *guarda*: detiene el renderizado cuando las palabras de una
-oración, no solo sus números, ya no coinciden con los datos, porque una falla ruidosa es mejor que una
-falsedad silenciosa. Este libro protege sus propias oraciones de la misma manera. La @sec-outcomes
+oración, no solo sus números, ya no coinciden con los datos, porque es mejor una falla que salta a la vista
+que una falsedad que pasa inadvertida. Este libro protege sus propias oraciones de la misma manera. La @sec-outcomes
 dice que la mortalidad infantil registrada más alta no está en el clúster con la peor agua; si los
 datos nuevos lo volvieran falso, el libro dejaría de construirse en lugar de imprimirlo.
 
@@ -246,12 +246,12 @@ datos nuevos lo volvieran falso, el libro dejaría de construirse en lugar de im
 ### ¿Al día o congelado? {#fresh-or-frozen}
 
 `freeze: false` es la opción simple y segura: cada renderizado lo vuelve a calcular todo, así que nada
-puede quedar viejo. El costo es tiempo, en cada renderizado y para cada página. `freeze: auto` es la
+puede quedar desactualizado. El costo es tiempo, en cada renderizado y para cada página. `freeze: auto` es la
 alternativa: Quarto guarda los resultados de cada página en `_freeze/` y vuelve a ejecutar una página
 solo cuando cambia *su propia fuente*.
 
 La trampa está en esa última frase. Quarto no sabe qué archivos lee una página, así que un cambio en
-`data/` o en `outputs/` no se detecta, y una página congelada conserva sus números viejos. Con
+`data/` o en `outputs/` no se detecta, y una página congelada conserva sus números desactualizados. Con
 `freeze: auto` necesitas una regla para descartar resultados: borra `_freeze/` (o renderiza esa página
 directamente, lo que ignora el caché) cada vez que cambien los datos o el análisis.
 
@@ -259,9 +259,9 @@ directamente, lo que ignora el caché) cada vez que cambien los datos o el anál
 Tu sitio usa `freeze: auto`. Cambias `MAX_MISSING` en `scripts/analysis.py` y ejecutas
 `uv run quarto render`. ¿Qué páginas muestran los números nuevos?
 
-Solo las páginas cuya propia fuente cambió, y no cambiaste ninguna. `pre-render` igual reescribe
-`outputs/`, pero cada página congelada reutiliza sus resultados guardados, así que el sitio muestra los
-números viejos al lado de archivos de salida nuevos hasta que borres `_freeze/` o renderices cada
+Solo las páginas cuya propia fuente cambió, y no cambiaste ninguna. De todos modos, `pre-render`
+reescribe `outputs/`, pero cada página congelada reutiliza sus resultados guardados, así que el sitio
+muestra los números desactualizados junto a archivos de salida nuevos hasta que borres `_freeze/` o renderices cada
 página por separado.
 :::
 
@@ -304,7 +304,7 @@ dos minutos, y GitHub Pages necesita menos de un minuto más antes de que se abr
 Los datos son públicos, y publicarlos con el sitio está bien, siempre que las atribuciones viajen con
 ellos. `data/README.md` enumera los términos de cada fuente: CC BY-SA 4.0 para la lista DIVIPOLA del
 DANE y las tablas del INS, el ICFES y el MEN, CC BY 4.0 para TerriData y CHIRPS, términos de cita para
-la población y los límites del DANE, y ninguno para SRTM. CC BY-SA agrega una condición
+la población y los límites del DANE, y ninguna restricción de uso para SRTM, un producto de la NASA. CC BY-SA agrega una condición
 *CompartirIgual*: cualquier cosa construida a partir de esos datos, como `water_municipal.csv`, debe
 compartirse con la misma licencia
 ([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)).
@@ -330,7 +330,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
 :::
 :::
 
-## Cambia un dato de entrada, explica la reconstrucción {#sec-water-change}
+## Cambia una opción, explica la reconstrucción {#sec-water-change}
 
 Esta es la segunda tarea sin prompt, y la prueba del diseño de esta parte.
 
@@ -373,14 +373,14 @@ Todas las páginas menos dos leen sus números de `outputs/`. La página de inic
 archivo, y la página de exploración lee solo `data/water_municipal.csv`, que la opción no toca, así
 que se vuelve a ejecutar y muestra los mismos números. Una página más lee `data/` directamente: el
 dashboard toma los límites de su mapa de `municipios.geojson`, que la opción tampoco toca. Una
-respuesta sólida nombra el mecanismo: `pre-render` vuelve a ejecutar el análisis, que reescribe cada
-archivo de `outputs/`, y `freeze: false` vuelve a ejecutar cada página que los lee. Revisa al menos
-dos salidas contra los nuevos conteos de filas. Y se da cuenta de lo que no cambió: `data/`, la
-página de exploración y el sitio en vivo. Una vez que tengas escrita tu predicción, compárala con la
+respuesta sólida nombra el mecanismo (`pre-render` vuelve a ejecutar el análisis, que reescribe cada
+archivo de `outputs/`, y `freeze: false` vuelve a ejecutar cada página que los lee), comprueba al
+menos dos salidas con los nuevos conteos de filas y señala lo que no cambió: `data/`, la página de
+exploración y el sitio en vivo. Una vez que tengas escrita tu predicción, compárala con la
 respuesta modelo del @sec-checkpoints, que sigue a Tunja a lo largo de la reconstrucción con los
 números calculados (@tbl-answer-water).
 
-## Un dashboard y un documento técnico (opcional) {#sec-water-dashboard}
+## Un dashboard y un white paper (opcional) {#sec-water-dashboard}
 
 Un dashboard puede mostrar los clústeres en un mapa. El primer prompt construye un *mapa coroplético*
 de Plotly, un mapa cuyas áreas se colorean según un valor, aquí cada municipio según el nivel del IRCA
@@ -418,8 +418,8 @@ it, checked 2026-11-01; examples/water/scripts/analysis.py, load_geojson(), reve
 La tabla con búsqueda necesita `maxBytes=0`, o `itables` descarta filas en silencio para mantener la
 página pequeña.
 
-Las mismas salidas también se pueden convertir en un artículo académico, como las de
-Londres (@sec-london-whitepaper), ahora con ecuaciones numeradas (`$$ … $$ {#eq-kmeans}`, a las que se hace
+Las mismas salidas también se pueden convertir en un white paper, un documento técnico de estilo
+académico, como las de Londres (@sec-london-whitepaper), ahora con ecuaciones numeradas (`$$ … $$ {#eq-kmeans}`, a las que se hace
 referencia como `@eq-kmeans`) y citas de los artículos detrás de cada método:
 
 ::: {.prompt .long}
@@ -428,7 +428,7 @@ Crea whitepaper.qmd, en inglés, desde outputs/: A4 de Typst, "New Computer Mode
 ```
 :::
 
-![La primera página del documento técnico terminado (`examples/water/whitepaper.qmd`).](../media/figures/water-whitepaper-p1.png){#fig-water-whitepaper width=70% .on-light fig-alt="La primera página de un documento A4 en inglés, con una tipografía de estilo LaTeX, titulado Drinking-water quality and infant mortality in Colombian municipal zones, con el subtítulo A descriptive cluster analysis, 2016 to 2023, un resumen y el comienzo de una Introduction numerada con citas entre corchetes."}
+![La primera página del white paper terminado (`examples/water/whitepaper.qmd`).](../media/figures/water-whitepaper-p1.png){#fig-water-whitepaper width=70% .on-light fig-alt="La primera página de un documento A4 en inglés, con una tipografía de estilo LaTeX, titulado Drinking-water quality and infant mortality in Colombian municipal zones, con el subtítulo A descriptive cluster analysis, 2016 to 2023, un resumen y el comienzo de una Introduction numerada con citas entre corchetes."}
 
 ::: pitfall
 "Abre cada DOI" está ahí por una razón: un agente puede producir una referencia plausible que no
@@ -451,15 +451,16 @@ nombra uno que todavía no está disponible:
 
 - **Cambios entre tipos.** Cuenta cómo pasan las zonas de los municipios de un clúster a otro entre 2016
   y 2023, y dibújalo como un diagrama de Sankey (el `go.Sankey` de Plotly).
-- **Desviados positivos.** Encuentra municipios cuya zona rural está en el tipo de riesgo alto y que,
+- **Casos de desviación positiva.** Encuentra municipios cuya zona rural está en el tipo de riesgo alto y que,
   aun así, tienen una mortalidad infantil registrada baja, y revisa primero si eso se debe a números
   pequeños, a vacíos o al subregistro.
 - **Otros agrupamientos.** Un modelo de mezcla gaussiana le da a cada fila una probabilidad por clúster
   en lugar de una etiqueta fija; HDBSCAN encuentra grupos densos y deja sin agrupar los valores
   atípicos. ¿Sobreviven los tipos?
-- **Una mejor variable de resultado.** La enfermedad diarreica en menores de cinco años es la variable
-  de resultado más directamente ligada al agua. Su incidencia no está en los datos abiertos del
-  SIVIGILA, el sistema de vigilancia en salud pública de Colombia, que solo publican las muertes; el
+- **Una mejor variable de resultado.** La enfermedad diarreica aguda (EDA) en menores de cinco años
+  es la variable de resultado más directamente ligada al agua. Su incidencia no está en los datos
+  abiertos del SIVIGILA, el sistema de vigilancia en salud pública de Colombia, que solo publica las
+  muertes; el
   README de los datos la registra como una fuente para agregar cuando esté disponible.
 
 ::: {.cards .ledger title="Tunja hasta aquí"}
@@ -481,13 +482,13 @@ Lo que se puede decir
 - Cada publicación lee `outputs/` y ninguna calcula, así que un solo análisis le llega a cada lector en
   el formato que usa: Word y PDF para los funcionarios, diapositivas para un concejo, un sitio web para
   cualquiera.
-- Word, PowerPoint, PDF y la mayoría de los lectores de libros electrónicos no pueden ejecutar
+- Word, PowerPoint, PDF y la mayoría de las apps de lectura de libros electrónicos no pueden ejecutar
   JavaScript, así que sus figuras tienen que ser imágenes estáticas.
 - `pre-render` vuelve a ejecutar el análisis antes de cada renderizado y `freeze: false` vuelve a
-  ejecutar cada página, así que nada queda viejo; `freeze: auto` es más rápido pero no puede ver
+  ejecutar cada página, así que nada queda desactualizado; `freeze: auto` es más rápido pero no puede ver
   `data/` ni `outputs/`, así que necesita una regla escrita para vaciar `_freeze/`.
-- Una guarda convierte una oración que ya no coincide con los datos en un renderizado fallido en lugar
-  de una falsedad silenciosa.
+- Una guarda convierte una oración que ya no coincide con los datos en un renderizado fallido, en
+  lugar de una falsedad que pasa inadvertida.
 - El sitio en vivo es el último `_site/` que publicaste, y solo cambia cuando vuelves a publicar.
 - Una opción que cambia llega a cada página que lee `outputs/` y a nada más: predícelo, reconstruye y
   compruébalo.
@@ -508,8 +509,8 @@ epílogo lo lleva de vuelta a sus tres verbos, y a un proyecto tuyo.
 - Quarto, [Dashboards](https://quarto.org/docs/dashboards/) (consultado el 2026-10-31).
 - Quarto, [cross-references](https://quarto.org/docs/authoring/cross-references.html) y
   [citations](https://quarto.org/docs/authoring/citations.html) (consultados el 2026-11-01).
-- `examples/water/references.bib`: las referencias del documento técnico (Lloyd 1982, Rousseeuw
-  1987, Hubert y Arabie 1985, Pedregosa et al. 2011), cada una revisada contra la página de su
+- `examples/water/references.bib`: las referencias del white paper (Lloyd 1982, Rousseeuw
+  1987, Hubert y Arabie 1985, Pedregosa et al. 2011), cada una cotejada con la página de su
   editorial (2026-11-01).
 - Creative Commons, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), la licencia
   CompartirIgual de varias de las fuentes del agua (consultada el 2026-11-12).

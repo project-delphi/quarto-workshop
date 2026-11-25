@@ -407,6 +407,55 @@ its names, files, columns, labels and quoted page text are literals.
 | managed settings | configuración administrada (en inglés, *managed settings*) | | `at-work.qmd` uses it |
 | stand-in (synthetic) | sustituto sintético | | the label SYNTHETIC stays |
 
+## Fix pass after the native-speaker reads: Part V, the afterword and the appendices
+
+The edition-wide decisions as applied in `part-3.qmd`, chapters 17 to 23, the water exercises, the
+afterword and the appendices, then the terms this pass decided. Where a row here differs from one
+above (for instance "stale … queda viejo"), this row wins.
+
+| English | Spanish | EN? | Note |
+|---|---|---|---|
+| catch (an error) | detectar | | never "atrapar"; a k-means start that gets stuck is "atascado" |
+| check / read X against Y | cotejar con, contrastar con, comparar con | | never "contra" in this sense; "frente a" stays for "against" as "versus" (43.7 frente a 7.4) |
+| whereas | mientras que | | |
+| the project's root | la raíz de la carpeta | | Appendix J's `AGENTS.md` and Quarto project entries |
+| build on | partir de, seguir trabajando con | | |
+| Markdown construct | elemento de Markdown | | Appendix E's first London checkpoint |
+| get stuck | atascarse | | "Si te atascas", the Windows appendix's heading (`sec-windows-stuck`); never "trabarse" |
+| one at a time | una a la vez, uno por uno | | "prueba las soluciones sugeridas una a la vez" |
+| press (a key) | presiona | | |
+| tap water | agua de la llave | | |
+| an assignment's brief | el enunciado del trabajo | | the afterword's coursework project; never "consigna" |
+| out of date, stale | desactualizado | | "números desactualizados", "un `.venv` desactualizado"; an older command or window is "anterior", "más antiguo" |
+| a CI build | build | | Appendix J's CI job and workflow entries; "rebuild" stays "reconstrucción" |
+| tracked / untracked file | con seguimiento / sin seguimiento | | |
+| typing; typo | tecleo; errata | | Appendix D's "Una errata en el nombre del comando" |
+| with replacement | con reposición | | the bootstrap, in chapters 20 and 22 and Appendix J |
+| render list | lista de renderizado | | |
+| failure | falla | | |
+| rank; range (statistics) | rango; amplitud | | "correlación de rangos", "orden de rango"; chapter 22's "**Amplitud.**"; a benchmark's spread of times is "la amplitud de los tiempos"; a bootstrap interval is "el tramo que contiene…" |
+| white paper (`whitepaper.qmd`) | white paper | EN | the London and water deliverables everywhere in these files; chapter 23 glosses it once, "un white paper, un documento técnico de estilo académico" |
+| dashboard | dashboard | EN | never "tablero" |
+| backtick | comilla invertida | | Appendix B's symbol list |
+| a cluster's name in prose | «…» | | typed names and name parts lower case after the guillemet («ciudades y pueblos grandes», «baja cobertura»); names printed from `w.names()` keep the capital the shared script gives them |
+| positive deviance | casos de desviación positiva | | chapter 23's stretch task and the water exercises |
+| cross-reference in parentheses | bare: "(Sección 17.2)", "(Capítulo 20)", "(Tabla 17.1)"; a pair or more as "(secciones [-@sec-a] y [-@sec-b])", "(tablas …)" | | as a noun in a sentence it takes the article: "la @sec-…", "el @sec-…" (the lead's rule, 2026-11-25) |
+| tested characteristic (IRCA, Resolución 2115) | parámetro analizado | | kept apart from "característica", a clustering feature |
+| rural zone (DANE) | centros poblados y área rural dispersa | | replaces "el campo disperso" (chapter 17, Appendix J) |
+| Compute once, publish many | Calcular una vez, publicar en muchos formatos | | chapter 17's heading and figure, the afterword's card ("Calcula una vez, publica en muchos formatos"), Appendix E |
+| change a setting (the water rebuild) | cambiar una opción | | chapter 23's `sec-water-change`, Exercise V.8, Appendix I; London's rebuild stays "cambiar un dato de entrada" |
+| standard deviations (SD) | desviaciones estándar (DE) | | "DE" expanded at its first use in each chapter that uses it |
+| a fair test; a fair title | una prueba válida; un título adecuado | | chapters 23 and 22 |
+| a loud failure; a quiet falsehood | una falla que salta a la vista; una falsedad que pasa inadvertida | | chapter 23's guard |
+| a bad turn (an agent's) | una respuesta equivocada del agente | | the afterword |
+| an early team | un equipo en etapa inicial | | the afterword's investor update |
+| it has company (Tunja's rural zone) | no es la única | | chapter 21 |
+| draft titles | borradores de título | | the water exercises, question 7 |
+| no restrictions on use (SRTM) | ninguna restricción de uso | | chapter 23, as `data/README.md` says; not "dominio público" |
+| acute diarrhoeal disease | enfermedad diarreica aguda (EDA) | | chapter 23's stretch task |
+| e-reader app | app de lectura | | Appendix H and chapter 23 ("apps de lectura de libros electrónicos") |
+| a stable (internet) connection | una conexión estable | | Appendix A |
+
 ## Titles
 
 Sentence case, as Spanish titles are written. Exercise headings read "Ejercicio II.1: …".

@@ -158,8 +158,8 @@ Punto de control
 
 ## k-means en cuatro pasos {#sec-kmeans-steps}
 
-k-means necesita un número de entrada: $k$, cuántos clústeres encontrar. Hace un inicio y luego
-repite dos movimientos hasta que no cambian nada:
+k-means necesita un número de entrada: $k$, cuántos clústeres encontrar. Arranca y luego repite
+dos pasos hasta que ya no cambian nada:
 
 1. **Coloca** $k$ centros en $k$ puntos de los datos elegidos al azar.
 2. **Asigna** cada punto a su centro más cercano.
@@ -170,7 +170,7 @@ Cada pasada baja la *inercia*, la suma de las distancias al cuadrado de cada pun
 deja el agrupamiento sin cambios. Hay solo una cantidad finita de agrupamientos y, si los empates se
 resuelven siempre igual, ninguno puede repetirse, así que el ciclo llega a una pasada en la que nada
 cambia (scikit-learn también se detiene cuando los centros se mueven menos que una pequeña
-tolerancia). Puede detenerse en un óptimo local, no en el mejor agrupamiento, atrapado ahí por un
+tolerancia). Puede detenerse en un óptimo local, no en el mejor agrupamiento, atascado ahí por un
 mal inicio. La @fig-kmeans-steps muestra el algoritmo sobre `{python} len(km["toy"])` puntos sintéticos en tres
 grupos, datos de juguete inventados para la ilustración, no los datos del agua.
 
@@ -326,7 +326,7 @@ Después del ajuste vienen dos comprobaciones más. **Estabilidad**: los reajust
 `{python} len(A.STABILITY_SEEDS)` semillas distintas coinciden, con un ARI de al menos
 `{python} A.floor_to(s["ari_min"])`, así que el resultado no depende del inicio. Eso no dice
 nada sobre otros datos, otras características u otro k; reajustar sobre filas sacadas otra vez al
-azar (un *bootstrap*), o dejar fuera un año a la vez, pondría eso a prueba. **Orden**: los clústeres
+azar, con reposición (un *bootstrap*), o dejar fuera un año a la vez, pondría eso a prueba. **Orden**: los clústeres
 se numeran según el IRCA de su centro, del más bajo al más alto, así que una nueva ejecución conserva
 los mismos números y colores.
 
@@ -501,8 +501,9 @@ en una sola línea, en inglés, que con los datos de este libro dice:
 
 > `{python} s["k_reason"]`
 
-Es decir: con k = 4, el clúster siguiente recorta la inercia solo un 7% (menos del 10%), y su silueta
-está cerca de la mejor para k ≥ 3. Pídele al agente que desarme esa línea:
+En español: el clúster siguiente al k elegido recorta la inercia menos que el umbral, y la silueta de
+ese k está dentro de la tolerancia respecto de la mejor con k ≥ 3. Pídele al agente que explique esa
+línea parte por parte:
 
 ::: {.prompt}
 ```default
@@ -536,7 +537,7 @@ En scripts/analysis.py, ejecuta k-means sobre las características z_ para k=2�
 Si lo construyes, tu k puede ser distinto de `{python} k` cuando tu preparación es distinta, y está
 bien si la razón es sólida. Lo que importa es que la regla para k sea explícita, donde cualquiera
 pueda volver a ejecutarla, y que los clústeres se numeren con una regla fija (aquí, el IRCA del
-centro, el IRCA del centroide del prompt), para que una nueva ejecución conserve los mismos números
+centro, lo que el prompt llama IRCA del centroide), para que una nueva ejecución conserve los mismos números
 y colores.
 :::
 
@@ -588,9 +589,9 @@ Lo que se puede decir
 
 ::: keyideas
 - k-means asigna los puntos al centro más cercano y mueve los centros a la media de sus puntos;
-  puede estancarse, así que se queda con el mejor de muchos inicios con semilla.
+  puede estancarse, así que se queda con el mejor de muchos inicios, con una semilla fija.
 - k se elige con una regla explícita del script que cualquiera puede volver a ejecutar: excluir
-  k = 2, tomar el codo, dejar que la silueta vete. Su umbral del `{python} f"{A.ELBOW_DROP:.0%}"` es
+  k = 2, tomar el codo, usar la silueta como veto. Su umbral del `{python} f"{A.ELBOW_DROP:.0%}"` es
   una cuestión de criterio.
 - El codo es ajustado y la silueta, baja: los tipos resumen un continuo.
 - La coincidencia entre semillas muestra independencia del inicio, no de los datos ni de las
@@ -600,7 +601,7 @@ Lo que se puede decir
 - Usar el modelo terminado es legítimo si puedes explicar lo que eligió.
 :::
 
-Por ahora, los tipos son solo números, del clúster 1, el de IRCA del centro más bajo, al clúster
+Por ahora, los tipos son solo números, del clúster 1, el de menor IRCA en su centro, al clúster
 `{python} k`: el capítulo siguiente averigua qué distingue a cada uno, le pone nombre con una regla
 y compara las variables de resultado que el agrupamiento nunca vio.
 
@@ -624,5 +625,5 @@ y compara las variables de resultado que el agrupamiento nunca vio.
   (ACM-SIAM Symposium on Discrete Algorithms),
   <https://theory.stanford.edu/~sergei/papers/kMeansPP-soda.pdf> (consultado el 2026-11-12).
 - `examples/water/references.bib` en el repositorio del taller: los artículos sobre k-means, la
-  silueta y el índice de Rand ajustado que cita el documento técnico terminado, revisados contra las
+  silueta y el índice de Rand ajustado que cita el white paper terminado, cotejados con las
   páginas de sus editoriales.
