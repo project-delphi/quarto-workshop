@@ -35,7 +35,7 @@ Conventions that apply everywhere:
 | Summary | Resumen | | `## Summary {.unnumbered}` |
 | Key ideas | Ideas clave | | |
 | In this chapter | En este capítulo | | `::: opener` label |
-| Start from / You build / Checkpoint | Partes de / Construyes / Punto de control | | opener terms |
+| Start from / You build / Checkpoint | Punto de partida / Construyes / Punto de control | | opener terms |
 | Pause and think / Answer | Detente y piensa / Respuesta | | `::: think` |
 | Why this works | Por qué funciona | | `::: why` |
 | Common pitfall | Error frecuente | | `::: pitfall` |
