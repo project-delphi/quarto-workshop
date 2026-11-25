@@ -41,15 +41,29 @@ ATTRACTIONS = {"data/attractions.csv": LONDON / "data" / "attractions.csv"}
 
 # Top and bottom (CSS px from the page's top) of the content above the rule, and of the rule and
 # what follows it, with the smallest text size drawn in each half.
+# Each half's extent and smallest text, from every line of text (a paragraph with bold or a
+# link in it is measured line by line) and the boxes of pictures, rules, tables and code.
 MD_PARTS = """() => {
-    const box = e => { const r = e.getBoundingClientRect(); return [r.top + scrollY, r.bottom + scrollY]; };
-    const hr = document.querySelector("main hr");
+    const main = document.querySelector("main"), hr = main && main.querySelector("hr");
     if (!hr) return null;
-    const cut = box(hr)[0];
-    const seen = [...document.querySelectorAll("main *")].filter(e => !e.children.length && e.getBoundingClientRect().height > 0);
-    const part = list => ({top: Math.min(...list.map(e => box(e)[0])), bottom: Math.max(...list.map(e => box(e)[1])),
-        text: Math.min(...list.filter(e => e.textContent.trim()).map(e => parseFloat(getComputedStyle(e).fontSize)))});
-    return {first: part(seen.filter(e => box(e)[1] <= cut)), second: part([hr, ...seen.filter(e => box(e)[0] >= cut)])};
+    const cut = hr.getBoundingClientRect().top + scrollY;
+    const items = [];  // [top, bottom, font size, or null for a box]
+    const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        if (!n.textContent.trim()) continue;
+        const range = document.createRange();
+        range.selectNodeContents(n);
+        const size = parseFloat(getComputedStyle(n.parentElement).fontSize);
+        for (const r of range.getClientRects())
+            if (r.width > 1 && r.height > 1) items.push([r.top + scrollY, r.bottom + scrollY, size]);
+    }
+    for (const e of main.querySelectorAll("img, hr, table, pre, input")) {
+        const r = e.getBoundingClientRect();
+        if (r.height > 0) items.push([r.top + scrollY, r.bottom + scrollY, null]);
+    }
+    const part = list => ({top: Math.min(...list.map(i => i[0])), bottom: Math.max(...list.map(i => i[1])),
+        text: Math.min(...list.filter(i => i[2] !== null).map(i => i[2]))});
+    return {first: part(items.filter(i => i[1] <= cut)), second: part(items.filter(i => i[0] >= cut))};
 }"""
 
 
@@ -94,7 +108,7 @@ def step_md() -> None:
                 png = OUT / f"toy-md-{n}.png"
                 page.screenshot(path=str(png), full_page=True, clip=clip)
                 if n == 1:  # text only: a palette keeps the file small; the photo stays full colour
-                    Image.open(png).convert("RGB").quantize(colors=128).save(png, optimize=True)
+                    Image.open(png).convert("RGB").quantize(colors=128, dither=Image.Dither.NONE).save(png, optimize=True)
                 h = clip["height"]
                 print("figure", png.relative_to(BOOK),
                       f"{PHONE} x {h:.0f} CSS px at {SCALE}x (h/w {h / PHONE:.2f});",

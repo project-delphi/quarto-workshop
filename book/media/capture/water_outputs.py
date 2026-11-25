@@ -208,15 +208,20 @@ def shoot_council(site: Path) -> None:
 
 MAX_HW = 1.25  # tallest a picture may be, as height over width
 
-# The smallest text drawn between two page heights, and the page's boxes for the two crops.
+# The smallest text with a line inside the crop (a paragraph the crop cuts through counts), or
+# null when the crop holds no text; and the page's boxes for the two crops.
 MIN_TEXT = """([top, bottom]) => {
-    let min = 1e9;
+    let min = null;
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     for (let n = walker.nextNode(); n; n = walker.nextNode()) {
         if (!n.textContent.trim()) continue;
-        const e = n.parentElement, r = e.getBoundingClientRect();
-        if (r.width === 0 || r.top + scrollY < top || r.bottom + scrollY > bottom) continue;
-        min = Math.min(min, parseFloat(getComputedStyle(e).fontSize));
+        const range = document.createRange();
+        range.selectNodeContents(n);
+        const inside = [...range.getClientRects()].some(r => r.width > 1 && r.height > 1
+            && r.top + scrollY < bottom && r.bottom + scrollY > top);
+        if (!inside) continue;
+        const size = parseFloat(getComputedStyle(n.parentElement).fontSize);
+        min = min === null ? size : Math.min(min, size);
     }
     return min;
 }"""
@@ -232,7 +237,7 @@ POST_BOX = """limit => {
     const range = document.createRange();
     range.selectNodeContents(para);
     const lines = [...range.getClientRects()].map(r => r.bottom + scrollY).filter(y => y - top <= limit);
-    return [top, Math.max(...lines)];
+    return lines.length ? [top, Math.max(...lines)] : null;
 }"""
 
 
@@ -255,6 +260,8 @@ def shoot_phone(site: Path) -> None:
                 raise SystemExit(f"{html.name}: nothing to crop to for {name}")
             top, bottom = max(span[0] - PAD, 0), span[1] + PAD
             small = page.evaluate(MIN_TEXT, [span[0], span[1]])
+            if small is None:
+                raise SystemExit(f"{name}: no text inside the crop")
             png = OUT / name
             clip = {"x": 0, "y": top, "width": PHONE, "height": bottom - top}
             Image.open(BytesIO(page.screenshot(full_page=True, clip=clip))).convert("RGB").save(png, optimize=True)

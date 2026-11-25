@@ -3,7 +3,7 @@
 Renders a temporary copy of examples/london (the example itself is not touched) with its own
 locked uv environment (uv sync --frozen; no network), then makes the steps asked for:
 
-- outputs:   the first page of the flyer, the square advert and the white paper (macOS Quick
+- london:    the first page of the flyer, the square advert and the white paper (macOS Quick
              Look draws a PDF's first page, _pdf.py; the advert, a full-bleed photo, as a JPEG)
              and desktop screenshots of the dashboard and the guide.
 - guide:     london-guide-phone.png (Chapter 6's payoff): london.html at a 390 px viewport, drawn
@@ -21,7 +21,7 @@ The new pictures have new names because the Spanish edition reads media/figures 
 symlink and keeps the old ones until it is translated.
 
 Run from book/media/capture, all steps or the ones named (as arguments, or in CAPTURE_STEPS):
-    uv run --with playwright python london_outputs.py [outputs] [guide] [dashboard] [audiences] [live]
+    uv run --with playwright python london_outputs.py [london] [guide] [dashboard] [audiences] [live]
 or from book/: CAPTURE_STEPS="live" make media STEPS="capture" ONLY=london_outputs
 """
 from __future__ import annotations
@@ -210,7 +210,7 @@ def step_audiences(s: Path) -> None:
     save(out, "london-audiences.png", {"dashboard": t_boxes, "brief": t_brief})
 
 
-STEPS = {"outputs": step_outputs, "guide": step_guide, "dashboard": step_dashboard,
+STEPS = {"london": step_outputs, "guide": step_guide, "dashboard": step_dashboard,
          "audiences": step_audiences, "live": step_live}
 
 

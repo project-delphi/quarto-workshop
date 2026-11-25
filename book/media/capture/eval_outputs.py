@@ -406,6 +406,10 @@ def step_site() -> None:
         box_height = float(re.search(r'viewBox="[\d.]+ [\d.]+ [\d.]+ ([\d.]+)"', svg).group(1))
         name_size = float(re.search(r'<text[^>]*font-size="([\d.]+)"', svg).group(1))
         logo_text = got["probe"]["logo_height"] * name_size / box_height
+        if logo_text * PHONE_COLUMN / PHONE < MIN_TEXT:
+            (OUT / "eval-site-navbar-before.png").unlink(missing_ok=True)
+            sys.exit(f"eval-site-navbar: the logo's name would show at "
+                     f"{logo_text * PHONE_COLUMN / PHONE:.1f} px on a phone, under {MIN_TEXT}")
         show(got)
         print(f"  the logo's name: {logo_text * SCALE:.0f} px in the image, "
               f"{logo_text * PHONE_COLUMN / PHONE:.1f} px on a phone")
@@ -487,9 +491,9 @@ def _whitepaper(work: Path, env: dict) -> None:
         sys.exit("whitepaper.pdf: no abstract on page 1")
     fill = off[:, left + round(4 * k)] > 6
     box_top = box_bottom = round(label[1] * k)
-    while fill[box_top - 1]:
+    while box_top > 0 and fill[box_top - 1]:
         box_top -= 1
-    while fill[box_bottom + 1]:
+    while box_bottom + 1 < len(fill) and fill[box_bottom + 1]:
         box_bottom += 1
     block_bottom = top + np.flatnonzero(ink[top:box_top, left:right + 1].any(axis=1))[-1]
     pad = round(PAGE_PAD * k)
@@ -502,9 +506,14 @@ def _whitepaper(work: Path, env: dict) -> None:
         for x, baseline, size, words in text["runs"]:
             if crop[1] <= baseline * k <= crop[3]:
                 sizes.setdefault(round(size, 1), words)
+        if not sizes:
+            sys.exit(f"whitepaper.pdf: no text inside {what}")
         phone = {size: round(size * k * PHONE_COLUMN / width, 1) for size in sizes}
         if min(phone.values()) >= MIN_TEXT:
             break
+    # Below the floor only where SMALL_TEXT says why, checked before the picture is written.
+    if min(phone.values()) < MIN_TEXT and png.name not in SMALL_TEXT:
+        sys.exit(f"{png.name}: {what} has text under {MIN_TEXT} px on a phone")
     save_png(page.crop(crop), png)
     height = crop[3] - crop[1]
     print(f"figure {png.relative_to(BOOK)}: {what}, {width} x {height} px (h/w {height / width:.2f}), "
@@ -513,9 +522,15 @@ def _whitepaper(work: Path, env: dict) -> None:
         print(f"  {size:>5} pt: {size * k:.0f} px in the image, {phone[size]} px on a phone "
               f"({sizes[size][:40]!r})")
     if min(phone.values()) < MIN_TEXT:
-        # The column is 16.6 cm of an A4 page: no crop of whole lines makes its smaller type 9 px
-        # on a phone. The picture is written for the chapter's author to judge; book-pages flags it.
-        print(f"  WARNING: {what} has text under {MIN_TEXT} px on a phone even cropped to the column")
+        print(f"  allowed: text under {MIN_TEXT} px on a phone, because {SMALL_TEXT[png.name]}")
+
+
+# Pictures allowed to show text under MIN_TEXT on a phone, each with its reason (book/pagefit.yml
+# notes the same beside the figure's text size). Any other picture under the floor stops its step.
+SMALL_TEXT = {
+    "eval-whitepaper-p1.png": "it is an A4 page's title block: no crop of whole lines is narrower "
+                              "than the 16.6 cm column, and its title stays legible",
+}
 
 
 def step_update() -> None:
