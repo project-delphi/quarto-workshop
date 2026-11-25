@@ -34,6 +34,9 @@ text_holds(all(e["key"] in cited_paper | cited_card for e in entries),
            "every entry of the project's bibliography is cited by the paper or the model card")
 how_many = "all of them" if len(cited_paper) == len(entries) else f"{WORD[len(cited_paper)]} of them"
 text_holds(all(refs[k] for k in refs), "the paper refers to equations, tables, figures and sections")
+text_holds([e["key"] for e in entries if not e["doi"]] == ["equalityact2010s4"],
+           "all the references but the statute have a DOI")
+text_holds(refs["eq"] == ["@eq-auc", "@eq-interval", "@eq-recall"], "the paper numbers recall and the interval too")
 # The payoff (media/capture/eval_outputs.py, step whitepaper): the title block's words.
 meta = dict(re.findall(r'^(title|subtitle): "(.*)"$', paper, re.M))
 partial = (CHECKPOINT / "templates" / "whitepaper" / "typst-show.typ").read_text()
@@ -54,10 +57,6 @@ without you in the room, and will check it: whether the method is stated, whethe
 in the text match the tables, whether the references exist and say what the paper claims they
 say. For a start-up, a benchmark or evaluation white paper is often the most credible thing it
 can publish, and the most damaging if one of those checks fails.
-
-This chapter writes the evaluation's white paper: numbered sections, and an equation, tables
-and figures the text cites by number; citations in one style in every format; references a
-script confirms; and a house template for the PDF.
 
 ::: opener
 - Name the parts of a technical white paper and the Quarto feature behind each: numbered
@@ -85,6 +84,8 @@ Checkpoint
 
 ## What a white paper is made of {#sec-wp-vocab}
 
+Ask for each part of the paper by its name in Quarto:
+
 | Part | Quarto calls it |
 |---|---|
 | numbered sections | `number-sections: true`; `## Data {#sec-data}` |
@@ -97,8 +98,9 @@ Checkpoint
 
 ## The paper {#sec-wp-paper}
 
-The first prompt asks for the whole paper, from `outputs/` only: six numbered sections, the
-equation, table and figure its text cites, and the guards. The second puts it on the site.
+The first prompt asks for the whole paper, from `outputs/` only: six numbered sections, ROC
+AUC as a numbered equation, a table and a figure, each cited, and the guards. The second puts
+it on the site.
 
 ::: {.prompt .long}
 ```default
@@ -133,7 +135,8 @@ agree**: a number in the Results text equals the same number in the table. **The
 stands alone**: someone who reads only the abstract knows what was evaluated, the headline
 result and its main limit.
 
-The finished paper refers to `{python} counted(len(refs["eq"]), "equation")`,
+The finished paper, which also numbers recall and the interval, refers to
+`{python} counted(len(refs["eq"]), "equation")`,
 `{python} counted(len(refs["tbl"]), "table")`, `{python} counted(len(refs["fig"]), "figure")`
 and `{python} counted(len(refs["sec"]), "section")` by number. A reference that does not resolve
 renders as "??", so a search of each format for it is the check a reader would make by eye,
@@ -143,7 +146,9 @@ done once: in the finished paper's three formats, it found none.
 
 A reference list is a set of claims: this work exists, and it says what we say it says. An
 agent can produce a plausible reference that does not exist (@sec-water-dashboard), so the
-prompt requires opening each one, and allows only what was confirmed:
+prompt requires opening each one, and allows only what was confirmed. A DOI's record lives
+with its registry: *Crossref* for most journal articles, *DataCite* for most datasets, each
+with a free API:
 
 ::: {.prompt .long}
 ```default
@@ -156,8 +161,8 @@ queries Crossref · edits `references.bib` · downloads `csl/apa.csl` · renders
 :::
 
 The project's `references.bib`, which the paper shares with the model card, holds
-`{python} WORD[len(entries)]` works, `{python} how_many` cited by the paper, each confirmed at
-its source; their DOIs are in the file:
+`{python} WORD[len(entries)]` works, `{python} how_many` cited by the paper. All but one have
+a DOI in the file; the statute, which has none, was confirmed at legislation.gov.uk:
 
 ```{python}
 #| output: asis
@@ -180,7 +185,7 @@ Zotero exports the same `.bib` format.
 | A second "Bibliography" heading in the PDF | `citeproc: true` under `typst:` |
 | A proper name lower-cased in a title, such as "Bank Marketing" | brace it in the `.bib`: `{Bank Marketing}` |
 | The dataset's DOI is not in Crossref | it is a DataCite DOI: look it up there |
-| An opening quote in the PDF's "ICML '05" | leave abbreviated venue names out of the `.bib` |
+| In the PDF, the apostrophe of "ICML '05" curls the wrong way | leave abbreviated venue names out of the `.bib` |
 
 : Met while testing the references, 2026-11-18. {#tbl-wp-traps}
 
@@ -192,6 +197,9 @@ Half of it. The works exist and are described correctly. Whether each says what 
 claims it says, no lookup knows: someone has to have read it. While this paper was built, one
 DOI resolved to a paper that could not be opened at all. It is not cited, and the measure it
 introduced is defined in the text instead: cite what you have read.
+
+<!-- source: book/chapters/white-papers.qmd lines 160-161 at 651db10 ("One paper whose DOI
+resolved could not be opened at all; it is not cited") -->
 :::
 
 ## A check for every DOI {#sec-wp-check}
@@ -239,7 +247,8 @@ for name, entry in (("A", planted), ("B", real)):
 One of A and B is the entry as published. What would `check_refs.py` report for the other,
 and what would it not notice?
 
-It would fail A, with "`{python} spot_answer`": its DOI is the same and resolves, but the year
+B is the entry as published. The script would fail A, with "`{python} spot_answer`": its DOI
+is the same and resolves, but the year
 disagrees with the registry's record. It would not notice that A's key still says
 `{python} year`: a key is only a name, and the script compares the year, the first author and
 the title.
