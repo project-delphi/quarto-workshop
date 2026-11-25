@@ -38,6 +38,23 @@ PAD = 12  # CSS pixels kept round each crop
 GAP = 16  # CSS pixels between the two crops, with a dashed rule across the middle
 
 
+def render_example(prefix: str) -> Path:
+    """Copy examples/water to a temporary folder, give it its own locked uv environment and
+    render it there. Returns the copy; the caller removes its parent."""
+    work = Path(tempfile.mkdtemp(prefix=prefix)) / "water"
+    try:
+        shutil.copytree(EXAMPLE, work, ignore=shutil.ignore_patterns(
+            ".venv", "_site", ".quarto", "*_files", "outputs", "raw", "__pycache__"))
+        env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}  # uv picks the folder's own
+        subprocess.run(["uv", "sync", "--frozen"], cwd=work, env=env, check=True)
+        env["JUPYTER_PATH"] = str(work / ".venv" / "share" / "jupyter")  # not a user-level kernel
+        subprocess.run(["uv", "run", "--frozen", "quarto", "render"], cwd=work, env=env, check=True)
+    except BaseException:
+        shutil.rmtree(work.parent, ignore_errors=True)
+        raise
+    return work
+
+
 def step_outputs() -> None:
     work = Path(tempfile.mkdtemp(prefix="water-")) / "water"
     shutil.copytree(EXAMPLE, work, ignore=shutil.ignore_patterns(
@@ -145,7 +162,131 @@ def step_explore() -> None:
     shutil.rmtree(work.parent, ignore_errors=True)
 
 
-STEPS = {"outputs": step_outputs, "explore": step_explore}
+LAST_SLIDE = "What this does and does not show"
+
+# Reveal.js scales its 1050-pixel-wide slide to the viewport's width, so at a phone's width the
+# bullets could be drawn far too small. The picture measures what is drawn (font size times the
+# scale Reveal applies); the bullets must be at least 9 px in the 340 px column the book shows.
+SLIDE_BOX = """title => {
+    const h = [...document.querySelectorAll(".reveal h2")].find(e => e.textContent.trim() === title);
+    if (!h) return null;
+    const sec = h.closest("section");
+    sec.scrollIntoView();
+    const items = [...sec.querySelectorAll("li")];
+    const px = e => parseFloat(getComputedStyle(e).fontSize) * (e.getBoundingClientRect().height / e.offsetHeight);
+    const r = sec.getBoundingClientRect();
+    const end = items[items.length - 1].getBoundingClientRect().bottom;  // the slide's lower half is empty
+    return {x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: Math.min(r.height, end - r.top + 12), n: items.length,
+            bullet: Math.min(...items.map(px)), title: px(h)};
+}"""
+
+
+def shoot_council(site: Path) -> None:
+    png = OUT / "water-slides-last.png"
+    with sync_playwright() as p:
+        b = p.chromium.launch(channel="chrome")
+        page = b.new_page(viewport={"width": PHONE, "height": 844}, device_scale_factor=3)
+        page.goto((site / "slides.html").as_uri())
+        page.wait_for_function("window.Reveal && Reveal.isReady()")
+        page.wait_for_timeout(1500)
+        at = page.evaluate(SLIDE_BOX, LAST_SLIDE)
+        if at is None:
+            raise SystemExit(f"slides.html has no slide titled {LAST_SLIDE!r}")
+        page.wait_for_timeout(500)
+        at = page.evaluate(SLIDE_BOX, LAST_SLIDE)
+        print("slide box", at)
+        page.screenshot(path=str(png), full_page=True,
+                        clip={"x": at["x"], "y": at["y"], "width": at["w"], "height": at["h"]})
+        b.close()
+    shrink(png)
+    w, h = at["w"], at["h"]
+    print("figure", png.relative_to(BOOK), f"{w:.0f} x {h:.0f} CSS px at 3x (h/w {h / w:.2f});",
+          f"{at['n']} bullets; bullet text {at['bullet'] * 3:.0f} px, title {at['title'] * 3:.0f} px in",
+          f"the image; {at['bullet'] * 340 / w:.1f} px and {at['title'] * 340 / w:.1f} px in a",
+          "340 px column")
+
+
+MAX_HW = 1.25  # tallest a picture may be, as height over width
+
+# The smallest text drawn between two page heights, and the page's boxes for the two crops.
+MIN_TEXT = """([top, bottom]) => {
+    let min = 1e9;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        if (!n.textContent.trim()) continue;
+        const e = n.parentElement, r = e.getBoundingClientRect();
+        if (r.width === 0 || r.top + scrollY < top || r.bottom + scrollY > bottom) continue;
+        min = Math.min(min, parseFloat(getComputedStyle(e).fontSize));
+    }
+    return min;
+}"""
+DASH_BOXES = """() => {
+    const b = [...document.querySelectorAll(".bslib-value-box")].slice(0, 2).map(e => e.getBoundingClientRect());
+    return b.length < 2 ? null : [b[0].top + scrollY, b[1].bottom + scrollY];
+}"""
+POST_BOX = """limit => {
+    const h = document.querySelector("h1.title, .quarto-title h1");
+    const para = document.querySelector("#quarto-document-content p");
+    if (!h || !para) return null;
+    const top = h.getBoundingClientRect().top + scrollY;
+    const range = document.createRange();
+    range.selectNodeContents(para);
+    const lines = [...range.getClientRects()].map(r => r.bottom + scrollY).filter(y => y - top <= limit);
+    return [top, Math.max(...lines)];
+}"""
+
+
+def shoot_phone(site: Path) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    post = next(site.glob("posts/*/index.html"))
+    limit = MAX_HW * PHONE
+    with sync_playwright() as p:
+        b = p.chromium.launch(channel="chrome")
+        for html, name, wait in [(site / "dashboard.html", "water-dashboard-phone.png", 9000),
+                                 (post, "water-post-phone.png", 2000)]:
+            page = b.new_page(viewport={"width": PHONE, "height": 844}, device_scale_factor=SCALE)
+            page.goto(html.as_uri())
+            page.wait_for_timeout(wait)
+            span = page.evaluate(DASH_BOXES if "dashboard" in name else POST_BOX, *([] if "dashboard" in name else [limit]))
+            if span is None:
+                raise SystemExit(f"{html.name}: nothing to crop to for {name}")
+            top, bottom = max(span[0] - PAD, 0), span[1] + PAD
+            small = page.evaluate(MIN_TEXT, [span[0], span[1]])
+            png = OUT / name
+            clip = {"x": 0, "y": top, "width": PHONE, "height": bottom - top}
+            Image.open(BytesIO(page.screenshot(full_page=True, clip=clip))).convert("RGB").save(png, optimize=True)
+            w, h = clip["width"], clip["height"]
+            print("figure", png.relative_to(BOOK), f"{w:.0f} x {h:.0f} CSS px at {SCALE}x (h/w {h / w:.2f});",
+                  f"smallest text {small * SCALE:.0f} px in the image, {small * 340 / w:.1f} px in a 340 px column")
+        b.close()
+
+
+def step_phone() -> None:
+    work = render_example("water-phone-")
+    try:
+        shoot_phone(work / "_site")
+    finally:
+        shutil.rmtree(work.parent, ignore_errors=True)
+
+
+def step_council() -> None:
+    work = render_example("water-council-")
+    try:
+        shoot_council(work / "_site")
+    finally:
+        shutil.rmtree(work.parent, ignore_errors=True)
+
+
+def shrink(png: Path) -> None:
+    """Re-save a screenshot as an optimised PNG."""
+    from PIL import Image
+    Image.open(png).convert("RGB").save(png, optimize=True)
+
+
+STEPS = {"outputs": step_outputs, "explore": step_explore, "council": step_council, "phone": step_phone}
 
 
 def main(names: list[str]) -> None:
