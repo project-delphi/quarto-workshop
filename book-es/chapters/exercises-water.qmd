@@ -3,7 +3,7 @@
 ```{python}
 #| label: exw-setup
 from scripts import water as w
-from scripts.prose import number_words, text_holds
+from scripts.prose import number_words, spans, text_holds
 
 raw = w.raw()
 first, last = int(raw["year"].min()), int(raw["year"].max())
@@ -21,20 +21,36 @@ if (tj["cluster"].nunique() != 1 or len(tj_bands) == 0 or tj_bands.eq("No risk")
 # Review question 5 calls the silhouette at the chosen k low (@sec-choose-k).
 sil = w.res()["summary"]["silhouette_at_k"]
 text_holds(sil < 0.25, "review question 5's low silhouette")
+
+# The opening puzzle (D5-c): three true sentences about the kinds, one given a causal verb,
+# from scripts/water.py, which Appendix E's answer calls too (@sec-checkpoints).
+honest, planted = w.council_claims(w.res())
 ```
 
-Los ejercicios del análisis del agua son de tres tipos. Los ocho numerados reconstruyen el proyecto en
-orden; los que terminan en un punto de control dan las líneas que te ponen al día. Las tareas de
-transferencia que vienen después no traen prompt: escribes tú el prompt y la comprobación. Las
-preguntas de repaso ponen a prueba las ideas más que los comandos, y sus respuestas están al final.
+El agente redactó tres oraciones sobre los tipos de lugar para el resumen de un concejo. Cada
+número que contienen se calcula a partir de `outputs/`, y todos son correctos:
+
+```{python}
+#| label: exw-claims
+#| output: asis
+print("\n".join(f"{i}. {t}" for i, t in enumerate(planted, start=1)))
+```
+
+Una de las tres afirma una causa. ¿Cuál, y cómo la reescribirías? Decídelo antes de empezar; la
+respuesta, calculada, está en el @sec-checkpoints.
+
+Los nueve ejercicios numerados reconstruyen el proyecto en orden y terminan con una diapositiva que
+escribes tú; las tareas de transferencia no traen prompt, así que escribes tú el prompt y la
+comprobación. Las preguntas de repaso ponen a prueba las ideas más que los comandos, cada una con su
+respuesta debajo.
 
 Inicia el agente en `~/water-quality/`, al lado de `~/quarto-workshop/`. Los puntos de control del
 agua solo contienen fuentes, así que cada recuadro para ponerte al día también copia
-`examples/water/data/` a tu carpeta si falta `data/`. Desde el Ejercicio III.3, la ruta normal copia el
+`examples/water/data/` a tu carpeta si falta `data/`. Desde el Ejercicio V.3, la ruta normal copia el
 `scripts/analysis.py` terminado de cada capítulo; escribir tú el análisis es opcional. El
-@sec-checkpoints tiene la tabla completa.
+@sec-checkpoints enumera todos los puntos de control.
 
-## Ejercicio III.1: reglas, entorno y una primera mirada {#exercise-iii.1-rules-environment-and-a-first-look .unnumbered}
+## Ejercicio V.1: reglas, entorno y una primera mirada {#exercise-iii.1-rules-environment-and-a-first-look .unnumbered}
 
 Del @sec-water-question y el @sec-explore. Copia los datos, escribe `AGENTS.md` a partir del README de
 los datos, crea el entorno de uv y construye `explore.qmd`.
@@ -50,7 +66,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md
 ```
 :::
 
-## Ejercicio III.2: características {#exercise-iii.2-features .unnumbered}
+## Ejercicio V.2: características {#exercise-iii.2-features .unnumbered}
 
 Del @sec-prepare. Escribe `prepare()` en `scripts/analysis.py`: selecciona, transforma, imputa con
 indicadores y estandariza dentro de cada año, y guarda `outputs/prepared.parquet`.
@@ -66,7 +82,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md
 ```
 :::
 
-## Ejercicio III.3: clústeres {#exercise-iii.3-clusters .unnumbered}
+## Ejercicio V.3: clústeres {#exercise-iii.3-clusters .unnumbered}
 
 Del @sec-cluster. Copia (o construye) el paso de k-means, y crea `clusters.qmd`.
 
@@ -81,7 +97,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
 ```
 :::
 
-## Ejercicio III.4: interpretación {#exercise-iii.4-interpretation .unnumbered}
+## Ejercicio V.4: interpretación {#exercise-iii.4-interpretation .unnumbered}
 
 Del @sec-interpret. Copia (o construye) las reglas de las variables de resultado, los perfiles y los
 nombres, y agrega el mapa de calor y las líneas de las variables de resultado a `clusters.qmd`.
@@ -97,7 +113,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/08-water-interpret/README.md
 ```
 :::
 
-## Ejercicio III.5: la comprobación dentro de cada clúster {#exercise-iii.5-the-within-cluster-check .unnumbered}
+## Ejercicio V.5: la comprobación dentro de cada clúster {#exercise-iii.5-the-within-cluster-check .unnumbered}
 
 Del @sec-causation. Copia (o construye) la comprobación, y agrégala a la página de los clústeres con su
 oración de que es solo descriptiva.
@@ -113,7 +129,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/09-water-causation/README.md
 ```
 :::
 
-## Ejercicio III.6: informe, diapositivas y libro electrónico {#exercise-iii.6-report-slides-and-e-book .unnumbered}
+## Ejercicio V.6: informe, diapositivas y libro electrónico {#exercise-iii.6-report-slides-and-e-book .unnumbered}
 
 Del @sec-publish-many. Construye `report.qmd` (HTML, Word, PDF de Typst), `slides.qmd` (Reveal.js y
 PowerPoint) y, si quieres, el EPUB del informe.
@@ -145,7 +161,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/12-water-epub/README.md
 ```
 :::
 
-## Ejercicio III.7: el sitio web, publicado {#exercise-iii.7-the-website-published .unnumbered}
+## Ejercicio V.7: el sitio web, publicado {#exercise-iii.7-the-website-published .unnumbered}
 
 De la @sec-water-website y la @sec-water-ship. Convierte la carpeta en un sitio web con una entrada de
 blog titulada con el k real, súbela a GitHub y publícala con un `uv run quarto publish gh-pages`
@@ -162,7 +178,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
 ```
 :::
 
-## Ejercicio III.8: cambia un dato de entrada, explica la reconstrucción {#exercise-iii.8-change-an-input-explain-the-rebuild .unnumbered}
+## Ejercicio V.8: cambia un dato de entrada, explica la reconstrucción {#exercise-iii.8-change-an-input-explain-the-rebuild .unnumbered}
 
 De la @sec-water-change, sin prompt: cambia `MAX_MISSING`, predice, reconstruye, explica y deshaz el
 cambio con `git restore scripts/analysis.py`.
@@ -172,6 +188,20 @@ puedes nombrar las salidas que cambiaron, las que no, qué les pasó a las dos z
 mecanismo que las conecta (`pre-render`, `outputs/`, `freeze: false`). La respuesta modelo está en
 el @sec-checkpoints.
 :::
+
+## Ejercicio V.9: la última diapositiva del concejo {#exercise-v.9-the-councils-last-slide .unnumbered}
+
+De la @sec-honest-writing, sin prompt. El agente escribió la última diapositiva de la presentación para
+el concejo en el Ejercicio V.6. Escribe la tuya en su lugar, en `slides.qmd`, y renderiza los dos
+formatos.
+
+::: done
+la diapositiva tiene como mucho cinco viñetas; cada número es código en línea que lee `outputs/`; el
+IRCA lleva la etiqueta de prestadores; se nombran las filas y los años comparados; y una oración dice
+lo que la comparación no muestra.
+:::
+
+Luego compara la tuya con la de la presentación terminada (@fig-water-last-slide).
 
 ## Tareas de transferencia: tu prompt, tu comprobación {#transfer-tasks-your-prompt-your-check .unnumbered}
 
@@ -221,27 +251,105 @@ antes de ejecutarlo: ¿qué vas a mirar, y qué te diría que el agente se equiv
 
 ## Preguntas de repaso {.unnumbered}
 
-1. Alguien de tu equipo sugiere agregar la mortalidad infantil a las características, ya que dice más
-   sobre el riesgo para la salud que la altitud. ¿Por qué el análisis del agua nunca agrupa según una variable
-   de resultado?
-2. ¿Por qué el IRCA se llama "de prestadores" cada vez que aparece, y dónde importa más la etiqueta?
-3. La mayoría de las filas rurales no tienen IRCA, y el análisis las descarta. ¿Qué pueden afirmar los
-   resultados del clúster rural, y qué no?
-4. ¿Por qué el análisis agrupa puntajes z estandarizados dentro de cada año, y no los valores
-   originales?
-5. La silueta con el k elegido es solo `{python} f"{sil:.2f}"`. ¿Falló el agrupamiento?
-6. La zona rural de Tunja tuvo agua de riesgo medio en algunos de los años del análisis, y sin embargo
-   está en un clúster que se llama "`{python} tj_risk`". ¿Está mal el nombre?
-7. Dos títulos borrador para la última diapositiva del concejo: "El agua más segura reduce la
-   mortalidad infantil" y, después de la comprobación dentro de cada clúster (@sec-water-within), "La
-   calidad del agua no hace ninguna diferencia en la mortalidad infantil". ¿Qué está mal en cada uno, y
-   qué escribirías en su lugar?
-8. En la comprobación dentro de cada clúster, cada municipio-año de Tunja lleva el IRCA medio de sus
-   dos zonas. ¿Por qué esa no es el agua que bebieron los bebés de Tunja, y cómo se llama leerla como
-   si lo fuera?
-9. Después de cambiar `MAX_MISSING` y reconstruir, la página de los clústeres, el informe y la entrada
-   muestran números nuevos, pero la página de exploración y el sitio en vivo no. ¿Por qué? ¿Y qué
-   saldría mal si el sitio usara `freeze: auto`?
+::: think
+1\. Alguien de tu equipo sugiere agregar la mortalidad infantil a las características, ya que dice
+más sobre el riesgo para la salud que la altitud. ¿Por qué el análisis del agua nunca agrupa según
+una variable de resultado?
+
+Porque el análisis compara después las variables de resultado entre los tipos. Si la mortalidad
+infantil ayudara a definirlos, diferirían en mortalidad infantil por construcción, y la comparación
+encontraría exactamente lo que se puso (@sec-water-features). Las variables de resultado describen
+los clústeres; nunca los definen.
+:::
+
+::: think
+2\. ¿Por qué el IRCA se llama "de prestadores" cada vez que aparece, y dónde importa más la
+etiqueta?
+
+La tabla abierta contiene el IRCA de los sistemas operados por prestadores, no la cifra nacional.
+Los sistemas de autoabastecimiento puntúan mucho peor (@sec-water-why), así que, sin la etiqueta, un
+lector tomaría la cifra por la nacional y creería que el agua es más segura de lo que es. Eso importa
+más donde el autoabastecimiento es común; donde no existe un prestador, los datos no dicen nada.
+:::
+
+::: think
+3\. La mayoría de las filas rurales no tienen IRCA, y el análisis las descarta. ¿Qué pueden afirmar
+los resultados del clúster rural, y qué no?
+
+Describen solo los sistemas rurales muestreados: los que opera un prestador y se analizan. Los vacíos
+no son aleatorios: siguen la zona, y quizá el riesgo mismo, ya que las zonas que menos se puntúan son
+las más riesgosas donde sí se puntúan. Así que cada resultado rural debería decir qué sistemas cubre
+(@sec-water-bands, @sec-prepare-counts).
+:::
+
+::: think
+4\. ¿Por qué el análisis agrupa puntajes z estandarizados dentro de cada año, y no los valores
+originales?
+
+k-means agrupa las filas por la distancia en línea recta, en la que una característica cuenta en
+proporción a su varianza. En unidades originales, la precipitación y la altitud decidirían los
+clústeres, y los tipos serían zonas climáticas. Los puntajes z dentro de cada año le dan a cada
+característica el mismo peso y eliminan los desplazamientos que mueven todos los lugares a la vez,
+como los pesos no ajustados por inflación (@sec-scaling, @sec-prepare-steps).
+:::
+
+::: think
+5\. La silueta con el k elegido es solo `{python} f"{sil:.2f}"`. ¿Falló el agrupamiento?
+
+No, pero los tipos se superponen: resumen un continuo más que separar islas de datos. Por eso k se
+elige con una regla explícita que cualquiera puede volver a ejecutar, con un umbral del
+`{python} f"{A.ELBOW_DROP:.0%}"` que es una decisión de criterio, y por eso los tipos se describen y
+no se tratan como tipos naturales. Los reajustes con otras semillas coinciden, lo que solo muestra
+que el resultado no depende del inicio, no que sobreviviría a otros datos u otras características
+(@sec-choose-k).
+:::
+
+::: think
+6\. La zona rural de Tunja tuvo agua de riesgo medio en algunos de los años del análisis, y sin
+embargo está en un clúster cuyo nombre dice "`{python} tj_risk`". ¿Está mal el nombre?
+
+Está bien para el tipo y mal para este miembro: el agua rural de Tunja nunca estuvo en el nivel sin
+riesgo en `{python} A.FIRST_YEAR`–`{python} A.LAST_YEAR`. La palabra del riesgo es el nivel de la
+mediana del IRCA del clúster, y k-means ubica una fila según las `{python} WORD[len(A.FEATURES)]`
+características, varias de las cuales las dos zonas de Tunja comparten como un solo municipio
+(@sec-names, @sec-tunja-kind). Una afirmación sobre Tunja necesita las filas de Tunja.
+:::
+
+::: think
+7\. Dos títulos borrador para la última diapositiva del concejo: "El agua más segura reduce la
+mortalidad infantil" y, después de la comprobación dentro de cada clúster (@sec-water-within), "La
+calidad del agua no hace ninguna diferencia en la mortalidad infantil". ¿Qué está mal en cada uno, y
+qué escribirías en su lugar?
+
+Los dos leen una descripción como un efecto. El primero convierte una diferencia entre tipos en una
+causa, aunque la pobreza, lo rural, el acceso a los servicios de salud y el registro también difieren
+entre tipos. El segundo lee una asociación débil como ausencia de efecto, aunque un registro débil
+puede esconder muertes (@sec-confounders). En su lugar, di qué se comparó sobre qué filas, usa verbos
+de asociación y di lo que la comparación no muestra (@sec-tell-council).
+:::
+
+::: think
+8\. En la comprobación dentro de cada clúster, cada municipio-año de Tunja lleva el IRCA medio de sus
+dos zonas. ¿Por qué esa no es el agua que bebieron los bebés de Tunja, y cómo se llama leerla como si
+lo fuera?
+
+La media pesa igual las dos zonas, aunque solo una pequeña parte de la gente de Tunja vive en la
+rural, y queda entre dos valores que no tuvo ninguna de las dos zonas. El IRCA se mide por zona y la
+mortalidad infantil por municipio, así que un patrón entre lugares no tiene por qué valer para las
+personas que viven en ellos; leerlo como si así fuera es la falacia ecológica (@sec-confounders).
+:::
+
+::: think
+9\. Después de cambiar `MAX_MISSING` y reconstruir, la página de los clústeres, el informe y la
+entrada muestran números nuevos, pero la página de exploración y el sitio en vivo no. ¿Por qué? ¿Y
+qué saldría mal si el sitio usara `freeze: auto`?
+
+`pre-render` reescribe `outputs/` y `freeze: false` vuelve a ejecutar cada página, así que cada
+página que lee `outputs/` está al día. La página de exploración también se vuelve a ejecutar, pero
+lee solo `data/`, que no cambió (@sec-water-change). El sitio en vivo cambia solo cuando vuelves a
+publicar. Con `freeze: auto`, las páginas cuya propia fuente no cambió conservarían sus números
+viejos: Quarto no ve `outputs/` ni `data/` (@sec-water-website).
+:::
 
 ## Más allá {.unnumbered}
 
@@ -254,7 +362,7 @@ antes de ejecutarlo: ¿qué vas a mirar, y qué te diría que el agente se equiv
    ```
    :::
 
-2. **Cambia la semilla.** Repite el Ejercicio III.8 con `SEED` en lugar de `MAX_MISSING`. Los
+2. **Cambia la semilla.** Repite el Ejercicio V.8 con `SEED` en lugar de `MAX_MISSING`. Los
    clústeres se numeran según el IRCA de su centro, así que los nombres y los colores deberían
    mantenerse; revisa si se mueve algo más, y por qué se mueve tan poco (@sec-choose-k, sobre la
    estabilidad).
@@ -263,53 +371,3 @@ antes de ejecutarlo: ¿qué vas a mirar, y qué te diría que el agente se equiv
    `AGENTS.md` del proyecto, aplícala y deshaz los dos cambios.
 4. **Los desafíos** de la @sec-water-stretch: los cambios entre tipos como diagrama de Sankey, los
    desviados positivos y otros métodos de agrupamiento.
-
-## Respuestas a las preguntas de repaso {#answers-to-the-review-questions .unnumbered}
-
-1. Porque el análisis compara después las variables de resultado entre los tipos. Si la mortalidad
-   infantil ayudara a definirlos, diferirían en mortalidad infantil por construcción, y la comparación
-   encontraría exactamente lo que se puso (@sec-water-features). Las variables de resultado describen
-   los clústeres; nunca los definen.
-2. La tabla abierta contiene el IRCA de los sistemas operados por prestadores, no la cifra nacional.
-   Los sistemas de autoabastecimiento, que no tienen prestador, puntúan mucho peor (@sec-water-why),
-   así que los datos subestiman el riesgo donde la gente depende del autoabastecimiento, y no dicen
-   nada donde no existe un prestador. Sin la etiqueta, un lector tomaría la cifra por la nacional, y
-   creería que el agua es más segura de lo que es donde el autoabastecimiento es común.
-3. Describen solo los sistemas rurales muestreados: los que opera un prestador y se analizan. Los
-   vacíos no son aleatorios. Dependen de la zona, y quizá del riesgo mismo, ya que las zonas que menos
-   se puntúan son las más riesgosas donde sí se puntúan, así que cada resultado rural debería decir qué
-   sistemas cubre (@sec-water-bands, @sec-prepare-counts).
-4. k-means agrupa las filas por la distancia en línea recta, en la que una característica cuenta en
-   proporción a su varianza. En unidades originales, la precipitación y la altitud decidirían solas los
-   clústeres, y los tipos serían zonas climáticas. Los puntajes z le dan a cada característica el mismo
-   peso, y calcularlos dentro de cada año elimina los desplazamientos que mueven todos los lugares a la
-   vez, como las transferencias en pesos no ajustados por inflación, así que un clúster significa la
-   misma posición relativa en cada año (@sec-scaling, @sec-prepare-steps).
-5. No, pero los tipos se superponen: resumen un continuo más que separar islas de datos. Por eso k se
-   elige con una regla escrita antes de ver el resultado, y por eso los tipos se describen y no se
-   tratan como tipos naturales. Los reajustes con otras semillas coinciden, lo que solo muestra que el
-   resultado no depende del inicio, no que sobreviviría a otros datos u otras
-   características (@sec-choose-k).
-6. Está bien para el tipo y mal para este miembro: el agua rural de Tunja nunca estuvo en el nivel sin
-   riesgo en `{python} A.FIRST_YEAR`–`{python} A.LAST_YEAR`. La palabra del riesgo es el nivel de la
-   mediana del IRCA del clúster, no una afirmación sobre cada zona-año que contiene, y k-means ubica
-   una fila según las `{python} WORD[len(A.FEATURES)]` características, varias de las cuales las dos
-   zonas de Tunja comparten como un solo municipio (@sec-names, @sec-tunja-kind). Una afirmación sobre
-   Tunja necesita las filas de Tunja.
-7. Los dos leen una descripción como un efecto. El primero convierte una diferencia entre tipos en una
-   causa, aunque la pobreza, lo rural, el acceso a los servicios de salud y el registro también difieren
-   entre los tipos. El segundo lee una asociación débil como ausencia de efecto, aunque un registro débil
-   puede esconder muertes y los municipios pequeños agregan ruido (@sec-confounders). En su lugar, di qué
-   se comparó sobre qué filas, con verbos de asociación, y agrega una oración que diga que la
-   comparación no establece un efecto causal de la calidad del agua (@sec-honest-writing).
-8. La media pesa igual las dos zonas, aunque solo una pequeña parte de la gente de Tunja vive en la
-   rural, y queda entre dos valores que no tuvo ninguna de las dos zonas. El IRCA se mide por zona y la
-   mortalidad infantil por municipio, así que un patrón entre lugares no tiene por qué valer para las
-   personas que viven en ellos; leerlo como si así fuera es la falacia ecológica (@sec-confounders).
-9. `pre-render` vuelve a ejecutar el análisis, que reescribe `outputs/`, y `freeze: false` vuelve a
-   ejecutar cada página, así que cada página que lee `outputs/` está al día. La página de exploración
-   también se vuelve a ejecutar, pero lee solo `data/water_municipal.csv`, que no
-   cambió (@tbl-water-deps). El sitio en vivo es el último `_site/` que publicaste, y solo cambia cuando
-   vuelves a publicar (@sec-water-ship). Con `freeze: auto`, Quarto volvería a ejecutar una página solo
-   cuando cambiara su propia fuente: no ve `outputs/` ni `data/`, así que las páginas conservarían sus
-   números viejos hasta que se vaciara el caché (@sec-water-website).

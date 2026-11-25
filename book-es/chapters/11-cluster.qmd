@@ -5,6 +5,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 from scripts import scenes as sc
 from scripts import water as w
@@ -48,6 +49,7 @@ text_holds("altitude_m" in cl["pc3_top"], "the third component's altitude")
 tj_cl = clusters[clusters["divipola"] == "15001"]
 tj_in = {z: sorted(int(c) for c in tj_cl.loc[tj_cl["zone"] == z, "cluster"].unique())
          for z in ("urban", "rural")}
+text_holds(tj_in["urban"] == tj_in["rural"], "Tunja's zones sharing a cluster (the think before @sec-relief)")
 
 
 def clusters_text(cs: list[int]) -> str:
@@ -73,18 +75,32 @@ agree2 = max(np.mean(lab2 == urban), np.mean(lab2 != urban))
 explained = 1 - ktab.loc[k, "inertia"] / (len(X) * n_feat)
 text_holds(np.isclose((X ** 2).sum(), len(X) * n_feat), "inertia of one cluster")
 
+# The silhouette check compares values closer than their sampling noise: score the chosen k and
+# the best k >= 3 on other samples of the same size, and see which comes out ahead.
+k_best = int(cand["silhouette"].idxmax())
+lab_k = clusters["cluster"].to_numpy()               # the chosen fit, in the rows' order of X
+lab_best = KMeans(n_clusters=k_best, random_state=A.SEED, n_init=A.N_INIT).fit(X).labels_
+SIL_SEEDS = range(1, 11)                              # not A.SEED, whose sample is the script's
+gaps = []
+for seed in SIL_SEEDS:
+    pick = np.random.default_rng(seed).choice(len(X), size=A.SILHOUETTE_N, replace=False)
+    gaps.append(silhouette_score(X[pick], lab_k[pick]) - silhouette_score(X[pick], lab_best[pick]))
+text_holds(k_best != k and min(gaps) < 0 < max(gaps)
+           and all(cand["silhouette"].max() - ktab.loc[j, "silhouette"] > max(map(abs, gaps)) for j in sil_out)
+           and bool(sil_out), "the silhouette check within its sampling noise, ruling out a clear drop")
+
 # @tbl-k-selection: choose_k()'s rule, row by row.
 def verdict(j: int) -> str:
     if j < 3:
-        return "excluido: la separación urbana–rural"
+        return "excluido: separa zonas"
     if not sil_ok[j]:
-        return "silueta demasiado por debajo de la mejor"
+        return "silueta demasiado baja"
     if nxt[j] >= A.ELBOW_DROP:
-        return f"uno más todavía recorta un {A.ELBOW_DROP:.0%} o más"
-    return "elegido: el más pequeño que pasa" if j == k else "pasa, pero es más grande"
+        return f"uno más recorta ≥ {A.ELBOW_DROP:.0%}"
+    return "elegido: el menor que pasa" if j == k else "pasa, pero es mayor"
 
 
-if (verdict(k) != "elegido: el más pequeño que pasa"
+if (verdict(k) != "elegido: el menor que pasa"
         or any(verdict(j).startswith("elegido") for j in ktab.index if j != k)):
     raise ValueError("choose_k()'s rule and @tbl-k-selection disagree: rewrite the verdicts")
 
@@ -113,20 +129,19 @@ text_holds(rural_c_share > 0.5 and rural_c_alt > rl["alt_med"][rural_c], "the ru
 
 Los datos del agua tienen ahora `{python} w.fmt(s["kept"])` filas preparadas, cada una descrita por
 `{python} WORD[n_feat]` puntajes z. Nadie puede leer tantas filas. El agrupamiento las convierte en
-unos pocos *tipos* a los que una persona puede ponerles nombre, comparar y sobre los que puede
+unos pocos tipos a los que una persona puede ponerles nombre, comparar y sobre los que puede
 actuar: estas zonas municipales se parecen entre sí, y no se parecen a aquellas. Un funcionario
 puede preguntar qué tipos necesitan qué ayuda; un concejo puede ver a qué tipo pertenecen sus
 propias zonas. El agrupamiento no necesita etiquetas, así que es una primera mirada a datos que
 nadie ha clasificado, y un clúster raro puede señalar un error en los datos o un caso especial. Lo
 que no puede hacer es explicar: los clústeres describen, no muestran causas.
 
-Si las matemáticas te intimidan, no tienen por qué. El algoritmo es lo bastante simple como para
-verlo paso a paso, y el criterio que necesita, cuántos tipos buscar, es una decisión que puedes
-escribir y revisar antes de ver la respuesta.
+No vas a escribir este algoritmo. La ruta normal copia el script terminado (@sec-routes), y tu
+trabajo es revisar lo que eligió: cuántos tipos, con qué regla y qué tan ajustada fue la decisión.
 
 ::: opener
 - Describir el ciclo de k-means, y por qué necesita muchos inicios y una semilla fija.
-- Aplicar la regla escrita para k, y decir qué tan ajustada fue la decisión.
+- Aplicar la regla del script para k, y decir qué tan ajustada fue la decisión.
 - Interpretar una silueta baja, una comprobación de estabilidad y una imagen de PCA sin leer de
   más.
 - Ejecutar el paso de agrupamiento y revisar la explicación del agente sobre k.
@@ -151,18 +166,12 @@ repite dos movimientos hasta que no cambian nada:
 3. **Mueve** cada centro a la media de los puntos que tiene asignados.
 4. **Repite** 2 y 3 hasta que nada cambie.
 
-Ninguno de los dos movimientos sube nunca la *inercia*, la suma de las distancias al cuadrado de
-cada punto a su centro,
-
-$$\text{inercia} = \sum_{i} \lVert x_i - c_{\ell(i)} \rVert^2 ,$$
-
-donde $x_i$ es el punto $i$ (en los datos del agua, los nueve puntajes z de una fila),
-$c_{\ell(i)}$ es el centro al que está asignado y $\lVert x_i - c_{\ell(i)} \rVert$ es la distancia
-en línea recta entre ellos (@sec-scaling). Sobre puntajes z, la inercia está en desviaciones
-estándar al cuadrado, una unidad sin significado cotidiano, así que solo importan sus cambios. Hay
-solo una cantidad finita de formas de agrupar los puntos, así que el algoritmo siempre se detiene.
-No siempre se detiene en la mejor respuesta: un mal inicio puede atraparlo en un agrupamiento peor.
-La @fig-kmeans-steps muestra el algoritmo sobre `{python} len(km["toy"])` puntos sintéticos en tres
+Cada pasada baja la *inercia*, la suma de las distancias al cuadrado de cada punto a su centro, o
+deja el agrupamiento sin cambios. Hay solo una cantidad finita de agrupamientos y, si los empates se
+resuelven siempre igual, ninguno puede repetirse, así que el ciclo llega a una pasada en la que nada
+cambia (scikit-learn también se detiene cuando los centros se mueven menos que una pequeña
+tolerancia). Puede detenerse en un óptimo local, no en el mejor agrupamiento, atrapado ahí por un
+mal inicio. La @fig-kmeans-steps muestra el algoritmo sobre `{python} len(km["toy"])` puntos sintéticos en tres
 grupos, datos de juguete inventados para la ilustración, no los datos del agua.
 
 ::: {.content-visible when-format="html:js"}
@@ -213,6 +222,17 @@ with style():
     fig.tight_layout()
     plt.show()
 ```
+
+::: why
+Como fórmula, la inercia es
+
+$$\text{inercia} = \sum_{i} \lVert x_i - c_{\ell(i)} \rVert^2 ,$$
+
+donde $x_i$ es el punto $i$ (en los datos del agua, los nueve puntajes z de una fila),
+$c_{\ell(i)}$ es el centro al que está asignado y $\lVert x_i - c_{\ell(i)} \rVert$ es la distancia
+en línea recta entre ellos (@sec-scaling). Sobre puntajes z, la inercia está en desviaciones
+estándar al cuadrado, una unidad sin significado cotidiano, así que solo importan sus cambios.
+:::
 
 Inicios distintos pueden terminar en agrupamientos distintos, así que el análisis real ejecuta
 k-means desde `{python} A.N_INIT` inicios (el `n_init` de scikit-learn) y se queda con el de menor
@@ -277,11 +297,15 @@ La regla, escrita en `choose_k()` en el script del análisis, tiene tres partes,
   `{python} ORDINAL[k + 1]` clúster recorta la inercia solo un `{python} f"{next_drop:.0%}"`.
 - **La comprobación de la silueta:** la silueta de k debe estar a menos de `{python} A.SILHOUETTE_TOL`
   de la mejor para k ≥ 3. En k = `{python} k` es `{python} f"{ktab.loc[k, 'silhouette']:.3f}"`. La
-  comprobación `{python} sil_out_text`.
+  comprobación `{python} sil_out_text`, y compara valores dentro de su ruido de muestreo: en
+  `{python} WORD[len(SIL_SEEDS)]` muestras distintas de `{python} w.fmt(A.SILHOUETTE_N)` filas, la
+  silueta de k = `{python} k` va de `{python} f"{-min(gaps):.3f}"` por debajo de la de k =
+  `{python} k_best` a `{python} f"{max(gaps):.3f}"` por encima, así que solo puede detectar una
+  caída clara.
 
 ```{python}
 #| label: tbl-k-selection
-#| tbl-cap: "La regla de `choose_k()`, fila por fila, sobre las filas conservadas: cuánto recortaría la inercia un clúster más, la silueta (sobre la muestra fija) y el veredicto. Calculado por el `analysis.py` del proyecto terminado."
+#| tbl-cap: "La regla de `choose_k()`, fila por fila: cuánto recortaría la inercia un clúster más, la silueta (sobre la muestra fija) y el veredicto."
 #| output: asis
 lines = ["| k | Un clúster más recorta | Silueta | Veredicto |", "|--:|--:|--:|---|"]
 for j in ktab.index:
@@ -299,8 +323,8 @@ dispersión de los datos, uno menos la razón entre su inercia y la de un solo c
 diferencia dentro de los tipos.
 
 Después del ajuste vienen dos comprobaciones más. **Estabilidad**: los reajustes desde
-`{python} len(A.STABILITY_SEEDS)` semillas distintas coinciden, con un índice de Rand ajustado de al
-menos `{python} A.floor_to(s["ari_min"])`, así que el resultado no depende del inicio. Eso no dice
+`{python} len(A.STABILITY_SEEDS)` semillas distintas coinciden, con un ARI de al menos
+`{python} A.floor_to(s["ari_min"])`, así que el resultado no depende del inicio. Eso no dice
 nada sobre otros datos, otras características u otro k; reajustar sobre filas sacadas otra vez al
 azar (un *bootstrap*), o dejar fuera un año a la vez, pondría eso a prueba. **Orden**: los clústeres
 se numeran según el IRCA de su centro, del más bajo al más alto, así que una nueva ejecución conserva
@@ -312,16 +336,14 @@ silueta promedio máxima de 0.25 o menos significa que "no se ha encontrado una 
 sustancial" (Struyf, Hubert y Rousseeuw, 1997, Tabla 2; cita traducida), y la mejor aquí, con
 cualquier k, es `{python} f"{sil_best:.2f}"`. Los tipos se superponen: resumen un continuo más que
 separar islas de datos. Así que trata k como una cuestión de criterio, y no fuerces un número de
-clústeres para contar una historia más bonita. Escribir la regla antes de ver el resultado es lo que
-mantiene honesta esa elección; `choose_k()` al menos hace explícita la regla, para que cualquiera
-pueda revisarla y ver qué tan ajustada fue la decisión.
+clústeres para contar una historia más bonita.
 :::
 
 ::: think
 Un funcionario lee el informe y pregunta: "¿Entonces Colombia tiene `{python} WORD[k]` tipos de zona
 municipal?" ¿Qué le respondes?
 
-Que `{python} WORD[k]` es un resumen útil, no un descubrimiento. Una regla escrita lo eligió por un
+Que `{python} WORD[k]` es un resumen útil, no un descubrimiento. Una regla explícita lo eligió por un
 margen estrecho, y un umbral un punto porcentual más alto elige `{python} WORD[k_alt]`; la silueta
 baja dice que los tipos se superponen. Los clústeres describen combinaciones típicas de agua,
 servicios y contexto, y una zona cerca del borde de uno podría estar igual de bien en el siguiente.
@@ -395,6 +417,16 @@ Gira la nube por tu cuenta
 :::
 :::
 
+::: think
+El agua rural de Tunja estuvo años en el nivel de riesgo alto, y su agua urbana nunca (@sec-tunja).
+k-means ya ubicó sus `{python} len(tj_cl)` zonas-año preparadas. Antes de seguir leyendo: ¿caen sus
+dos zonas en el mismo clúster?
+
+Sí: `{python} tj_text`. k-means ubica una fila según las `{python} WORD[n_feat]` características a la
+vez, y varias son del municipio, no de la zona, así que las dos filas de Tunja tienen en ellas los
+mismos valores (@sec-water-features). La @sec-tunja-kind averigua qué características lo decidieron.
+:::
+
 ## Dónde están los clústeres {#sec-relief}
 
 La altitud lleva la carga más grande de la tercera componente. Un mapa muestra la altitud
@@ -432,8 +464,7 @@ Las zonas urbanas del clúster `{python} rl["high"]` son las más altas, con una
 `{python} rl["low"]` son las más bajas, a `{python} f"{rl['alt_med'][rl['low']]:,.0f}"` m, y el
 `{python} f"{rl['region_top'][rl['low']].iloc[0]:.0%}"` de ellas están en
 `{python} rl["region_top"][rl["low"]].index[0]`. Esto muestra dónde están los tipos, no por qué
-difieren. La cabecera de Tunja está a `{python} f"{rl['tunja_alt']:,.0f}"` m, y
-`{python} tj_text`.
+difieren. La cabecera de Tunja está a `{python} f"{rl['tunja_alt']:,.0f}"` m.
 
 El mapa dibuja solo zonas urbanas, una columna por municipio, porque la altitud es la de la
 cabecera. Así que muestra poco del clúster `{python} rural_c`, cuyas zonas-año son rurales en un
@@ -503,10 +534,10 @@ En scripts/analysis.py, ejecuta k-means sobre las características z_ para k=2�
 
 ::: practice
 Si lo construyes, tu k puede ser distinto de `{python} k` cuando tu preparación es distinta, y está
-bien si la razón es sólida. Lo que importa es que la regla para elegir k quede escrita antes de ver
-la respuesta, y que los clústeres se numeren con una regla fija (aquí, el IRCA del centro, que el
-prompt llama IRCA del centroide), para que una nueva ejecución conserve los mismos números y
-colores.
+bien si la razón es sólida. Lo que importa es que la regla para k sea explícita, donde cualquiera
+pueda volver a ejecutarla, y que los clústeres se numeren con una regla fija (aquí, el IRCA del
+centro, el IRCA del centroide del prompt), para que una nueva ejecución conserve los mismos números
+y colores.
 :::
 
 ## La página de los clústeres {#sec-cluster-page}
@@ -529,11 +560,10 @@ abres `clusters.html` en tu navegador
 :::
 
 ::: tryit
-Toma una de las rutas para el modelo y luego construye la página de los clústeres.
+Toma una ruta y crea la página de clústeres.
 
 ::: done
-`outputs/clusters.parquet` existe, puedes decir cuál es k y por qué, y `clusters.html` muestra el
-codo, la silueta y la imagen de PCA.
+`outputs/clusters.parquet` existe, la página lo grafica y puedes explicar k.
 :::
 
 ::: catchup
@@ -543,13 +573,25 @@ Catch me up: follow ../quarto-workshop/checkpoints/07-water-cluster/README.md
 :::
 :::
 
+::: {.cards .ledger title="Tunja hasta aquí"}
+Agrupada
+: `{python} tj_text`.
+
+Qué tan firme
+: k = `{python} k` por una regla explícita y un margen estrecho; los tipos se superponen.
+
+Lo que se puede decir
+: con qué tipo se agrupó cada zona-año. No por qué, y todavía no qué es ese tipo.
+:::
+
 ## Resumen {.unnumbered}
 
 ::: keyideas
 - k-means asigna los puntos al centro más cercano y mueve los centros a la media de sus puntos;
   puede estancarse, así que se queda con el mejor de muchos inicios con semilla.
-- k se elige con una regla escrita de antemano: excluir k = 2, tomar el codo, dejar que la silueta
-  vete.
+- k se elige con una regla explícita del script que cualquiera puede volver a ejecutar: excluir
+  k = 2, tomar el codo, dejar que la silueta vete. Su umbral del `{python} f"{A.ELBOW_DROP:.0%}"` es
+  una cuestión de criterio.
 - El codo es ajustado y la silueta, baja: los tipos resumen un continuo.
 - La coincidencia entre semillas muestra independencia del inicio, no de los datos ni de las
   características.

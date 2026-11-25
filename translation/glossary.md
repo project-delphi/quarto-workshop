@@ -380,6 +380,33 @@ its names, files, columns, labels and quoted page text are literals.
 | batch; batch script | lote; script por lotes | | |
 | statute (BibTeX entry) | ley | | the Equality Act's entry in `references.bib` |
 
+## The 2026-11 improvement (Part V, the afterword and the appendices)
+
+| English | Spanish | EN? | Note |
+|---|---|---|---|
+| Tunja ledger; "Tunja so far" | expediente de Tunja; `title="Tunja hasta aquí"` | | the `::: {.cards .ledger}` component; English prose never names it, so only the title is printed |
+| ledger card terms: On the table, Checked, Rows, Water, Not at face value, Kept, Filled, and flagged, Not flagged, Grouped, How firm, Its kind, Its rural water, What may be said | En la tabla, Revisado, Filas, Agua, No tomar al pie de la letra, Conservadas, Llenadas, y marcadas, Sin marcar, Agrupada, Qué tan firme, Su tipo, Su agua rural, Lo que se puede decir | | the same last term on every card |
+| council (municipal); councillor | concejo (municipal); alguien del concejo | | gender-neutral; "un concejal o una concejala" where a person is needed |
+| officials | funcionarios | | |
+| the analyst | quien hizo el análisis | | gender-neutral |
+| planted (error, sentence) | puesto a propósito; la oración puesta a propósito | | "oración", as the water text says for a sentence |
+| honest rewrite | versión honesta | | `w.council_claims()` writes it |
+| puzzle (spot the error) | acertijo | | the water exercises' opening |
+| typo; slip | errata; desliz | | Appendix E |
+| bullet (slide) | viñeta | | |
+| missing at random | faltantes aleatorios (*missing at random*) | | pairs with "faltantes no aleatorios"; the English term kept once, where the story is about the term |
+| local optimum | óptimo local | | k-means |
+| sampling noise | ruido de muestreo | | |
+| band (IRCA risk band) | nivel | | "nivel de riesgo alto", as the edition already says |
+| school-leaving exam (Saber 11) | examen de fin de la educación media | | |
+| Apple Books; e-reader app | la app Libros de Apple; app de lectura | | "lector" stays the person |
+| base rate | tasa base | | Appendix J; `results.qmd` uses it |
+| bootstrap interval | intervalo bootstrap | | |
+| Brier score | puntaje de Brier (en inglés, *Brier score*) | | like "puntaje z" |
+| checksum | suma de verificación (en inglés, *checksum*) | | `results.qmd` uses it |
+| managed settings | configuración administrada (en inglés, *managed settings*) | | `at-work.qmd` uses it |
+| stand-in (synthetic) | sustituto sintético | | the label SYNTHETIC stays |
+
 ## Titles
 
 Sentence case, as Spanish titles are written. Exercise headings read "Ejercicio II.1: …".
