@@ -4,8 +4,8 @@ Renders the chapter's hello.qmd (the file the agent writes in Step 6) in a tempo
 the book's own locked environment (uv run in book/, JUPYTER_PATH set to its kernels as the
 Makefile does), as both formats it names: hello.html and hello.pdf (Quarto's bundled Typst; no
 TeX). The picture stacks two crops, each showing "The answer is 42.": the web page at a 390 px
-viewport (drawn at twice the pixel density) and the left of the PDF's first page text (macOS Quick
-Look draws it, _pdf.py), with a dashed rule between them. The 42 is the file's own output.
+viewport (drawn at twice the pixel density) and the left of the PDF's first page below its title
+(macOS Quick Look draws it, _pdf.py), its right edge faded, with a dashed rule between them. The 42 is the file's own output.
 
 Run from book/media/capture (or CAPTURE_STEPS=hello; names another script owns are ignored):
     uv run --with playwright python hello_outputs.py [hello]
@@ -86,14 +86,25 @@ def pdf_crop(pdf: Path, width: int):
         png = Path(tmp) / "page.png"
         first_page_png(pdf, png, 2600)
         page = Image.open(png).convert("RGB")
-    # Keep the page's ink above its page number, cropped to the title (centred) and the text's
-    # left edge: the page's full width would draw the text too small for a phone.
+    # Keep the page's ink above its page number, below its title (the web page above shows the
+    # same title), from the text's left edge: the page's full width would draw the text too small
+    # for a phone. The code block's grey band runs on past the crop, so the right edge fades to
+    # white, a crop that says so.
     body = page.crop((0, 0, page.width, round(page.height * 0.85)))
-    box = Image.eval(body.convert("L"), lambda v: 255 if v < 200 else 0).getbbox()
-    if box is None:
+    ink = Image.eval(body.convert("L"), lambda v: 255 if v < 200 else 0)
+    if ink.getbbox() is None:
         raise SystemExit(f"{pdf.name}: the first page is blank")
-    left, top, right, bottom = box
-    page = page.crop((max(0, left - 40), max(0, top - 40), right + 40, bottom + 40))
+    rows = [any(ink.getpixel((x, y)) for x in range(0, ink.width, 4)) for y in range(ink.height)]
+    first = rows.index(True)
+    after_title = next(y for y in range(first, len(rows)) if not rows[y])
+    left, top, right, bottom = ink.crop((0, after_title, ink.width, ink.height)).getbbox()
+    top, bottom = top + after_title, bottom + after_title
+    page = page.crop((max(0, left - 40), max(0, top - 60), right + 120, bottom + 40))
+    fade = round(page.width * 0.12)
+    for i in range(fade):
+        a = (i + 1) / fade
+        col = page.crop((page.width - fade + i, 0, page.width - fade + i + 1, page.height))
+        page.paste(Image.blend(col, Image.new("RGB", col.size, "white"), a), (page.width - fade + i, 0))
     return page.resize((width, round(page.height * width / page.width)), Image.LANCZOS)
 
 
