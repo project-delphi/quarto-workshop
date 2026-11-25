@@ -361,6 +361,24 @@ its names, files, columns, labels and quoted page text are literals.
 | runway; burn | autonomía (runway); gasto mensual (burn) | | |
 | free allowances | cuotas gratuitas | | |
 | the water analysis (Part V) | el análisis del agua | | as the English now says instead of a part number |
+| base rate | tasa base | | the share of test contacts who subscribed |
+| bootstrap interval | intervalo bootstrap | | |
+| lift | lift | EN | as scikit-learn and marketing practice say it |
+| age band | franja de edad | | `age_band` stays |
+| checksum | suma de verificación (checksum) | | "(checksum)" on first use in a chapter |
+| protected characteristic | característica protegida | | the Equality Act 2010's term, translated |
+| navbar | barra de navegación | | `navbar:` stays |
+| wordmark (logo) | logotipo de texto | | |
+| stub (page) | esbozo (stub) | | "(stub)" kept in prompts, so the agent reads the usual word |
+| headline (result, title) | titular; resultado principal | | "titular" for a deck's title, "resultado principal" for a sentence |
+| personal plan; company plan | plan personal; plan de empresa | | the vendors' consumer and business plans |
+| managed settings (Claude Code) | managed settings (configuración administrada) | EN | Claude Code's own term, glossed once |
+| synthetic stand-in | sustituto sintético | | data made up to look like the real thing |
+| data room | sala de datos (data room) | | "(data room)" on first use |
+| registry (DOI) | agencia de registro | | Crossref, DataCite; "registro" stays the record itself |
+| section (of a course) | grupo | | a class group on the feedback sheet; the parameter `section` stays |
+| batch; batch script | lote; script por lotes | | |
+| statute (BibTeX entry) | ley | | the Equality Act's entry in `references.bib` |
 
 ## Titles
 

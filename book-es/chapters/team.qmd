@@ -4,10 +4,11 @@
 #| label: team-setup
 # The team rules and workflows as this chapter leaves them (checkpoint 20), read from their
 # files: the actions each workflow pins, the commands the check runs, and the schedule.
+import importlib.util
 import re
 
 from scripts import evaluation as ev
-from scripts.facts import checked, fact
+from scripts.facts import fact
 from scripts.prose import number_words, text_holds
 
 ROOT = ev.PROJECT.parents[1]
@@ -23,6 +24,9 @@ def flow(name: str) -> str:
 uses = sorted({u for name in ("check.yml", "publish.yml", "monthly.yml")
                for u in re.findall(r"uses:\s*(\S+)", flow(name))})
 pins = ", ".join(uses[:-1]) + " y " + uses[-1]
+checkout = next(u for u in uses if u.startswith("actions/checkout@"))
+text_holds(re.fullmatch(r"actions/checkout@v\d+", checkout) is not None, "a major tag such as checkout's")
+# Re-checked 2026-11-25 (releases/latest): all still the latest; setup-uv has v10.4.0 (2026-11-20).
 runs = re.findall(r"^\s+run:\s*(.+)$", flow("check.yml"), re.M)
 cron = re.search(r'cron:\s*"([^"]+)"', flow("monthly.yml")).group(1)
 minute, hour, day = cron.split()[:3]
@@ -32,26 +36,37 @@ text_holds(runs == ["uv run python scripts/evaluate.py", "uv run pytest -q", "uv
                    "uv run python scripts/check_site.py"],
            "check.yml runs evaluate, the tests, the render and the site check, in that order")
 text_holds((minute, hour, day) == ("17", "6", "2"), "the monthly schedule, 06:17 UTC on the 2nd")
-# Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5), in a copy of
-# checkpoint 19 made a Git repository, on 2026-11-18; the check workflow it wrote was run with
-# act (0.2.98, in Docker), green on the change and red on a broken guard. The check, publish
-# and monthly prompts were revised after that first run and run again as printed. Pushing, pull
-# requests and the Publish and Monthly runs need GitHub and were not run (see below).
+
+# The payoff: the error the home page's first guard raises, from checkpoint 20's own claim().
+spec = importlib.util.spec_from_file_location("claims", CHECKPOINT / "src" / "acme_eval" / "claims.py")
+claims = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(claims)
+guarded = re.findall(r'claim\(.*?,\s*"([^"]+)"\)', (CHECKPOINT / "index.qmd").read_text(), re.S)
+try:
+    claims.claim(False, guarded[0])
+except claims.ClaimError as error:
+    red = f"{type(error).__name__}: {error}"
+text_holds(red.startswith("ClaimError: The results no longer support this sentence")
+           and red.endswith(guarded[0]) and "best" in guarded[0], "the red build's sentence")
+# Prompts dry-run verbatim by Claude Code (Opus 5.5) in a copy of checkpoint 19, 2026-11-18;
+# check.yml run with act 0.2.98, green then red. Steps needing GitHub were not run; they and
+# the schedule's rules were checked against GitHub's documentation that day. The team-rules
+# prompt was split in two on 2026-11-25 (D3); the lead dry-runs it.
 ```
 
-
-El @sec-fast-path revisó el cambio de un agente como un pull request y lo reconstruyó a mano
-desde un clon nuevo. Esa última revisión es la que quien revisa omite con más frecuencia, porque
-toma tiempo y una máquina limpia, y es la que el resumen fluido de un agente no puede reemplazar.
-La *integración continua*, CI, la vuelve automática: en cada pull request, una máquina que nunca
-ha visto el proyecto lo clona, instala las herramientas, calcula los resultados, ejecuta las
-pruebas y renderiza cada página, y el pull request muestra una marca verde o una cruz roja. Una
-guarda que los resultados ya no sostienen la pone en rojo, y nombra la oración.
+La vía rápida revisó el cambio de un agente como un pull request y lo reconstruyó a mano desde
+un clon nuevo (la @sec-fast-pr). Esa última revisión es la que quien revisa omite con más
+frecuencia, porque toma tiempo y una máquina limpia, y es la que el resumen fluido de un agente
+no puede reemplazar. La integración continua, CI, la vuelve automática: en cada pull request,
+una máquina que nunca ha visto el proyecto lo clona, instala las herramientas, calcula los
+resultados, ejecuta las pruebas y renderiza cada página, y el pull request muestra una marca
+verde o una cruz roja. Una guarda que los resultados ya no sostienen la pone en rojo, y nombra
+la oración.
 
 Este capítulo agrega eso al proyecto Acme, con las reglas que un equipo necesita para los cambios
 de sus agentes: un cambio por pull request, nada generado en los commits, y nada se da por
-terminado hasta que se haya reconstruido. Luego publica el sitio desde `main` y renderiza los
-informes mensuales según un calendario, ambas cosas con el mismo build.
+terminado hasta que se haya reconstruido. Luego el mismo build publica el sitio y renderiza los
+informes mensuales.
 
 ::: opener
 - Escribir las reglas que siguen los agentes de un equipo, y una plantilla de pull request que le
@@ -74,19 +89,37 @@ Punto de control
 : `checkpoints/20-eval-ci/`
 :::
 
+::: payoff
+Un build que rechaza una oración falsa. Cuando una de las guardas de la página de inicio deja de
+cumplirse, el paso de renderizado se detiene, y su registro nombra la oración con las propias
+palabras del proyecto, en inglés:
+
+::: transcript
+```{python}
+#| output: asis
+print(f"```default\n{red}\n```")  # a `default` fence wraps in the HTML edition; `text` does not
+```
+:::
+:::
+
 ## De qué está hecha la CI {#sec-team-vocab}
 
-| Pide | GitHub Actions lo llama | Revisa |
-|---|---|---|
-| un build, por escrito | un *workflow*, un archivo YAML en `.github/workflows/` | aparece en la pestaña *Actions* del repositorio |
-| cuándo se ejecuta | `on:` un disparador: `pull_request`, `push`, `schedule`, `workflow_dispatch` (a pedido) | una ejecución empieza cuando ocurre el evento |
-| una máquina limpia | un *runner*, `runs-on: ubuntu-24.04` | el registro muestra cómo lo instala todo |
-| una cosa que hace | un paso: una acción (`uses:`) o un comando (`run:`) | cada paso sale en verde o en rojo en el registro |
-| un resultado en el pull request | un *status check* | una marca o una cruz junto al commit |
-| un archivo que hizo la ejecución, guardado | un *artefacto* | una descarga al pie de la página de la ejecución |
-| "nada llega a `main` sin su build" | una *rama protegida* con una comprobación obligatoria | el botón de merge espera la marca |
+La *integración continua* es un build que se ejecuta solo en cada cambio. La de GitHub se llama
+GitHub Actions, y sus piezas tienen nombre:
+
+| Pide | GitHub Actions lo llama |
+|---|---|
+| un build, por escrito | un *workflow*: YAML en `.github/workflows/` |
+| cuándo se ejecuta | `on:`, un *disparador*, como `pull_request` |
+| una máquina limpia | un *runner*: `runs-on: ubuntu-24.04` |
+| una marca o una cruz | un *status check* |
+| "nada llega a `main` sin su build" | una *rama protegida* |
 
 : Las piezas de la CI, y cómo las llama GitHub Actions. {#tbl-team-vocab}
+
+Los *pasos* de un workflow se ejecutan en orden, cada uno una acción (`uses:`) o un comando
+(`run:`), y el registro muestra cada uno en verde o en rojo. Un archivo que una ejecución guarda
+para que lo descargues es un *artefacto*.
 
 Un workflow debería ejecutar los comandos que ejecutas tú, no otros nuevos. El `AGENTS.md` del
 proyecto ya enumera su reconstrucción: calcular los resultados, ejecutar las pruebas, renderizar
@@ -98,18 +131,33 @@ lo que siempre quiso decir "se construye en mi máquina".
 Los agentes de un equipo necesitan reglas que una persona sin equipo puede llevar en la cabeza.
 Cada sesión de un agente empieza de cero, lee `AGENTS.md` y hace lo que dice, así que las reglas
 van ahí; cada revisor o revisora abre un pull request, así que la lista de revisión va en su
-plantilla.
+plantilla. Pídelas en dos turnos:
 
 ::: {.prompt .long}
 ```default
-Agrega a AGENTS.md una sección "Team rules" para trabajar en equipo: trabajar en una rama, nunca hacer push a `main` ni merge; un cambio coherente por pull request; nunca hacer commit de outputs/, reports/, _site/ ni de archivos renderizados; antes de decir que un cambio está terminado, ejecutar los cuatro comandos de reconstrucción (evaluate, pruebas, render, check_site) y decir cuáles pasaron; nunca debilitar una prueba ni una guarda `claim` para que un paso pase; informar lo que no se pudo verificar. Luego crea .github/pull_request_template.md: las tres revisiones (alcance, corrección, reconstrucción) como lista de verificación, diciendo qué mirar en cada una en este proyecto, y una línea que pregunte qué agente hizo el cambio y qué no verificó. Escribe los dos en inglés, como el resto del proyecto. Hazlo en una rama nueva `team-rules` y haz commit.
+Agrega a AGENTS.md, en inglés, una sección "Team rules": trabajar en ramas, sin push a `main` ni merge; un cambio coherente por pull request; no hacer commit de outputs/, reports/, _site/ ni archivos renderizados; antes de dar algo por hecho, correr los cuatro comandos de reconstrucción (evaluate, pruebas, render, check_site) y decir cuáles pasaron; nunca debilitar una prueba o guarda `claim` para que un paso pase; informar lo no verificado. Haz commit en una rama nueva `team-rules`.
 ```
 :::
 
 ::: {.agent}
-`git switch -c team-rules` · edita `AGENTS.md` · escribe `.github/pull_request_template.md` ·
-`git commit`
+`git switch -c team-rules` · edita `AGENTS.md` · `git commit`
 :::
+
+::: {.prompt}
+```default
+Crea .github/pull_request_template.md, en inglés: las tres revisiones (alcance, corrección, reconstrucción) como lista de verificación, diciendo qué mirar en cada una en este proyecto, y una línea que pregunte qué agente hizo el cambio y qué no verificó. Haz commit en `team-rules`.
+```
+:::
+
+::: {.agent}
+escribe `.github/pull_request_template.md` · `git commit`
+:::
+
+<!-- Ejecución de prueba del 2026-11-25, los dos turnos en su versión en inglés, palabra por
+palabra, en una copia del punto de control 19-eval-params sin remoto: un subagente de Claude
+Code con Sonnet 5.5 y otro con Haiku 5.5. Los dos escribieron la sección en una rama nueva
+team-rules, tomaron los cuatro comandos de AGENTS.md, los ejecutaron según su propia regla nueva
+(todos pasaron) e hicieron commit de la plantilla allí, en un segundo commit. -->
 
 Lee el diff como quien revisa un reglamento. Cada regla debería nombrar los archivos y los
 comandos de este proyecto, no buenas prácticas generales: "nunca hagas commit de `outputs/`" es
@@ -117,50 +165,106 @@ una regla que un agente puede comprobar; "mantén limpio el repositorio", no. La
 debilitar una guarda es la que más importa. Un agente al que se le pide que un paso que falla
 pase tiene dos caminos, corregir la oración o aflojar su guarda, y solo uno es el correcto.
 
+```{python}
+#| label: team-plant
+# D5-b: the card's recall sentence with ev.rival()'s figures under the best release's name.
+S = ev.summary()
+TP = ev.team_plant()
+best, rival = TP["best"], TP["rival"]
+card = (CHECKPOINT / "model-card.qmd").read_text()
+text_holds('For `{python} best` it is `{python} interval("recall_top10")`, against a base' in card,
+           "the model card's recall sentence")
+share = ev.percent(S["top_share"], 0)
+m = ev.metrics()
+csv_rows = m[(m["metric"] == "recall_top10") & m["version"].isin([best, rival])]
+```
+
+Un pull request cambia una oración de la ficha del modelo, en inglés, la segunda de abajo: la que
+da el recall de la mejor versión, con su intervalo, frente a la tasa base. Su descripción dice
+"wording only" (solo redacción).
+
+> [The call centre calls the top `{python} share` of the list, so the business metric is recall
+> in the top `{python} share`: the share of all subscribers that those calls reach. For
+> `{python} best` it is `{python} TP["value"]` (`{python} ev.percent(S["confidence"], 0)`
+> interval `{python} TP["low"]` to `{python} TP["high"]`), against a base rate
+> of `{python} ev.percent(S["base_rate"])`.]{lang=en translate=no}
+
+Las filas del archivo para esa métrica, `recall_top10`:
+
+```{python}
+#| output: asis
+print(f"| `version` | `value` | `low`, `high` (el intervalo del {ev.percent(S['confidence'], 0)}) |\n|---|--:|--:|")
+for _, row in csv_rows.iterrows():
+    print(f"| {row['version']} | {row['value']} | {row['low']}, {row['high']} |")
+```
+
+::: tryit
+Revisa el pull request contra `outputs/metrics.csv`, como piden las tres revisiones de su
+plantilla; la respuesta está en el @sec-checkpoints.
+
+::: done
+puedes decir qué cifra está mal, de quién es y cuál de las tres revisiones la encontró.
+:::
+:::
+
 ## Un build en cada pull request {#sec-team-check}
 
 ::: {.prompt}
 ```default
-Crea .github/workflows/check.yml: en cada pull request y en cada push a `main`, en `ubuntu-24.04` con permisos de solo lectura, instala Quarto 1.10.20 y uv 0.11.32 con su caché activado, y luego ejecuta en orden los cuatro comandos de reconstrucción de AGENTS.md. Fija cada acción a su última versión, al tag de versión mayor donde lo tenga, buscando las versiones en lugar de recordarlas, y dime qué elegiste y dónde lo comprobaste. Haz commit en una rama nueva `ci` a partir de `team-rules`.
+Crea .github/workflows/check.yml: en cada pull request y push a `main`, en `ubuntu-24.04` con permisos de solo lectura, instala Quarto 1.10.20 y uv 0.11.32 con caché, y ejecuta en orden los cuatro comandos de reconstrucción de AGENTS.md. Fija cada acción a su última versión (el tag de versión mayor si lo hay), buscando las versiones, no recordándolas, y dime qué elegiste y dónde lo comprobaste. Haz commit en una rama nueva `ci` desde `team-rules`.
 ```
 :::
 
-Los workflows terminados fijan `{python} pins`, las últimas versiones al 2026-11-18, y Quarto
-`{python} quarto`. Pide que se busquen las versiones: lo que un agente recuerda de la versión de
-una acción es tan viejo como su entrenamiento, y una versión mayor vieja puede dejar de funcionar
-cuando GitHub retira aquello sobre lo que se ejecuta. Nombra también las versiones de las
-herramientas: en la prueba, una primera versión de este prompt que solo decía "uv" obtuvo el uv
-más nuevo de ese día, dos versiones menores por delante de aquella con la que se construyó el
-proyecto. Funcionó, pero un build que instala lo más nuevo que haya no es el mismo build el mes
-siguiente.
+Los workflows terminados fijan `{python} pins`, las últimas versiones al 2026-11-18, cuando se
+probó este capítulo, y Quarto `{python} quarto`. Pide que se busquen las versiones: lo que un
+agente recuerda de la versión de una acción es tan viejo como su entrenamiento, y una versión
+mayor vieja puede dejar de funcionar cuando GitHub retira aquello sobre lo que se ejecuta. Un tag
+de versión mayor como `{python} checkout` avanza con cada versión; la fijación estricta, la que
+recomienda la guía de uso seguro de GitHub, es el SHA completo de un commit. Nombra también las
+versiones de las herramientas: un prompt que solo decía "uv" obtuvo el más nuevo de ese día, y un
+build que instala lo más nuevo que haya no es el mismo build el mes siguiente.
 
 ::: {.you}
 ```bash
 git push -u origin team-rules
 gh pr create --base main --fill
+```
+:::
+
+Revísalo con las tres revisiones de su plantilla, y solo entonces haz merge, con un commit de
+merge (`--merge`): `ci` parte de `team-rules`, así que el segundo pull request mostrará solo el
+workflow. Hacer squash pondría commits nuevos en `main`, y el segundo volvería a listar los
+viejos.
+
+::: {.you}
+```bash
 gh pr merge team-rules --merge
 git push -u origin ci
 gh pr create --base main --fill
 ```
 :::
 
-Revisa el primer pull request con las tres revisiones de su propia plantilla antes de hacer
-merge. Haz merge con un commit de merge, `--merge`, como arriba: `ci` parte de `team-rules`, así
-que, una vez que `team-rules` está en `main` sin cambios, el segundo pull request muestra solo el
-workflow, un solo cambio, como piden las reglas. (Hacer squash del primero reescribiría sus
-commits, y el segundo los volvería a traer.) El segundo pull request ejecuta la comprobación; su
-pestaña *Checks* muestra cada paso mientras se ejecuta. La primera ejecución descarga Quarto y
-todos los paquetes, lo que toma unos minutos; las siguientes restauran las descargas de uv desde
-un caché. Haz merge cuando la comprobación esté en verde.
+El segundo pull request ejecuta la comprobación, paso a paso en su pestaña *Checks*. La primera
+ejecución descarga Quarto y todos los paquetes, lo que toma unos minutos; las siguientes
+restauran las descargas de uv desde un caché. Haz merge cuando esté en verde.
 
-Lo que cuesta: `{python} fact("github.actions_free")` (consultado el
-`{python} checked("github.actions_free")`; el @sec-facts). La comprobación de un repositorio
-privado usa esa cuota; la de uno público, no.
+Lo que cuesta: `{python} fact("github.actions_free")` (el @sec-facts). La comprobación de un
+repositorio privado usa esa cuota; la de uno público, no.
 
 ## Un build en rojo {#sec-team-red}
 
 Una comprobación que nunca ha fallado no se ha probado. Rompe una guarda a propósito, en una rama
-que vas a descartar:
+que vas a descartar.
+
+::: think
+Estás por romper una guarda a propósito. Antes de hacer push: ¿cuál de los
+`{python} WORD[len(runs)]` comandos de la comprobación va a fallar, y por qué no los demás?
+
+El renderizado, el tercero: los resultados se siguen calculando y las pruebas siguen pasando,
+porque ninguno de los dos lee la prosa. El renderizado ejecuta la guarda, y el `claim` cita su
+oración en el registro. Si las que se pusieran en rojo fueran las pruebas, el cambio rompió algo
+más que una oración.
+:::
 
 ::: {.prompt}
 ```default
@@ -175,20 +279,25 @@ gh pr create --base main --fill --draft
 ```
 :::
 
-La comprobación se pone en rojo en su paso de renderizado, y el registro nombra la oración: en la
-prueba, "ClaimError: The results no longer support this sentence" (los resultados ya no respaldan
-esta oración), seguido de la oración de la página de inicio sobre la mejor versión del modelo.
-Eso es lo que ve alguien del equipo cuando un cambio en los datos o en el modelo vuelve falsa una
-afirmación escrita a mano: no un informe que dice en silencio algo equivocado, sino un pull
-request al que no se le puede hacer merge con ella. Cierra el pull request y borra la rama
-(`gh pr close --delete-branch`).
+La comprobación se pone en rojo en su paso de renderizado, nombrando la oración, como al comienzo
+de este capítulo. Eso es lo que ve alguien del equipo cuando un cambio en los datos o en el
+modelo vuelve falsa una afirmación escrita a mano: no un informe que dice en silencio algo
+equivocado, sino un pull request al que no se le puede hacer merge con ella. Cierra el pull
+request y borra la rama (`gh pr close --delete-branch`).
 
 Para que ese "no se puede hacer merge" sea literal, protege `main`: en *Settings* del repositorio,
 agrega una regla de protección de rama, o un ruleset, que exija un pull request y el trabajo
-*Check* antes del merge. Un límite: `{python} fact("github.protect_free")` (consultado el
-`{python} checked("github.protect_free")`). En un repositorio privado gratuito la comprobación se
-ejecuta igual y se muestra en rojo igual; es la regla del equipo, no la de GitHub, la que impide
-hacer merge de algo en rojo.
+*Check* antes del merge. Un límite: `{python} fact("github.protect_free")`. En un repositorio
+privado gratuito la comprobación se ejecuta igual y se muestra en rojo igual; es la regla del
+equipo, no la de GitHub, la que impide hacer merge de algo en rojo.
+
+::: practice
+Para esta edición, el workflow de comprobación se ejecutó en un runner local (act), en verde y
+luego en rojo; los pasos que necesitan GitHub (los push, los pull requests, el caché de uv, la
+publicación, el calendario y la protección de rama) se contrastaron con la documentación de
+GitHub, sin ejecutarse ([lo que no se
+probó](../appendices/h-how-built.qmd#sec-how-built)).
+:::
 
 ## Publicar desde `main` {#sec-team-publish}
 
@@ -202,17 +311,19 @@ La configuración es el origen de Pages: *Settings*, *Pages*, *Build and deploym
 **GitHub Actions**. Pon en el `site-url` del proyecto la dirección que te da, para que funcionen
 las tarjetas para redes sociales del @sec-sites. Una página cuya guarda falla nunca se publica,
 porque la publicación ejecuta primero el mismo build. El permiso para desplegar le pertenece solo
-al trabajo de despliegue: en la prueba, una versión del prompt que no lo decía se lo dio a todo el
-workflow, build incluido.
+al trabajo de despliegue; dilo en el prompt: si no se le dice, un agente puede dárselo a todo el
+workflow.
 
 ::: pitfall
-Primero va dónde puede publicarse (la @sec-sites-publish): `{python} fact("github.pages_private")`
-(consultado el `{python} checked("github.pages_private")`). La evaluación de Acme es de datos
-públicos y podría ser pública; la evaluación de un cliente no podría, y publicarla necesita un
-servicio de alojamiento que tu organización apruebe, o ningún sitio, solo los PDF.
+Primero va dónde puede publicarse (la @sec-sites-publish): `{python} fact("github.pages_private")`.
+La evaluación de un cliente necesita un servicio de alojamiento que tu organización apruebe, o
+ningún sitio, solo los PDF.
 :::
 
 ## Informes según un calendario {#sec-team-schedule}
+
+El último workflow renderiza solo los informes mensuales, según un calendario, y los guarda para
+que los descargues:
 
 ::: {.prompt}
 ```default
@@ -220,33 +331,34 @@ Crea .github/workflows/monthly.yml: el día 2 de cada mes a las 06:17 UTC, y a p
 ```
 :::
 
+<!-- The schedule's rules, the `timezone:` key among them, checked against GitHub's workflow
+syntax and events pages on 2026-11-25. -->
 El calendario terminado es la línea cron "`{python} cron`": minuto `{python} minute`, hora
 `{python} hour`, día `{python} day` de cada mes. GitHub la lee en UTC, a menos que una línea
 `timezone:` a su lado nombre otra zona, como `timezone: "Europe/London"`; se ejecuta sobre el
 último commit de `main`, y puede empezar tarde, o en el peor caso no empezar, cuando Actions está
-ocupado, como lo está al comienzo de cada hora; de ahí el minuto `{python} minute`, y no 0 (todo
-consultado el 2026-11-18). Los PDF aparecen como un artefacto al pie de la página de la
-ejecución, guardados durante `{python} retention` días. La revisión de referencias va al final
-porque necesita la red y puede fallar por razones ajenas al proyecto; al ir al final, hace fallar
-la ejecución sin perder los informes. *Run workflow*, en la página del workflow dentro de
-*Actions*, lo ejecuta en el momento, que es como probarlo sin esperar un mes.
+ocupado, como lo está al comienzo de cada hora; de ahí el minuto `{python} minute`, y no 0. Los
+PDF aparecen como un artefacto al pie de la página de la ejecución, guardados durante
+`{python} retention` días. La revisión de referencias va al final porque necesita la red y puede
+fallar por razones ajenas al proyecto; al ir al final, hace fallar la ejecución sin perder los
+informes. *Run workflow*, en la página del workflow dentro de *Actions*, lo ejecuta en el
+momento, que es como probarlo sin esperar un mes.
 
-::: pitfall
-Revisa toda aritmética de horas que escriba un agente. En la prueba, un primer comentario decía
-que las 06:00 UTC eran las 07:00 en Londres en invierno; son las 06:00, y las 07:00 en verano. El
-agente se dio cuenta, y quien lea un comentario por encima podría no hacerlo. Además, GitHub
-desactiva los workflows programados de un repositorio público tras sesenta días sin actividad
-(consultado el 2026-11-18). Un informe mensual que importa necesita a alguien que note cuándo no
-llega.
+::: story
+<!-- source: book/chapters/team.qmd lines 225-227 at 651db10 ("a first comment said 06:00
+UTC was 07:00 in London in winter; it is 06:00, and 07:00 in summer. The agent caught it") -->
+El primer comentario del calendario decía que las 06:00 UTC son las 07:00 en Londres en
+invierno. Son las 06:00; las 07:00 son en verano. El agente notó su propio desliz. Quien revisa
+y lee por encima un comentario en un archivo YAML podría no haberlo notado. Revisa toda
+aritmética de horas que escriba un agente.
 :::
 
-## Lo que no se probó {#what-was-not-tested .unnumbered}
+::: pitfall
+GitHub desactiva los workflows programados de un repositorio público tras sesenta días sin
+actividad. Un informe mensual que importa necesita a alguien que note cuándo no llega.
 
-El workflow de comprobación se ejecutó localmente con act, en Docker, primero en verde y luego en
-rojo, como arriba. El push, los pull requests, las ejecuciones de *Publish* y *Monthly reports*,
-el caché de uv y la protección de rama necesitan un repositorio de GitHub y no se ejecutaron para
-esta edición; las acciones y las configuraciones que usan se contrastaron con la documentación de
-GitHub el 2026-11-18. Los prompts se probaron en su versión en inglés.
+<!-- source: GitHub, events that trigger workflows, schedule; checked 2026-11-25. -->
+:::
 
 ::: catchup
 ```default
@@ -283,7 +395,9 @@ nombrando su oración, y `ls .github/workflows` lista `check.yml`, `monthly.yml`
 - GitHub, [sintaxis de los workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax),
   [eventos que disparan workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
   y [workflows personalizados para Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
-  (consultados el 2026-11-18).
+  (consultados el 2026-11-25).
+- GitHub, [referencia de uso seguro](https://docs.github.com/en/actions/reference/security/secure-use),
+  sobre fijar las acciones al SHA de un commit (consultado el 2026-11-25).
 - GitHub, [acerca de las ramas protegidas](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
   (consultado el 2026-11-18).
 - Quarto, [GitHub Actions](https://quarto.org/docs/publishing/github-pages.html#github-action)

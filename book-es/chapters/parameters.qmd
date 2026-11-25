@@ -8,7 +8,7 @@ import csv
 import re
 
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 ROOT = ev.PROJECT.parents[1]
 CHECKPOINT = ROOT / "checkpoints" / "19-eval-params"
@@ -34,23 +34,74 @@ n_files = 3 * (len(months) + len(bands))
 text_holds(update.get("month") == "latest", "update.qmd's default month, \"latest\"")
 MIN_STUDENTS = int(re.search(r"^MIN_STUDENTS = (\d+)", (FEEDBACK / "feedback.qmd").read_text(), re.M).group(1))
 FEW = int(re.search(r"^FEW_SUBSCRIBERS = (\d+)", (CHECKPOINT / "src" / "acme_eval" / "params.py").read_text(), re.M).group(1))
+# The months the prompts and the text type: one in the data, one outside it.
+text_holds("2026-06" in months and "2027-01" not in months, "the months 2026-06 and 2027-01")
+
+# The update as rendered for the last two months, by media/capture/eval_outputs.py (step
+# update), which saved the pictures and each month's sentences: if stale, rerun it.
+import difflib
+import json
+from pathlib import Path
+
+captured = json.loads((Path(ev.__file__).resolve().parents[1] / "media" / "figures"
+                       / "eval-update-sentences.json").read_text(encoding="utf-8"))
+first_month, last_month = captured["months"]
+text_holds([first_month, last_month] == months[-2:], "the update's two months, the data's last two")
+A, B = (captured["sentences"][m] for m in (first_month, last_month))
+FIGURES = ("Paying customers", "Pilots", "Monthly recurring revenue", "Contacts ranked")
+alt_text_holds(all(sum(s.startswith(f) and "(synthetic)" in s and " from " in s for s in month) == 1
+                   for f in FIGURES for month in (A, B)), "fig-params-update-a and -b")
+MONTH_NAMES = "January|February|March|April|May|June|July|August|September|October|November|December"
+
+
+def wording(s: str) -> str:
+    """A sentence without its months and numbers: what is left is its wording."""
+    return re.sub(r"\d[\d,.-]*", "#", re.sub(rf"\b({MONTH_NAMES}) \d{{4}}", "M", s))
+
+
+# Pair the two months' sentences by their wording: the same words (identical, or only their
+# figures and months differ), changed words, or a sentence in one month only.
+same, refigured, reworded, only_first = [], [], [], []
+for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, [wording(s) for s in A],
+                                                  [wording(s) for s in B]).get_opcodes():
+    if op == "equal":
+        for x, y in zip(A[i1:i2], B[j1:j2]):
+            (same if x == y else refigured).append(x)
+    elif op == "replace" and i2 - i1 == j2 - j1:
+        reworded += list(zip(A[i1:i2], B[j1:j2]))
+    elif op == "delete":
+        only_first += A[i1:i2]
+    else:
+        raise ValueError("the update's two months no longer pair as the think box says: rewrite it")
+text_holds(len(reworded) == 1 and same and refigured and len(only_first) == 2
+           and any("new this month" in s for s in only_first)
+           and any("invented for teaching" in s for s in same)
+           and any(s.startswith("The model’s figures are real") for s in same),
+           "the think box on the update's two months")
+customers = next(s for s in B if s.startswith("Paying customers"))
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5), in copies of
-# checkpoint 18 and of the feedback example's data, on 2026-11-18; the pitfalls are the ones
-# those runs, and the build of the finished documents, met.
+# checkpoint 18 and of the feedback example's data, on 2026-11-18; the traps in
+# @tbl-params-traps are the ones those runs, and the build of the finished documents, met.
+# On 2026-11-25 (D3) the update prompt was split into two turns; the lead dry-runs them.
 ```
 
 Buena parte de lo que publica una organización es el mismo documento con números distintos: el
-informe mensual para inversionistas, un informe por cliente, región, equipo o modelo, una hoja de
-retroalimentación para cada grupo de un curso. Hecha a mano, cada copia es una oportunidad de
-pegar la cifra del mes pasado en el archivo de este mes. Hecha a partir de una sola fuente con un
-*parámetro*, un valor que se da al renderizar, cada copia es el mismo documento probado,
-ejecutado con otro valor, y un script puede hacerlas todas y revisarlas.
+informe mensual para inversionistas, un informe por cliente, región o equipo. Hecha a mano, cada
+copia parte del archivo del mes pasado, y cada una es una oportunidad de dejar en ella una cifra
+del mes pasado. Hecha a partir de una sola fuente con un parámetro, un valor que se da al
+renderizar, cada copia es el mismo documento probado, ejecutado con otro valor, y un script
+puede hacerlas todas y revisar cada una.
 
-Este capítulo hace tres: el informe mensual de Acme para inversionistas, un informe de una página
-para cada segmento de clientes y, para docentes, una hoja de retroalimentación para cada grupo
-de un curso. El informe para inversionistas lleva las cifras de negocio de la empresa, que en este
-libro son sintéticas y están marcadas así en cada número; las cifras del modelo que las acompañan
-son las de la evaluación real.
+::: {.story .illustration}
+Quien fundó la empresa escribe el informe de este mes como siempre: abre el del mes pasado, lo
+guarda con otro nombre y cambia las cifras. Ingresos, cambiados. Clientes, cambiados. La oración
+del tercer párrafo que dice que el mes fue el mejor hasta ahora no es una cifra, así que no se
+cambia. Llega a cada inversionista. Nadie mintió, y nada en el archivo podía objetar.
+:::
+
+Este capítulo hace el informe mensual de Acme para inversionistas y un informe por segmento de
+clientes. Las cifras de negocio del informe son sintéticas, y lo dicen en cada número; las cifras
+del modelo que las acompañan son las de la evaluación real.
 
 ::: opener
 - Explicar qué es un parámetro, dónde vive su valor predeterminado y cómo se pasa un valor al
@@ -63,7 +114,7 @@ son las de la evaluación real.
 
 Partes de
 : tu repositorio `acme-eval` al final del @sec-white-papers, o
-  `checkpoints/18-eval-whitepaper/`; para el caso docente, `examples/feedback/` sin su
+  `checkpoints/18-eval-whitepaper/`; para la sección para docentes, `examples/feedback/` sin su
   `feedback.qmd`.
 
 Construyes
@@ -74,45 +125,63 @@ Punto de control
 : `checkpoints/19-eval-params/`, y `examples/feedback/`
 :::
 
+::: payoff
+![El informe terminado para el penúltimo mes de sus datos, al ancho de un teléfono: cada cifra de negocio está marcada como sintética.](../media/figures/eval-update-a.png){#fig-params-update-a width=85% fig-alt="La parte superior de una página web al ancho de un teléfono: la oración que dice qué mes cubre el informe; luego, tras una línea discontinua que marca un corte, sus cuatro cifras de negocio (clientes que pagan, pilotos, ingresos recurrentes mensuales y contactos ordenados), cada una marcada (synthetic) y comparada con el mes anterior."}
+
+![El mismo informe, renderizado para el último mes.](../media/figures/eval-update-b.png){#fig-params-update-b width=85% fig-alt="La misma parte del informe para el mes siguiente: el mes que cubre, y luego las mismas cuatro cifras de negocio, cada una marcada (synthetic) y comparada con el mes anterior."}
+:::
+
 ## Un documento, muchos valores {#sec-params-vocab}
 
-| Pide | Quarto lo llama | Revisa |
-|---|---|---|
-| un valor fijado al renderizar, con un valor predeterminado | una celda etiquetada `parameters`, `#| tags: [parameters]` | los valores predeterminados se renderizan por sí solos |
-| este valor, ahora | `quarto render update.qmd -P month:2026-06` | la salida muestra ese mes |
-| muchos valores desde un archivo | `--execute-params params.yml` | cada valor llega al documento |
-| una salida con el nombre de su valor | `-M output-file:update-2026-06` | un archivo por valor, ninguno sobrescrito |
-| el motor que inyecta los valores | papermill, en el entorno del proyecto | sin él, el renderizado se detiene |
+Un *parámetro* es un valor que recibe un documento al renderizarse. Su valor predeterminado vive
+en el documento, en una celda etiquetada `parameters`: el `month` del informe terminado tiene
+como valor predeterminado "`{python} update["month"]`", que el documento lee como el último mes
+de sus datos, así que nunca se vuelve viejo. El informe por segmento usa por defecto
+`{python} segment["factor"]` `{python} segment["segment"]`, y la hoja de retroalimentación, el
+grupo `{python} sheet["section"]`.
+
+`quarto render update.qmd -P month:2026-06` reemplaza el valor predeterminado durante un
+renderizado: Quarto agrega, después de la celda de parámetros, una celda que fija el valor nuevo,
+y el documento se ejecuta como antes. Esa celda se ejecuta mediante *papermill*, un paquete de
+Python que el proyecto tiene que tener: sin él, un renderizado con `-P` se detiene con
+`The papermill package is required for processing --execute-params`.
+
+| Pide | Quarto lo llama |
+|---|---|
+| un valor fijado al renderizar, con un valor predeterminado | una celda etiquetada `parameters`: `#| tags: [parameters]` |
+| este valor, ahora | `quarto render update.qmd -P month:2026-06` |
+| muchos valores desde un archivo | `--execute-params params.yml` |
+| una salida con el nombre de su valor | `-M output-file:update-2026-06` |
 
 : Los parámetros, y cómo se llama cada cosa (Quarto 1.10.20, motor Jupyter). {#tbl-params-vocab}
 
-Los valores predeterminados son parte del documento: el `month` del informe para inversionistas
-terminado tiene como valor predeterminado "`{python} update["month"]`", que el documento lee como
-el último mes de sus datos, así que su valor predeterminado nunca se vuelve viejo; el informe por
-segmento usa por defecto `{python} segment["factor"]` `{python} segment["segment"]`, y la hoja de
-retroalimentación, el grupo `{python} sheet["section"]`. Pasar `-P month:2026-06` reemplaza un
-valor predeterminado durante un renderizado: Quarto agrega, después de la celda de parámetros, una
-celda que fija el valor nuevo, y el documento se ejecuta como antes. Esa celda se ejecuta mediante
-*papermill*, un paquete de Python que el proyecto tiene que tener: sin él, un renderizado con `-P`
-se detiene con "The papermill package is required for processing --execute-params" (se necesita
-el paquete papermill para procesar --execute-params).
+Dos reglas hacen seguro un documento parametrizado:
 
-Dos reglas hacen seguro un documento parametrizado. **Valida el valor**: un mes o un segmento que
-no está en los datos tiene que detener el renderizado con un mensaje que enumere los válidos, no
-producir un informe sobre nada. **Deja que el código elija cada palabra que depende del valor**, a
-partir de los números tal como se imprimen: "subió" o "bajó", "por encima" o "por debajo", "el
-primer mes de los datos, así que no hay cambio". Elegida a partir de los números impresos, la
-palabra no puede contradecirlos; pon una guarda en lo que el código no puede elegir, como un pie
-de figura escrito a mano, y revisa que el texto impreso concuerde, como hace el informe para
-inversionistas terminado. Una guarda que repite la comparación que eligió la palabra nunca puede
-fallar, y no protege nada. Un documento renderizado para una docena de valores es una docena de
-oportunidades de que una palabra escrita a mano esté mal.
+::: cards
+Valida el valor
+: Un mes o un segmento que no está en los datos detiene el renderizado con un mensaje que
+  enumera los válidos, en lugar de producir un informe sobre nada.
+
+Deja que el código elija las palabras
+: "Subió" o "bajó", "por encima" o "por debajo", "el primer mes, así que no hay cambio":
+  elegida por el código a partir de los números tal como se imprimen, una palabra no puede
+  contradecirlos. Pon una guarda en lo que el código no puede elegir, como un pie de figura
+  escrito a mano.
+:::
+
+Una guarda que repite la comparación que eligió la palabra nunca puede fallar, y no protege
+nada. La guarda del informe terminado revisa, en cambio, las cifras impresas. Un documento
+renderizado para `{python} WORD[len(months)]` meses es otras tantas oportunidades de que una
+palabra escrita a mano esté mal.
 
 ## El informe para inversionistas {#sec-params-update}
 
+El informe se pide en dos turnos: primero el documento y su parámetro, luego la oración que
+compara un mes con el anterior, cuya redacción debe elegir el código.
+
 ::: {.prompt .long}
 ```default
-Agrega papermill con `uv add papermill` y luego crea update.qmd, un informe mensual para inversionistas, en inglés, parametrizado por `month` (una celda etiquetada `parameters` cuyo valor predeterminado es "latest", que significa el último mes de data/synthetic_business.csv): las cifras de negocio de ese mes, cada una marcada como sintética, la versión en producción ese mes y sus métricas reales del modelo desde outputs/, y el cambio respecto al mes anterior, con su redacción elegida por código y con una guarda. Detente con un mensaje claro si el mes no está en los datos. Formatos html, docx y typst; renderízalo para 2026-06 con `-P month:2026-06` y dime a dónde fueron los archivos.
+Ejecuta `uv add papermill` y crea update.qmd, informe mensual para inversionistas en inglés, parametrizado por `month` (celda etiquetada `parameters`, por defecto "latest": el último mes de data/synthetic_business.csv): las cifras de negocio del mes, cada una marcada como sintética, y la versión en producción ese mes con sus métricas reales de outputs/. Si el mes no está en los datos, detente con un mensaje claro. Formatos html, docx y typst; renderiza con `-P month:2026-06` y dime dónde quedaron los archivos.
 ```
 :::
 
@@ -120,20 +189,98 @@ Agrega papermill con `uv add papermill` y luego crea update.qmd, un informe mens
 `uv add papermill` · escribe `update.qmd` · `uv run quarto render update.qmd -P month:2026-06`
 :::
 
+::: {.prompt}
+```default
+En update.qmd, agrega el cambio respecto al mes anterior, con su redacción elegida por código a partir de los números impresos y con una guarda; el primer mes dice que no hay uno anterior. Renderiza 2026-06 y el primer mes de los datos, y muéstrame las dos oraciones.
+```
+:::
+
+::: {.agent}
+edita `update.qmd` · lo renderiza dos veces, con `-P month:…`
+:::
+
+<!-- Dry-run 2026-11-25, both turns verbatim, in a copy of 18-eval-whitepaper with
+outputs/ computed: a Claude Code sub-agent on Sonnet 5.5 and one on Haiku 5.5. Both added
+papermill with uv, wrote update.qmd with a parameters cell, stopped on a month not in the data,
+and rendered 2026-06 to the project's root (the update is not in the site's render list). In
+the second turn both compared monthly recurring revenue, chose rose, fell or unchanged by code
+with a claim guard, and printed the no earlier month sentence for 2026-01. -->
+
 Revísalo como lo haría quien invierte, y como lo haría quien audita. Cada cifra de negocio dice
 que es sintética, aquí; en tu propio informe, cada cifra nombra su fuente. Las cifras del modelo
-vienen de `outputs/` y son las de la evaluación real. Un mes anterior a la primera versión lo dice,
-en lugar de inventar una cifra del modelo. Y un mes que no está en los datos detiene el
+vienen de `outputs/` y son las de la evaluación real. Un mes anterior a la primera versión lo
+dice, en lugar de inventar una cifra del modelo. Y un mes que no está en los datos detiene el
 renderizado: prueba `-P month:2027-01`.
 
+::: think
+El informe terminado se renderizó para sus dos últimos meses, `{python} first_month` y
+`{python} last_month`, a partir de una sola fuente. Entre los dos, ¿qué oraciones deberían
+diferir: las cifras, el cambio respecto al mes anterior, la versión en producción? ¿Cuáles no
+deben?
+
+`{python} WORD[len(refigured)].capitalize()` difieren solo en sus cifras y sus meses. Una cambia
+su redacción: "`{python} reworded[0][0].rstrip(".")`" pasa a
+"`{python} reworded[0][1].rstrip(".")`", con la palabra que elige el código.
+`{python} WORD[len(only_first)].capitalize()` aparecen solo en `{python} first_month`, cuando su
+versión era nueva. `{python} WORD[len(same)].capitalize()` son idénticas,
+entre ellas la etiqueta de sintético y la nota sobre el método: si difirieran, un parámetro se
+habría filtrado a un texto al que no debe llegar.
+:::
+
+Este es el mecanismo, en el informe terminado. No hace falta leer cada línea: en su celda de
+parámetros, con los comentarios recortados para caber en un teléfono, lo que importa es la
+última línea, el parámetro y su valor predeterminado.
+
+```{python}
+#| label: params-mechanism
+#| output: asis
+# The finished update's own lines, printed from checkpoint 19's update.qmd (never retyped): its
+# parameters cell, and the lines of change() that choose "up" or "down" and guard the choice.
+import textwrap
+
+source = (CHECKPOINT / "update.qmd").read_text()
+cell = re.search(r"```\{python\}\n(#\| tags: \[parameters\]\n.*?)```", source, re.S).group(1)
+chooser = re.search(r"\n( +printed_now, printed_before = .*?\n)\n", source, re.S).group(1)
+chooser = "\n".join(line[4:] for line in chooser.splitlines())
+text_holds(len(cell.splitlines()) <= 10 and len(chooser.splitlines()) <= 10
+           and "params.direction" in chooser and "claim(" in chooser
+           and all(f'return "{w}"' in (CHECKPOINT / "src" / "acme_eval" / "params.py").read_text()
+                   for w in ("up", "down", "unchanged")), "the update's printed lines")
+# Cut to a phone's 39 characters: the comments on rendering left out, a trailing one wrapped.
+shown, left_out = [], []
+for line in cell.splitlines():
+    if line.startswith("#|"):
+        shown.append(line)
+    elif line.startswith("#"):
+        left_out.append(line)
+    else:
+        code, _, note = line.partition("  # ")
+        shown += textwrap.wrap(note, 38, initial_indent="# ", subsequent_indent="# ") + [code.rstrip()]
+text_holds(all("render" in line for line in left_out) and shown[-1].startswith("month = ")
+           and max(map(len, shown)) <= 39, "the parameters cell's last line is the parameter")
+print("```python\n" + "\n".join(shown) + "\n```")
+```
+
+Y las líneas de su `change()` que eligen la palabra para una cifra, a partir de las dos cifras
+tal como se imprimen, y protegen la elección con una guarda:
+
+```{python}
+#| output: asis
+print(f"```python\n{chooser}\n```")
+```
+
+`params.direction()` vuelve a leer los números de las dos cifras impresas y devuelve "up",
+"down" o "unchanged" (subió, bajó, sin cambio), así que la palabra sigue a las cifras tal como se
+imprimen, no a los datos sin redondear. La guarda revisa una sola cosa, por otro camino: la
+palabra es "unchanged" exactamente cuando las dos cifras impresas son el mismo texto. Así atrapa
+una lectura que sale mal; distinguir "up" de "down" es trabajo de `direction()`, que fija una
+prueba unitaria. Para `{python} last_month`, el informe escribió
+"`{python} customers.rstrip(".")`" (clientes que pagan, frente al mes anterior).
+
 ::: pitfall
-La trampa está en a dónde fueron los archivos. El proyecto es un sitio web, pero el informe para
-inversionistas no está en su lista `render`, y no debe estarlo: una página del sitio muestra un
-solo valor, y un informe para inversionistas no es una página pública. Así que Quarto lo renderiza
-como un archivo suelto, junto a su fuente, no en `_site/`, y los pasos posteriores al renderizado
-del sitio no se ejecutan para él. En la prueba, `--output-dir reports` se rechazó para un archivo
-así, y `--output` aceptó un nombre de archivo pero no una carpeta, así que el script de abajo mueve
-él mismo cada archivo a `reports/`.
+El informe no está en la lista `render` del sitio, y no debe estarlo: no es una página pública.
+Así que Quarto lo renderiza junto a su fuente, no en `_site/`, y el script por lotes mueve cada
+archivo a `reports/`.
 :::
 
 ## Un informe por segmento {#sec-params-segment}
@@ -166,34 +313,12 @@ cada uno con el nombre de su valor y cada uno revisado para comprobarlo. La revi
 hace confiable un lote: un archivo que en silencio muestra el mes predeterminado, porque no se
 pasó un valor, saldría si no junto con los demás.
 
-::: pitfall
-De la prueba: una revisión del PDF para la franja de edad "18-29" falló, porque el texto del PDF
-devolvía el guion como un guion suave; el script terminado quita los guiones suaves y trata
-cualquier tipo de raya como un guion antes de comparar. Y el HTML autocontenido, que lleva sus
-bibliotecas dentro, es mucho más grande que el mismo informe en PDF; envía el PDF, y deja el HTML
-para el sitio.
-:::
+| Lo que ves | La solución |
+|---|---|
+| Falla la revisión del PDF para la franja de edad "18-29" | el PDF devuelve el guion como un guion suave: normaliza los guiones antes de comparar |
+| El HTML autocontenido es mucho más grande que el PDF | envía el PDF, y deja el HTML para el sitio |
 
-## El caso docente: una hoja por grupo {#sec-params-feedback}
-
-El mismo método le sirve a quien enseña en varios grupos de un mismo curso: una hoja de
-retroalimentación por grupo, que compara el grupo con el curso, a partir de un solo registro de
-calificaciones. El registro del ejemplo es sintético, generado con una semilla aleatoria fija:
-`{python} WORD[len(sections)]` grupos de estudiantes identificados solo por número.
-
-::: {.prompt .long}
-```default
-Crea feedback.qmd, en inglés: una hoja de retroalimentación por grupo de data/gradebook.csv, parametrizada por `section`, con la media y la dispersión de ese grupo en cada tarea frente al curso, un gráfico con texto alternativo, cada oración marcada como sintética y con una guarda en su redacción, y ningún identificador de estudiantes. Luego escribe scripts/render_sections.py para renderizar feedback-<section>.pdf para cada grupo y revisar cada uno. Ejecútalo.
-```
-:::
-
-Las calificaciones son datos personales, así que la hoja muestra solo totales del grupo, nunca a
-una persona, y nunca un subgrupo tan pequeño que alguien pueda deducir de quién se trata; la hoja
-terminada se detiene si cualquier subgrupo que describe, incluidas las entregas de cada tarea,
-tiene menos de `{python} MIN_STUDENTS`. Con calificaciones reales, las reglas de la
-@sec-ai-policy y la política de datos de tu institución van primero: construye el documento
-sobre un registro de calificaciones sintético con las mismas columnas, como este, y renderiza tú
-el real.
+: Trampas encontradas al probar el lote, 2026-11-18. {#tbl-params-traps}
 
 ::: catchup
 ```default
@@ -202,8 +327,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/19-eval-params/README.md
 :::
 
 ::: tryit
-Haz el informe para inversionistas, el informe por segmento y el script por lotes; y, si
-enseñas, las hojas de retroalimentación.
+Haz el informe para inversionistas, el informe por segmento y el script por lotes.
 
 ::: done
 `render_params.py` informa que cada archivo está presente y muestra su valor, un mes fuera de los
@@ -211,6 +335,25 @@ datos detiene el informe para inversionistas con una lista de los meses válidos
 negocio del informe dice de dónde viene.
 :::
 :::
+
+## Para docentes: una hoja por grupo (opcional) {#sec-params-feedback}
+
+El mismo método le sirve a quien enseña en varios grupos de un mismo curso: una hoja de
+retroalimentación por grupo, a partir de un solo registro de calificaciones. El registro del
+ejemplo es sintético: `{python} WORD[len(sections)]` grupos de estudiantes identificados solo por
+número.
+
+::: {.prompt .long}
+```default
+Crea feedback.qmd, en inglés: una hoja de retroalimentación por grupo de data/gradebook.csv, parametrizada por `section`, con la media y la dispersión de ese grupo en cada tarea frente al curso, un gráfico con texto alternativo, cada oración marcada como sintética y con una guarda en su redacción, y ningún identificador de estudiantes. Luego escribe scripts/render_sections.py para renderizar feedback-<section>.pdf para cada grupo y revisar cada uno. Ejecútalo.
+```
+:::
+
+Las calificaciones son datos personales, así que la hoja muestra solo totales del grupo, y se
+detiene si cualquier subgrupo que describe tiene menos de `{python} MIN_STUDENTS`. Con
+calificaciones reales, la @sec-ai-policy y la política de datos de tu institución van primero:
+construye sobre un registro de calificaciones sintético con las mismas columnas, y renderiza tú
+el real.
 
 ## Resumen {.unnumbered}
 

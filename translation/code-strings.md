@@ -181,23 +181,18 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/results.qmd` | 4 | `"\| Age band \| Test contacts \| Called \| Subscription rate \| Recall \|"` | `"\| Franja de edad \| Contactos de prueba \| Llamados \| Tasa de suscripción \| Recall \|"` |
 | `chapters/results.qmd` | 6 | `"Mean predicted probability"` | `"Probabilidad predicha media"` |
 | `chapters/results.qmd` | 6 | `"Observed subscription rate"` | `"Tasa de suscripción observada"` |
-| `chapters/sites.qmd` | 1 | `"body text"` | `"texto del cuerpo"` |
-| `chapters/sites.qmd` | 1 | `"headings"` | `"títulos"` |
-| `chapters/sites.qmd` | 1 | `"links"` | `"enlaces"` |
-| `chapters/sites.qmd` | 1 | `"captions, footer, slide numbers"` | `"pies de figura, pie de página, números de diapositiva"` |
-| `chapters/sites.qmd` | 3 | `"\| Used for \| Role \| Colour \| Contrast \|"` | `"\| Se usa para \| Rol \| Color \| Contraste \|"` |
-| `chapters/sites.qmd` | 3 | `"\n: The brand's text colours, resolved from the finished `_brand.yml`'s roles as its contrast test resolves them, with their WCAG 2.2 contrast on its background. {#tbl-sites-palette}"` | `"\n: Los colores de texto de la marca, resueltos a partir de los roles del `_brand.yml` terminado tal como los resuelve su prueba de contraste, con su contraste WCAG 2.2 sobre su fondo. {#tbl-sites-palette}"` |
 | `chapters/slides.qmd` | 1 | `"body"` | `"cuerpo"` |
 | `chapters/slides.qmd` | 1 | `"headings"` | `"títulos"` |
 | `chapters/slides.qmd` | 1 | `"links"` | `"enlaces"` |
 | `chapters/slides.qmd` | 1 | `"captions, footer"` | `"pies de figura, pie de página"` |
-| `chapters/slides.qmd` | 4 | `"\| Text \| Colour \| Contrast on the background \|"` | `"\| Texto \| Color \| Contraste sobre el fondo \|"` |
-| `chapters/slides.qmd` | 4 | `\|  ·  \| ` · ` \|  · .1f · :1 \| · \n: The finished theme's text colours on its background, ` · `, computed with the WCAG 2.2 formula, from the variables its test checks. { · #tbl-slides-contrast}` | `\|  ·  \| ` · ` \|  · .1f · :1 \| · \n: Los colores de texto del tema terminado sobre su fondo, ` · `, calculados con la fórmula de WCAG 2.2, a partir de las variables que comprueba su prueba. { · #tbl-slides-contrast}` |
+| `chapters/slides.qmd` | 1 | `"\u2019"` | `"’"` |
+| `chapters/slides.qmd` | 2 | `. ` | `. [ · ]{ · lang=en translate=no}` |
+| `chapters/slides.qmd` | 5 | `"\| Text \| Colour \| Contrast on the background \|"` | `"\| Texto \| Color \| Contraste sobre el fondo \|"` |
+| `chapters/slides.qmd` | 5 | `\|  ·  \| ` · ` \|  · .1f · :1 \| · \n: The finished theme's text colours on its background, ` · `, computed with the WCAG 2.2 formula, from the variables its test checks. { · #tbl-slides-contrast}` | `\|  ·  \| ` · ` \|  · .1f · :1 \| · \n: Los colores de texto del tema terminado sobre su fondo, ` · `, calculados con la fórmula de WCAG 2.2, a partir de las variables que comprueba su prueba. { · #tbl-slides-contrast}` |
 | `chapters/team.qmd` | 1 | `" and "` | `" y "` |
+| `chapters/team.qmd` | 6 | `\| `version` \| `value` \| `low`, `high` (the  ·  interval) \|\n\|---\|--:\|--:\| · \|  ·  \|  ·  \|  · ,  ·  \|` | `\| `version` \| `value` \| `low`, `high` (el intervalo del  · ) \|\n\|---\|--:\|--:\| · \|  ·  \|  ·  \|  · ,  ·  \|` |
 | `chapters/white-papers.qmd` | 1 | `"all of them"` | `"todos"` |
 | `chapters/white-papers.qmd` | 1 | `@ · -[\w-]+ ·   · @ · @ ·  of them` | `@ · -[\w-]+ ·   · @ · @ ·  de ellos` |
-| `chapters/white-papers.qmd` | 4 | `"\| Key \| Year \| DOI \| Cited by \|"` | `"\| Clave \| Año \| DOI \| Citado por \|"` |
-| `chapters/white-papers.qmd` | 4 | `"none: checked by hand at its source"` | `"ninguno: revisado a mano en su fuente"` |
-| `chapters/white-papers.qmd` | 4 | `"paper"` | `"white paper"` |
-| `chapters/white-papers.qmd` | 4 | `"card"` | `"ficha"` |
-| `chapters/white-papers.qmd` | 4 | `"\n: The project's references, from the finished `references.bib`, and the documents that cite each. {#tbl-wp-refs}"` | `"\n: Las referencias del proyecto, tomadas del `references.bib` terminado, y los documentos que citan cada una. {#tbl-wp-refs}"` |
+| `chapters/white-papers.qmd` | 5 | `"\| Key \| Year \| Cited by \|"` | `"\| Clave \| Año \| Lo citan \|"` |
+| `chapters/white-papers.qmd` | 5 | `"card"` | `"ficha"` |
+| `chapters/white-papers.qmd` | 5 | `"\n: The project's references, from the finished `references.bib`, and the documents that cite each. {#tbl-wp-refs}"` | `"\n: Las referencias del `references.bib` terminado, y los documentos que citan cada una. {#tbl-wp-refs}"` |

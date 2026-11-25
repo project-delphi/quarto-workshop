@@ -4,20 +4,31 @@
 #| label: at-work-setup
 # Vendors' data terms, networks and hosting: dated facts from facts.yml (Appendix K).
 from scripts.facts import checked, fact
+from scripts.prose import text_holds
+
+# The grid's rows: each vendor's short `trains` and `kept` phrases.
+GRID = ["data.anthropic_consumer", "data.anthropic_commercial", "data.openai_api",
+        "data.openai_business", "data.antigravity_terms"]
+GRID_CHECKED = checked(GRID[0])
+text_holds(all(checked(key) == GRID_CHECKED for key in GRID), "the grid's one date")
 
 
-def says(key: str) -> str:
-    """A fact as a sentence of its own, for a table cell."""
-    text = fact(key)
-    return f"{text[0].upper()}{text[1:]}."
+def trains(key: str) -> str:
+    return fact(key, capital=True, field="trains")
+
+
+def kept(key: str) -> str:
+    return fact(key, capital=True, field="kept")
 ```
 
-Hasta aquí todo ha usado datos públicos en una computadora que controlas. El trabajo rara vez es
-así. Los datos son confidenciales, las herramientas deben estar aprobadas, la red está detrás de
-un proxy y los documentos deben verse como los de la organización. Nada de esto cambia el
-método; cambia lo que puedes enviarle a un agente, qué agente, cómo sale su tráfico del edificio
-y qué plantillas llevan las salidas. Este capítulo es la versión corta y práctica, y termina con
-el caso que el libro ha seguido de principio a fin: una empresa pequeña con inversionistas.
+Un renderizado falla. Haces lo que has hecho durante todo este libro: copias el error y se lo
+pasas al agente. El agente lo lee, lee el archivo al que apunta y corrige la celda. Solo después
+miras lo que decía el error. Citaba la fila que rompió el código, y la fila era de un cliente: un
+nombre, una cuenta, un saldo. Ya salieron de tu computadora, y ningún comando los trae de vuelta.
+Hasta ahora, cada archivo de este libro era público. En el trabajo, la mayoría no lo son.
+
+Nada de esto cambia el método. Cambia lo que un agente puede ver, qué agente y con qué plan, cómo
+sale su tráfico del edificio y qué plantillas llevan las salidas.
 
 ::: opener
 - Decir qué sale de tu computadora cuando trabaja un agente, y qué hace con eso cada tipo de
@@ -35,19 +46,34 @@ El modelo de un agente se ejecuta en los servidores del proveedor (la @sec-model
 todo lo que el agente lee, un archivo, la salida de un comando, un mensaje de error con el nombre
 de un cliente, va allá junto con tu prompt. Quarto, Python y Git no envían nada a ningún lado; el
 agente es la única parte del método que lo hace. Lo que pasa después depende del plan, no del
-producto:
+producto. Esto es lo que los proveedores dicen que hacen con lo que envía un agente, consultado
+el `{python} GRID_CHECKED`; el @sec-facts tiene sus propias palabras y sus fuentes:
 
-| Plan | Lo que dice el proveedor |
-|---|---|
-| Claude, para consumidores | `{python} says("data.anthropic_consumer")` |
-| Claude, comercial | `{python} says("data.anthropic_commercial")` |
-| API de OpenAI | `{python} says("data.openai_api")` |
-| ChatGPT para empresas | `{python} says("data.openai_business")` |
-| Codex | `{python} says("data.codex_signin")` |
-| Antigravity | `{python} says("data.antigravity_terms")` |
-| OpenCode | `{python} says("data.opencode_free_terms")` |
+::: {.cards title="¿El proveedor entrena con ello, y cuánto tiempo lo guarda?"}
+Claude, planes personales
+: **Entrena con ello:** `{python} trains("data.anthropic_consumer")`. **Se guarda:**
+  `{python} kept("data.anthropic_consumer")`.
 
-: Lo que los proveedores dicen que hacen con lo que envían sus agentes, por plan, consultado el `{python} checked("data.anthropic_commercial")` (OpenCode, el `{python} checked("data.opencode_free_terms")`). Las condiciones cambian: el @sec-facts guarda las vigentes, con sus fuentes. {#tbl-at-work-data}
+Claude, planes de empresa y la API
+: **Entrena con ello:** `{python} trains("data.anthropic_commercial")`. **Se guarda:**
+  `{python} kept("data.anthropic_commercial")`.
+
+API de OpenAI
+: **Entrena con ello:** `{python} trains("data.openai_api")`. **Se guarda:**
+  `{python} kept("data.openai_api")`.
+
+Planes de ChatGPT para empresas
+: **Entrena con ello:** `{python} trains("data.openai_business")`. **Se guarda:**
+  `{python} kept("data.openai_business")`.
+
+Antigravity
+: **Entrena con ello:** `{python} trains("data.antigravity_terms")`. **Se guarda:**
+  `{python} kept("data.antigravity_terms")`.
+:::
+
+Otros dos agentes no tienen tarjeta, porque su respuesta depende de cómo los conectes.
+`{python} fact("data.codex_signin", capital=True)`. Y en OpenCode,
+`{python} fact("data.opencode_free_terms")`.
 
 De ahí se siguen dos cosas. Un plan personal y un plan de empresa del mismo agente son acuerdos
 distintos, así que pregunta en cuál estás antes del primer archivo confidencial. Y la copia en tu
@@ -58,15 +84,38 @@ computadora compartida o administrada.
 
 Los registros de clientes, la nómina, los resultados no publicados, los datos de pacientes o de
 estudiantes, los ingresos de una startup y los nombres de sus inversionistas no son tuyos para
-enviarlos adonde quieras. Cuatro hábitos mantienen seguro el método con ellos:
+enviarlos adonde quieras. Antes de que un archivo llegue a un agente, hazle dos preguntas
+(la @fig-may-this-file).
+
+![¿Puede este archivo llegar a este agente? Dos preguntas, sobre el archivo y sobre el plan del agente.](../media/diagrams/may-this-file){#fig-may-this-file .on-light fig-alt="Un diagrama de flujo de dos preguntas. 1, El archivo: ¿es público o puedes compartirlo? Si no, una flecha lleva a Déjalo fuera: trabaja sobre un sustituto sintético, con las columnas reales y sin ninguna fila, y renderiza tú el archivo real. Si sí, 2, El agente: ¿este agente, con este plan, tiene permiso para este archivo? Si no, el mismo recuadro Déjalo fuera; si sí, Adelante: el agente puede usar el archivo. Una nota abajo dice que las preguntas tratan del archivo y del plan, no de tus intenciones."}
+
+::: think
+Alguien de tu equipo dice: "Nunca pego datos confidenciales en el agente, así que estamos bien".
+Con el diagrama, ¿qué se le escapa a esa regla?
+
+Pegar es una de tres vías. Un agente también lee los archivos que encuentra, y la salida de los
+comandos que ejecuta, mensajes de error incluidos, como en la escena que abrió este capítulo. El
+diagrama pregunta por el archivo y el plan, no por tus intenciones: un archivo confidencial en la
+carpeta del agente está a un `ls`, el comando que lista una carpeta, de la conversación.
+:::
+
+::: {.story .illustration}
+Nadie pegó el archivo. La analista pidió un gráfico de los totales mensuales y nombró solo la
+tabla resumen. Para escribir una prueba, el agente listó la carpeta, encontró la exportación
+completa al lado y abrió las primeras filas para conocer las columnas. Cada paso era razonable,
+y cada uno se mostró antes de ejecutarse. Las filas ya estaban en la conversación antes de que
+alguien pensara en decir que no.
+:::
+
+Cuatro hábitos mantienen seguro el método con datos confidenciales:
 
 1. **Lee primero la política.** La política de IA y de datos de tu organización dice qué
    herramientas y qué planes pueden ver qué datos. Si no dice nada, pregúntale por escrito a
    quien sea responsable de los datos.
 2. **Construye sobre un sustituto.** Haz un archivo sintético con las mismas columnas y los
    mismos tipos que el real, marcado como SYNTHETIC en su nombre y en su README, como las hojas de
-   comentarios de la @sec-params-feedback. Deja que el agente construya y pruebe cada documento
-   con él.
+   retroalimentación de la @sec-params-feedback. Deja que el agente construya y pruebe cada
+   documento con él.
 3. **Renderiza tú el real.** Pon el archivo real en su lugar, sin el agente, y renderiza. El
    agente nunca lo lee, nunca ve sus valores en un error y nunca los pone en una transcripción.
 4. **Mantenlo fuera del historial y de los servicios de alojamiento públicos.** Pon el archivo
@@ -75,20 +124,30 @@ enviarlos adonde quieras. Cuatro hábitos mantienen seguro el método con ellos:
    `{python} checked("github.pages_private")`).
 
 ::: pitfall
-"No lo pegues" no basta. Un agente puede leer un archivo que nunca mencionaste, si un comando que
-ejecuta lo imprime o una prueba que escribe lo carga. Mantén los archivos confidenciales reales
-completamente fuera de la carpeta del agente hasta que el agente termine su trabajo, y agrega a
-`AGENTS.md` una regla que nombre el archivo y prohíba leerlo, como un recordatorio que no es una
-garantía.
+Mantén los archivos confidenciales reales completamente fuera de la carpeta del agente hasta que
+el agente termine su trabajo. Una regla en `AGENTS.md` que nombre el archivo y prohíba leerlo
+ayuda, como un recordatorio que no es una garantía.
+:::
+
+::: tryit
+Toma un archivo con el que trabajes. Responde para él las dos preguntas del diagrama, y escribe
+la fila de encabezados de su sustituto sintético.
+
+::: done
+puedes nombrar el plan en el que estás, y tu sustituto tiene las columnas del archivo real y
+ninguna de sus filas.
+:::
 :::
 
 ## Herramientas aprobadas y computadoras restringidas {#sec-at-work-locked}
 
+<!-- source: Claude Code, Settings files and precedence (managed settings, deny rules),
+checked 2026-11-25. -->
 Muchas organizaciones aprueban un solo agente, con un plan de empresa, y administran su
 configuración de forma centralizada. Claude Code, por ejemplo, lee un archivo de *managed
-settings* (configuración administrada) que instala el área de TI y que ninguna configuración de
-usuario puede anular; puede prohibir comandos por completo, como hacer push o descargar. Pregunta
-qué ha configurado tu organización antes de preguntarte por qué se rechaza un comando.
+settings* (configuración administrada) que instala un administrador y que ninguna configuración
+de usuario puede anular; puede prohibir comandos por completo, como hacer push o descargar.
+Pregunta qué ha configurado tu organización antes de preguntarte por qué se rechaza un comando.
 
 Una computadora en la que no puedes instalar ningún software todavía tiene un camino: el entorno
 en el navegador de la @sec-codespace, donde tu organización permita GitHub, o un servidor de
@@ -105,15 +164,19 @@ variables de entorno, definidas una sola vez en tu shell:
 
 | Herramienta | Proxy | Certificado de la empresa |
 |---|---|---|
-| uv (Python y paquetes) | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY` | `UV_SYSTEM_CERTS=1` para usar el almacén del sistema, o `SSL_CERT_FILE` con la ruta de un paquete de certificados |
-| Claude Code | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY`; no admite proxies SOCKS | el almacén del sistema, o `NODE_EXTRA_CA_CERTS` con la ruta de un paquete de certificados |
+| uv (Python y paquetes) | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY` | `UV_SYSTEM_CERTS=1` para usar el almacén del sistema, o `SSL_CERT_FILE` con la ruta de un paquete |
+| Claude Code | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY`; sin proxies SOCKS | el almacén del sistema, o `NODE_EXTRA_CA_CERTS` con la ruta de un paquete |
 
-: Configuración de proxy y de certificados, según la documentación de uv y de Claude Code (consultada el 2026-11-18). {#tbl-at-work-proxy}
+: Configuración de proxy y de certificados, según la documentación de uv y de Claude Code. {#tbl-at-work-proxy}
 
-La documentación de Quarto no dice nada sobre proxies (consultada el 2026-11-18); Quarto solo
-necesita la red para instalarse, y el Python que ejecuta llega a través de uv. Si una descarga
-sigue fallando, pídele a TI que permita los hosts a los que se conectan las herramientas, que la
-página de red de Claude Code enumera, en lugar de desactivar la verificación de certificados.
+<!-- source: uv's environment variables and certificates pages, Claude Code's network
+configuration page (with its hosts table) and Quarto's Project Environment Variables page,
+checked 2026-11-25. -->
+Quarto no tiene fila: su documentación menciona un proxy solo como una variable que un proyecto
+puede definir para su propio código, y el Python que ejecuta llega a través de uv. Si una
+descarga sigue fallando, pídele a TI que permita los hosts a los que se conectan las
+herramientas, que la página de red de Claude Code enumera, en lugar de desactivar la
+verificación de certificados.
 
 ## Plantillas de la casa y reglas de marca {#sec-at-work-templates}
 
@@ -129,26 +192,28 @@ ejecuta en cada página (la @sec-sites-checks).
 
 ## En una startup {#sec-at-work-startup}
 
-Una startup tiene las mismas restricciones con menos personas, y un público más: quienes
-invierten en ella. El método rinde donde los números cambian y quienes leen los revisan: el
-informe mensual para inversionistas (el @sec-parameters), el white paper de un benchmark o de una
-evaluación (el @sec-white-papers), los informes por cliente y un sitio de documentación. Rinde
-menos donde mandan el diseño o la coedición, y eso puede quedarse en las herramientas hechas para
-ello (la @sec-wrong-tool).
+Acme Signals, la empresa ficticia de dos personas que este libro ha seguido, tiene ahora un
+informe, una ficha del modelo, una presentación, un sitio y un white paper, un informe para
+inversionistas que se renderiza solo cada mes (el @sec-parameters) y un build que se pone en rojo
+cuando una oración deja de ser cierta, todo a partir de una ejecución de un solo script. No
+construyó así su presentación para inversionistas ni su sitio de marketing, y no debería: ahí
+importan más el diseño y la coedición que los números que cambian (el @sec-wrong-tool tiene la
+lista). El método rinde donde los números cambian y quienes leen los revisan.
 
-Los datos que ven los inversionistas necesitan el cuidado de cualquier dato confidencial: los
+Los datos de los inversionistas necesitan el cuidado de cualquier dato confidencial: los
 ingresos, la tabla de capitalización y los nombres de los clientes van en un repositorio
 privado, que el agente construye sobre sustitutos sintéticos y que tú renderizas con los datos
 reales, y se envían como PDF o a través de una sala de datos (data room), no se publican. El
-hábito que más importa es el más barato: cada número de un informe se calcula y cada oración sobre él tiene su
-guarda, así que la cifra equivocada que le costaría credibilidad a quien fundó la empresa detiene
-el renderizado en lugar de llegar a una bandeja de entrada.
+hábito que más importa es el más barato: cada número de un informe se calcula y cada oración
+sobre él tiene su guarda, así que la cifra equivocada que le costaría credibilidad a quien fundó
+la empresa detiene el renderizado en lugar de llegar a una bandeja de entrada.
 
 ## Resumen {.unnumbered}
 
 ::: keyideas
 - El agente es la única parte del método que envía algo fuera de tu computadora, y es el plan, no
   el producto, el que decide qué hace el proveedor con eso.
+- Un agente lee más de lo que pegas: los archivos que encuentra y la salida de lo que ejecuta.
 - Construye sobre un sustituto sintético con las mismas columnas, y renderiza tú los datos
   reales.
 - Mantén los archivos confidenciales fuera de la carpeta del agente, fuera de Git y fuera de los
@@ -162,14 +227,17 @@ el renderizado en lugar de llegar a una bandeja de entrada.
 
 ## Lecturas adicionales {.unnumbered}
 
-- Anthropic, [uso de datos de Claude Code](https://code.claude.com/docs/en/data-usage),
+- Anthropic, [uso de datos de Claude Code](https://code.claude.com/docs/en/data-usage)
+  (consultado el `{python} checked("data.anthropic_consumer")`),
   [configuración de red](https://code.claude.com/docs/en/network-config) y
   [configuración administrada](https://code.claude.com/docs/en/settings) (consultados el
-  2026-11-18).
+  2026-11-25).
 - OpenAI, [Your data](https://developers.openai.com/api/docs/guides/your-data) (consultado el
-  2026-11-18).
+  `{python} checked("data.openai_api")`).
 - Astral, [variables de entorno de uv](https://docs.astral.sh/uv/reference/environment/) y
   [certificados](https://docs.astral.sh/uv/concepts/authentication/certificates/) (consultados el
-  2026-11-18).
+  2026-11-25).
+- Quarto, [variables de entorno del proyecto](https://quarto.org/docs/projects/environment.html)
+  (consultado el 2026-11-25).
 - GitHub, [planes](https://docs.github.com/en/get-started/learning-about-github/githubs-plans)
-  (consultado el 2026-11-18).
+  (consultado el `{python} checked("github.pages_private")`).
