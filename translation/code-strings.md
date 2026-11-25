@@ -87,10 +87,6 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/08-water-question.qmd` | 1 | `"municipality"` | `"municipio"` |
 | `chapters/08-water-question.qmd` | 1 | `; one value · ; ` | `; un solo valor · ; ` |
 | `chapters/08-water-question.qmd` | 2 | `"\| Variable, and what it measures \| Level; years \|"` | `"\| Variable, y lo que mide \| Nivel; años \|"` |
-| `chapters/09-explore.qmd` | 5 | `"Infant mortality"` | `"Mortalidad infantil"` |
-| `chapters/09-explore.qmd` | 5 | `"reported as 0"` | `"reportado como 0"` |
-| `chapters/09-explore.qmd` | 5 | `"2020: another source"` | `"2020: otra fuente"` |
-| `chapters/09-explore.qmd` | 5 | `"new method from 2017"` | `"método nuevo desde 2017"` |
 | `chapters/10-prepare.qmd` | 1 | `"points"` | `"pts."` |
 | `chapters/10-prepare.qmd` | 1 | `"points"` | `"pts."` |
 | `chapters/10-prepare.qmd` | 1 | `"points"` | `"pts."` |
