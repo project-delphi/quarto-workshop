@@ -11,8 +11,9 @@ Its theme is `acme.scss` (Acme's colours, system fonts), checked by
 `templates/acme-reference.pptx`, made by `scripts/make_pptx_reference.py` with the same
 colours. `filters/title-notes.lua` puts the title slide's notes on the Reveal.js title slide,
 `scripts/pptx_alt_text.py` gives the PowerPoint figures their alt text, and
-`scripts/deck_pdf.py` prints `slides.pdf` with headless Chrome and checks it page by page
-(`pypdf`, added to the `dev` group of `pyproject.toml` and `uv.lock`). Acme Signals is a
+`scripts/deck_pdf.py` prints `slides.pdf` in Chrome, driven by Playwright once Reveal.js has
+laid out a page per slide, and checks it page by page (`playwright` and `pypdf`, in the `dev`
+group of `pyproject.toml` and `uv.lock`). Acme Signals is a
 fictional company; the bank data are real (`data/README.md`).
 
 Sources and data only: no `outputs/` and no rendered files. `uv run` builds `.venv/` from

@@ -204,7 +204,7 @@ def find_book(epub: Path, spanish: bool) -> Path:
 
 
 def matches(rule: dict, source: str, unit: dict) -> bool:
-    if rule.get("file") not in (source, "*"):
+    if rule.get("file") not in (source, "*") or rule.get("kind", unit["kind"]) != unit["kind"]:
         return False
     want = str(rule.get("unit", "*"))
     return want == "*" or want in (unit["id"], unit["section"]) or unit["words"].startswith(want)

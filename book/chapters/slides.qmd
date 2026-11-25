@@ -5,11 +5,13 @@
 # The evaluation's results (scripts/evaluation.py), and the deck and theme as this chapter
 # leaves them (checkpoint 16; later chapters move the colours into a brand file), with the
 # theme's contrast computed by the formula of its own test.
+import json
 import re
 from fractions import Fraction
+from pathlib import Path
 
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
+from scripts.prose import alt_text_holds, number_words, text_holds
 from scripts.wcag import contrast, scss_variables
 
 S = ev.summary()
@@ -18,6 +20,7 @@ WORD = number_words()
 recall = ev.value(best, "recall_top10")["value"]
 share = Fraction(S["top_share"]).limit_denominator(100)
 text_holds(share == Fraction(1, 10), "\"a tenth of the list\" in the headline title")
+headline = f"{best} reaches {ev.percent(recall)} of subscribers by calling a tenth of the list"
 
 CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "16-eval-slides"
 scss = (CHECKPOINT / "acme.scss").read_text()
@@ -32,30 +35,67 @@ text_holds(min(ratios.values()) >= 4.5, "every text colour the test checks passe
 deck = (CHECKPOINT / "slides.qmd").read_text()
 n_slides = 1 + len(re.findall(r"^## ", deck, re.M))
 text_holds(n_slides == 8, "the deck's eight slides")
-# Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
-# checkpoint 15 on 2026-11-18; the pitfalls are the ones that run, and the build of the
-# finished deck, met.
+
+# The titles as rendered, by media/capture/eval_outputs.py (step deck): if stale, rerun it.
+captured = json.loads((Path(ev.__file__).resolve().parents[1] / "media" / "figures"
+                       / "eval-deck-titles.json").read_text(encoding="utf-8"))
+TITLES = captured["titles"]
+text_holds(len(TITLES) == n_slides and TITLES[1] == headline, "the captured titles")
+# Every number the captured titles print, rebuilt from outputs/ as the deck builds it, so a
+# capture older than the results stops the render (rerun eval_outputs.py, step deck).
+releases = [r["version"] for r in S["releases"]]
+auc = {v: ev.value(v, "roc_auc")["value"] for v in releases}
+seg = ev.segments()
+ages = seg[(seg["factor"] == "age_band") & (seg["version"] == best)].set_index("segment")["share_called"]
+cal = ev.calibration()
+cal = cal[cal["version"] == best]
+gap = (cal["mean_predicted"] - cal["observed_rate"]).abs().max()
+expected = {
+    3: f"{best} ranks the whole list best: ROC AUC {auc[best]:.3f}, against "
+       f"{auc[releases[0]]:.3f} for {releases[0]}",
+    4: f"{best} calls {ev.percent(ages.max())} of contacts aged {ages.idxmax()} but "
+       f"{ev.percent(ages.min())} of those aged {ages.idxmin()}",
+    5: f"{best}'s predicted probabilities are within {100 * gap:.1f} points of the observed rates",
+}
+text_holds(all(TITLES[i].replace("\u2019", "'") == t for i, t in expected.items())
+           and TITLES[2].endswith(f"with the same {S['calls_made']:,} calls"),
+           "the captured titles' numbers match outputs/")
+meta = dict(re.findall(r'^(title|subtitle): "(.*)"$', deck, re.M))
+alt_text_holds([TITLES[0], captured["subtitle"]] == [meta["title"], meta["subtitle"]] == [
+    "Which release should the call centre use?",
+    "The contact-ranking model, evaluated · Acme Signals (a fictional company)"], "fig-slides-title")
+
+# The planted title: the runner-up's recall (the deck's rival) under the best release's name.
+rival = ev.rival()
+rival_recall = ev.value(rival, "recall_top10")["value"]
+planted = headline.replace(ev.percent(recall), ev.percent(rival_recall))
+text_holds(planted != headline and TITLES[2].startswith(f"{best} beats {rival} "),
+           "the planted title and the comparison title beside it")
+# Every prompt was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of checkpoint 15 on
+# 2026-11-18. The PDF prompt was rewritten on 2026-11-24, when Chrome 158.0.8127.37 printed
+# the deck from the command line as one blank page in 12 of 12 tries (6 with
+# --run-all-compositor-stages-before-draw, 6 without); the script it asks for, which waits
+# with Playwright for Reveal's print pages, printed all 8 pages in 12 of 12 (checkpoint 16 and
+# examples/eval, which carry that script). Its dry runs are recorded beside the prompt.
 ```
 
-The report and the model card are for people who read. The decision about which release to
-ship will be made in a meeting, in front of a screen, by people who will look at each slide for
-a few seconds and remember perhaps three of them. A deck for that room is a different document:
-not a report cut into pieces, but a short argument, one claim at a time, ending in what to
-decide.
+The report and the model card are for people who read. The decision about which release
+Acme's call centre will use is made somewhere else: in a meeting, in front of a screen, by
+people who will look at each slide for a few seconds and remember perhaps three of them. One
+of those three had better be the slide that says what is being decided, and on what
+condition. A deck for that room is a different document: not a report cut into pieces, but a
+short argument, one claim at a time, ending in the decision.
 
-You will rarely write a Reveal.js option or a line of a theme's stylesheet by hand. You need to
-know what a deck can do, and what each thing is called, so that you can ask for it; how to ask
-so that the result can be checked; and what a good deck looks like when it comes back. This
-chapter builds the evaluation's deck for the product team and its investors, as a web page
-that presents itself, a PDF to send afterwards, and a PowerPoint file in the company's
-template, all from one source that reads the same results as the report.
+This chapter builds that deck for Acme's product team and its investors: a web page that
+presents itself, a PDF to send afterwards and a PowerPoint file in the company's template, all
+from one source that reads the same results as the report.
 
 ::: opener
 - Name what makes a technical deck work, and the Reveal.js features that serve it: speaker
   notes, fragments, columns, themes and print view.
 - Ask for a deck whose titles state claims computed from the results, guarded, with the detail
   in the notes.
-- Check a theme's colours against the WCAG contrast minimum with a test.
+- Check a theme's colours against WCAG's contrast minimum for normal text, with a test.
 - Export the deck to PDF and to PowerPoint in a house template, and know what each format
   loses.
 
@@ -70,54 +110,67 @@ Checkpoint
 : `checkpoints/16-eval-slides/`
 :::
 
+::: payoff
+![The finished deck's title slide, cropped to its title and subtitle. Rendered from `checkpoints/16-eval-slides/slides.qmd`.](../media/figures/eval-deck-title.png){#fig-slides-title width=85% fig-alt="The title of a slide, Which release should the call centre use?, in bold navy on a warm off-white background, above its subtitle in dark ink: The contact-ranking model, evaluated, Acme Signals (a fictional company)."}
+:::
+
+Read only its titles, and you have its argument:
+
+```{python}
+#| label: slides-titles
+#| output: asis
+print("\n".join(f"{i}. {title}" for i, title in enumerate(TITLES, start=1)))
+```
+
 ## What makes a technical deck work {#sec-slides-good}
 
 A deck succeeds when the room leaves knowing the claim, the evidence for it, and what was
 decided. Five habits get it there, and each is something you can ask an agent for and check:
 
-| Habit | What it means | You check |
-|---|---|---|
-| One claim per slide | each slide makes one point, with one piece of evidence | no slide needs two sentences to say what it shows |
-| The title states the claim | "`{python} best` reaches `{python} ev.percent(recall)` of subscribers…", not "Results" | read the titles alone, in order: they are the argument |
-| Numbers computed, words guarded | a title's numbers are inline code; its wording has a guard | the titles agree with `outputs/`, and a guard stops a false one |
-| Detail in the notes | the speaker notes hold what you will say; the slide holds the claim and its evidence | every slide has notes; no slide is a paragraph |
-| End on the decision | the last slide says what is being decided | the room knows what you are asking for |
+| Habit | You check |
+|---|---|
+| One claim per slide | no slide needs two sentences to say what it shows |
+| The title states the claim, not "Results" | the titles alone, in order, are the argument |
+| Numbers computed, words guarded | titles agree with `outputs/`; a guard stops a false one |
+| Detail in the speaker notes | every slide has notes; no slide is a paragraph |
+| End on the decision | the room knows what you are asking for |
 
 : Five habits of a technical deck, and how to check each. {#tbl-slides-habits}
 
-The second habit does the most work. Read only the titles of the finished deck, and you have
-its argument: the headline, the comparison, the ranking, who is called, how far the
-probabilities can be trusted, what the results do not show, and the decision. Its headline
-title, for this book's run, is "`{python} best` reaches `{python} ev.percent(recall)` of
-subscribers by calling a tenth of the list", every number and the fraction computed from
-`outputs/`.
+The second habit does the most work: it is why the titles at the start of this chapter make
+the argument on their own, from the headline to the decision.
 
 ## What a deck can do, and what it is called {#sec-slides-vocab}
 
 Quarto makes decks in two formats from one source: Reveal.js, a web page that presents
 itself in any browser, and PowerPoint. Each `##` heading starts a slide in both. The rest is
-vocabulary: features you ask for by name.
+vocabulary: features you ask for by name, on the screen and off it.
 
-| Ask for | Quarto calls it | Notes |
-|---|---|---|
-| speaker notes | a `::: {.notes}` block on the slide | shown in speaker view, not on the screen; in PowerPoint they go to the notes pane |
-| points revealed one at a time | *fragments*: `. . .` between paragraphs, or `::: {.fragment}` | static lists in PowerPoint |
-| two columns | `:::: {.columns}` holding `::: {.column width="50%"}` blocks | PowerPoint's Two Content layout |
-| a slide with more text, smaller | the `{.smaller}` class on the heading; `{.scrollable}` lets it scroll | use rarely: split the slide instead |
-| a stable link to a slide | an ID on the heading, `## … {#decision}` | the address ends `#/decision` |
-| a theme | `theme: [default, acme.scss]`: a built-in theme plus your own Sass file | colours and fonts in one place |
-| a footer and slide numbers | `footer:` and `slide-number: true` | Reveal.js only |
-| a PDF | Reveal.js's *print view*: press E, then print from the browser | there is no `--to pdf` for decks |
-| speaker view | press S while presenting | a second window with the notes |
-| a house PowerPoint template | `reference-doc:` naming a `.pptx` made from Quarto's default | colours, fonts and layouts |
+| Ask for | Quarto calls it |
+|---|---|
+| speaker notes | a `::: {.notes}` block on the slide |
+| points revealed one at a time | *fragments*: `. . .` between paragraphs, or `::: {.fragment}` |
+| two columns | `:::: {.columns}` holding `::: {.column width="50%"}` blocks |
+| a slide with more text, smaller | the `{.smaller}` class on the heading |
+| speaker view | press S while presenting |
 
-: What a deck can do, what it is called, and where it differs between formats (Quarto 1.10.20). {#tbl-slides-vocab}
+: What a deck can show on the screen, and what Quarto calls it (Quarto 1.10.20). {#tbl-slides-vocab}
+
+| Ask for | Quarto calls it |
+|---|---|
+| a theme | `theme: [default, acme.scss]`: a built-in theme and your Sass file |
+| a footer and slide numbers | `footer:` and `slide-number: true` |
+| a stable link to a slide | an ID on the heading: `## … {#decision}` |
+| a PDF | the *print view*: press E, then print |
+| a house PowerPoint template | `reference-doc:` naming a `.pptx` |
+
+: How a deck looks and leaves the room. {#tbl-slides-export}
 
 ## The deck {#sec-slides-deck}
 
-The prompt is the five habits and the vocabulary together, plus two phrases that steer round
-traps met while testing it, explained below. It asks for one deck, as one task, because its
-checks run without you: guards, the render, and the titles it lists.
+The prompt is the five habits and the vocabulary together, plus three phrases that steer round
+traps met while testing it (@tbl-slides-phrases). It asks for one deck, as one task, because
+its checks run without you: guards, the render, and the titles it lists.
 
 ::: {.prompt .long}
 ```default
@@ -133,32 +186,58 @@ writes `slides.qmd` · `uv run quarto render slides.qmd` → `slides.html`
 open `slides.html` · press S for speaker view, and E for print view
 :::
 
+::: think
+The agent says the deck rendered, and lists its titles. Two of them read
+"`{python} planted`" and "`{python} TITLES[2]`". Which habits can a list of titles alone
+prove, and is either title wrong?
+
+From the list: that each title states a claim, and that the deck ends on a decision. Notes
+need the slides; computed numbers and guards need the source. The first title is wrong:
+`{python} ev.percent(rival_recall)` is `{python} rival`'s recall, the share of subscribers its
+top tenth reaches, not `{python} best`'s. No
+guard would stop it if the number were typed, which is why a title's numbers are inline code.
+A title can also be computed and still read badly: one run printed `np.int64(6)`, a count taken straight from pandas. Read every
+rendered title.
+:::
+
 **Read the titles first**, in the order the agent lists them: they should be the argument.
-Then the source: each title's numbers are inline code, each claim in a title has a guard in
-the cell before it, and each slide has a notes block. **Present it**: press S, and speaker view opens in a second window with the notes, which is
-what you will see while the room sees the slide.
+Then the source: each title's numbers are inline code, each claim in a title has a *guard*, a
+check in the cell before it that stops the render once the claim is false, and each slide has a notes block. **Present it**: press S, and speaker
+view opens in a second window with the notes, which is what you will see while the room sees
+the slide.
+
+::: story
+<!-- source: book/chapters/slides.qmd lines 145–147 at 651db10 ("Notes written before the
+first ## heading became an extra, blank slide"); the dry run is noted in this file's setup
+cell. -->
+While this deck was being built, the title slide's notes were written before the first `##`
+heading, where they seem to belong. They became a slide of their own: an extra, blank one.
+That is why the prompt asks for notes "on each of the seven", and why the finished deck
+attaches the title's notes with a short filter, `filters/title-notes.lua`. Count the slides in
+what comes back: there should be `{python} WORD[n_slides]`.
+:::
+
+| The prompt says | Because |
+|---|---|
+| "a plain YAML title" | inline code in `title` runs before any cell (`NameError`); with no title, the first heading is promoted, uncomputed |
+| "no `fig-` labels" | a `fig-` label adds "Figure 1:" to the caption |
+| "notes on each of the seven" | notes before the first `##` become a slide (the story above) |
+
+: Why the deck prompt says what it says. {#tbl-slides-phrases}
 
 ::: pitfall
-Traps met while building and testing the deck, and the reasons for two phrases in the prompt.
-Inline code in the YAML `title` runs before any cell and fails with a `NameError`, and with no
-YAML title Quarto promotes the first heading to the title, uncomputed; hence "a plain YAML
-title". Notes written before the first `##` heading became an extra, blank slide, so the prompt
-asks for notes on the seven slides after the title; the finished deck attaches the title
-slide's notes with a short filter, `filters/title-notes.lua`. A figure
-cell labelled `fig-…` adds "Figure 1:" to its caption, which slides rarely want; hence "no
-`fig-` labels". Beyond the prompt: a `fig-dpi` setting gave figures a fixed size that
-overflowed the slide; in another run, with no such setting, the figures filled less than half
-of it. The finished deck's theme gives figures a fixed height, so look at every slide at the
-deck's size. And a count printed straight from pandas read `np.int64(6)` until it was converted
-to a plain `int`: read every rendered title, not only the source.
+Look at every slide at the deck's size. In one test run a `fig-dpi` setting gave the figures a
+fixed size that overflowed the slide; in another, with no such setting, they filled less than
+half of it. The finished deck's theme gives figures a fixed height.
 :::
 
 ## A theme you can read {#sec-slides-theme}
 
 A theme is where a deck's colours and fonts live, and it is where most decks fail their
 audience: pale grey text on white is unreadable on a projector. The Web Content
-Accessibility Guidelines set the minimum: a contrast ratio of 4.5 to 1 between text and its
-background (WCAG 2.2, success criterion 1.4.3). A test can check it, so ask for the test with
+Accessibility Guidelines set the minimum: a contrast ratio of 4.5 to 1 between normal text and
+its background, 3 to 1 for large text (WCAG 2.2, success criterion 1.4.3). The book's test holds
+every colour to the stricter figure, since a slide's smaller text is normal text. A test can check it, so ask for the test with
 the theme:
 
 ::: {.prompt}
@@ -192,22 +271,43 @@ differ in lightness as well as hue, and alt text on every figure.
 
 After the meeting, someone will ask for the slides. Quarto 1.10.20 has no PDF format for
 Reveal.js decks; the route is Reveal.js's print view, printed by a browser. By hand, open the
-deck, press E, and print to PDF. To make it part of the build, a script can do the same with
-headless Chrome, and check its own result:
+deck, press E, and print to PDF. To make it part of the build, a script can do the same in
+the Chrome you already have, and check its own result:
 
+<!-- Dry-run 2026-11-24, verbatim, in a copy of checkpoint 16 without scripts/deck_pdf.py or
+Playwright, the deck rendered: a Claude Code sub-agent on Sonnet 5.5 and one on Haiku 5.5 each
+added Playwright as a dev dependency with uv, wrote the script and printed 8 pages, one per slide, on the first
+try (Chrome 158.0.8127.37). The lead checked each PDF: 8 pages of 1056 × 594 pt (Reveal's print
+page for a 1280 × 720 deck, with its margin), none blank. -->
 ::: {.prompt}
 ```default
-Write scripts/deck_pdf.py: print slides.html to slides.pdf with headless Chrome at `?print-pdf`, passing `--run-all-compositor-stages-before-draw`, check that the PDF has one page per slide, and retry up to three times if it does not. Run it and tell me the page count.
+Write scripts/deck_pdf.py: open slides.html at `?print-pdf` in the installed Chrome with Playwright (a dev dependency), wait until the page holds one `.pdf-page` per slide, print it to slides.pdf, check that the PDF has one page per slide, and retry up to three times if it does not. Run it and tell me the page count.
 ```
 :::
 
-The flag and the check are both the point. Printed from the command line, Chrome sometimes
-printed before the deck had laid itself out and wrote a single blank page; in testing for
-this book that happened in most runs without the flag, which makes Chrome finish drawing the
-page before it prints, and in none with it. The check, a page count that must equal the
-slide count, caught every blank print, and catches a slide too tall for its page as well,
-which Reveal.js prints on two. It turns a failure into a retry instead of a blank PDF in a
-client's inbox.
+::: {.agent}
+`uv add --dev playwright` · writes `scripts/deck_pdf.py` · `uv run python scripts/deck_pdf.py` → `slides.pdf`
+:::
+
+::: story
+<!-- source: book/chapters/slides.qmd lines 204–210 at 651db10; REVISION-PLAN.md lines
+546–548; and the test of 2026-11-24 recorded in this file's setup cell. The records give
+different rates, so the story quotes none (PLAN-improvement-briefs.md §5). -->
+The first version of this script printed from Chrome's command line, the obvious way. It
+wrote the deck as a PDF of a single blank page: Chrome had printed before the deck laid itself
+out. Nothing failed. There was a file, with the right name, and nothing in it. A person would
+have seen that only by opening it, perhaps after sending it. The script's check, one page per
+slide, caught every blank print.
+:::
+
+So the script waits for what it needs. Reveal.js builds its print view a moment after the
+page loads, one page per slide; Playwright, a library that drives a browser from Python, opens
+the deck in your Chrome, waits until those pages exist, and only then prints. Tested for this
+book on 2026-11-24 with Chrome 158.0.8127.37, the command line printed a blank page every
+time, with or without Chrome's flag for finishing the drawing first; the script printed every
+slide every time. Keep the check anyway, because the next browser may change again: a page
+count that must equal the slide count catches a blank print, and a slide too tall for its
+page, which Reveal.js prints on two.
 
 ## PowerPoint, in the house template {#sec-slides-pptx}
 
@@ -226,16 +326,17 @@ Add a PowerPoint version: make templates/acme-reference.pptx from Quarto's defau
 `quarto pandoc -o templates/acme-reference.pptx …` · writes a script that edits the template's theme · renders `slides.pptx` · counts slides, reads the theme
 :::
 
-Quarto uses seven of the template's layouts by name: Title Slide, Title and Content, Section
-Header, Two Content, Comparison, Content with Caption and Blank. Your organisation's own
-template works as a reference document if its layouts carry those names; rename them in
-PowerPoint's slide master if they do not. A template is a binary file, so commit the script
-that makes it too: the script can be reviewed in a diff, and the file cannot.
+Your organisation's own template works as a reference document if its layouts carry the names
+Quarto uses: Title Slide, Title and Content, Section Header, Two Content, Comparison, Content
+with Caption and Blank; rename them in the slide master if not. A template is a binary file,
+so commit the script that makes it too:
+the script can be reviewed in a diff, and the file cannot.
 
-Know what PowerPoint loses. The theme's Sass rules do not apply, fragments become static
-lists, `.smaller` and the footer do nothing, and Quarto 1.10.20 writes the image's file name
-where the figure's alt text should be; the finished project adds it back with a short script
-after the render. Open the PowerPoint file and check each slide, as its reader will.
+Know what PowerPoint keeps and what it loses. Speaker notes go to its notes pane, and two
+columns to its Two Content layout. The theme's Sass rules do not apply, fragments become
+static lists, `.smaller` and the footer do nothing, and Quarto 1.10.20 writes the image's file
+name where the figure's alt text should be; the finished project adds it back with a short
+script after the render. Open the PowerPoint file and check each slide, as its reader will.
 
 ::: catchup
 ```default
@@ -261,7 +362,7 @@ one page per slide; and the PowerPoint file opens in the template's colours.
 - Ask for features by name: speaker notes, fragments, columns, a theme, print view, a
   reference document.
 - A title's numbers are computed and its words are guarded, like any sentence in a report.
-- Check colours with a contrast test, against the WCAG minimum of 4.5:1, so a readable deck
+- Check colours with a contrast test, against WCAG's 4.5:1 minimum for normal text, so a readable deck
   stays readable.
 - PDF comes from print view, checked page by page; PowerPoint comes from a reference document,
   and loses the theme, fragments and alt text, so open it before you send it.

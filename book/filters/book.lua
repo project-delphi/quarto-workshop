@@ -10,7 +10,9 @@
 --    with fixed titles; the class stays for styling.
 -- 3. Exercise lines. ::: done is prefixed "You're done when"; ::: catchup is labelled. A
 --    catch-up box stands where its checkpoint's state is reached, so the reader carries on
---    from the box (the checkpoint's README names the workshop slide at the same point).
+--    from the box (the checkpoint's README names the workshop slide at the same point). The
+--    first box of a chapter says in full what pasting the line does; later ones say it in a
+--    line (PLAN-improvement-briefs.md §1, rule 6).
 -- 4. Dates. An ISO date in prose (2026-11-12) is wrapped in a .nowrap span, so a narrow
 --    screen never breaks it at a hyphen.
 -- 5. Chapter openers. ::: opener holds the chapter's objectives (a bullet list, each item
@@ -42,6 +44,7 @@ local LABELS = {
     done = "You’re done when", stuck = "Stuck for two minutes?",
     catchup = "Paste this into your agent. It backs up your work and brings the project to "
       .. "this point; then carry on from here.",
+    catchup_again = "Paste this into your agent, then carry on from here.",
     story = "From the build log", illustration = "An illustration", payoff = "What you will build",
   },
   es = {
@@ -51,6 +54,7 @@ local LABELS = {
     done = "Terminaste cuando", stuck = "¿Dos minutos sin avanzar?",
     catchup = "Pega esto en tu agente. Respalda tu trabajo y lleva el proyecto hasta "
       .. "este punto; luego sigue leyendo desde aquí.",
+    catchup_again = "Pega esto en tu agente y luego sigue leyendo desde aquí.",
     story = "De la bitácora del proyecto", illustration = "Una ilustración",
     payoff = "Lo que vas a construir",
   },
@@ -59,6 +63,7 @@ local L = LABELS.en
 
 local BOX = {}
 local ASIDE = {}
+local catchups = 0  -- catch-up boxes seen so far in this chapter (3)
 local function set_language(meta)
   local lang = meta.lang and pandoc.utils.stringify(meta.lang) or ""
   L = lang:match("^es") and LABELS.es or LABELS.en
@@ -221,7 +226,8 @@ local function aside(div)
   end
   if div.classes:includes("catchup") then
     div.content:insert(1, pandoc.Para({ pandoc.Strong(L.stuck), pandoc.Space(),
-      pandoc.Str(L.catchup) }))
+      pandoc.Str(catchups == 0 and L.catchup or L.catchup_again) }))
+    catchups = catchups + 1
     return div
   end
   return nil
@@ -307,7 +313,12 @@ return {
       end
       return aside(div) or walked
     end,
-    Header = heading_words,
+    -- The EPUB is rendered as one document, so the catch-up count (3) starts again at each
+    -- chapter's title; Header and Div are visited in document order in this pass.
+    Header = function(header)
+      if header.level == 1 then catchups = 0 end
+      return heading_words(header)
+    end,
     Image = scaled },
   { Blocks = group_boxes },
 }

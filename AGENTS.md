@@ -247,8 +247,9 @@ output or blindly restore over someone else's changes. `.gitignore` explicitly p
 Publish*, in two editions: an EPUB (the main one) and an HTML companion where the 3-D scenes and
 explorers run. `book/README.md` has the tools, build targets, media pipeline and reader table;
 `book/PLAN.md` the design and decisions. Build from the repository root with `make book`
-(`make book-fresh` after changing `examples/*/data/`, `examples/water/scripts/analysis.py` or
-`book/scripts/*.py`, since `freeze: auto` cannot see them). Keep these rules:
+(`make book-fresh` after changing `examples/*/data/`, `examples/water/scripts/analysis.py`,
+`starters/*/data/`, a capture's JSON in `book/media/figures/` or `book/scripts/*.py`, since
+`freeze: auto` cannot see them). Keep these rules:
 
 - Edit the chapter list only in `book/_chapters.yml`; `make` generates the profiles' lists.
 - Compute every number in a cell from the repository's data; Part III imports the water

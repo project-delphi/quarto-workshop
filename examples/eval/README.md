@@ -45,7 +45,7 @@ Quarto.
 | `filters/description-meta.lua` | Gives the deck the `<meta name="description">` HTML pages get |
 | `templates/acme-reference.docx`, `.pptx` | Word and PowerPoint templates in the brand's colours (made by `scripts/make_reference_docs.py`) |
 | `scripts/pptx_alt_text.py` | Copies each figure's `fig-alt` into `_site/slides.pptx` (after every render) |
-| `scripts/deck_pdf.py` | Prints `_site/slides.html` to `_site/slides.pdf` with headless Chrome and checks every page |
+| `scripts/deck_pdf.py` | Prints `_site/slides.html` to `_site/slides.pdf` in Chrome, driven by Playwright, and checks every page |
 | `scripts/check_site.py` | Checks the rendered pages: alt text, language, title, description, heading levels, brand contrast |
 | `update.qmd` | Monthly investor update, parameter `month` (default `"latest"`): the month's SYNTHETIC business figures and the release live that month, with its real metrics; html, docx and Typst PDF; not on the site |
 | `segment.qmd` | One page per customer segment, parameters `factor` (`age_band` or `job`) and `segment` (default `60+`): the best release in that segment, real data; html, docx and Typst PDF; not on the site |
@@ -154,8 +154,9 @@ read it: the workflows run only once the folder is a repository of its own.
   computed and its wording guarded, so the deck can be re-rendered for the next release
   without rewriting it; the detail is in the speaker notes and the last slide is the decision.
   Figures are static images because PowerPoint cannot run JavaScript.
-  Reveal.js has no PDF export in Quarto, so `scripts/deck_pdf.py` prints the deck's print view
-  with headless Chrome and retries when a page comes out blank.
+  Reveal.js has no PDF export in Quarto, so `scripts/deck_pdf.py` opens the deck's print view in
+  Chrome with Playwright, waits until it holds a page per slide, prints it, and retries when a
+  page comes out blank.
 - **One brand file.** `_brand.yml` holds Acme's colours (a palette and the roles
   `background`, `foreground`, `primary`, `secondary`), fonts and logo. Quarto applies it to
   the web pages (Bootstrap), the Reveal.js deck and the Typst PDFs (page colour, text and

@@ -91,6 +91,9 @@ facts that change, Appendix K) when that file changes. Run `make book-fresh` aft
 - `scripts/water.py`, `scripts/scenes.py`, `scripts/figures.py` or `scripts/roadmaps.py`
 - `media/examples/` (the toy files Chapters 5 and 6 print; rerun
   `media/capture/toy_examples.py` first, so their pictures match)
+- `starters/first-report/data/` (Chapters 1 and 5 read the starter's rows)
+- a capture's JSON in `media/figures/`, such as `eval-deck-titles.json` (Chapter 11 prints the
+  titles it holds; its guards stop the render when they no longer match the results)
 
 ## Conventions
 
@@ -112,7 +115,9 @@ facts that change, Appendix K) when that file changes. Run `make book-fresh` aft
 - Three more components (`filters/book.lua`, styled in both editions):
   - `::: story` is a short incident a reader could meet in that chapter, after the opening
     paragraph, never before it. Labelled "From the build log", it is true, and a
-    `<!-- source: … -->` comment inside it says where it is recorded; with the class
+    `<!-- source: … -->` comment inside it says where it is recorded (an HTML comment reaches
+    the EPUB's XHTML, where `--` inside it is an error: write `uv add` with the dev flag, not
+    its spelling); with the class
     `.illustration` it is labelled "An illustration": a composite scene with no numbers or
     results except ones a cell computes.
   - `::: cards` holds a definition list; each term and its definitions become a card kept on
@@ -185,8 +190,14 @@ To redo part of it, name the steps and limit the tapes or capture scripts with `
 make media STEPS="tapes stills check" ONLY=terminal-basics
 make book-html && make media STEPS="capture stills check" ONLY=kmeans
 make media STEPS="capture stills check" ONLY=md_side_by_side
+CAPTURE_STEPS=explore make media STEPS="capture" ONLY=water_outputs
 make media STEPS="diagrams"
 ```
+
+A capture script that makes several pictures names its steps; `CAPTURE_STEPS` (or the steps as
+arguments) runs only those, so one new picture does not remake the others. Each picture of a
+rendered page records its text size in pixels at capture in `pagefit.yml` (`screenshots`), so
+`make book-pages` can check that a phone shows its text at 9 px or more.
 
 Rules every animation follows:
 
