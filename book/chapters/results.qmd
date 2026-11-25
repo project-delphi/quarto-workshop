@@ -28,8 +28,8 @@ calls_double = math.ceil(2 * S["top_share"] * S["test_rows"])
 # the best release is also the best calibrated.
 text_holds(ages["base_rate"].idxmax() == most, "the most-called age band's subscription rate")
 text_holds(gap.idxmin() == best, "the best-calibrated release")
-# The opening says, without numbers, that the called list is not a fair sample of the
-# customers and that one group is called far more often than another.
+# The opening says, without numbers, that the called list leans towards some ages and that
+# one group is called far more often than another.
 text_holds(ages.loc[most, "share_called"] > 2 * S["top_share"] > 2 * ages.loc[least, "share_called"]
            and ages.loc[most, "share_called"] > 3 * ages.loc[least, "share_called"],
            "the opening's \"called far more often than another\"")
@@ -50,8 +50,8 @@ alt_text_holds(dict(re.findall(r'^(title|subtitle): "(.*)"$', CARD, re.M)) == {
 The fast path ended with one report and one winner. This chapter asks a second question of
 the same results: whom does the winning release call? The answer is in a file the report
 never opened. The list the
-call centre would work from is not a fair sample of the bank's customers, and one group is
-called far more often than another. A report can leave that out. A model card cannot, and
+call centre would work from leans towards some ages: one group is called far more often than
+another. A report can leave that out. A model card cannot, and
 writing one is this chapter's larger task: handed to the agent whole, with a plan first and
 its checks after.
 
@@ -102,8 +102,9 @@ this book's run the best release is `{python} best`, measured on `{python} f"{S[
 
 The metrics are *ROC AUC*, the probability that a release ranks a random subscriber above a
 random non-subscriber, and three for the top of the list: *recall*, the share of subscribers
-the calls reach; *precision*, the share of calls that reach one; and *lift*, precision over
-the base rate. A metric's *bootstrap interval* is the range that holds the middle
+the calls reach (calling the top `{python} ev.percent(S["top_share"], 0)` at random would reach
+`{python} ev.percent(S["top_share"], 0)` of them); *precision*, the share of calls that reach
+one; and *lift*, precision over the *base rate*, the share of all contacts who subscribe. A metric's *bootstrap interval* is the range that holds the middle
 `{python} ev.percent(S["confidence"], 0)` of its values when the test set is re-drawn, with
 replacement, many times. Three kinds of check guard different things, and a repository
 needs all three:
@@ -195,8 +196,8 @@ When it finishes, the checks are the ones the prompt asked for:
 The finished card's slices make the point. Under `{python} best`, the
 called top `{python} top` of the list holds `{python} ev.percent(ages.loc[most, "share_called"])`
 of the contacts aged `{python} most` but `{python} ev.percent(ages.loc[least, "share_called"])`
-of those aged `{python} least`: its ranking follows age, because in these data the
-`{python} most` band subscribes most often (`{python} ev.percent(ages.loc[most, "base_rate"])`).
+of those aged `{python} least`. The ranking follows how often each band subscribes, and in
+these data the `{python} most` band subscribes most often (`{python} ev.percent(ages.loc[most, "base_rate"])`).
 That is accurate, and a card must say it. Age is a *protected characteristic* in UK law: the
 Equality Act 2010 protects people from discrimination because of it. The data are a
 Portuguese bank's, but the card asks for legal review before any UK deployment. A bank must
