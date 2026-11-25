@@ -57,11 +57,9 @@ def word(n: int) -> str:
 ```
 
 The guide is finished, and nobody but you can see it: every output sits in a folder on your
-computer. This chapter puts it on the web, where anyone can open it on a phone, with GitHub to
-keep a copy of the history you have been committing and GitHub Pages to serve the result. Then it asks the
-question the whole workflow is built to answer: if one input changes, which outputs change
-with it, and how do you know? That question comes with no prompt. It tests whether you can
-predict what a rebuild will do, and then check.
+computer. This chapter puts it on the web, where anyone can open it on a phone. Then it asks a
+question with no prompt attached: one input changes; which outputs change with it, and how do
+you know? You will predict first, then rebuild, then check.
 
 ::: opener
 - Explain what pushing, branches and pull requests add to the commits you already make.
@@ -79,20 +77,20 @@ Checkpoint
 : none; the catch-up copies `examples/london/`
 :::
 
+::: payoff
+![The guide as a visitor's phone shows it. Rendered from `examples/london`.](../media/figures/london-live-phone.png){#fig-london-live-phone width=50% fig-alt="The guide's web page at a phone's width: a bar with a menu button, Visit London and a search icon; the title Visit London, its author, London Tourism Office, and the date it was published; the welcome sentence, with London in bold; and the start of the list Five sights to start with: British Museum, Natural History Museum."}
+:::
+
 ## Git: every change, safely {#sec-git}
 
-@sec-reproducible likened Git to Word's Track Changes for a whole folder, with a lasting history,
-and since the first report (@sec-first-git) you have kept one yourself: `git status` and
+Since the first report (@sec-first-git) you have kept a history yourself: `git status` and
 `git diff` before each commit, a message that says why, and `git restore` for a change you did
-not want. That is what Git does inside one folder, and it already keeps every earlier version
-of the guide, each with a note saying why it changed. Publishing needs what Git does beyond
-the folder: a copy of the history that others can reach, and a way for someone else to read a
-change and approve it before it counts.
+not want. Publishing needs what Git does beyond the folder: a copy of the history that others
+can reach, and a way for someone else to read a change and approve it before it counts.
 
-The vocabulary for that is short (@fig-git-cycle; Pro Git and GitHub's documentation, checked
-2026-10-31). Your folder is already a *repository*, a project folder with its history, and each
-of your commits is a snapshot of every tracked file with its message. The new words are about
-sharing them.
+The vocabulary for that is short (@fig-git-cycle). Your folder is already a *repository*, a
+project folder with its history, and each of your commits is a snapshot of every tracked file
+with its message. The new words are about sharing them.
 
 ![Every change, safely. A team takes each change round the whole loop; working alone, as in this book, you commit to the main line and push.](../media/diagrams/git-cycle){#fig-git-cycle .on-light fig-alt="Six steps. Branch: work on a branch, so main stays untouched. Commit: save a snapshot of the files with a message saying why. Push: copy the commits to GitHub. Pull request: propose the change and show the difference. Review: someone reads the difference and comments, approves or asks for changes. Merge: the commits join main. Working alone, you commit to main and push; in a team, every change goes round the whole loop."}
 
@@ -121,14 +119,16 @@ for, that nothing in `data/` or `images/` changed, and that the message says why
 
 A rendered Quarto website is *static*: a folder of HTML, CSS, JavaScript, images and documents,
 with no program running on a server. Any web server can serve it, so publishing means copying
-that folder to a host. **GitHub Pages** is the host this book uses, because the repository is
-already on GitHub and `quarto publish gh-pages` is built in (@fig-publish-flow).
+that folder to a host. **GitHub Pages** is the host this book uses: GitHub keeps a copy of the
+history you have been committing, GitHub Pages serves the site from it, and
+`quarto publish gh-pages` is built in (@fig-publish-flow).
 
 ![Publishing to GitHub Pages. The source goes to the `main` branch with Git; `quarto publish gh-pages` renders the site on your computer and pushes only the rendered HTML to a separate branch, which GitHub serves.](../media/diagrams/publish-flow){#fig-publish-flow .on-light fig-alt="Your project folder holds the source, which git pushes to the main branch of a GitHub repository. quarto publish gh-pages renders the site on your computer and pushes only the rendered HTML to a separate branch, gh-pages. GitHub Pages serves that branch at https://user.github.io/repo/. Anyone with the address can read the site."}
 
 There are two ways to get a site onto a host. Either you render on your own computer and
 upload the result, as `quarto publish` does for GitHub Pages and Netlify, or the host builds
-the site from your repository on every push. The second works only if the build installs
+the site from your repository on every push, in a *CI job*, a build it runs for you. The
+second works only if the build installs
 Quarto, Python and every package the project needs, or if the rendered output is committed.
 The London repository leaves its rendered `_site/` folder out, so a host that builds would
 produce nothing until the build is set up.
@@ -141,30 +141,19 @@ build has no Quarto, Python or packages unless you install them in it. Either re
 computer and upload the result, or set up the build.
 :::
 
-Six hosts with free plans for static sites show the two routes (@tbl-hosts-upload,
-@tbl-hosts-build). Their free plans change, so @tbl-hosts-free in @sec-facts lists each one's
-current limits, with the date they were checked: read them before choosing.
+@tbl-hosts sorts the hosts by route. Their free plans change, so @tbl-hosts-free in
+@sec-facts lists each one's current limits, and Cloudflare's, with the date they were checked:
+read them before choosing.
 
-| Host | Upload with |
+| Host | How the site gets there |
 |---|---|
-| [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html) | `quarto publish gh-pages`, this book's route |
-| [Netlify](https://quarto.org/docs/publishing/netlify.html) | `quarto publish netlify` |
-| [Cloudflare](https://developers.cloudflare.com/workers/static-assets/) | `wrangler deploy` |
+| [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html) | `quarto publish gh-pages` renders and uploads it: this book's route |
+| [Netlify](https://quarto.org/docs/publishing/netlify.html) | `quarto publish netlify` renders and uploads it |
+| a host that builds: [Vercel](https://vercel.com/docs/plans/hobby), [GitLab Pages](https://docs.gitlab.com/user/project/pages/), [Render](https://render.com/docs/static-sites) | it builds the site from the repository on every push |
 
-: Hosts you render for and upload to. {#tbl-hosts-upload}
+: Three routes onto a host. {#tbl-hosts}
 
-| Host | How it builds |
-|---|---|
-| [Vercel](https://vercel.com/docs/plans/hobby) | from the repository, on every push |
-| [GitLab Pages](https://docs.gitlab.com/user/project/pages/) | publishes a `public` folder from a CI job |
-| [Render](https://render.com/docs/static-sites) | rebuilds on every push |
-
-: Hosts that build the site from your repository. {#tbl-hosts-build}
-
-Two details matter for this project. Quarto's Netlify build plugin runs no Python, so render on
-your computer and upload. GitLab builds in a *CI job*, a build it runs on each push: set
-`output-dir: public` and install Quarto and Python in the job. Quarto Pub, Quarto's own free
-host, is being [replaced by Posit Connect Cloud](https://quarto.org/docs/publishing/quarto-pub.html).
+Quarto's Netlify build plugin runs no Python, so for this project, render and upload.
 
 ## One folder, one website {#sec-london-website}
 
@@ -223,17 +212,34 @@ link opens its file.
 
 ## Publish {#sec-london-publish}
 
-Before you paste the next prompt, replace `<your-github-username>` with your GitHub username
-(the agent can look it up with `gh api user` if you ask it to).
+Publishing takes two prompts and one command of your own. Before you paste the prompts,
+replace `<your-github-username>` in them with your GitHub username (the agent can look it up
+with `gh api user` if you ask it to). The first readies the folder:
 
 ::: {.prompt}
 ```default
-If this folder is not yet a Git repository, run `git init -b main`; check that .gitignore covers _site/, .quarto/, .venv/, *_files/, *.quarto_ipynb, london*.html, *.docx, *.pdf, *.pptx and *.epub. Replace README.md in this folder with a short one linking to https://<your-github-username>.github.io/london-guide/ and listing the files in the site's Downloads menu. Commit it with any work not yet committed (nothing that .gitignore leaves out), then create a public GitHub repository named `london-guide` with gh and push `main` to it. Set the repository's website to the same URL with `gh repo edit --homepage`. Show me the README and the website URL you set.
+Check that .gitignore covers _site/, .quarto/, .venv/, *_files/, *.quarto_ipynb, london*.html, *.docx, *.pdf, *.pptx and *.epub. Replace README.md with a short one linking to https://<your-github-username>.github.io/london-guide/ and listing the files in the site's Downloads menu. Commit it with any work not yet committed. Show me the README and `git status`.
 ```
 :::
 
 ::: {.agent}
-`git status` · `git commit` · `gh repo create london-guide …` · `gh repo edit --homepage …`
+reads `.gitignore` · writes `README.md` · `git add` · `git commit` · `git status`
+:::
+
+::: {.you}
+approve its commands · read the README · check that `git status` says `nothing to commit, working tree clean`
+:::
+
+The second puts the folder on GitHub:
+
+::: {.prompt}
+```default
+Create a public GitHub repository named `london-guide` with gh and push `main` to it. Set the repository's website to https://<your-github-username>.github.io/london-guide/ with `gh repo edit --homepage`. Show me the repository's URL and the website URL you set.
+```
+:::
+
+::: {.agent}
+`gh repo create london-guide …` · `gh repo edit --homepage …`
 :::
 
 ::: {.you}
@@ -247,19 +253,20 @@ so the repository on GitHub opens with the guide's whole history, one checked st
 time. Its README is the first thing visitors to the repository
 see, and its link takes them on to the live site.
 
-The first publish is yours, typed in the terminal. Stop the preview first: the publish renders
-the whole site, and two renders in one folder collide. It asks one question, "Publish site …
-(Y/n)", which Enter answers yes; then it renders the site,
-creates the `gh-pages` branch, pushes the rendered site and opens it. Quarto's GitHub Pages guide
-says to run `quarto publish gh-pages` locally, once, before setting up a GitHub Action to publish
-(checked 2026-11-12). Make that first run interactive, too: in a dry run with Quarto 1.6.40,
-`--no-prompt` stopped the first publish with "the remote origin does not have a branch named
-gh-pages". That was observed with 1.6.40 and not re-tested with 1.10.20. Once the branch
-exists, the agent can update the site with `uv run quarto publish gh-pages --no-prompt`.
+<!-- Quarto's GitHub Pages guide, https://quarto.org/docs/publishing/github-pages.html, read
+2026-11-25: "Before configuring the publishing action, it's important that you run quarto
+publish gh-pages locally, once." The publish "will confirm that you want to publish, render
+your content, copy the output to a special gh-pages branch, push that branch to GitHub, and
+then open a browser". In the workshop's earlier dry run, the first publish of each site took
+one and a half to two minutes, and GitHub Pages then built it in 20 to 35 seconds. -->
 
-In that dry run, the first publish of each site took one and a half to two minutes, and GitHub
-Pages then built it in 20 to 35 seconds, so a 404 page in the first minute usually means the
-site is still being deployed.
+The first publish is yours, typed in the terminal, because Quarto's GitHub Pages guide asks
+for one local `quarto publish gh-pages` before any automated one. Stop the preview first: the
+publish renders the whole site, and two renders in one folder collide. It asks one question,
+"Publish site … (Y/n)", which Enter answers yes; then it renders the site, creates the
+`gh-pages` branch, pushes the rendered site and opens it. A 404 page in the first minute
+usually means the site is still being deployed. Once the branch exists, the agent can update
+the site with `uv run quarto publish gh-pages --no-prompt`.
 
 ::: pitfall
 A push that fails with `HTTP 400` ("RPC failed", "the remote end hung up unexpectedly") was seen
@@ -292,9 +299,9 @@ Catch me up: follow ../quarto-workshop/examples/london/README.md
 
 ## Change one input, explain the rebuild {#sec-london-change}
 
-@sec-quarto began with a correction (@sec-drift): ALVA revises one figure, and in a
-copy-and-paste workflow someone has to carry it by hand into every file that quotes it. Here
-is that scenario for real, in a project where no visitor count was ever copied. You made the
+@sec-drift listed what goes wrong when a correction has to be carried by hand into every file
+that quotes it. Here is the correction for real, in a project where no visitor count was ever
+copied. You made the
 same move on a smaller scale with the first report (@sec-first-change) and predicted one for
 the guide's first three formats (@sec-formats); now it covers every page. No prompt is
 supplied: write your own, or do it by hand. Make the edit to the data yourself, for example
@@ -302,15 +309,15 @@ with `nano data/attractions.csv` (Ctrl+O, Enter, Ctrl+X): the project's rules ke
 agent out of `data/`, which is the point of them.
 
 ::: tryit
-1. **Predict.** Set the Tower of London's `visits_2025` in `data/attractions.csv` to `8000000`.
-   Which outputs will change? Write it down before you read on.
-2. **Rebuild**: stop the preview, then run `uv run quarto render`.
-3. **Explain** which outputs changed, which did not, and why.
-4. **Undo** with `git restore data/attractions.csv`, then rebuild.
+1. **Predict.** Set the Tower's `visits_2025` to `8000000`. Which outputs will change? Write
+   it down.
+2. **Rebuild**: stop the preview, `uv run quarto render`.
+3. **Explain** what changed and what did not.
+4. **Undo**: `git restore data/attractions.csv`, rebuild.
 
 ::: done
-you can name the outputs that changed, the ones that did not, and the line of code that links
-each changed output to the input.
+you can name what changed, what did not, and the line of code that links each changed output
+to the input.
 :::
 :::
 
@@ -327,21 +334,36 @@ code loads it.
 
 ```{python}
 #| label: tbl-london-deps
-#| tbl-cap: "Which page of the finished London project (each a `.qmd` file) reads which file in `data/`, and the formats it writes. Computed from the sources: a mark means the page's code loads the file."
+#| tbl-cap: "Which page of the finished London project (each a `.qmd` file) reads which file in `data/`. Computed from the sources: a mark means the page's code loads the file."
 #| output: asis
+lines = ["| Page | attrac­tions | visits | churches | sights |", "|---|:-:|:-:|:-:|:-:|"]
+for d in deps:
+    marks = " | ".join("●" if i in d["reads"] else "" for i in inputs)
+    lines.append(f"| {d['page'].removesuffix('.qmd')} | {marks} |")
+print("\n".join(lines))
+```
+
+```{python}
+#| label: ch7-formats
+# What each page writes, for the sentence under the table: the guide many formats, the rest one.
+from scripts.prose import text_holds
+
+
 def kind(out):  # a short name for each output file
     return "slides" if out.endswith("-slides.html") else out.rsplit(".", 1)[1]
 
 
-lines = ["| Page | Writes | attrac­tions | visits | churches | sights |", "|---|---|:-:|:-:|:-:|:-:|"]
-for d in deps:
-    marks = " | ".join("●" if i in d["reads"] else "" for i in inputs)
-    lines.append(f"| {d['page'].removesuffix('.qmd')} | {', '.join(kind(o) for o in d['outputs'])} | {marks} |")
-print("\n".join(lines))
+guide = next(d for d in deps if d["page"] == "london.qmd")
+guide_kinds = [kind(o) for o in guide["outputs"]]
+guide_kinds = ", ".join(guide_kinds[:-1]) + " and " + guide_kinds[-1]
+text_holds(all(len(d["outputs"]) == 1 for d in deps if d is not guide),
+           "every page but the guide writing one file")
 ```
 
-In all, `{python} word(len(readers))` pages load `attractions.csv`, and between them they write
-`{python} word(n_outputs_attr)` files, so the change reaches all of them at the next render.
+The guide writes `{python} word(len(guide["outputs"]))` files, as `{python} guide_kinds`;
+every other page writes one. In all, `{python} word(len(readers))` pages load
+`attractions.csv`, and between them they write `{python} word(n_outputs_attr)` files, so the
+change reaches all of them at the next render.
 
 What it does there depends on each page's code. Of those pages, `{python} word(len(top_and_total))`
 (the guide, the dashboard and the partner brief) find the top attraction with
@@ -352,9 +374,8 @@ the first call, so it names the Tower too.
 The white paper names no top attraction: its sums by
 admission change, but its table keeps ALVA's `rank_uk` column from the file, which would still
 rank the Tower `{python} ORDINALS[tower_rank_uk]` in the UK beside the most visits of the ten. A
-copied column goes stale too. Still, that answers the question @sec-quarto began with: the
-correction reaches `{python} word(n_outputs_attr)` files with one command, and nobody has to go
-looking for them.
+copied column goes stale too. Still, the correction reaches `{python} word(n_outputs_attr)`
+files with one command, and nobody has to go looking for them.
 
 Copies deserve a second look. The flyer loads no data at all, and the sights tables in the
 guide and the partner brief are typed, although the guide's credits name `sights.csv`: all
@@ -363,11 +384,9 @@ Markdown. That was a reasonable choice, because those facts rarely change, but i
 correction to `sights.csv` updates none of them. A cited copy is still a copy.
 
 ::: why
-Why does every page recompute, even ones whose sources did not change? Because the project
-keeps Quarto's default, `freeze: false`: every render re-runs every page's code, which keeps this
-exercise's answer simple. With caching turned on, a page whose own source did not change would
-keep its old numbers, and the answer would depend on the cache; @sec-publish-many returns to
-that trade-off.
+Why does every page recompute, even ones whose sources did not change? The project keeps
+Quarto's default, `freeze: false`, so every render re-runs every page's code; with caching on,
+a page whose own source did not change would keep its old numbers (@sec-publish-many).
 :::
 
 Two more things do not change: the live site, until you publish again
@@ -400,16 +419,17 @@ format:
 3. Typst's numbered reference style; `[@key]` in the text cites an entry in `references.bib`.
 4. Vector figures stay sharp at any zoom; the prompt's check makes sure they really are vectors.
 
-![The first page of the finished London white paper: title, abstract, and numbered sections with citations. Rendered from `examples/london/london-whitepaper.qmd`.](../media/figures/london-whitepaper-p1.png){#fig-whitepaper width=75% .on-light fig-alt="The first page of an A4 paper set in a LaTeX-style typeface: the title Visits to London's leading ALVA member attractions, 2015 to 2025, the subtitle Pandemic loss and recovery: a descriptive analysis, the author London Tourism Office, an abstract, and sections 1, Introduction, and 2, Methods, with numbered citations in square brackets."}
+![Page 1 of the finished London white paper.](../media/figures/london-whitepaper-p1.png){#fig-whitepaper width=75% .on-light fig-alt="The first page of an A4 paper set in a LaTeX-style typeface: the title Visits to London's leading ALVA member attractions, 2015 to 2025, the subtitle Pandemic loss and recovery: a descriptive analysis, the author London Tourism Office, an abstract, and sections 1, Introduction, and 2, Methods, with numbered citations in square brackets."}
 
-::: pitfall
-Three traps, all met while building the example. The paper's settings need Quarto 1.10 or newer:
-Quarto 1.6.40's Typst rejects them with "unexpected argument: spacing". An inline expression in a
-YAML `abstract` runs before the setup cell and fails, so the finished example writes its abstract
-in the body, in a raw Typst block. And Typst prints its own heading above the reference list,
-"Bibliography" by default, which the prompt changes with `#set bibliography(title: [References])`
-so the paper needs no References heading of its own.
-:::
+The paper's settings need Quarto 1.10 or newer. Two more traps were met while building the
+example (@tbl-whitepaper-traps).
+
+| You see | Because | Do |
+|---|---|---|
+| inline code in the YAML `abstract` fails | it runs before the setup cell | write the abstract in the body, in a raw Typst block |
+| a "Bibliography" heading over the references | Typst prints its own heading there | `#set bibliography(title: [References])`, and no heading of your own |
+
+: Two traps met while building the white paper. {#tbl-whitepaper-traps}
 
 A genuine LaTeX PDF is also available, as `format: pdf`, but it needs a TeX distribution, for
 example `quarto install tinytex`. For most reports Typst is faster and simpler.
@@ -425,11 +445,9 @@ example `quarto install tinytex`. For most reports Typst is faster and simpler.
 - A changed input reaches every page whose code loads it; copies and the live site do not.
 :::
 
-That completes one guide for many audiences. In the water analysis the hard part is the analysis
-itself: grouping Colombia's municipal zones into kinds by water safety, services and context.
-That one analysis is then published as a report, slides, a blog post and a website, all
-reading the results of one script, and its rebuild test changes a setting of the analysis
-instead of a number in a table.
+That completes one guide for many audiences. The exercises that follow leave the prompts out,
+and hide one stale number for you to find. After them, Part III takes one set of results to
+the documents a company is asked for: a model card, a deck, a site and a white paper.
 
 ## Further reading {.unnumbered}
 
@@ -438,10 +456,11 @@ instead of a number in a table.
   GitHub, [About pull requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests)
   (checked 2026-10-31).
 - Quarto, [Websites](https://quarto.org/docs/websites/),
-  [Publishing](https://quarto.org/docs/publishing/),
-  [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html) and
+  [Publishing](https://quarto.org/docs/publishing/) and
   [other services](https://quarto.org/docs/publishing/other.html) (checked 2026-11-01 and
   2026-11-07).
+- Quarto, [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html), which asks for
+  one local `quarto publish gh-pages` before any automated one (checked 2026-11-25).
 - GitHub CLI, [`gh repo create`](https://cli.github.com/manual/gh_repo_create) (checked
   2026-11-01).
 - Quarto, [Citations](https://quarto.org/docs/authoring/citations.html) and
