@@ -394,7 +394,7 @@ def book_fact(section: str, item: str) -> dict:
 
 def assistant_accounts() -> tuple[str, str]:
     """What each agent's account needs, and the latest checked date: from book/facts.yml, which
-    Chapter 4 and Appendix K quote, in the page's language."""
+    Appendix K prints, in the page's language."""
     es_ = [book_fact("agents", f"{k}_accounts") for k in ("claude_code", "codex", "antigravity", "opencode")]
     return "; ".join(e["text"] for e in es_), max(e["checked"] for e in es_)
 
