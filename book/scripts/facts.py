@@ -75,6 +75,16 @@ def checked(key: str) -> str:
     return _date(entry(key)["checked"])
 
 
+def checked_span(*keys: str, tables: tuple = ()) -> str:
+    """The date, or the first and last dates, on which the facts (and fact tables) a section
+    quotes were checked, for the one dated line that ends it; Appendix K has each date and
+    source. In Spanish the two dates are joined by "a"."""
+    dates = sorted({checked(k) for k in keys} | {str(t["checked"]) for t in tables})
+    if not dates:
+        raise ValueError("checked_span() needs at least one fact or table")
+    return dates[0] if len(dates) == 1 else f"{dates[0]}{' a ' if language() == 'es' else ' to '}{dates[-1]}"
+
+
 def table(section: str, name: str) -> dict:
     """A table of facts (such as models.prices), with its checked date as text."""
     t = localised(facts()[section][name])
