@@ -50,7 +50,7 @@ DIAGRAMS = {
         (">your project now matches the book<", ">tu proyecto ya coincide con el libro<"),
     ],
     "compute-once.svg": [
-        (">Compute once, publish many<", ">Calcular una vez, publicar muchas<"),
+        (">Compute once, publish many<", ">Calcular una vez, publicar en muchos formatos<"),
         ("The data file water_municipal.csv feeds one script, scripts/analysis.py, which Quarto runs before every render. The script prepares the features, chooses k, fits k-means, and computes cluster profiles and outcome comparisons, then writes them once to outputs/: clusters.parquet, cluster_profiles.csv, k_selection.csv, outcomes_by_year.csv, irca_infant.csv and summary.json. Every page reads those files and none recomputes them: the explore and clusters pages, the report in html, docx, pdf and epub, the council slides in revealjs and pptx, a blog post and a dashboard. Together they are one website, published on GitHub Pages.",
          "El archivo de datos water_municipal.csv alimenta un solo script, scripts/analysis.py, que Quarto ejecuta antes de cada renderizado. El script prepara las características, elige k, ajusta k-means y calcula los perfiles de los clústeres y las comparaciones de las variables de resultado, y luego los escribe una vez en outputs/: clusters.parquet, cluster_profiles.csv, k_selection.csv, outcomes_by_year.csv, irca_infant.csv y summary.json. Cada página lee esos archivos y ninguna los vuelve a calcular: las páginas de exploración y de clústeres, el informe en html, docx, pdf y epub, las diapositivas para el concejo en revealjs y pptx, una entrada de blog y un dashboard. Juntas forman un sitio web, publicado en GitHub Pages."),
         (">real public data, unchanged<", ">datos públicos reales, sin cambios<"),
