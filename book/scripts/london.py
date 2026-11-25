@@ -12,6 +12,10 @@ import pandas as pd
 
 DATA = Path(__file__).resolve().parents[2] / "examples" / "london" / "data"
 
+# The Tower of London's visits in Part II's change task (Chapter 9's Try it, Exercise II.5): the
+# chapters that say it makes the Tower the most visited of the ten check against this one value.
+TOWER_NEW = 8_000_000
+
 
 def planted_visits() -> dict:
     """The planted value of Part II's exercises (chapters/exercises-london.qmd): the five
