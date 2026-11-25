@@ -12,6 +12,7 @@ Una sola fuente, varios formatos (@sec-compute):
 title: "Project Report"
 author: "Author Name"
 date: today
+lang: en
 format:
   html:
     toc: true
@@ -21,13 +22,19 @@ format:
   docx: default
   typst:
     papersize: a4
+---
+```
+
+Más formatos van en la misma lista:
+
+```yaml
+format:
+  # html, docx and typst as above, then:
   pptx: default
   revealjs:
     output-file: report-slides.html
   epub:
     toc: true
-lang: en
----
 ```
 
 ## Celdas de código y código en línea {#code-cells-and-inline-code .unnumbered}
@@ -67,7 +74,11 @@ format: dashboard
 Most visited
 `{{python}} top_name`
 :::
+````
 
+La fila siguiente tiene un gráfico:
+
+````markdown
 ## Row
 
 ```{{python}}
@@ -96,12 +107,12 @@ website:
   navbar:
     left:
       - {text: Report, href: report.qmd}
-      - text: Downloads
-        menu:
-          - {text: "Report (PDF)", href: report.pdf}
 execute:
   freeze: false
 ```
+
+Un `menu:` debajo de un elemento de la barra de navegación crea un menú desplegable
+(@sec-london-website).
 
 ## Comandos {#commands .unnumbered}
 
@@ -109,14 +120,19 @@ execute:
 |---|---|
 | `uv init --bare` | inicia un proyecto de uv en esta carpeta |
 | `uv add pandas matplotlib` | agrega paquetes a `pyproject.toml` y a `uv.lock`, y los instala |
-| `uv run quarto preview file.qmd` | renderiza y sirve una página, y la vuelve a renderizar cada vez que se guarda |
-| `uv run quarto render file.qmd` | renderiza un archivo en todos sus formatos; `--to docx` para un solo formato |
+
+: Los comandos de uv que usa este libro. {#tbl-cheat-uv}
+
+| Comando | Hace |
+|---|---|
+| `uv run quarto preview file.qmd` | sirve una página y la vuelve a renderizar al guardar |
+| `uv run quarto render file.qmd` | lo renderiza en sus formatos (`--to docx`: uno) |
 | `uv run quarto render` | renderiza todo el proyecto |
 | `uv run quarto publish gh-pages` | la primera publicación en GitHub Pages, interactiva |
-| `uv run quarto publish gh-pages --no-prompt` | las actualizaciones siguientes, una vez que existe la rama `gh-pages` |
+| `uv run quarto publish gh-pages --no-prompt` | las siguientes, cuando ya existe la rama |
 | `uv run quarto check jupyter` | muestra qué Python y qué Jupyter va a usar Quarto |
 
-: Los comandos que usa este libro. {#tbl-cheat-commands}
+: Los comandos de Quarto que usa este libro. {#tbl-cheat-commands}
 
 ## Revisar y deshacer con Git {#check-and-undo-with-git .unnumbered}
 
@@ -125,15 +141,28 @@ Ejecútalos en la carpeta del proyecto, antes y después de cada cambio, tuyo o 
 
 | Comando | Hace |
 |---|---|
-| `git init -b main` | inicia un historial en esta carpeta, en una rama llamada `main` (una vez por proyecto) |
+| `git init -b main` | inicia un historial aquí, en una rama llamada `main` (una vez por proyecto) |
 | `git status` | enumera los archivos cambiados, agregados o sin seguimiento desde el último commit |
-| `git diff` | muestra los cambios todavía no agregados, línea por línea: `-` la línea vieja, `+` la nueva |
-| `git add .` | agrega todos los cambios al próximo commit; `git add report.qmd` agrega un solo archivo |
-| `git commit -m "What changed"` | registra los cambios agregados como un commit, con un mensaje que dice qué cambió |
-| `git log --oneline` | enumera los commits, del más reciente al más viejo, uno por línea |
-| `git restore data/visits.csv` | descarta los cambios sin commit de un archivo y lo devuelve a su último commit |
+| `git diff` | muestra los cambios todavía no agregados, línea por línea (`-` viejo, `+` nuevo) |
+| `git log --oneline` | lista los commits, recientes primero, uno por línea |
 
-: Revisar y deshacer con Git. {#tbl-cheat-git}
+: Mirar el historial de un proyecto con Git. {#tbl-cheat-git}
+
+| Comando | Hace |
+|---|---|
+| `git add .` | agrega todos los cambios al próximo commit (`git add report.qmd`: un archivo) |
+| `git commit -m "What changed"` | registra los cambios agregados, con un mensaje que dice qué cambió |
+| `git restore data/visits.csv` | descarta los cambios de un archivo desde su último commit |
+
+: Registrar y deshacer con Git. {#tbl-cheat-git-undo}
+
+## Comandos del agente {#agent-commands .unnumbered}
+
+Se escriben en el agente, no en la terminal: la @tbl-slash tiene los tres que controlan el costo y el
+contexto. Los nombres de OpenCode son otros. `/models` elige el modelo y `/new` empieza una sesión
+nueva; su documentación no enumera `/clear` ni `/exit`, y sale con Ctrl+C, Ctrl+D, o Ctrl+X y luego Q
+(documentación de OpenCode sobre su [TUI](https://opencode.ai/docs/tui/) y sus
+[atajos de teclado](https://opencode.ai/docs/keybinds/), consultada el 2026-11-25).
 
 ## Prompts {#prompts .unnumbered}
 
