@@ -10,7 +10,8 @@ from pathlib import Path
 
 import yaml
 
-from scripts.prose import number_words, text_holds
+from scripts import water as w
+from scripts.prose import alt_text_holds, number_words, spans, text_holds
 
 NUM = number_words(zero="no")
 WORD = number_words()
@@ -33,7 +34,27 @@ no_outputs = {d["page"] for d in deps if not d["from_outputs"]}
 text_holds(no_outputs == {"index.qmd", "explore.qmd"}
            and next(d for d in deps if d["page"] == "explore.qmd")["from_data"] == ["water_municipal.csv"],
            "the pages that read no outputs/")
+text_holds(not next(d for d in deps if d["page"] == "index.qmd")["from_data"], "the home page reading no files")
 geo_mb = (wat / "data/municipios.geojson").stat().st_size / 1e6
+# Tunja (@sec-tunja-kind) in every publication, for the ledger; after the rebuild it is
+# Appendix E's computed answer (@sec-answer-water), so the ledger does not give it away.
+clusters = w.res()["clusters"]
+tj_cl = clusters[clusters["divipola"] == "15001"]
+tj_c = int(tj_cl["cluster"].iloc[0])
+names = w.names()
+text_holds(tj_cl["cluster"].nunique() == 1, "Tunja's one kind, in the ledger")
+# The pictures of the finished project (media/capture/water_outputs.py, steps council and phone)
+# are described in words: stop the render when the sources no longer say what the alt texts do.
+last_slide = (wat / "slides.qmd").read_text().split("## What this does and does not show", 1)[1].split(":::", 1)[0]
+alt_text_holds(sum(line.startswith("- ") for line in last_slide.splitlines()) == 5
+               and "**Descriptive only: this does not establish a causal effect of water quality.**" in last_slide
+               and spans(w.A.INFANT_YEARS) == "2017–2019 and 2021–2023", "fig-water-last-slide")
+post_src = next((wat / "posts").glob("*/index.qmd")).read_text()
+alt_text_holds(yaml.safe_load(post_src.split("---")[1])["title"] == "Four kinds of municipal zone",
+               "fig-water-post-phone")
+summ = w.res()["summary"]
+alt_text_holds(summ["kept"] == 11_235 and w.res()["k"] == 4 and (summ["first_year"], summ["last_year"]) == (2016, 2023),
+               "fig-water-dashboard-phone")
 ```
 
 The officials will read the findings as a report, so they need it in the formats offices pass around:
@@ -61,6 +82,10 @@ Checkpoint
 : `checkpoints/10-water-report/` to `checkpoints/13-water-website/`
 :::
 
+::: payoff
+![The council deck's last slide. Rendered from `examples/water/slides.qmd`.](../media/figures/water-slides-last.png){#fig-water-last-slide width=85% fig-alt="A slide titled What this does and does not show, with five bullets. The figures are medians by kind and year, and infant mortality and dropout are municipal values. Infant mortality changes method in 2017, so only 2017 to 2019 and 2021 to 2023 are compared. Within each kind, utility-supplied IRCA and infant mortality are barely related. In bold: Descriptive only: this does not establish a causal effect of water quality. And poverty, rurality, health-service access and reporting quality differ between the kinds."}
+:::
+
 ## The report, in Word and PDF {#sec-water-report}
 
 ::: {.prompt}
@@ -80,13 +105,14 @@ open `report.docx` (Word or LibreOffice) and `report.pdf`
 The prompt lists the report's sections, and three of its choices carry the lessons of the last chapters.
 "Utility-supplied" is in the data section because @sec-water-why showed what the label hides.
 "Correlation ≠ causation" is a section, not a footnote. And the figures are matplotlib, because Word,
-PowerPoint and PDF cannot run the JavaScript that interactive Plotly charts need (@fig-water-report).
-
-![The first page of the finished water report as a Typst PDF. Rendered from `examples/water/report.qmd`.](../media/figures/water-report-p1.png){#fig-water-report width=70% .on-light fig-alt="The first page of the report PDF, titled Kinds of municipal zone in Colombia, with the subtitle Water quality, services, poverty and outcomes, 2016 to 2023: a descriptive cluster analysis. A summary in four bullet points says how many zone-years were grouped into four kinds, describes the highest-risk kind and the kind with the lowest infant mortality, and says the comparisons are descriptive and do not establish a causal effect of water quality. Then come the Question, the Data section, which names the utility-supplied IRCA, and the start of the Method."}
+PowerPoint and PDF cannot run the JavaScript that interactive Plotly charts need.
 
 Every number in the text is inline code reading `outputs/`, never typed: a report that quotes the
 number of kept rows quotes whatever the analysis last computed. You should have `report.html`,
-`report.docx` and `report.pdf`, each with the heatmap, the outcomes and the within-cluster figure.
+`report.docx` and `report.pdf` (@fig-water-report), each with the heatmap, the outcomes and the
+within-cluster figure.
+
+![The first page of the finished water report as a Typst PDF. Rendered from `examples/water/report.qmd`.](../media/figures/water-report-p1.png){#fig-water-report width=70% .on-light fig-alt="The first page of the report PDF, titled Kinds of municipal zone in Colombia, with the subtitle Water quality, services, poverty and outcomes, 2016 to 2023: a descriptive cluster analysis. A summary in four bullet points says how many zone-years were grouped into four kinds, describes the highest-risk kind and the kind with the lowest infant mortality, and says the comparisons are descriptive and do not establish a causal effect of water quality. Then come the Question, the Data section, which names the utility-supplied IRCA, and the start of the Method."}
 
 ::: catchup
 ```default
@@ -113,7 +139,8 @@ open `slides.html` in your browser and `slides.pptx` in PowerPoint or LibreOffic
 The agent should count six slides in each, the title included. In both formats each `##` heading
 starts a slide. A PowerPoint slide holds text, or one figure, or one
 table, so keep each slide to one thing. The council deck repeats the "descriptive only" message on its
-last slide, where a council will look for the conclusion (@fig-water-slides).
+last slide, where a council will look for the conclusion (@fig-water-last-slide); @fig-water-slides is
+another of the six.
 
 ![One of the six council slides, in the Reveal.js version. Rendered from `examples/water/slides.qmd`.](../media/figures/water-slides.png){#fig-water-slides width=85% fig-alt="A council slide titled How the kinds differ: a heatmap of the four named kinds against nine features in standard-deviation units, red above and blue below the year's average, with a note that IRCA is the utility-supplied figure."}
 
@@ -137,11 +164,17 @@ records the book's language (without it the file declares an unknown one), and `
 table of contents. Open the result in Apple Books on a Mac or in Calibre: it should hold the three
 figures and the sources.
 
-The book in your hands is the same thing at a larger scale, and building it showed where a report-sized
-EPUB stops being enough. Parts and part pages disappear from a Quarto book's EPUB; content marked for
-HTML also appears in EPUB unless it is marked for HTML with JavaScript; Quarto's built-in callout and code
-colours vanish on a reader's night theme; and an EPUB checker rejects markup that every browser accepts.
-@sec-how-built describes each problem and its fix.
+The book in your hands is the same thing at a larger scale; @sec-how-built lists what it needed
+beyond a report-sized EPUB.
+
+::: story
+<!-- source: book/styles/epub.css lines 98–103, and the commit that added them, d6cf0fd, "draw
+prompt text where Apple Books splits a box across pages" -->
+In this book's own e-book, Apple Books drew one kind of box wrongly. Where a prompt box fell across
+two pages, the second page showed its label and an empty panel: the text was in the file, and the
+reader did not draw it. Two style rules fixed it. A file that passes every check can still read
+wrongly, so open `report.epub` in the reader your readers use, and turn its pages.
+:::
 
 ::: catchup
 ```default
@@ -188,13 +221,13 @@ The preview's home page should list one post, whose title states the real k.
 
 The post's title states the number of clusters, so a change in the analysis could leave it wrong. The
 finished post protects itself with one line in its setup cell, `assert k == 4`, which fails the render if
-the analysis ever finds a different k (@fig-water-post). That line is a *guard*: it stops the render when
+the analysis ever finds a different k (@fig-water-post-phone). That line is a *guard*: it stops the render when
 a sentence's words, not only its numbers, no longer match the data, because a loud failure is better than
 a quiet falsehood. This book guards its own sentences the same way. @sec-outcomes says that the highest
 recorded infant mortality is not in the cluster with the worst water; if new data made that false, the
 book would stop building rather than print it.
 
-![The finished blog post, whose title states the number of clusters the analysis found. Rendered from `examples/water/posts/four-kinds-of-municipal-zone/index.qmd`.](../media/figures/water-post.png){#fig-water-post width=85% fig-alt="A blog post titled Four kinds of municipal zone, tagged water, clustering and Colombia, with an opening paragraph about the zone-years and the nine features used, and a list of the four kinds, each with its zone-years, municipalities, median IRCA, piped-water coverage and poverty."}
+![The finished blog post at a phone's width, its title stating the number of clusters the analysis found. Rendered from `examples/water/posts/four-kinds-of-municipal-zone/index.qmd`.](../media/figures/water-post-phone.png){#fig-water-post-phone width=85% fig-alt="The top of a blog post at a phone's width, titled Four kinds of municipal zone, tagged water, clustering and Colombia, with its one-sentence description and the date it was published."}
 
 ### Fresh or frozen?
 
@@ -244,15 +277,14 @@ approve `gh` · when it shows the website URL, in the second tab: `uv run quarto
 
 The steps are Part II's (@sec-london-publish). The repository has existed since @sec-water-rules, so
 the push carries the analysis's whole history; its `.gitignore` also leaves out `outputs/`, which the
-pre-render step rebuilds. In a test run on 2026-11-01 the first publish took about two minutes, then
-GitHub Pages built the site in 20 to 35 seconds.
+pre-render step rebuilds.
 
 The data are public, and publishing them with the site is fine, provided the attributions travel with
 them. `data/README.md` lists each source's terms: CC BY-SA 4.0 for DANE's DIVIPOLA list and the INS,
 ICFES and MEN tables, CC BY 4.0 for TerriData and CHIRPS, citation terms for DANE's population and
 boundaries, and none for SRTM. CC BY-SA adds a *ShareAlike* condition: anything built from those data,
 such as `water_municipal.csv`, must be shared under the same licence
-([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), checked 2026-11-12).
+([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)).
 
 ::: think
 While it publishes: what is the difference between your folder and the live site?
@@ -265,8 +297,7 @@ do not appear online until you publish again.
 Build the report, the slides and the website, then publish.
 
 ::: done
-`https://<your-github-username>.github.io/water-quality/` opens in a browser, with the report, the slides
-and the blog post.
+the live address opens in a browser, with the report, the slides and the post.
 :::
 
 ::: catchup
@@ -281,17 +312,17 @@ Catch me up: follow ../quarto-workshop/checkpoints/13-water-website/README.md
 This is the second task with no prompt supplied, and the test of this part's design.
 
 ::: tryit
-1. **Predict**, and write it down before you rebuild. In `scripts/analysis.py`, change
-   `MAX_MISSING = 2` to `1`. Which outputs will change, and what will happen to Tunja's two zones?
-2. **Rebuild** the site.
+1. **Predict**, in writing: with `MAX_MISSING = 1`, which outputs change? What happens to Tunja's zones?
+2. **Change** `MAX_MISSING = 2` to `1` in `scripts/analysis.py`, and rebuild the site.
 3. **Explain** which outputs changed, which did not, and why.
-4. **Undo** the change (`git restore scripts/analysis.py`) and rebuild, so the outputs match the real
-   settings.
 
 ::: done
 you can name the outputs that changed, the ones that did not, and why.
 :::
 :::
+
+Then undo the change with `git restore scripts/analysis.py` and rebuild, so the outputs match the
+real settings.
 
 `MAX_MISSING` drops rows missing more than that many of the nine features (@sec-prepare). To answer, you
 need to know which page reads what. @tbl-water-deps is computed from the finished project's sources: a
@@ -299,17 +330,16 @@ page counts as reading a file only if its code names it.
 
 ```{python}
 #| label: tbl-water-deps
-#| tbl-cap: "What each page of the finished water project reads and writes, from its code. The post is `posts/four-kinds-of-municipal-zone/index.qmd`."
+#| tbl-cap: "What each page of the finished water project reads from `outputs/` and writes, from its code. The post is `posts/four-kinds-of-municipal-zone/index.qmd`."
 #| output: asis
 def count(files):
     return "none" if not files else f"{len(files)} file" + ("s" if len(files) > 1 else "")
 
 
-rows = ["| Page | Reads `outputs/` | Reads `data/` | Writes |", "|---|---|---|---|"]
+rows = ["| Page | Reads `outputs/` | Writes |", "|---|---|---|"]
 for d in deps:
     name = "the post" if d["page"].startswith("posts/") else d["page"].removesuffix(".qmd")
-    data = ", ".join(f"`{f}`" for f in d["from_data"]) or "none"
-    rows.append(f"| {name} | {count(d['from_outputs'])} | {data} | {', '.join(d['outputs'])} |")
+    rows.append(f"| {name} | {count(d['from_outputs'])} | {', '.join(d['outputs'])} |")
 print("\n".join(rows))
 ```
 
@@ -342,17 +372,15 @@ Add Kinds, Outcomes and Method pages to dashboard.qmd from outputs/ only: a heat
 ```
 :::
 
-![The finished dashboard's map page. Rendered from `examples/water/dashboard.qmd`.](../media/figures/water-dashboard.png){#fig-water-dashboard fig-alt="The dashboard's Map page: four value boxes (zone-years clustered, the number of kinds, the median urban IRCA in 2023 and the share of sampled rural zones in the high or unfit band), a map of Colombia's municipalities coloured by the IRCA band of their urban zone, light for no risk to dark for unfit, with a year slider, a table of the four kinds with their zone-years and median IRCA, and a note about the map's data. Tabs lead to the Kinds, Outcomes, Method and Municipalities pages."}
+![The finished dashboard's Map page at a phone's width: its first two value boxes. Rendered from `examples/water/dashboard.qmd`.](../media/figures/water-dashboard-phone.png){#fig-water-dashboard-phone width=85% fig-alt="Two value boxes from the dashboard's Map page at a phone's width: Zone-years clustered, 2016 to 2023, 11,235, and Kinds of municipal zone (k), 4."}
 
-::: pitfall
-Three traps, all met building the example. The boundary file follows the GeoJSON standard (exterior rings
-counter-clockwise) and Plotly expects the opposite, so without reversing the rings every municipality is
-drawn as "the world minus the municipality", a grey rectangle; the finished script's `load_geojson()`
-reverses them. Animation frames must update only the colours (`z`): if every year repeats the
-`{python} f"{geo_mb:.1f}"` MB of boundaries, the page balloons. And a dashboard cell shows every top-level expression, not only the last, so
-a bare `fig.add_vline(…)` draws the chart twice; assign it, `fig = fig.add_vline(…)`, and end the cell
-with `fig`.
-:::
+| You see | Do |
+|-------|----------|
+| a grey rectangle for every municipality | reverse the boundaries' rings, as `load_geojson()` does: Plotly winds them opposite to the GeoJSON standard |
+| a page that repeats the `{python} f"{geo_mb:.1f}"` MB of boundaries for every year | make the year frames update only the colours (`z`) |
+| the chart drawn twice | assign `fig = fig.add_vline(…)` and end the cell with `fig`: a dashboard cell shows every top-level expression |
+
+: Three traps met building the example dashboard, and their fixes.
 
 The searchable table needs `maxBytes=0`, or `itables` silently drops rows to keep the page small.
 
@@ -366,17 +394,14 @@ Create whitepaper.qmd from outputs/: A4 Typst, "New Computer Modern"; an abstrac
 ```
 :::
 
+![The first page of the finished water white paper. Rendered from `examples/water/whitepaper.qmd`.](../media/figures/water-whitepaper-p1.png){#fig-water-whitepaper width=70% .on-light fig-alt="The first page of an A4 paper set in a LaTeX-style typeface, titled Drinking-water quality and infant mortality in Colombian municipal zones, with the subtitle A descriptive cluster analysis, 2016 to 2023, an abstract, and the start of a numbered Introduction with citations in square brackets."}
+
 ::: pitfall
 "Open each DOI" is there for a reason: an agent can produce a plausible reference that does not exist.
 A *DOI* is a document's permanent identifier, and `https://doi.org/` followed by it opens the publisher's
 page, so it is a quick test that a reference exists. Ask the agent to drop any reference it cannot
-open rather than guess, and check the reference list yourself. The
-finished paper cites Lloyd (1982) for k-means, Rousseeuw (1987) for the silhouette, Hubert and Arabie
-(1985) for the adjusted Rand index and Pedregosa et al. (2011) for scikit-learn, each checked against its
-publisher's page on 2026-11-01.
+open rather than guess, and check the reference list yourself.
 :::
-
-![The first page of the finished water white paper. Rendered from `examples/water/whitepaper.qmd`.](../media/figures/water-whitepaper-p1.png){#fig-water-whitepaper width=70% .on-light fig-alt="The first page of an A4 paper set in a LaTeX-style typeface, titled Drinking-water quality and infant mortality in Colombian municipal zones, with the subtitle A descriptive cluster analysis, 2016 to 2023, an abstract, and the start of a numbered Introduction with citations in square brackets."}
 
 ::: catchup
 ```default
@@ -399,6 +424,18 @@ is not yet available:
   water. Its incidence is not in the open data of SIVIGILA, Colombia's public-health surveillance system, which
   publish only deaths; the data's README records
   it as a source to add when it becomes available.
+
+::: {.cards .ledger title="Tunja so far"}
+In every publication
+: one kind, "`{python} names[tj_c]`", for `{python} len(tj_cl)` zone-years, its IRCA labelled
+  utility-supplied.
+
+After `MAX_MISSING` = 1
+: your prediction first; then the computed answer, with @tbl-answer-water.
+
+What may be said
+: what the council's last slide says: a description, and what it does not show.
+:::
 
 ## Summary {.unnumbered}
 
@@ -431,5 +468,9 @@ takes it back to its three verbs, and to a project of your own.
 - Quarto, [Dashboards](https://quarto.org/docs/dashboards/) (checked 2026-10-31).
 - Quarto, [cross-references](https://quarto.org/docs/authoring/cross-references.html) and
   [citations](https://quarto.org/docs/authoring/citations.html) (checked 2026-11-01).
+- `examples/water/references.bib`: the white paper's references (Lloyd 1982, Rousseeuw 1987, Hubert
+  and Arabie 1985, Pedregosa et al. 2011), each checked against its publisher's page (2026-11-01).
+- Creative Commons, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), the ShareAlike
+  licence of several of the water sources (checked 2026-11-12).
 - `examples/water/README.md` in the repository: the finished project's layout, rebuild steps and
   design decisions.

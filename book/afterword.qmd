@@ -6,17 +6,20 @@ what the book's projects were for. The London guide, the Acme evaluation and the
 started from plain text and data, became a shelf of documents for different readers, and rebuild with one command. The projects
 will date. The method will not, and it fits on a card.
 
-::: {.practice title="Prompt, Check, Publish"}
-**Prompt.** Write the rules down before the first request: a short `AGENTS.md` keeps an agent to the
-project's scope, data rules and commands across sessions. Then ask for one task at a time, naming the
-file, the column and the output, and ending with a check.
+::: {.cards title="Prompt, Check, Publish"}
+Prompt
+: Write the rules in `AGENTS.md` before the first request: the project's scope, data rules and
+  commands. Then ask for one task at a time, naming the file, the column and the output, and
+  ending with a check.
 
-**Check.** Compute every number, so that it updates and can be traced to its data. Before a rebuild,
-predict what should change; afterwards, check that it did. Say what a result does not show.
+Check
+: Compute every number, so that it updates and can be traced to its data. Before a rebuild,
+  predict what should change; afterwards, check that it did. Say what a result does not show.
 
-**Publish.** Compute once, publish many: one script writes the results, and every output reads them.
-Guard the sentences whose words depend on the data, and keep a known-good state, a checkpoint or a
-commit, so that being stuck is a short detour.
+Publish
+: Compute once, publish many: one script writes the results, and every output reads them. Guard
+  the sentences whose words depend on the data, and keep a known-good state, so that being stuck
+  is a short detour.
 :::
 
 The water analysis added four habits that travel to any analysis. Follow one case, your own Tunja, through every
@@ -35,22 +38,19 @@ makes: who the work is for, and what would make them read it.
 
 If you worked through Parts II and V, the London guide and the water analysis, you can:
 
-- explain how Quarto turns one plain-text source into many formats, and why a computed number cannot
-  drift from its data;
-- direct a coding agent safely, with written rules, one task per prompt and a check after each;
-- build and publish a site from data for several readers, as you did for London and for the water
-  analysis;
-- read an agent's change with `git diff` before you keep it, and undo one with `git restore`;
-- predict which outputs a changed input or setting updates, rebuild, and explain the result;
-- say which edition of this book shows each interactive figure, and why.
+- explain how one plain-text source becomes many formats, and why a computed number cannot drift
+  from its data;
+- direct a coding agent with written rules, one task per prompt and a check after each, reading its
+  changes with `git diff` before you keep them;
+- publish a site from data for several readers, then predict which outputs a changed setting
+  updates, rebuild, and explain the result.
 
 If you also worked through Parts III and IV, the Acme evaluation, you can:
 
 - compute results once and have every document read them, with tests, guards and the render
   each catching what the others miss;
-- ask for slides, a branded site and a white paper by name, and check each against what makes
-  it work;
-- make one document for many values, and render and check every one with a script;
+- ask by name for slides, a branded site, a white paper and one document for many values, and
+  check each against what makes it work;
 - have every pull request rebuilt by CI, so that a guard the results no longer support turns it
   red.
 
@@ -158,6 +158,14 @@ Add a sentence saying whether the total rose or fell since the month before, its
 the brief's. Open the Word file: does it fit one page? Show it to one reader and ask what they
 would do differently after reading it; if the answer is "nothing", the brief needs a different
 question, not more charts.
+
+::: think
+You remove the newest export and render again. Which sentence of the brief must change its words,
+not only its numbers, and what makes sure it does?
+
+The one saying whether the total rose or fell, and the month it names. Code chooses the word from
+the two totals at every render; a typed "rose" would have survived the change and been wrong.
+:::
 
 **The rebuild test is next month's file.** When it arrives, save it in `data/`, predict
 which numbers will change, render, and compare (@sec-first-change). To rehearse now, remove the
@@ -298,14 +306,16 @@ investor-update/
 └── uv.lock
 ```
 
-Investors' figures are confidential: keep the repository private, and send the PDF, not a
-link to a page. **You build** `update.pdf` and `update.docx` for any month.
+**You build** `update.pdf` and `update.docx` for any month.
 
 ::: {.prompt}
 ```default
 Write update.qmd, a monthly investor update with formats typst and docx, parameterised by `month` (a cell tagged `parameters` whose default is "latest", meaning the last month in data/metrics.csv). Show that month's `customers`, `mrr` and `cash`, each as inline code, and runway in months as `cash` divided by `burn`, with a note saying how it is computed. Add papermill with `uv add papermill`, render it for the month before the latest with `-P`, and tell me which month it shows.
 ```
 :::
+
+Investors' figures are confidential: keep the repository private, and send the PDF, not a
+link to a page.
 
 ::: {.prompt}
 ```default
@@ -320,13 +330,16 @@ Below the figures, include notes/<month>.md, my own words on highlights and asks
 :::
 
 In the test run, these prompts worked as written, on a made-up company. Three things they do not
-settle are yours. **Runway** here is cash divided by burn; if your investors expect net burn,
-burn less revenue, say so in the prompt and in the note. **Every render overwrites the last**:
-`update.pdf` is whichever month you rendered most recently, and a render that fails leaves the
-previous month's files in place, so check the month printed in the PDF before you send it, or
-name each file by its month with `-M output-file:update-2026-10`, as @sec-params-all does. And
-the first month in the data has no month before it; the test run's agent wrote "no earlier month
-to compare with", and yours should say something, not stop.
+settle are yours:
+
+- **Runway** here is cash divided by burn. If your investors expect net burn, burn less revenue,
+  say so in the prompt and in the note.
+- **Every render overwrites the last.** `update.pdf` is whichever month you rendered most
+  recently, and a failed render leaves the previous month's files in place, so check the month
+  printed in the PDF before you send it, or name each file by its month with
+  `-M output-file:update-2026-10`, as @sec-params-all does.
+- **The first month** in the data has no month before it. The test run's agent wrote "no earlier
+  month to compare with"; yours should say something, not stop.
 
 **Checks only you can do.** Compare cash with the bank statement and revenue with your billing
 tool, every month. Read the notes as an investor would: an ask without a number or a date is
@@ -381,23 +394,22 @@ Add a table of the settings in src/textstats/config.py, read from the code at re
 :::
 
 **You build** `rfc/rfc.html` and `rfc/rfc.pdf`; the prose of Context, Proposal, Alternatives
-and Decision is yours. From the test run: Quarto runs the document's code from its own folder,
-`rfc/`, so every path in it is relative to `rfc/`: the document reads `results.json`, not
-`rfc/results.json`, and reaches the code as `../src/textstats/config.py` or, better, by importing
-the package, as the test run's agent did. An agent that copies the prompt's paths into the code
-gets "file not found". The rendered files land in `rfc/` too: add them to
-`.gitignore`. And alt text cannot be computed in a Python document's cell options (`!expr` is
-for R's knitr only); write alt text that describes the chart without its numbers, and let the
-table carry them.
+and Decision is yours. Quarto runs the document's code from its own folder, `rfc/`, which sets
+three traps the test run met:
+
+| You see | Do |
+|-------|----------|
+| "file not found" | write paths relative to `rfc/` (`results.json`, not `rfc/results.json`), or import the package |
+| rendered files in `rfc/` | add them to `.gitignore` |
+| alt text that a Python cell option cannot compute | describe the chart without its numbers, and let the table carry them: `!expr` is for R's knitr only |
+
+: Three traps of a design document, and their fixes.
 
 **Checks only you can do.** Check the machine's name in `results.json`: on a Mac, Python's
-`platform.processor()` says only "arm", and the test run's agent had to ask the system for the
-chip's name. Run the benchmark twice. In the test run, the faster function stayed
-faster, but medians moved by up to about six per cent between runs, more than five repeats'
-range suggested: report the direction and the ratio, not the third decimal place, and say on
-what machine it ran. Commit `results.json` with the document, so a reviewer reads the numbers
-you measured; re-run it when the code changes. Then ask a reviewer whether the Alternatives
-section names the option they would have proposed.
+`platform.processor()` says only "arm". Run the benchmark twice, and report the direction and the
+ratio, not the third decimal place, with the machine it ran on. Commit `results.json` with the
+document, so a reviewer reads the numbers you measured, and re-run it when the code changes. Then
+ask a reviewer whether the Alternatives section names the option they would have proposed.
 
 **The rebuild test is the code.** Add a setting to `config.py` and render: the table shows it.
 Remove it again.
