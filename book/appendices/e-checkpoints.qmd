@@ -203,6 +203,11 @@ ldn_att = pd.read_csv("../examples/london/data/attractions.csv")
 tower_rank_uk = int(ldn_att.loc[ldn_att["attraction"] == "Tower of London", "rank_uk"].iloc[0])
 ORDINALS = ["zeroth", "first", "second", "third", "fourth", "fifth", "sixth", "seventh",
             "eighth", "ninth", "tenth"]
+# The answer says the copied rank goes stale: the Tower is not first in the UK, and 8,000,000 visits
+# would be the most of the ten.
+text_holds(tower_rank_uk != 1
+           and ldn_att.loc[ldn_att["attraction"] != "Tower of London", "visits_2025"].max() < 8_000_000,
+           "the white paper's stale rank for the Tower")
 ```
 
 The task (@sec-london-change): set the Tower of London's `visits_2025` to 8,000,000.
@@ -284,7 +289,8 @@ running the finished analysis both ways:
 
 : The water analysis with each setting. {#tbl-answer-water}
 
-**The prediction.** Every row missing more than one of the nine features goes. Department capitals have no
+**The prediction.** Every row missing more than one of the `{python} NUM[len(A.FEATURES)]` features
+goes. Department capitals have no
 zone-level coverage, so their rural zones reach that rule with both coverage values missing (imputation comes
 after the rule): every one of their rural zone-years goes, Tunja's `{python} NUM[tj_rural0]` among them,
 while Tunja's urban zone, which takes the municipal total, stays.
