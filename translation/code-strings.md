@@ -20,10 +20,10 @@ in the cells is identical. Review that each one only reaches the page.
 | `appendices/k-facts.qmd` | 1 | `"sources "` | `"fuentes "` |
 | `appendices/k-facts.qmd` | 1 | `g · .2f · [source]( · ) · [ · ]( · )` | `g · .2f · [fuente]( · ) · [ · ]( · )` |
 | `appendices/k-facts.qmd` | 2 | `##  ·  { · .unnumbered} · \n · ** · .**  · . Checked  · ,  · .\n` | `##  ·  { · .unnumbered} · \n · ** · .**  · . Consultado el  · ,  · .\n` |
-| `appendices/k-facts.qmd` | 3 | `"\| Model \| What the vendor says it is for \| Input / output, \\$ per million tokens \|"` | `"\| Modelo \| Para qué sirve, según el proveedor \| Entrada / salida, \\$ por millón de tokens \|"` |
-| `appendices/k-facts.qmd` | 3 | `\|  ·  \| \" · \" \|  ·  /  ·  \| · \n:  · , checked  · . { · #tbl-prices} · \n ·  Sources: Anthropic's [pricing]( · ) and  · [models]( · ) pages and OpenAI's [models]( · ) pages.` | `\|  ·  \|  ·  \|  ·  /  ·  \| · \n:  · , consultados el  · . { · #tbl-prices} · \n ·  Fuentes: las páginas de [precios]( · ) y  · de [modelos]( · ) de Anthropic, y la de [modelos]( · ) de OpenAI.` |
+| `appendices/k-facts.qmd` | 3 | `"\| Model \| Input / output, \\$ per million tokens \|"` | `"\| Modelo \| Entrada / salida (\\$) \|"` |
+| `appendices/k-facts.qmd` | 3 | `\|  ·  \|  ·  /  ·  \| · \n:  · , checked  · . { · #tbl-prices} · \n · \n\nWhat each vendor says its model is for:\n\n::: cards · \n:   \" · \"\n · \nSources: Anthropic's [pricing]( · ) and [models]( · )  · pages and OpenAI's [models]( · ) pages.` | `\|  ·  \|  ·  /  ·  \| · \n:  · , consultados el  · . { · #tbl-prices} · \n · \n\nPara qué sirve cada modelo, según su proveedor:\n\n::: cards · \n:    · \n · \nFuentes: las páginas de [precios]( · ) y de [modelos]( · )  · de Anthropic, y la de [modelos]( · ) de OpenAI.` |
 | `appendices/k-facts.qmd` | 4 | `"\| Host \| Free plan \|"` | `"\| Servicio de alojamiento \| Plan gratuito \|"` |
-| `appendices/k-facts.qmd` | 4 | `\| [ · ]( · ) \|  ·  \| · \n: Free plans of six static hosts, checked on their official pages on  · . { · #tbl-hosts-free}` | `\| [ · ]( · ) \|  ·  \| · \n: Planes gratuitos de seis servicios de alojamiento de sitios estáticos, consultados en sus páginas oficiales el  · . { · #tbl-hosts-free}` |
+| `appendices/k-facts.qmd` | 4 | `\| [ · ]( · ) \|  ·  \| · \n: Free plans of six static hosts, checked on their official pages on  · . { · #tbl-hosts-free}` | `\| [ · ]( · ) \|  ·  \| · \n: Planes gratuitos de seis servicios de alojamiento estático, consultados en su web oficial el  · . { · #tbl-hosts-free}` |
 | `chapters/04-markdown.qmd` | 1 | `"first"` | `"primero"` |
 | `chapters/04-markdown.qmd` | 1 | `"second"` | `"segundo"` |
 | `chapters/04-markdown.qmd` | 1 | `"third"` | `"tercero"` |

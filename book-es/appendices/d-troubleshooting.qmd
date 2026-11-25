@@ -2,60 +2,119 @@
 
 Problemas vistos al construir y dar el taller, y los errores que la @sec-first-errors comete a propósito,
 con soluciones que se probaron. [Leer un error](b-terminal.qmd#sec-keys-errors) dice qué línea de un error
-leer primero. Para la preparación en Windows, mira también [la tabla de Windows para cuando te trabas](a-windows.qmd#sec-windows-stuck). Para
+leer primero. Para la preparación en Windows, mira también [Si te trabas](a-windows.qmd#sec-windows-stuck) en el @sec-windows. Para
 cualquier cosa que no esté en la lista: copia el comando y el error completo en un chat web con el nombre
 de tu sistema, prueba una solución sugerida a la vez y nunca pegues contraseñas ni claves.
 
-## Preparación {#setup .unnumbered}
+## Preparación {#sec-trouble-setup .unnumbered}
 
-| Problema | Solución |
-|---|---|
-| Mac: una ventana emergente pide instalar las "command line developer tools" | Es lo esperado la primera vez que se ejecuta `git`. Haz clic en Install y espera (o ejecuta antes `xcode-select --install`); si el agente está esperando, dile `listo` |
-| `command not found` para `uv`, `claude`, `codex`, `agy` u `opencode` justo después de instalarlos | Abre una pestaña nueva de la terminal. En una Mac, el instalador de Claude Code imprime una línea que hay que agregar bajo "Setup notes": pégala y luego abre la pestaña |
-| `quarto: command not found` en Ubuntu, aunque funciona en PowerShell | Los instaladores de Windows ponen las herramientas donde Ubuntu no puede usarlas: instala Quarto dentro de Ubuntu (@sec-step-tools) |
-| El indicador muestra `/mnt/c/...` | Estás en una carpeta de Windows: `cd ~`, y guarda ahí los proyectos |
-| `gh auth login` o el agente no pueden abrir un navegador | Es lo esperado en WSL: copia en tu navegador de Windows el enlace o el código que imprime (para `gh`: github.com/login/device). Codex: `codex login --device-auth` |
-| Las descargas o `git clone` fallan en una red de empresa | Un proxy puede bloquear `curl`, `git` y `uv`: prueba con otra red |
-| `git commit` dice "Please tell me who you are" | Configura tu nombre y tu correo con las dos líneas `git config --global` de la comprobación de la preparación |
-| `not a valid Python environment` | Un `.venv` viejo: bórralo (`rm -rf .venv`); `uv run` lo reconstruye |
+::: cards
+Mac: una ventana emergente pide instalar las "command line developer tools"
+:   Es lo esperado la primera vez que se ejecuta `git`. Haz clic en Install y espera (o ejecuta
+    antes `xcode-select --install`); si el agente está esperando, dile `listo`.
 
-: Problemas de la preparación. {#tbl-trouble-setup}
+`command not found` para `uv`, `claude`, `codex`, `agy` u `opencode` justo después de instalarlos
+:   Abre una pestaña nueva de la terminal. En una Mac, el instalador de Claude Code imprime una
+    línea que hay que agregar bajo "Setup notes": pégala y luego abre la pestaña.
+
+`quarto: command not found` en Ubuntu, aunque funciona en PowerShell
+:   Los instaladores de Windows ponen las herramientas donde Ubuntu no puede usarlas: instala
+    Quarto dentro de Ubuntu (@sec-step-tools).
+
+El indicador muestra `/mnt/c/...`
+:   Estás en una carpeta de Windows: `cd ~`, y guarda ahí los proyectos.
+
+`gh auth login` o el agente no pueden abrir un navegador
+:   Es lo esperado en WSL: copia en tu navegador de Windows el enlace o el código que imprime
+    (para `gh`: github.com/login/device). Codex: `codex login --device-auth`.
+
+Las descargas o `git clone` fallan en una red de empresa
+:   Un proxy puede bloquear `curl`, `git` y `uv`: prueba con otra red.
+
+`git commit` dice "Please tell me who you are"
+:   Configura tu nombre y tu correo con las dos líneas `git config --global` de la comprobación
+    de la preparación.
+
+`not a valid Python environment`
+:   Un `.venv` viejo: bórralo (`rm -rf .venv`); `uv run` lo reconstruye.
+:::
 
 ## La terminal {#the-terminal .unnumbered}
 
-| Mensaje | Causa y solución |
-|---|---|
-| `zsh: command not found: quatro` (Mac) o `quatro: command not found` (Ubuntu) | Un error de tipeo en el nombre del comando. Presiona la flecha hacia arriba, corrígelo y luego Enter (@sec-first-errors). Si el nombre está bien, mira la fila de `command not found` en la @tbl-trouble-setup |
-| `No such file or directory (os error 2)`, justo después de `` error: Failed to spawn: `quatro` `` | El mismo error de tipeo después de `uv run`: uv no encontró ningún programa con ese nombre. Presiona la flecha hacia arriba, corrígelo y luego Enter |
-| `bash: cd: too many arguments` (Ubuntu) o `cd: string not in pwd: my` (Mac) | El nombre de la carpeta tiene un espacio, así que `cd` leyó dos nombres: `cd "my reports"`, o escribe `cd my` y presiona Tab ([Rutas](b-terminal.qmd#sec-keys-paths)) |
+::: cards
+`zsh: command not found: quatro` (Mac) o `quatro: command not found` (Ubuntu)
+:   Un error de tipeo en el nombre del comando. Presiona la flecha hacia arriba, corrígelo y
+    luego Enter (@sec-first-errors). Si el nombre está bien, mira `command not found` en
+    [Preparación](d-troubleshooting.qmd#sec-trouble-setup).
 
-: Mensajes de la terminal. {#tbl-trouble-terminal}
+`No such file or directory (os error 2)`, justo después de `` error: Failed to spawn: `quatro` ``
+:   El mismo error de tipeo después de `uv run`: uv no encontró ningún programa con ese nombre.
+    Presiona la flecha hacia arriba, corrígelo y luego Enter.
+
+`bash: cd: too many arguments` (Ubuntu) o `cd: string not in pwd: my` (Mac)
+:   El nombre de la carpeta tiene un espacio, así que `cd` leyó dos nombres: `cd "my reports"`, o
+    escribe `cd my` y presiona Tab ([Rutas](b-terminal.qmd#sec-keys-paths)).
+:::
 
 ## Renderizado y vista previa {#rendering-and-preview .unnumbered}
 
-| Problema | Causa y solución |
-|---|---|
-| `ERROR: No valid input files passed to render` | Quarto no encontró ningún archivo con ese nombre en esta carpeta: estás en la carpeta equivocada, o el nombre está mal escrito. `pwd` y `ls` muestran dónde estás; haz `cd` al proyecto, como `cd ~/first-report` (@sec-first-errors) |
-| `ERROR: YAMLException: …`, con líneas numeradas y un acento circunflejo (`^`) | Un error en el encabezado YAML. YAML a menudo lo nota una línea *después* de él, así que revisa la línea a la que apunta el acento circunflejo y la de arriba: falta un espacio después de dos puntos (`can not read a block mapping entry`), una sangría de más (`bad indentation of a mapping entry`), falta una comilla de cierre (`unexpected end of the stream within a double quoted scalar`). Corrígelo a mano, o deshaz todos los cambios desde el último commit con `git restore report.qmd` (@sec-first-errors) |
-| `readfile 'london.quarto_ipynb'`, o un archivo bloqueado | Se ejecutó un renderizado mientras `quarto preview` renderizaba el mismo archivo. Deja que renderice la vista previa, o detenla (Ctrl+C) antes de renderizar varios formatos, y luego vuelve a iniciarla (@sec-render-mechanics) |
-| El PDF de Typst falla: `cannot parse length '60px'` | Typst no acepta píxeles de CSS en los tamaños de imagen: escribe `{height=60}` o `{width="30%"}` |
-| Un gráfico de Plotly aparece dos veces en una tarjeta del dashboard | La celda llama a `fig.show()` (o a un `fig.add_…()` suelto) y además devuelve la figura: asígnala y termina la celda con `fig` |
-| `itables` descarta filas de una tabla del dashboard | Su límite de tamaño por defecto: `show(df, maxBytes=0)` |
-| Un mapa de Plotly es un rectángulo gris | Los anillos del GeoJSON giran en el sentido contrario al que espera Plotly: inviértelos (`load_geojson()` en el script del proyecto del agua) |
-| Una página muestra números viejos después de que cambiaron los datos | `freeze: auto` reutiliza los resultados hasta que cambia la fuente propia de la página: borra `_freeze/` y vuelve a renderizar (@sec-water-website) |
+::: cards
+`ERROR: No valid input files passed to render`
+:   Quarto no encontró ningún archivo con ese nombre en esta carpeta: estás en la carpeta
+    equivocada, o el nombre está mal escrito. `pwd` y `ls` muestran dónde estás; haz `cd` al
+    proyecto, como `cd ~/first-report` (@sec-first-errors).
 
-: Problemas de renderizado. {#tbl-trouble-render}
+`ERROR: YAMLException: …`, con líneas numeradas y un acento circunflejo (`^`)
+:   Un error en el encabezado YAML. YAML suele notarlo una línea tarde: revisa la línea del
+    acento circunflejo y la de arriba ([Leer un error](b-terminal.qmd#sec-keys-errors)). Falta
+    un espacio tras dos puntos (`can not read a block mapping entry`), sobra una sangría (`bad
+    indentation of a mapping entry`), falta una comilla de cierre (`unexpected end of the stream
+    within a double quoted scalar`). Corrígelo a mano, o deshaz todo cambio desde el último
+    commit con `git restore report.qmd` (@sec-first-errors).
+
+`readfile 'london.quarto_ipynb'`, o un archivo bloqueado
+:   Se ejecutó un renderizado mientras `quarto preview` renderizaba el mismo archivo. Deja que
+    renderice la vista previa, o detenla (Ctrl+C) antes de renderizar varios formatos, y luego
+    vuelve a iniciarla (@sec-render-mechanics).
+
+`[typst]: Compiling … error: file not found (searched at …)`
+:   Typst no encontró un archivo que la página nombra, casi siempre la ruta de una imagen; el
+    HTML quizá ya se renderizó. Compara la ruta del mensaje con `ls` en la carpeta del archivo
+    `.qmd` (la ruta se lee desde ahí), corrige el nombre o la carpeta y vuelve a renderizar.
+
+Un gráfico de Plotly aparece dos veces en una tarjeta del dashboard
+:   La celda llama a `fig.show()` (o a un `fig.add_…()` suelto) y además devuelve la figura:
+    asígnala y termina la celda con `fig`.
+
+`itables` descarta filas de una tabla del dashboard
+:   Su límite de tamaño por defecto: `show(df, maxBytes=0)`.
+
+Un mapa de Plotly es un rectángulo gris
+:   Los anillos del GeoJSON giran en el sentido contrario al que espera Plotly: inviértelos
+    (`load_geojson()` en el script del proyecto del agua).
+
+Una página muestra números viejos después de que cambiaron los datos
+:   `freeze: auto` reutiliza los resultados hasta que cambia la fuente propia de la página: borra
+    `_freeze/` y vuelve a renderizar (@sec-water-website).
+:::
 
 ## Python y Jupyter {#python-and-jupyter .unnumbered}
 
-| Mensaje | Significado |
-|---|---|
-| `quarto check` dice que Jupyter no está disponible | Inofensivo durante la preparación: cada proyecto recibe su propio entorno de uv, y Quarto ejecuta Python a través de `uv run` |
-| `Kernel is running over TCP without encryption`, después de `[IPKernelApp] WARNING` | Inofensivo: la conexión es entre Quarto y un proceso de Python en tu propia computadora |
-| `There is an unactivated Python environment in .venv` | Ejecuta Quarto a través de `uv run`, que activa el entorno del proyecto |
-| Un punto de control del agua no tiene datos | Los puntos de control del agua solo contienen fuentes: `cp -R ../quarto-workshop/examples/water/data .` |
+::: cards
+`quarto check` dice que Jupyter no está disponible
+:   Inofensivo durante la preparación: cada proyecto recibe su propio entorno de uv, y Quarto
+    ejecuta Python a través de `uv run`.
 
-: Mensajes de Python y Jupyter. {#tbl-trouble-python}
+`Kernel is running over TCP without encryption`, después de `[IPKernelApp] WARNING`
+:   Inofensivo: la conexión es entre Quarto y un proceso de Python en tu propia computadora.
+
+`There is an unactivated Python environment in .venv`
+:   Ejecuta Quarto a través de `uv run`, que activa el entorno del proyecto.
+
+Un punto de control del agua no tiene datos
+:   Los puntos de control del agua solo contienen fuentes:
+    `cp -R ../quarto-workshop/examples/water/data .`
+:::
 
 Los respaldos que copian `.venv/` son lentos e inútiles, porque `uv run` lo reconstruye. El comando de
 respaldo de los puntos de control lo deja fuera, y funciona en macOS, Linux y WSL:
@@ -66,11 +125,19 @@ b="../project-backup-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclud
 
 ## Publicación {.unnumbered}
 
-| Problema | Solución |
-|---|---|
-| La primera publicación falla: "the remote origin does not have a branch named gh-pages" | El primer `quarto publish gh-pages` tiene que ser interactivo: ejecuta `uv run quarto publish gh-pages` y presiona Enter en la pregunta. `--no-prompt` funciona una vez que existe la rama |
-| Un push falla con `HTTP 400`, "RPC failed" | `git config http.postBuffer 524288000`, y luego vuelve a hacer push |
-| Un 404 justo después de publicar | GitHub Pages tarda de 20 a 60 segundos en desplegar: espera un minuto y recarga (Cmd+Shift+R en una Mac, Ctrl+F5 en los demás sistemas) |
-| Un verificador de enlaces informa `403 Forbidden` para el sitio de un museo | Algunos sitios bloquean las solicitudes automáticas: abre el enlace en un navegador |
+::: cards
+La primera publicación falla: "the remote origin does not have a branch named gh-pages"
+:   El primer `quarto publish gh-pages` tiene que ser interactivo: ejecuta
+    `uv run quarto publish gh-pages` y presiona Enter en la pregunta. `--no-prompt` funciona una
+    vez que existe la rama.
 
-: Problemas de publicación. {#tbl-trouble-publish}
+Un push falla con `HTTP 400`, "RPC failed"
+:   `git config http.postBuffer 524288000`, y luego vuelve a hacer push.
+
+Un 404 justo después de publicar
+:   GitHub Pages tarda de 20 a 60 segundos en desplegar: espera un minuto y recarga
+    (Cmd+Shift+R en una Mac, Ctrl+F5 en los demás sistemas).
+
+Un verificador de enlaces informa `403 Forbidden` para el sitio de un museo
+:   Algunos sitios bloquean las solicitudes automáticas: abre el enlace en un navegador.
+:::

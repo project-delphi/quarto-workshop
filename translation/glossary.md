@@ -79,6 +79,7 @@ Conventions that apply everywhere:
 | three checks (scope, correctness, rebuild) | tres revisiones (alcance, corrección, reconstrucción) | | `sec-three-checks` |
 | starter (`starters/first-report/`) | punto de partida | | the folder name stays |
 | pre-work | trabajo previo | | |
+| test run (setup step 6) | la prueba | | "Paso 6: la prueba", as Chapter 3 titles it; kept apart from "setup check" |
 
 ## Quarto, Markdown and publishing
 
@@ -119,6 +120,8 @@ Conventions that apply everywhere:
 | preview | vista previa | | `quarto preview` stays |
 | Quarto project | proyecto de Quarto | | |
 | listing | listado | | |
+| navbar | barra de navegación | | the `navbar:` option stays |
+| drop-down (menu) | menú desplegable | | the `menu:` option stays (Appendix C) |
 | dashboard | dashboard | EN | *el* dashboard |
 | value box | cuadro de valor | | |
 | slides, deck | diapositivas; presentación | | |
@@ -169,6 +172,8 @@ Conventions that apply everywhere:
 | path; absolute path; relative path | ruta; ruta absoluta; ruta relativa | | |
 | stack trace | traza de la pila | | "traza de la pila (stack trace)" in the glossary; Quarto's `Stack trace:` stays |
 | Tab completion | completar con Tab | | |
+| keyboard shortcut; keybinds (a tool's docs page) | atajo de teclado | | OpenCode's "keybinds" page → "sus atajos de teclado" (Appendix C) |
+| dead key | tecla muerta | | Appendix B; italicised on first use, as in English |
 | caret (`^`) | acento circunflejo | | |
 | environment | entorno | | |
 | package | paquete | | |
