@@ -3,18 +3,33 @@
 ```{python}
 #| label: ch2-setup
 from scripts.facts import checked_span, fact, table
-from scripts.prose import alt_text_holds, number_words
+from scripts.prose import alt_text_holds, number_words, text_holds
 # The pelican experiment's costs, from the deck's record of Simon Willison's runs: each
 # reply's tokens at the API list prices checked on 2026-11-06 (assets/pelicans/README.md).
 import re
 from pathlib import Path
 
 readme = Path("../assets/pelicans/README.md").read_text()
-pelican_cost = {m.group(1): float(m.group(2)) for m in re.finditer(
-    r"\| `([a-z]+-[a-z]+)\.svg` \|.*\| ([\d.]+) \|\s*$", readme, re.M)}
+# Per cell: input and output tokens, input and output dollars per million tokens, cents.
+runs = {m.group(1): [float(g.replace(",", "")) for g in m.groups()[1:]] for m in re.finditer(
+    r"^\| `([a-z]+-[a-z]+)\.svg` \| [^|]+ \| [a-z]+ \| ([\d,]+) \| ([\d,]+) \| ([\d.]+) \| "
+    r"([\d.]+) \| ([\d.]+) \|\s*$", readme, re.M)}
+pelican_cost = {k: r[4] for k, r in runs.items()}
+exact = {k: (r[0] * r[2] + r[1] * r[3]) / 10_000 for k, r in runs.items()}  # cents, unrounded
+text_holds(all(abs(exact[k] - pelican_cost[k]) < 0.0051 for k in runs), "the README's costs")
 cheapest_ok = pelican_cost["haiku-medium"]
 dearest = max(pelican_cost.values())
-ratio = dearest / cheapest_ok
+# The ratio of the unrounded costs, so that rounding the printed cents cannot move it.
+ratio = exact[max(exact, key=exact.get)] / exact["haiku-medium"]
+fable_in, fable_out = runs["fable-medium"][2:4]
+text_holds(all(runs[k][2:4] == [fable_in, fable_out] for k in runs if k.startswith("fable")),
+           "one list price for the Fable row")
+outs = [runs[f"{m}-medium"][3] for m in ("haiku", "sonnet", "opus", "fable")]
+text_holds(outs == sorted(set(outs)), "the price per token rising down the rows")
+text_holds(pelican_cost["fable-medium"] < pelican_cost["fable-low"],
+           "Fable on medium effort costing less than Fable on low")
+text_holds(max(v for k, v in pelican_cost.items() if k.startswith("haiku")) < 1 and dearest > 10,
+           "costs from fractions of a cent to more than ten cents")
 
 # The grid (@fig-pelicans) is a Markdown table in HTML and a picture in the EPUB, so its cell
 # costs and its alt text are typed. Stop the render if they no longer match the README.
@@ -38,7 +53,7 @@ def dollars(x: float) -> str:
     return f"{x:g}" if x == int(x) else f"{x:.2f}"
 ```
 
-Since 2024 the developer Simon Willison has put one request to most new AI models:
+Since 2024 the developer Simon Willison has put one request to new AI models:
 "Generate an SVG of a pelican riding a bicycle." An SVG is a drawing written as text, so a
 model writes one the way it writes code. Below are `{python} WORD[len(pelican_cost)]` answers,
 from four models. Every one is recognisably a pelican on a bicycle, and they did not cost
@@ -95,7 +110,7 @@ conversation and compare the replies.
 
 ::: done
 the two replies differ, although the prompt was the same. Quarto, given the same source,
-never does that (@sec-not-ai).
+data and packages, does not (@sec-not-ai).
 :::
 :::
 
@@ -159,11 +174,11 @@ models are faster and cheaper, and often good enough for short, well-specified e
 fixing a typo or reformatting a table. Joining two datasets or debugging a failed render
 rewards the stronger model.
 
-The prompts in this book are short and specific, so a mid-sized model at a moderate effort
-setting is enough: `{python} fact("models.everyday_models")`. For unfamiliar, hard work, the
+The prompts in this book are short and specific, so a mid-sized model at medium effort is
+enough: `{python} fact("models.everyday_models")`. For unfamiliar, hard work, the
 vendors' own advice starts higher: `{python} fact("models.vendor_starting_points")`. The names
-change every few months, and @sec-facts keeps the current ones; the advice does not. Start small, and move
-up only when a task keeps failing.
+change every few months, and @sec-facts keeps the current ones; the advice does not. Start
+there, and move up only when a task keeps failing.
 
 Some routes to a model cost nothing at all; @sec-before-setup gives them, and what to check
 before you use one.
@@ -188,20 +203,22 @@ The price of a fixed level of capability has been falling fast, though perhaps n
 frontier (the studies are in Further reading), so choose by what the task needs, not by
 today's price.
 
-Checked `{python} checked_span("models.everyday_models", "models.vendor_starting_points", tables=(prices,))`;
+The model names and prices above were checked
+`{python} checked_span("models.everyday_models", "models.vendor_starting_points", tables=(prices,))`;
 @sec-facts has each source.
 
 ### One prompt, four models, three efforts
 
 The pelicans this chapter opened with make the trade-off concrete: one run of each of four
 Claude models at three effort levels, each reply priced at API list prices (@fig-pelicans).
-The Fable row is Fable 5.1, Fable 5.2's predecessor, at its list price of 10 / 50 dollars per
-million tokens. Read the grid in two directions. Down the rows, the model grows and the price
-per token rises, so costs climb from fractions of a cent to more than ten cents. Across the columns, effort
-rises: the model reasons longer and writes more, so the cost usually rises while the picture
-gains details rather than becoming correct. Haiku on low effort has the weakest frame; from
-medium effort up, the frames are sound, which is consistent with, though no proof of, the
-book's advice of medium effort.
+The Fable row is Fable 5.1, Fable 5.2's predecessor, at its list price of
+\$`{python} dollars(fable_in)` per million input tokens and \$`{python} dollars(fable_out)`
+per million output tokens. Read the grid in two directions. Down the rows, the model grows and
+the price per token rises, so costs climb from fractions of a cent to more than ten cents.
+Across the columns, effort rises: the model reasons longer and writes more, so the cost usually
+rises while the picture gains details rather than becoming correct. Haiku on low effort has the
+weakest frame; from medium effort up, the frames are sound, which is consistent with, though no
+proof of, the book's advice of medium effort.
 
 Keep the evidence in proportion. It is one run per cell of one small, self-contained task,
 not a benchmark: run it again and you get different birds, and Fable on medium effort even
@@ -224,7 +241,7 @@ cost of a session:
    model's *context*. Prompt caching makes the repeated part cheaper, not free, and caches
    expire.
 
-The habits that follow are simple: a mid-sized model at moderate effort, one task per
+The habits that follow are simple: a mid-sized model at medium effort, one task per
 conversation, and a fresh conversation as soon as a task is done. Three commands, typed into
 the agent itself rather than run in the terminal (@sec-two-places), cover them:
 
@@ -500,8 +517,8 @@ exception for it, so when in doubt, disclose.
 ::: keyideas
 - The model decides, the harness does, and you direct and check; when an agent
   disappoints, either half can be the cause.
-- Choose a model by the task, not by rank: a cheaper model at medium effort is often enough
-  for a small step, and since the whole conversation is sent again each turn, start a fresh
+- Choose a model by the task, not by rank: a mid-sized model at medium effort is enough for
+  a small step, and since the whole conversation is sent again each turn, start a fresh
   one for each unrelated task.
 - Start an agent only in a folder you created for the work, and read each command before
   you approve it.

@@ -7,6 +7,7 @@
 import yaml
 
 from scripts import evaluation as ev
+from scripts.facts import checked, fact
 from scripts.prose import alt_text_holds, number_words, text_holds
 from scripts.wcag import contrast, scss_variables
 
@@ -52,16 +53,24 @@ THEME_VARS = {"body text": "$body-color", "headings": "$presentation-heading-col
               "links": "$link-color", "captions, footer, slide numbers": "$text-muted"}
 text_holds(all(text_colour[use].lower() == theme[var].lower() for use, var in THEME_VARS.items())
            and background.lower() == theme["$body-bg"].lower(),
-           "the brand's text colours, the deck theme's of @tbl-slides-contrast")
+           "the brand's text colours, the deck theme's, those of @tbl-slides-contrast")
 # The pictures (media/capture/eval_outputs.py, step site): the home page's title and first
 # listed document, and the navbar's `background: light` that the "after" crop shows.
 home = yaml.safe_load((CHECKPOINT / "index.qmd").read_text().split("---")[1])
 alt_text_holds(home["title"] == "Which release of the contact-ranking model should a call centre use?"
                and home["listing"]["contents"][0] == "report.qmd", "fig-sites-home")
 alt_text_holds(site["website"]["navbar"].get("background") == "light", "fig-sites-navbar-after")
+# The "before" crop: the logo's tile in the bar's navy, its bars in paper, "Acme" in dark ink.
+import re
+
+logo, navy = (CHECKPOINT / "brand" / "logo.svg").read_text().lower(), resolve("primary").lower()
+ink = re.search(r'fill="(#\w+)"[^>]*>\s*acme', logo).group(1)
+alt_text_holds(f'fill="{navy}"' in logo and f'fill="{background.lower()}"' in logo
+               and contrast(ink, navy) < 1.5, "fig-sites-navbar-before")
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
-# checkpoint 16 on 2026-11-18; the traps in @tbl-sites-traps, the navbar story and the
-# checker's findings are the ones that run, and the build of the finished site, met.
+# checkpoint 16 on 2026-11-18; the traps in @tbl-sites-traps and @sec-sites-templates (Quick
+# Look, .gitignore), the navbar story and the checker's findings are the ones that run, and the
+# build of the finished site, met.
 # @tbl-sites-brand was tested with Quarto 1.10.20 on 2026-11-18. On 2026-11-25 (D3) the brand
 # prompt's logo clause was shortened and the site prompt split into two turns; the lead
 # dry-runs both.
@@ -73,9 +82,6 @@ latest version, from one address, and they will judge the work partly by whether
 like it came from one place. A small team has no designer for that. It has a site, built from
 the same sources, and one file that says what the company's colours, type and logo are, which
 every format then follows.
-
-This chapter makes the evaluation a website with a home page, an About page and search, gives
-it one brand that every format follows, and checks every page with a script.
 
 ::: opener
 - Say what one brand file reaches in Quarto, and how Word and PowerPoint get the same look.
@@ -109,12 +115,15 @@ rest:
 
 | Format | What `_brand.yml` gives it |
 |---|---|
-| Web pages, sites and dashboards | colours and the navbar's logo; fonts on web pages |
+| Web pages, sites and dashboards | colours, fonts and the logo in a navbar |
 | Reveal.js decks | colours, fonts and the logo on each slide |
 | Typst PDFs | page and text colours, heading fonts, the logo |
 | Word and PowerPoint | nothing: each gets a *reference document*, made from the brand by a script |
 
 : Where one brand file reaches, in Quarto 1.10.20. {#tbl-sites-brand}
+
+<!-- Dashboards re-tested 2026-11-25, Quarto 1.10.20: beside an HTML page, one got the same
+brand font and colours, and the logo in its navbar. -->
 
 So the plan is one source of truth with two routes out of it: Quarto applies the brand where it
 can, and a short script turns the same file into the two templates where it cannot. Change a
@@ -122,8 +131,7 @@ colour in `_brand.yml`, rerun the script, render, and every format follows.
 
 ## The brand file {#sec-sites-brand}
 
-The brand file starts from the deck's theme: the same colours, now in one place that every
-format reads.
+The brand file starts from the deck's theme, now in one place that every format reads.
 
 ::: {.prompt .long}
 ```default
@@ -135,10 +143,18 @@ Add _brand.yml with Acme's colours from acme.scss as a palette and the roles pri
 writes `_brand.yml` and `brand/logo.svg` · edits `acme.scss`, `slides.qmd` and the test · renders · `uv run pytest`
 :::
 
-The brand's text colours are the theme's of @tbl-slides-contrast, now read from `_brand.yml`,
-and the same test checks them: it now reads the file that is the source of truth, not a copy
-of it. Verify where the brand landed, as the prompt asks: in the site's or deck's CSS, the
-colours appear as variables; in a Typst PDF, they set the page and the headings.
+The brand's text colours are the deck's, those of @tbl-slides-contrast, and the same test
+checks them, now reading `_brand.yml`, the source of truth, rather than a copy. Verify where
+the brand landed, as the prompt asks: in the site's or deck's CSS, the colours appear as
+variables; in a Typst PDF, they set the page and the headings.
+
+| What you see | The fix |
+|---|---|
+| Sass stops: "Undefined variable" | `brand` last in the deck's `theme:` list |
+| Typst warns "unknown font family" | no generic `sans-serif` in the brand's fonts |
+| Charts ignore the brand | a helper gives matplotlib the brand's ink and paper |
+
+: Met while testing the brand, 2026-11-18. {#tbl-sites-traps}
 
 ## Word and PowerPoint, in the same colours {#sec-sites-templates}
 
@@ -154,16 +170,10 @@ Turn scripts/make_pptx_reference.py into scripts/make_reference_docs.py, which a
 The check is in the Word file, a zip of XML: its theme's and its styles' colours must be the
 brand's. Quarto's default document colours headings and links from its own theme's accent, and
 the title not at all, so the script writes the brand's colours into those styles. Check the
-file, not the script; and check a Word file in Word, and in whatever your readers open it with.
-
-| What you see | The fix |
-|---|---|
-| Sass stops: "Undefined variable" | `brand` last in the deck's `theme:` list |
-| Typst warns "unknown font family" | no generic `sans-serif` in the brand's fonts |
-| Charts ignore the brand | a helper gives matplotlib the brand's ink and paper |
-| The new template cannot be committed | except it in `.gitignore`: `!templates/*.docx` |
-
-: Met while testing the brand and its templates, 2026-11-18. {#tbl-sites-traps}
+file, not the script. And check a Word file in Word, and in whatever your readers open it
+with: Apple's Quick Look showed the body in Times until the script also named the font in
+Word's Normal style. Last, except the template from `.gitignore`, which ignores every rendered
+`*.docx`: `!templates/*.docx`.
 
 ## A site from the project {#sec-sites-site}
 
@@ -232,7 +242,14 @@ someone pastes the link. So write one sentence per page, without numbers, becaus
 description is front matter and cannot compute.
 
 `site-url` is a placeholder until you know where the site will live; set it before publishing,
-because social cards need absolute addresses for their images.
+because social cards need absolute addresses for their images. Then check what you asked for:
+
+- **Render list**: `README.md` and the notebooks are not pages.
+- **Navbar**: the logo shows against it.
+- **Footer**: the notice and licence on every page.
+- **Search**: a word from the report finds it.
+- **Social cards**: `og:` tags on every page.
+- **Other formats**: Word and PDF, one click away.
 
 ::: pitfall
 Once the folder is a website, every render writes into `_site/`, a single file's too, so
@@ -268,10 +285,11 @@ Write scripts/check_site.py: after a render, check every page in _site/ for alt 
 `check_site.py` passes on every page. Name one thing it has proved on all of them, and one
 thing only your eyes can check.
 
-Proved: every image has alt text, every page a title, a description and a language, no heading
-level is skipped, and the brand's text colours pass 4.5:1. Not proved: that the alt text is
-true, that the logo can be seen on its bar, that the page reads well on a phone. A script
-checks every page for what can be stated as a rule; you check one page for everything else.
+Proved: every image has alt text, every page a title, a description and a language, and no
+heading level is skipped. The contrast check proves the colours in `_brand.yml` pass 4.5:1,
+not the pages. Not proved: that the pages use only those colours, that the alt text is true,
+that the logo can be seen on its bar. A script checks every page for what can be stated as a
+rule; you check one page for everything else.
 :::
 
 The checker's first run found two problems, both on the deck's page. Reveal.js showed the
@@ -300,8 +318,9 @@ Catch me up: follow ../quarto-workshop/checkpoints/17-eval-site/README.md
 The site is static files in `_site/`, published like the London guide's (@sec-london-publish),
 to any of the hosts of @sec-hosting. Two decisions come first. **Who may see it.** A public
 evaluation of a public dataset can go on any public host; an evaluation of a client's data
-needs a host your organisation approves. **Where it lives**, so that `site-url` can be set and
-the social cards work.
+cannot: `{python} fact("github.pages_private")` (@sec-facts). Private work needs a host your
+organisation approves. **Where it lives**, so that `site-url` can be set and the
+social cards work.
 
 ::: tryit
 Build the brand, the templates, the site and the check script, and preview the site.
@@ -344,3 +363,5 @@ company: a technical white paper, with references a reader can check.
 - Quarto, [Word templates](https://quarto.org/docs/output-formats/ms-word-templates.html)
   (checked 2026-11-18).
 - W3C, [WCAG 2.2](https://www.w3.org/TR/WCAG22/) (checked 2026-11-18).
+- GitHub, [plans](https://docs.github.com/en/get-started/learning-about-github/githubs-plans),
+  on Pages for private repositories (checked `{python} checked("github.pages_private")`).
