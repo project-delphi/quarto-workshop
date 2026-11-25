@@ -35,9 +35,8 @@ alt_text_holds(top_row["attraction"].startswith("Natural History Museum")
                and top_row["admission"].startswith("Free"), "fig-london-social")
 
 # The build-log story quotes the total in the phone-width capture of 2026-11-25
-# (media/capture/london_outputs.py, step dashboard).
+# (media/capture/london_outputs.py, step dashboard), whose last figure ran past the box's edge.
 total_visits = f"{attractions['visits_2025'].sum():,}"
-total_shown = total_visits[:-1]  # the capture showed all but its last figure
 text_holds(total_visits == "39,692,434", "the clipped total in the dashboard story")
 
 ldn = london_map()
@@ -49,15 +48,17 @@ paid_sights = " and the ".join(ldn["paid"]["place"])
 A manager opens the dashboard between two meetings and gives it a few seconds. A partner
 forwards the brief to a colleague without rereading it. Someone walking past the tourist
 office takes a flyer, glances at it and puts it in a pocket. Three readers, three glances,
-and each must come away with the same facts. A correct document that its reader does not
-use has failed, so this chapter chooses each format for how it will be met, and gives
-every output one test: would that reader read it, and act on it?
+and each must come away with the same facts. Typed into each document by hand, those facts
+become three copies; correct one, and the copy that is missed is the one that disagrees in
+public.
 
-This chapter writes all three in one step: a dashboard for managers, a Word brief and its
+A correct document that its reader does not use has failed too, so this chapter chooses each
+format for how it will be met, and gives every output one test: would that reader read it,
+and act on it? It writes all three in one step: a dashboard for managers, a Word brief and its
 covering email for partners, and an A5 flyer for walk-ins. None needs another to exist, which
 makes them the first job in this book worth splitting across several agents. The dashboard and
-the brief read the data file; the flyer copies its facts, a choice @sec-london-change returns
-to.
+the brief compute their visitor numbers from the data; the flyer's price bands and stations
+are copied into its text from `data/sights.csv`, a choice @sec-london-change returns to.
 
 ::: payoff
 ![Three outputs at a phone's width: the dashboard's first value box, the start of the partner brief (its source rendered as a web page) and the top of the flyer. Rendered from `examples/london`.](../media/figures/london-audiences.png){#fig-london-audiences width=50% fig-alt="Three crops, one above another. A blue dashboard value box with a trophy: Most visited: Natural History Museum, and its 2025 visits in large figures. The partner brief's heading, Why London, over one bullet giving the 2025 visits to London's ten most visited ALVA member attractions. The top of the flyer: Visit London, Five sights for one great day."}
@@ -206,7 +207,10 @@ Run three sub-agents in parallel, one per item of my next message (none? do the 
 ```
 :::
 
-Then the three items. Copy all three into one message, one after another, and send it once:
+Then the three items, one per box. Copy the first box and paste it into the agent, then paste
+the second and the third after it, and press Enter only when all three are in: numbered 1 to 3,
+they arrive as one message. If you sent one alone by mistake, send the other two together; the
+lead was told to wait for the items.
 
 ::: {.prompt}
 ```default
@@ -265,15 +269,14 @@ flyer fit on one A5 page?
 ::: story
 <!-- source: book/media/capture/london_outputs.py, step dashboard, and PLAN-improvement.md
 section 14 (package M): the dashboard captured at a phone's width on 2026-11-25. -->
-When this book captured the finished dashboard at a phone's width, on 2026-11-25, its total
-value box showed `{python} total_visits` only as far as `{python} total_shown`: the last
-figure ran past the box's edge. Nothing failed: the render passed, and the number in the
-source was right. Look at each output at the size its
+When this book captured the finished dashboard at a phone's width, on 2026-11-25, the last
+figure of its total, `{python} total_visits`, ran past the value box's edge. Nothing failed:
+the render passed, and the number in the source was right. Look at each output at the size its
 reader uses, and if a dashboard's readers use phones, ask for big totals in a shorter form,
 such as millions.
 :::
 
-![The dashboard on a phone: the total is cut off.](../media/figures/london-dashboard-phone.png){#fig-london-dashboard-phone width=50% fig-alt="Three value boxes, one above another, as a phone shows the dashboard. Blue: Most visited: Natural History Museum, with its 2025 visits. Purple: Visits to the top 10 (ALVA members), 2025, whose total runs past the box's right edge, so its last figure is cut off. Green: Top 10 with free entry, with how many of the ten are free."}
+![The dashboard on a phone: the total's last figure is partly cut off.](../media/figures/london-dashboard-phone.png){#fig-london-dashboard-phone width=50% fig-alt="Three value boxes, one above another, as a phone shows the dashboard. Blue: Most visited: Natural History Museum, with its 2025 visits. Purple: Visits to the top 10 (ALVA members), 2025, whose total runs past the box's right edge, so its last figure is partly cut off. Green: Top 10 with free entry, with how many of the ten are free."}
 
 When all three pass, `git add .` and commit with a message that says why.
 
