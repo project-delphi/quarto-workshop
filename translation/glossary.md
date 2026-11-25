@@ -44,7 +44,7 @@ Conventions that apply everywhere:
 | Ask your coding agent | Pídele a tu agente | | `.prompt` box |
 | Expect it to run | Probablemente ejecute | | `.agent` box |
 | You do | Tú haces | | `.you` box |
-| You're done when | Terminaste cuando | | `::: done` |
+| You're done when | Has terminado si | | `::: done`; "si" takes the present indicative that follows |
 | Exercise | Ejercicio | | |
 | website edition / EPUB edition | edición web / edición EPUB | | |
 | story; From the build log | historia; De la bitácora del proyecto | | `::: story` label (`filters/book.lua`); "a story from the build log" → "una historia de la bitácora del proyecto" |
