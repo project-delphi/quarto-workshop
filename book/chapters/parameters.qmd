@@ -141,8 +141,8 @@ never goes stale. The segment report defaults to `{python} segment["factor"]`
 `quarto render update.qmd -P month:2026-06` replaces the default for one render: Quarto adds
 a cell after the parameters cell that sets the new value, and the document runs as before.
 That cell is executed through *papermill*, a Python package the project must have: without
-it, a render with `-P` stops with "The papermill package is required for processing
---execute-params".
+it, a render with `-P` stops with
+`The papermill package is required for processing --execute-params`.
 
 | Ask for | Quarto calls it |
 |---|---|
@@ -167,8 +167,8 @@ Let code choose the words
 :::
 
 A guard that repeats the comparison that chose the word can never fail, and protects nothing.
-The finished update's guard checks the printed figures instead. A document rendered for a
-dozen values is a dozen chances for a typed word to be wrong.
+The finished update's guard checks the printed figures instead. A document rendered for
+`{python} WORD[len(months)]` months is as many chances for a typed word to be wrong.
 
 ## The investor update {#sec-params-update}
 
@@ -221,13 +221,17 @@ are word for word the same, the synthetic label and the method note among them: 
 differed, a parameter would have leaked into text it should not reach.
 :::
 
-Here is the mechanism, in the finished update. Its parameters cell:
+Here is the mechanism, in the finished update. You need not read every line: in its
+parameters cell, with its comments cut to fit a phone, the last line is what matters, the
+parameter and its default.
 
 ```{python}
 #| label: params-mechanism
 #| output: asis
 # The finished update's own lines, printed from checkpoint 19's update.qmd (never retyped): its
 # parameters cell, and the lines of change() that choose "up" or "down" and guard the choice.
+import textwrap
+
 source = (CHECKPOINT / "update.qmd").read_text()
 cell = re.search(r"```\{python\}\n(#\| tags: \[parameters\]\n.*?)```", source, re.S).group(1)
 chooser = re.search(r"\n( +printed_now, printed_before = .*?\n)\n", source, re.S).group(1)
@@ -236,8 +240,19 @@ text_holds(len(cell.splitlines()) <= 10 and len(chooser.splitlines()) <= 10
            and "params.direction" in chooser and "claim(" in chooser
            and all(f'return "{w}"' in (CHECKPOINT / "src" / "acme_eval" / "params.py").read_text()
                    for w in ("up", "down", "unchanged")), "the update's printed lines")
-# Its comments' alignment spaces are collapsed, which a phone cannot wrap.
-print("```python\n" + re.sub(r"(?<=\S) {3,}", "  ", cell) + "```")
+# Cut to a phone's 39 characters: the comments on rendering left out, a trailing one wrapped.
+shown, left_out = [], []
+for line in cell.splitlines():
+    if line.startswith("#|"):
+        shown.append(line)
+    elif line.startswith("#"):
+        left_out.append(line)
+    else:
+        code, _, note = line.partition("  # ")
+        shown += textwrap.wrap(note, 38, initial_indent="# ", subsequent_indent="# ") + [code.rstrip()]
+text_holds(all("render" in line for line in left_out) and shown[-1].startswith("month = ")
+           and max(map(len, shown)) <= 39, "the parameters cell's last line is the parameter")
+print("```python\n" + "\n".join(shown) + "\n```")
 ```
 
 And the lines of its `change()` that choose the word for one figure, from the two figures as
@@ -248,10 +263,12 @@ printed, and guard the choice:
 print(f"```python\n{chooser}\n```")
 ```
 
-`params.direction()` compares the two printed numbers and returns "up", "down" or
-"unchanged"; the guard then checks the printed text, so a word and the figures beside it can
-never disagree. The update writes the word into its sentence, and a month with no month before
-it says so instead. For `{python} last_month`, it wrote "`{python} customers.rstrip(".")`".
+`params.direction()` reads the numbers back from the two printed figures and returns "up",
+"down" or "unchanged", so the word follows the figures as printed, not the unrounded data.
+The guard checks one thing, by a different route: the word is "unchanged" exactly when the
+two printed figures are the same text. So it catches a parse that goes wrong; telling "up"
+from "down" is `direction()`'s job, which a unit test pins. For `{python} last_month`, the
+update wrote "`{python} customers.rstrip(".")`".
 
 ::: pitfall
 The update is not in the site's `render` list, and should not be: it is not a public page. So

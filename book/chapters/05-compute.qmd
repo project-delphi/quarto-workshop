@@ -39,12 +39,13 @@ its `{python} y_now` table, in every copy, until someone noticed.
 
 This chapter makes the guide compute instead. Code reads the data at every render, so a new
 table corrects every sentence, the chart drawn from it and the Word and PDF versions at once,
-without a single number copied by hand.
+without a single number copied by hand. That is the workflow's central promise, and the rest
+of the book builds on it.
 
 ::: opener
 - Write front matter that sets the title block and the formats.
-- Tell a code cell that runs from a fence that is only shown, and explain how inline code
-  puts a computed number in a sentence.
+- Distinguish a code cell that runs from a fence that is only shown, and explain how inline
+  code puts a computed number in a sentence.
 - Label, caption and describe a figure with cell options.
 - Render one source to HTML, Word and PDF, and say why renders collide.
 
@@ -150,6 +151,10 @@ The render stops. The fence is now a cell, so Quarto runs `1 / 0`, Python raises
 
 ## Settings at the top: the title block {#sec-yaml}
 
+The prompt leaves the rendering to your preview, but the preview is still watching
+`london.md`, the file this step renames. Once the agent is done, restart it on `london.qmd`,
+as "You do" below says.
+
 ::: {.prompt}
 ```default
 Rename london.md to london.qmd. Replace the "# Visit London" heading with YAML front matter: title "Visit London", author "London Tourism Office", date today, format html. Do not render; my preview rebuilds it.
@@ -184,8 +189,7 @@ The page in the preview now opens with the title, the author and today's date.
 
 ::: pitfall
 Delete `london.md` once `london.qmd` exists. Both would write `london.html`, and the one
-rendered last wins, so the page you see may not come from the file you edited. Restart the
-preview on the new file, too: the old one is still watching `london.md`.
+rendered last wins, so the page you see may not come from the file you edited.
 :::
 
 Commit the step as before (@sec-md-lists). `git status` shows `london.md` deleted and
@@ -224,9 +228,10 @@ London's ten most visited ALVA member attractions drew `{{python}} total_visits`
 You do not need to write Python to check it, but you should be able to read it. The cell does
 four things:
 
-1. `import pandas as pd` loads pandas, the package for tables, as `pd`.
-2. `pd.read_csv(...)` reads the CSV file into a table, `attractions`.
-3. `.idxmax()` finds the row with the most 2025 visits, and `.loc[…]` takes it.
+1. `import pandas as pd` loads pandas, the package for tables, under the short name `pd`.
+2. `pd.read_csv(...)` reads the CSV file into a table, `attractions`, one row per attraction.
+3. `.idxmax()` finds the row with the most 2025 visits, and `.loc[…]` takes that row, so
+   `top["attraction"]` is its name.
 4. `.sum()` adds up the column; `f"{…:,}"` writes a number with thousands commas.
 
 When the document renders, the cell runs and its variables are kept, so each piece of inline
@@ -455,7 +460,8 @@ It fails with a `NameError`: the cells run top to bottom in one Python session, 
 :::
 
 ::: tryit
-Run the formats prompts, preview stopped.
+Stop the preview, run the formats prompts you skipped (@sec-formats, optionally
+[-@sec-formats-more]), restart it.
 
 ::: done
 `london.docx` and `london.pdf` show the sentence and chart.

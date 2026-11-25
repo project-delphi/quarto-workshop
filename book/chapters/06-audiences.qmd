@@ -35,9 +35,8 @@ alt_text_holds(top_row["attraction"].startswith("Natural History Museum")
                and top_row["admission"].startswith("Free"), "fig-london-social")
 
 # The build-log story quotes the total in the phone-width capture of 2026-11-25
-# (media/capture/london_outputs.py, step dashboard).
+# (media/capture/london_outputs.py, step dashboard), whose last figure ran past the box's edge.
 total_visits = f"{attractions['visits_2025'].sum():,}"
-total_shown = total_visits[:-1]  # the capture showed all but its last figure
 text_holds(total_visits == "39,692,434", "the clipped total in the dashboard story")
 
 ldn = london_map()
@@ -49,15 +48,17 @@ paid_sights = " and the ".join(ldn["paid"]["place"])
 A manager opens the dashboard between two meetings and gives it a few seconds. A partner
 forwards the brief to a colleague without rereading it. Someone walking past the tourist
 office takes a flyer, glances at it and puts it in a pocket. Three readers, three glances,
-and each must come away with the same facts. A correct document that its reader does not
-use has failed, so this chapter chooses each format for how it will be met, and gives
-every output one test: would that reader read it, and act on it?
+and each must come away with the same facts. Typed into each document by hand, those facts
+become three copies; correct one, and the copy that is missed is the one that disagrees in
+public.
 
-This chapter writes all three in one step: a dashboard for managers, a Word brief and its
+A correct document that its reader does not use has failed too, so this chapter chooses each
+format for how it will be met, and gives every output one test: would that reader read it,
+and act on it? It writes all three in one step: a dashboard for managers, a Word brief and its
 covering email for partners, and an A5 flyer for walk-ins. None needs another to exist, which
 makes them the first job in this book worth splitting across several agents. The dashboard and
-the brief read the data file; the flyer copies its facts, a choice @sec-london-change returns
-to.
+the brief compute their visitor numbers from the data; the flyer's price bands and stations
+are copied into its text from `data/sights.csv`, a choice @sec-london-change returns to.
 
 ::: payoff
 ![Three outputs at a phone's width: the dashboard's first value box, the start of the partner brief (its source rendered as a web page) and the top of the flyer. Rendered from `examples/london`.](../media/figures/london-audiences.png){#fig-london-audiences width=50% fig-alt="Three crops, one above another. A blue dashboard value box with a trophy: Most visited: Natural History Museum, and its 2025 visits in large figures. The partner brief's heading, Why London, over one bullet giving the 2025 visits to London's ten most visited ALVA member attractions. The top of the flyer: Visit London, Five sights for one great day."}
@@ -197,16 +198,17 @@ needed a shared list of place names, write that list first, then split the work.
 ## One prompt, three audiences {#sec-audiences-do}
 
 The prompt does three things: it says how the work is split, gives each sub-agent its own
-files to write, and keeps the rendering for the lead. It comes in two messages. First, the
-lead's instructions:
+files to write, and keeps the rendering for the lead. It comes in four messages, one per box.
+First, the lead's instructions:
 
 ::: {.prompt}
 ```default
-Run three sub-agents in parallel, one per item of my next message (none? do the items in turn). Each reads london.qmd, data/ and images/, hides code, follows AGENTS.md and only writes its own files: no rendering. Then render the three .qmd files yourself, one at a time, and check each. Wait for the items.
+Run three sub-agents in parallel, one per item of my next three messages (none? do the items in turn). Each reads london.qmd, data/ and images/, hides code, follows AGENTS.md and only writes its own files: no rendering. Then render the three .qmd files yourself, one at a time, and check each. Start when all three items have arrived.
 ```
 :::
 
-Then the three items. Copy all three into one message, one after another, and send it once:
+Then the three items, one message each: copy a box, paste it into the agent, press Enter, and
+go on to the next. The lead waits until it has all three.
 
 ::: {.prompt}
 ```default
@@ -227,22 +229,23 @@ Then the three items. Copy all three into one message, one after another, and se
 :::
 
 ::: {.agent}
-waits for the items · starts three sub-agents · waits · renders the three `.qmd` files one at a time
+waits for the three items · starts three sub-agents · waits · renders the three `.qmd` files one at a time
 :::
 
 ::: {.you}
-send the lead's message, then the three items together · approve its commands · open the four outputs
+send the four messages · approve its commands · open the four outputs
 :::
 
-<!-- Dry-run 2026-11-25, verbatim, both messages (the three items as one), in a copy of
-checkpoint 02-london-qmd: a Claude Code sub-agent on Sonnet 5.5 and one on Haiku 5.5. Each
-waited for the items. Neither could start sub-agents of its own, so both took the prompt's
-fallback and did the items in turn; the parallel route was not exercised. Both rendered the
-three files one at a time: a dashboard with three value boxes and two Plotly charts, a Word
-brief whose figures match data/, and a one-page A5 flyer (Haiku's fitted on its third render).
-Both counted "number free" as the admission values starting "Free". Sonnet's first dashboard
-render failed because DataFrame.to_markdown needs tabulate; it wrote the table out instead.
-data/ and images/ were unchanged. -->
+<!-- Dry-run 2026-11-25, verbatim, the four messages sent one at a time, each answered before
+the next, in a copy of checkpoint 02-london-qmd: a Claude Code sub-agent on Sonnet 5.5 and one
+on Haiku 5.5. After the lead's message and after items 1 and 2, each said it was waiting and
+had started nothing; each began only when item 3 arrived. Neither could start sub-agents of its
+own, so both took the prompt's fallback and did the items in turn; the parallel route was not
+exercised. Both rendered the three files one at a time: a dashboard with three value boxes and
+two Plotly charts, a Word brief whose figures match data/, and a one-page A5 flyer (Haiku's
+fitted on its third render). Both counted "number free" as the admission values starting
+"Free". data/ and images/ were unchanged. An earlier version sent the three items as one
+message; readers found pasting three boxes before one Enter error-prone, hence one per box. -->
 
 The lead renders `london-dashboard.qmd`, `london-email.qmd`, then `london-flyer.qmd` with
 `uv run quarto render`, and reports each sub-agent's progress as it goes. It checks each file
@@ -265,15 +268,14 @@ flyer fit on one A5 page?
 ::: story
 <!-- source: book/media/capture/london_outputs.py, step dashboard, and PLAN-improvement.md
 section 14 (package M): the dashboard captured at a phone's width on 2026-11-25. -->
-When this book captured the finished dashboard at a phone's width, on 2026-11-25, its total
-value box showed `{python} total_visits` only as far as `{python} total_shown`: the last
-figure ran past the box's edge. Nothing failed: the render passed, and the number in the
-source was right. Look at each output at the size its
+When this book captured the finished dashboard at a phone's width, on 2026-11-25, the last
+figure of its total, `{python} total_visits`, ran past the value box's edge. Nothing failed:
+the render passed, and the number in the source was right. Look at each output at the size its
 reader uses, and if a dashboard's readers use phones, ask for big totals in a shorter form,
 such as millions.
 :::
 
-![The dashboard on a phone: the total is cut off.](../media/figures/london-dashboard-phone.png){#fig-london-dashboard-phone width=50% fig-alt="Three value boxes, one above another, as a phone shows the dashboard. Blue: Most visited: Natural History Museum, with its 2025 visits. Purple: Visits to the top 10 (ALVA members), 2025, whose total runs past the box's right edge, so its last figure is cut off. Green: Top 10 with free entry, with how many of the ten are free."}
+![The dashboard on a phone: the total's last figure is partly cut off.](../media/figures/london-dashboard-phone.png){#fig-london-dashboard-phone width=50% fig-alt="Three value boxes, one above another, as a phone shows the dashboard. Blue: Most visited: Natural History Museum, with its 2025 visits. Purple: Visits to the top 10 (ALVA members), 2025, whose total runs past the box's right edge, so its last figure is partly cut off. Green: Top 10 with free entry, with how many of the ten are free."}
 
 When all three pass, `git add .` and commit with a message that says why.
 
@@ -297,7 +299,7 @@ first row of @tbl-audiences-fixes.
 : Three faults to look for after the renders, and what to ask for. {#tbl-audiences-fixes}
 
 ::: tryit
-Send both messages and approve the renders.
+Send the messages and approve the renders.
 
 ::: done
 you can open a two-page dashboard, a Word brief and its email, and a one-page flyer.

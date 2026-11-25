@@ -18,8 +18,8 @@ Check
 
 Publish
 : Compute once, publish many: one script writes the results, and every output reads them. Guard
-  the sentences whose words depend on the data, and keep a known-good state, so that being stuck
-  is a short detour.
+  the sentences whose words depend on the data, and keep a known-good state, a checkpoint or a
+  commit, so that being stuck is a short detour.
 :::
 
 The water analysis added four habits that travel to any analysis. Follow one case, your own Tunja, through every
@@ -38,12 +38,12 @@ makes: who the work is for, and what would make them read it.
 
 If you worked through Parts II and V, the London guide and the water analysis, you can:
 
-- explain how one plain-text source becomes many formats, and why a computed number cannot drift
-  from its data;
-- direct a coding agent with written rules, one task per prompt and a check after each, reading its
-  changes with `git diff` before you keep them;
-- publish a site from data for several readers, then predict which outputs a changed setting
-  updates, rebuild, and explain the result.
+- explain how one plain-text source becomes many formats;
+- say why a computed number cannot drift from its data at a render that runs its code;
+- direct a coding agent with written rules, one task per prompt and a check after each;
+- read an agent's change with `git diff` before you keep it, and undo one with `git restore`;
+- publish a site from data for several readers;
+- predict which outputs a changed setting updates, rebuild, and explain the result.
 
 If you also worked through Parts III and IV, the Acme evaluation, you can:
 
@@ -329,6 +329,9 @@ Below the figures, include notes/<month>.md, my own words on highlights and asks
 ```
 :::
 
+<!-- source: commit 33ae5bc (2026-11-18), "two more projects in the afterword": both sets of
+prompts were dry-run verbatim, on a made-up company and a small package; commit 6035973 re-ran
+the three prompts it changed as printed. -->
 In the test run, these prompts worked as written, on a made-up company. Three things they do not
 settle are yours:
 
@@ -338,8 +341,8 @@ settle are yours:
   recently, and a failed render leaves the previous month's files in place, so check the month
   printed in the PDF before you send it, or name each file by its month with
   `-M output-file:update-2026-10`, as @sec-params-all does.
-- **The first month** in the data has no month before it. The test run's agent wrote "no earlier
-  month to compare with"; yours should say something, not stop.
+- **The first month** in the data has no month before it. Make the update say so, for example "no
+  earlier month to compare with", rather than stop.
 
 **Checks only you can do.** Compare cash with the bank statement and revenue with your billing
 tool, every month. Read the notes as an investor would: an ask without a number or a date is
@@ -395,7 +398,7 @@ Add a table of the settings in src/textstats/config.py, read from the code at re
 
 **You build** `rfc/rfc.html` and `rfc/rfc.pdf`; the prose of Context, Proposal, Alternatives
 and Decision is yours. Quarto runs the document's code from its own folder, `rfc/`, which sets
-three traps the test run met:
+three traps:
 
 | You see | Do |
 |-------|----------|
@@ -405,9 +408,15 @@ three traps the test run met:
 
 : Three traps of a design document, and their fixes.
 
+<!-- source: commit 33ae5bc (2026-11-18): its message lists the traps the dry run of these prompts
+met (paths relative to the document's folder, computed alt text being knitr-only, the benchmark's
+spread between runs), and its afterword text records the six per cent and the rendered files in
+rfc/. -->
 **Checks only you can do.** Check the machine's name in `results.json`: on a Mac, Python's
-`platform.processor()` says only "arm". Run the benchmark twice, and report the direction and the
-ratio, not the third decimal place, with the machine it ran on. Commit `results.json` with the
+`platform.processor()` says only "arm". Run the benchmark twice. In the test run, the faster
+function stayed faster, but medians moved by up to about six per cent between runs, more than five
+repeats' range suggested: report the direction and the ratio, not the third decimal place, with the
+machine it ran on. Commit `results.json` with the
 document, so a reviewer reads the numbers you measured, and re-run it when the code changes. Then
 ask a reviewer whether the Alternatives section names the option they would have proposed.
 

@@ -117,16 +117,16 @@ def colors() -> dict[int, str]:
 # sentences about the kinds, read from cluster_profiles.csv, one of them given a causal verb.
 # The exercises print `planted`; Appendix E's answer prints `honest[CLAIM_PLANTED]`, from this
 # one function, so the answer cannot drift from the puzzle.
-CLAIM_CAUSAL = ("because", "causes", "leads to", "due to")  # words that claim a cause
-CLAIM_PLANTED = 2                                           # the third sentence claims one
-CLAIM_CAUSE = "because its water is less safe"
+# Words that claim a cause, the planted sentence's index (the third), and its causal clause, in
+# the document's language.
+CLAIM_CAUSAL = (("porque", "causa", "provoca", "debido a") if language() == "es"
+                else ("because", "causes", "leads to", "due to"))
+CLAIM_PLANTED = 2
+CLAIM_CAUSE = "porque su agua es menos segura" if language() == "es" else "because its water is less safe"
 
 
 def council_claims(out: dict) -> tuple[list[str], list[str]]:
     """The three sentences as an honest analyst writes them, and as the draft prints them."""
-    if language() == "es":
-        raise ValueError("council_claims: the Spanish sentences come with the translation of "
-                         "exercises-water.qmd (translation/pending.yml)")
     from scripts.prose import number_words, spans, text_holds
 
     word = number_words()
@@ -138,15 +138,27 @@ def council_claims(out: dict) -> tuple[list[str], list[str]]:
     sab = prof["saber11_mean_median"]
     text_holds(sab[worst] < sab[top] and prof.loc[worst, "irca_median"] > prof.loc[top, "irca_median"],
                "the planted comparison, true as a description")
-    first = (f'The "{kind[worst]}" kind had the highest median utility-supplied IRCA of the '
-             f'{word[len(prof)]}, {prof.loc[worst, "irca_median"]:.1f}.')
-    second = (f'Recorded infant mortality was highest, on average, in the "{kind[im]}" kind: '
-              f'{prof.loc[im, "infant_mortality_mean"]:.1f} deaths per 1,000 live births in '
-              f'{spans(A.OUTCOME_YEARS["infant_mortality"])}.')
-    third = (f'The median Saber 11 score was lower in the "{kind[worst]}" kind than in '
-             f'"{kind[top]}", {sab[worst]:.0f} against {sab[top]:.0f}')
-    honest = [first, second, third + ", and its utility-supplied water also scored worse; the "
-              "comparison describes the kinds and does not show that the water caused the gap."]
+    irca, mort = prof.loc[worst, "irca_median"], prof.loc[im, "infant_mortality_mean"]
+    years = spans(A.OUTCOME_YEARS["infant_mortality"])
+    if language() == "es":
+        first = (f'El tipo «{kind[worst].lower()}» tuvo la mediana más alta del IRCA de prestadores '
+                 f'de los {word[len(prof)]}, {irca:.1f}.')
+        second = (f'La mortalidad infantil registrada fue más alta, en promedio, en el tipo '
+                  f'«{kind[im].lower()}»: {mort:.1f} muertes por 1,000 nacidos vivos en {years}.')
+        third = (f'La mediana del puntaje de Saber 11 fue más baja en el tipo «{kind[worst].lower()}» '
+                 f'que en «{kind[top].lower()}», {sab[worst]:.0f} frente a {sab[top]:.0f}')
+        tail = (", y su agua de prestadores también puntuó peor; la comparación describe los tipos "
+                "y no muestra que la diferencia se deba al agua.")
+    else:
+        first = (f'The "{kind[worst]}" kind had the highest median utility-supplied IRCA of the '
+                 f'{word[len(prof)]}, {irca:.1f}.')
+        second = (f'Recorded infant mortality was highest, on average, in the "{kind[im]}" kind: '
+                  f'{mort:.1f} deaths per 1,000 live births in {years}.')
+        third = (f'The median Saber 11 score was lower in the "{kind[worst]}" kind than in '
+                 f'"{kind[top]}", {sab[worst]:.0f} against {sab[top]:.0f}')
+        tail = (", and its utility-supplied water also scored worse; the comparison describes the "
+                "kinds and does not show that the water caused the gap.")
+    honest = [first, second, third + tail]
     planted = [first, second, f"{third}, {CLAIM_CAUSE}."]
     text_holds(0 <= CLAIM_PLANTED < len(planted) and CLAIM_CAUSE in planted[CLAIM_PLANTED]
                and not any(v in t for t in honest for v in CLAIM_CAUSAL)

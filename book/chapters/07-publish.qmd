@@ -2,7 +2,8 @@
 
 ```{python}
 #| label: ch7-setup
-from scripts.prose import number_words
+from scripts.facts import checked, fact
+from scripts.prose import number_words, text_holds
 # Which page of the finished London project reads which data file, and which files it writes.
 # Read from the sources: a page "reads" a file only if its code calls read_csv on it.
 import re
@@ -46,6 +47,12 @@ assert finds_top - sums == {"london-social.qmd"}
 assert keeps_rank - finds_top == {"london-whitepaper.qmd"}
 att = pd.read_csv(ldn / "data/attractions.csv")
 tower_rank_uk = int(att.loc[att["attraction"] == "Tower of London", "rank_uk"].iloc[0])
+# The change task types 8000000 for the Tower: the text says it makes the Tower the most visited
+# of the ten, and that the copied rank_uk column would then still rank it lower than first.
+from scripts.london import TOWER_NEW as NEW_TOWER
+others_top = att.loc[att["attraction"] != "Tower of London", "visits_2025"].max()
+text_holds(len(att) == 10 and NEW_TOWER > others_top and tower_rank_uk != 1,
+           "the Tower becoming the most visited of the ten, with a stale rank_uk")
 WORDS = number_words()
 ORDINALS = ["zeroth", "first", "second", "third", "fourth", "fifth", "sixth", "seventh",
             "eighth", "ninth", "tenth"]
@@ -151,7 +158,7 @@ read them before choosing.
 | [Netlify](https://quarto.org/docs/publishing/netlify.html) | `quarto publish netlify` renders and uploads it |
 | a host that builds: [Vercel](https://vercel.com/docs/plans/hobby), [GitLab Pages](https://docs.gitlab.com/user/project/pages/), [Render](https://render.com/docs/static-sites) | it builds the site from the repository on every push |
 
-: Three routes onto a host. {#tbl-hosts}
+: Two routes onto a host: render and upload, or let the host build. {#tbl-hosts}
 
 Quarto's Netlify build plugin runs no Python, so for this project, render and upload.
 
@@ -214,7 +221,8 @@ link opens its file.
 
 Publishing takes two prompts and one command of your own. Before you paste the prompts,
 replace `<your-github-username>` in them with your GitHub username (the agent can look it up
-with `gh api user` if you ask it to). The first readies the folder:
+with `gh api user` if you ask it to). The first readies the folder; if it has no `README.md`
+yet, because you never caught up, the agent creates one:
 
 ::: {.prompt}
 ```default
@@ -243,7 +251,13 @@ Create a public GitHub repository named `london-guide` with gh and push `main` t
 :::
 
 ::: {.you}
-approve `gh` · in the preview tab: Ctrl+C, then `uv run quarto publish gh-pages` and Enter · open the address on your phone
+approve `gh` · then, in the preview tab, Ctrl+C, and type:
+
+```bash
+uv run quarto publish gh-pages
+```
+
+Enter answers its question · open the address on your phone
 :::
 
 <!-- Dry-run 2026-11-25 of the first prompt, verbatim with its placeholder, in a copy of
@@ -259,14 +273,21 @@ london-guide --public --source=. --push`, which also pushes the commits, using t
 from the setup check. Every commit you have made since you started the folder goes with them,
 so the repository on GitHub opens with the guide's whole history, one checked step at a
 time. Its README is the first thing visitors to the repository
-see, and its link takes them on to the live site.
+see, and its link takes them on to the live site. The repository is public because
+`{python} fact("github.pages_private")` (checked `{python} checked("github.pages_private")`).
+
+<!-- GitHub, Creating a GitHub Pages site,
+https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site,
+read 2026-11-25: "If the account that owns the repository uses GitHub Free or GitHub Free for
+organizations, the repository must be public." -->
 
 <!-- Quarto's GitHub Pages guide, https://quarto.org/docs/publishing/github-pages.html, read
 2026-11-25: "Before configuring the publishing action, it's important that you run quarto
 publish gh-pages locally, once." The publish "will confirm that you want to publish, render
 your content, copy the output to a special gh-pages branch, push that branch to GitHub, and
-then open a browser". In the workshop's earlier dry run, the first publish of each site took
-one and a half to two minutes, and GitHub Pages then built it in 20 to 35 seconds. -->
+then open a browser". In the workshop's dry run of 2026-11-01 (Appendix I), the first publish
+of each site took one and a half to two minutes, and GitHub Pages then built it in 20 to 35
+seconds. -->
 
 The first publish is yours, typed in the terminal, because Quarto's GitHub Pages guide asks
 for one local `quarto publish gh-pages` before any automated one. Stop the preview first: the
@@ -277,9 +298,14 @@ usually means the site is still being deployed. Once the branch exists, the agen
 the site with `uv run quarto publish gh-pages --no-prompt`.
 
 ::: pitfall
+<!-- source: the workshop's TROUBLESHOOTING.md and INSTRUCTOR.md (a push failing with HTTP 400
+for Plotly dashboards with GeoJSON maps, fixed by raising http.postBuffer); Git's git-config
+documentation, http.postBuffer, read 2026-11-25: raising it "is not, in general, an effective
+solution for most push problems". -->
 A push that fails with `HTTP 400` ("RPC failed", "the remote end hung up unexpectedly") was seen
-with larger sites, such as dashboards with embedded maps. Raise Git's buffer for this repository
-with `git config http.postBuffer 524288000`, and push again.
+in the workshop with larger sites, such as dashboards with embedded maps. There, raising Git's
+buffer for the repository, `git config http.postBuffer 524288000`, and pushing again fixed it,
+though Git's documentation warns that a larger buffer does not fix most push problems.
 :::
 
 ::: practice
@@ -379,9 +405,9 @@ What it does there depends on each page's code. Of those pages, `{python} word(l
 of London becomes the most visited attraction and the total rises. The square advert uses only
 the first call, so it names the Tower too.
 
-The white paper names no top attraction: its sums by
-admission change, but its table keeps ALVA's `rank_uk` column from the file, which would still
-rank the Tower `{python} ORDINALS[tower_rank_uk]` in the UK beside the most visits of the ten. A
+The white paper names no top attraction, and its sums by admission change. Its table also
+copies ALVA's `rank_uk` column from the file, so after the change it would show the Tower with
+the most visits of the ten, yet still ranked `{python} ORDINALS[tower_rank_uk]` in the UK. A
 copied column goes stale too. Still, the correction reaches `{python} word(n_outputs_attr)`
 files with one command, and nobody has to go looking for them.
 

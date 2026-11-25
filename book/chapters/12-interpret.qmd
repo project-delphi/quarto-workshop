@@ -93,6 +93,38 @@ text_holds(set(ex_top[:3]) == {"water_coverage", "ipm", "irca"} and set(ex_top[:
 IM_YEARS = spans(A.OUTCOME_YEARS["infant_mortality"])
 text_holds(IM_YEARS == "2017–2019 and 2021–2023", "infant mortality's years in @sec-outcomes")
 
+# name_rule()'s thresholds, probed on made-up profiles just either side of each: the share of urban
+# rows for "Rural", and the half standard deviation for the rest. The practice box in @sec-names
+# quotes them from here; the rule's bullets type them, as ../scripts/check_prompt_values.py checks.
+URBAN_MIN, Z_CUT, EPS = 0.4, 0.5, 1e-6
+
+
+def probe(**z):
+    base = dict(urban_row_share=0.5, z_rural_share=0.0, z_altitude_m=0.0, z_water_coverage=0.0,
+                irca_median_band="Low")
+    return A.name_rule(pd.Series({**base, **z}))
+
+
+text_holds(probe().startswith("Towns,")
+           and probe(urban_row_share=URBAN_MIN - EPS).startswith("Rural")
+           and not probe(urban_row_share=URBAN_MIN).startswith("Rural")
+           and probe(z_rural_share=-Z_CUT).startswith("Cities")
+           and probe(z_rural_share=-Z_CUT + EPS).startswith("Towns,")
+           and probe(z_altitude_m=-Z_CUT).startswith("Lowland")
+           and probe(z_altitude_m=-Z_CUT + EPS).startswith("Towns,")
+           and probe(z_altitude_m=Z_CUT).startswith("Highland")
+           and probe(z_altitude_m=Z_CUT - EPS).startswith("Towns,")
+           and "low-coverage" in probe(z_water_coverage=-Z_CUT)
+           and "low-coverage" not in probe(z_water_coverage=-Z_CUT + EPS), "name_rule()'s thresholds")
+
+# The median nearest a band's edge (@sec-names): how close the call on its risk word is.
+EDGES = A.IRCA_BINS[1:-1]
+near = {c: min(EDGES, key=lambda e: abs(x - e)) for c, x in prof["irca_median"].items()}
+c_edge = int(min(near, key=lambda c: abs(prof.loc[c, "irca_median"] - near[c])))
+x_edge, edge = prof.loc[c_edge, "irca_median"], near[c_edge]
+text_holds(0.05 <= x_edge - edge < 1 and A.IRCA_BANDS[A.IRCA_BINS.index(edge)] == "High"
+           and prof.loc[c_edge, "irca_median_band"] == "High", "a high-risk median just above the medium band")
+
 worst = int(prof["irca_median"].idxmax())          # the worst water
 rural_c = int(prof["urban_row_share"].idxmin())   # the rural cluster
 im_max = int(omean["infant_mortality_mean"].idxmax())
@@ -119,7 +151,8 @@ text_holds(prof.loc[ex_c, "irca_median_band"] == "High" and prof.loc[ex_c, "z_ir
            and prof.loc[ex_c, "z_ipm"] > 0.5 and prof.loc[ex_c, "z_water_coverage"] < -0.5,
            "the highest-IRCA cluster's combination")
 
-# Blank infant-mortality rates: the series has no zeros, so a blank may be a recorded zero.
+# Blank infant-mortality rates: the series holds no zeros, so a blank may be a year with no infant
+# deaths that was never entered as 0.
 im_years = clusters[clusters["year"].isin(A.OUTCOME_YEARS["infant_mortality"])]
 blank_all = im_years.drop_duplicates(["divipola", "year"])["infant_mortality"].isna().mean()
 blank_c = (im_years.drop_duplicates(["cluster", "divipola", "year"])
@@ -213,6 +246,10 @@ tj_d = {c: sqdist(A.FEATURES, c) for c in cen.index}
 text_holds(sqdist(own, rural_c) < sqdist(own, tj_c) and sqdist(shared, tj_c) < sqdist(shared, rural_c)
            and min(tj_d, key=tj_d.get) == tj_c, "@tbl-tunja-place's distances")
 text_holds(sorted(tj_d, key=tj_d.get)[:2] == [tj_c, rural_c], "the other two centres being farther still")
+# The one feature whose squared difference most separates the two centres, for the reader who
+# wants to check the sums term by term.
+tj_terms = {f: (sqdist([f], tj_c), sqdist([f], rural_c)) for f in A.FEATURES}
+tj_big = max(tj_terms, key=lambda f: abs(tj_terms[f][0] - tj_terms[f][1]))
 
 # Years with no comparable value inside each outcome's span: the gaps in its lines.
 def gaps(col):
@@ -331,12 +368,16 @@ depend on which number k-means happened to give a cluster. Two words in them nee
 "Low-coverage" is a relative position, not an absolute one: the rural cluster's mean coverage is
 `{python} f"{rural_cov:.0f}"`%, low but not zero, so "unserved" would
 overstate it. And the risk word describes the cluster's median, not every zone-year in it: individual
-zone-years can sit in any band, and a median close to a band's edge can flip the word.
+zone-years can sit in any band, and a median close to a band's edge can flip the word. Cluster
+`{python} c_edge`'s is one: its median, `{python} f"{x_edge:.1f}"`, is only
+`{python} f"{x_edge - edge:.1f}"` above `{python} edge`, the top of the medium band, so its
+"high-risk" is the rule's output on a close call.
 
 ::: practice
 Check every name against the heatmap and the profile table before you use it, and keep the rule beside
 the name in anything you publish. A name is a summary someone else will quote without the table. The
-thresholds, 40% and half a standard deviation, are choices too: a different one could change a name.
+thresholds, `{python} f"{URBAN_MIN:.0%}"` and `{python} Z_CUT` SD, are choices too: a different one
+could change a name.
 :::
 
 ::: think
@@ -377,6 +418,9 @@ for title, cols in ((f"its own {NUM[len(own)]} features", own),
     rows.append(f"| {title} | {sqdist(cols, tj_c):.1f} | {sqdist(cols, rural_c):.1f} |")
 print("\n".join(rows))
 ```
+
+The largest single difference is in `{python} WORDS[tj_big]`: `{python} f"{tj_terms[tj_big][0]:.1f}"` to
+centre `{python} tj_c` against `{python} f"{tj_terms[tj_big][1]:.1f}"` to centre `{python} rural_c`.
 
 It has company: `{python} f"{tj_c_rural:.0%}"` of that cluster's zone-years are rural zones. A label
 describes a kind; to say anything about one member, go back to its rows.
@@ -475,7 +519,8 @@ with style():
 
 The paleness is the finding. No cluster's mean outcome is more than `{python} f"{oz_max:.2f}"` standard
 deviations from the average, against `{python} f"{fz_max:.2f}"` for the features that formed them: the
-kinds differ less in outcomes than in what defines them. Within that: the lowest recorded infant mortality is in `{python} cname(omean["infant_mortality_mean"].idxmin())`
+kinds differ less in outcomes than in what defines them, and part of that is by design. Within
+that: the lowest recorded infant mortality is in `{python} cname(omean["infant_mortality_mean"].idxmin())`
 and the highest in `{python} cname(omean["infant_mortality_mean"].idxmax())`; the best Saber 11 scores are
 in `{python} cname(omean["saber11_mean_mean"].idxmax())`; and the lowest dropout is in
 `{python} cname(omean["dropout_rate_mean"].idxmin())`.
@@ -496,9 +541,11 @@ the same way:
 1. **Small numbers.** The rates of `{python} cname(im_max)` come from the smallest places of any
    kind, a median of `{python} w.fmt(int(pop_med[im_max]))` people per municipality-year, where a
    handful of deaths moves a rate a long way.
-2. **What is missing.** The series holds no zeros, so a blank may be a recorded zero, and
-   `{python} f"{blank_c[im_max]:.0%}"` of this kind's municipality-years are blank, against
-   `{python} f"{blank_all:.0%}"` of all. Leaving them out raises small places' averages most.
+2. **What is missing.** A municipality where no infant died should show a rate of 0, yet the
+   series holds no zeros, so a blank may be a year with no infant deaths that was never entered
+   as 0. `{python} f"{blank_c[im_max]:.0%}"` of this kind's municipality-years are blank, against
+   `{python} f"{blank_all:.0%}"` of all. Leaving them out drops what may be zeros, which raises
+   small places' averages most.
 
 That second is *selection on the outcome*: whether a row is kept depends on the value being
 measured, so the rows kept are not typical, and it may account for part of this kind's place at the
