@@ -191,6 +191,7 @@ make media STEPS="tapes stills check" ONLY=terminal-basics
 make book-html && make media STEPS="capture stills check" ONLY=kmeans
 make media STEPS="capture stills check" ONLY=md_side_by_side
 CAPTURE_STEPS=explore make media STEPS="capture" ONLY=water_outputs
+CAPTURE_STEPS="report card site whitepaper update" make media STEPS="capture" ONLY=eval_outputs
 make media STEPS="diagrams"
 ```
 
