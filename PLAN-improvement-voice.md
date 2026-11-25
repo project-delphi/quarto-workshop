@@ -80,8 +80,9 @@ The professional reader caught every loose phrase. So:
 
 ## Sentences
 
-Second person, active verbs, present tense. Short sentences that carry one fact each: "Nothing
-failed. There was a file, with the right name, and nothing in it." British spelling. No
+Second person, active verbs, present tense. Short sentences that carry one fact each: "A typed
+number is never an error to the program that prints it. Both are computed from the chapter
+list now, and cannot fall behind it." (Ch 1) British spelling. No
 emoji, no exclamation marks, no hype.
 
 ## Do not
