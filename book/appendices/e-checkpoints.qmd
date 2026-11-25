@@ -237,17 +237,11 @@ reading each of the five rows against `data/visits.csv`:
 ```{python}
 #| label: appE-london-value
 #| output: asis
-# Part II's planted value (exercises-london.qmd, cell ex2-planted), rebuilt the same way: the
-# five sights' latest visits from data/visits.csv, the third sight's count swapped for its own
-# count a year earlier.
-ldn_visits = pd.read_csv("../examples/london/data/visits.csv")
-ldn_year = int(ldn_visits["year"].max())
-ldn_real = (ldn_visits[ldn_visits["year"] == ldn_year].set_index("attraction")["visits"]
-            .sort_values(ascending=False))
-ldn_before = ldn_visits[ldn_visits["year"] == ldn_year - 1].set_index("attraction")["visits"]
-ldn_sight = ldn_real.index[2]
-ldn_printed, ldn_true = int(ldn_before[ldn_sight]), int(ldn_real[ldn_sight])
-text_holds(ldn_printed != ldn_true, "the planted London value")
+# Part II's planted value (exercises-london.qmd, cell ex2-planted), from the same function the
+# exercises print it with, so the puzzle and its answer cannot drift.
+from scripts import london
+ldn = london.planted_visits()
+ldn_year, ldn_sight, ldn_printed, ldn_true = ldn["year"], ldn["sight"], ldn["printed"], ldn["true"]
 ldn_more = "more" if ldn_printed > ldn_true else "fewer"
 print(f"The wrong cell is in the row for {ldn_sight}. The table prints {ldn_printed:,}; its row in "
       f"`data/visits.csv` for {ldn_year} says {ldn_true:,}, so the table shows "
@@ -260,13 +254,10 @@ print(f"The wrong cell is in the row for {ldn_sight}. The table prints {ldn_prin
 
 ```{python}
 #| label: appE-team
-# Chapter 15's planted recall (team.qmd, cell team-plant): the rival's recall_top10 under the
-# best release's name, from the same ev.rival() and ev.value(). The gap is between the two
-# figures as printed, in percentage points.
-rival_ev = ev.rival()
-rec_best = f"{ev.value(best_ev, 'recall_top10')['value']:.3f}"
-rec_rival = f"{ev.value(rival_ev, 'recall_top10')['value']:.3f}"
-text_holds(rec_best != rec_rival, "Chapter 15's two recalls differing at three decimals")
+# Chapter 15's planted recall (team.qmd, cell team-plant), from the same ev.team_plant() the
+# chapter prints it with. The gap is between the two figures as printed, in percentage points.
+TP = ev.team_plant()
+rival_ev, rec_best, rec_rival = TP["rival"], TP["right"], TP["value"]
 rec_gap = f"{100 * abs(float(rec_best) - float(rec_rival)):.1f}"
 rec_word = "higher" if float(rec_best) > float(rec_rival) else "lower"
 ```
