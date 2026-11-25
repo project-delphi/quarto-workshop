@@ -2,6 +2,8 @@
 
 ```{python}
 #| label: ch8-setup
+import re
+
 from scripts import water as w
 from scripts.prose import number_words, spans, text_holds
 
@@ -44,12 +46,12 @@ FEATURE_ROWS = [  # name, column, what it measures (unit), table
     ("IRCA", "irca", "water risk, utility-supplied (0–100)", "water"),
     ("Piped water", "water_coverage", "aqueduct coverage (%)", "water"),
     ("Sewer", "sewer_coverage", "sewerage coverage (%)", "water"),
-    ("Poverty (IPM)", "ipm", "people poor in several respects at once, 2018 census (%)", "place"),
+    ("Poverty, IPM", "ipm", "people poor in several respects at once, 2018 census (%)", "place"),
     ("Rural share", "rural_share", "the population's rural share (0–1)", "place"),
     ("Altitude", "altitude_m", "the head town's height (m)", "place"),
     ("Rainfall", "rainfall_mm", "rain over the municipality (mm a year)", "place"),
-    ("Performance (MDM)", "mdm", "DNP's score of management and results (0–100)", "water"),
-    ("Transfers (SGP)", "sgp_water_pc", "water transfers (nominal pesos a person, logged)", "water"),
+    ("MDM", "mdm", "DNP's score of management and results (0–100)", "water"),
+    ("SGP", "sgp_water_pc", "water transfers (nominal pesos a person, logged)", "water"),
 ]
 OUTCOME_ROWS = [
     ("Infant mortality", "infant_mortality", "deaths under one year per 1,000 live births", "outcome"),
@@ -61,6 +63,19 @@ features_raw = [c for _, c, _, _ in FEATURE_ROWS]
 if features_raw != w.A.RAW_FEATURES or [c for _, c, _, _ in OUTCOME_ROWS] != list(w.A.OUTCOMES):
     raise ValueError("the analysis's features or outcomes changed: rewrite @tbl-water-features")
 n_mun_feat = sum(VAR_LEVEL[c] == "municipality" for c in features_raw)
+# The tables' captions count the groups: five features (three about water, two about government),
+# then four about people and place.
+groups = [g for _, _, _, g in FEATURE_ROWS]
+text_holds(n_feat == 9 and groups.count("water") == 5 and groups.count("place") == 4
+           and features_raw[:3] == ["irca", "water_coverage", "sewer_coverage"],
+           "the captions of @tbl-water-features and @tbl-water-features-place")
+# The README's check of the open IRCA table against INCA 2023, Tabla 4 (caveat 1), read from its text.
+readme = " ".join((w.A.ROOT / "data" / "README.md").read_text().split())
+inca = re.search(r"match \*Prestadores\* in (\d+) of (\d+) departments and the total in only (\d+)\.", readme)
+if inca is None:
+    raise ValueError("data/README.md, caveat 1, changed: rewrite the check in @sec-water-why")
+inca_util, inca_all, inca_total = (int(g) for g in inca.groups())
+text_holds(inca_util == inca_all and inca_total < inca_all / 2, "the utility column, not the total")
 # The prose names IRCA and coverage as zone variables, rainfall and infant mortality as municipal.
 text_holds(all(VAR_LEVEL[c] == "zone" for c in ("irca", "water_coverage", "sewer_coverage"))
            and VAR_LEVEL["rainfall_mm"] == VAR_LEVEL["infant_mortality"] == "municipality",
@@ -127,9 +142,9 @@ council will see it as a short deck of slides (@sec-publish-many). Both will loo
 
 ::: {.story .illustration}
 A council meeting, in any town. The analyst shows a chart in which places with riskier water
-record more infant deaths. A member asks whether fixing the water would save those children.
-The analyst says the chart cannot tell. "Then why show it?" The rest of this part is the
-answer: what the chart can say, and how to say it.
+record more infant deaths, and says it cannot show whether safer water would save them. A member
+asks: "Then why show it?" The answer is that a description shows where the risk sits, which places
+resemble each other and where nobody measures at all: where to look first, not what will work.
 :::
 
 So the limits are stated now, each with its reason. The water score covers only systems run by a utility
@@ -168,8 +183,9 @@ passed and 100 means every test failed.
 
 The IRCA in this part's data is not the national report's figure. It comes from an open table published
 by the national health institute, INS (datos.gov.co `nxt2-39c3`). The data's README (caveat 1)
-records a check against the national report: the table's 2023 department rows match the report's
-utility column in 30 of 30 departments, and its total in only 5.
+records a check against the national report: for all `{python} inca_all` departments in the report's
+Tabla 4, the table's 2023 value equals the report's utility column; it equals the report's overall
+figure in only `{python} inca_total` of the `{python} inca_all`.
 
 <!-- The check is dated 2026-10-30 in examples/water/data/README.md, caveat 1. -->
 ::: pitfall
@@ -245,7 +261,8 @@ mortality, the Saber 11 score and school dropout (@tbl-water-features, @tbl-wate
 #| output: asis
 def var_table(rows: list, group: str) -> None:
     lines = ["| Variable, and what it measures | Level; years |", "|--------------|------|"]
-    lines += [f"| **{name}**: {what} | {level_years(col)} |" for name, col, what, g in rows if g == group]
+    lines += [f"| **{name}** (`{col}`): {what} | {level_years(col)} |" for name, col, what, g in rows
+              if g == group]
     print("\n".join(lines).replace("–", "–\u2060"))  # a word joiner: no line break after a dash
 
 
@@ -367,9 +384,9 @@ sizes
 The data sit outside the new folder, in `../quarto-workshop/`, so the agent asks before it reads
 there: approve it, as for the London guide (@sec-brief).
 
-Then write the rules. The agent can write an analysis that runs, renders and is wrong. You guard
-against that by checking, not by writing the code yourself, and a check needs something to check
-against.
+Then write the rules. If you have never clustered anything, the worry is fair: the agent can write
+an analysis that runs, renders and is wrong. You guard against that by checking, not by writing the
+code yourself, and a check needs something to check against.
 
 ::: {.prompt}
 ```default
@@ -438,7 +455,7 @@ Checked
 : nothing yet. Its values are as published.
 
 What may be said
-: nothing: no value has been read against the README's caveats.
+: nothing yet: no value has been read against the README's caveats.
 :::
 
 ## Summary {.unnumbered}

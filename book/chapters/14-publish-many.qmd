@@ -35,6 +35,11 @@ text_holds(no_outputs == {"index.qmd", "explore.qmd"}
            and next(d for d in deps if d["page"] == "explore.qmd")["from_data"] == ["water_municipal.csv"],
            "the pages that read no outputs/")
 text_holds(not next(d for d in deps if d["page"] == "index.qmd")["from_data"], "the home page reading no files")
+# The pages that read data/ directly, and what they read (the paragraph after @tbl-water-deps).
+data_reads = {d["page"]: d["from_data"] for d in deps if d["from_data"]}
+text_holds(data_reads == {"explore.qmd": ["water_municipal.csv"], "dashboard.qmd": ["municipios.geojson"]}
+           and next(d for d in deps if d["page"] == "dashboard.qmd")["from_outputs"],
+           "the two pages that read data/")
 geo_mb = (wat / "data/municipios.geojson").stat().st_size / 1e6
 # Tunja (@sec-tunja-kind) in every publication, for the ledger; after the rebuild it is
 # Appendix E's computed answer (@sec-answer-water), so the ledger does not give it away.
@@ -172,8 +177,8 @@ beyond a report-sized EPUB.
 prompt text where Apple Books splits a box across pages" -->
 In this book's own e-book, Apple Books drew one kind of box wrongly. Where a prompt box fell across
 two pages, the second page showed its label and an empty panel: the text was in the file, and the
-reader did not draw it. Two style rules fixed it. A file that passes every check can still read
-wrongly, so open `report.epub` in the reader your readers use, and turn its pages.
+reader did not draw it. A few style rules fixed it. What a reader draws is not always what the
+file holds, so open `report.epub` in the reader your readers use, and turn its pages.
 :::
 
 ::: catchup
@@ -272,12 +277,17 @@ If this folder is not yet a Git repository, run `git init -b main`. Check that .
 :::
 
 ::: {.you}
-approve `gh` · when it shows the website URL, in the second tab: `uv run quarto publish gh-pages`, then Enter at "Publish site … (Y/n)" · open the live address
+approve `gh` · when it shows the website URL, in the second tab: `uv run quarto publish gh-pages`, then Enter at "Publish site … (Y/n)" · open `https://<your-github-username>.github.io/water-quality/`
 :::
 
+<!-- source: slides/_water.qmd, the notes of the water publish slide: in the dry run of
+2026-11-01 the first quarto publish gh-pages took about two minutes on its own (branch created at
+11:04:13 UTC, built site pushed at 11:05:28), and GitHub Pages then built the site in 20 to 35
+seconds. -->
 The steps are Part II's (@sec-london-publish). The repository has existed since @sec-water-rules, so
 the push carries the analysis's whole history; its `.gitignore` also leaves out `outputs/`, which the
-pre-render step rebuilds.
+pre-render step rebuilds. The first publish takes about two minutes, and GitHub Pages needs under a
+minute more before the address opens.
 
 The data are public, and publishing them with the site is fine, provided the attributions travel with
 them. `data/README.md` lists each source's terms: CC BY-SA 4.0 for DANE's DIVIPOLA list and the INS,
@@ -294,10 +304,10 @@ do not appear online until you publish again.
 :::
 
 ::: tryit
-Build the report, the slides and the website, then publish.
+Build the three outputs, then publish.
 
 ::: done
-the live address opens in a browser, with the report, the slides and the post.
+`<your-github-username>.github.io/water-quality/` shows the report, slides and post.
 :::
 
 ::: catchup
@@ -327,7 +337,7 @@ real settings.
 `MAX_MISSING` drops rows missing more than that many of the nine features (@sec-prepare). To answer, you
 need to know which page reads what. @tbl-water-deps shows what each page reads from `outputs/`, the folder
 the analysis rewrites, computed from the finished project's sources (a page counts as reading a file only if
-its code names it); the paragraph after it says which pages read `data/` instead.
+its code names it); the paragraph after it says which pages read `data/`.
 
 ```{python}
 #| label: tbl-water-deps
@@ -344,9 +354,11 @@ for d in deps:
 print("\n".join(rows))
 ```
 
-Every page but two reads its numbers from `outputs/`. The explore page reads only
-`data/water_municipal.csv`, which the setting does not touch, so it re-runs and shows the same numbers;
-the home page reads no files at all. A strong answer names the mechanism: `pre-render` re-runs the
+Every page but two reads its numbers from `outputs/`. The home page reads no files at all, and the
+explore page reads only `data/water_municipal.csv`, which the setting does not touch, so it re-runs
+and shows the same numbers. One more page reads `data/` directly: the dashboard takes its map's
+boundaries from `municipios.geojson`, which the setting does not touch either. A strong answer names
+the mechanism: `pre-render` re-runs the
 analysis, which rewrites every file in `outputs/`, and `freeze: false` re-executes every page that reads
 them. It checks at least two outputs against the new row counts. And it notices what did not change:
 `data/`, the explore page and the live site. Once your prediction is written down, check it against the
@@ -375,13 +387,17 @@ Add Kinds, Outcomes and Method pages to dashboard.qmd from outputs/ only: a heat
 
 ![The finished dashboard's Map page at a phone's width: its first two value boxes. Rendered from `examples/water/dashboard.qmd`.](../media/figures/water-dashboard-phone.png){#fig-water-dashboard-phone width=85% fig-alt="Two value boxes from the dashboard's Map page at a phone's width: Zone-years clustered, 2016 to 2023, 11,235, and Kinds of municipal zone (k), 4."}
 
+<!-- source: slides/_water.qmd, the notes of the dashboard slides: the rings and the frames (with
+the dashboard docs, checked 2026-10-30), and the double draw, as Quarto 1.6.40 and 1.10.20 showed
+it, checked 2026-11-01; examples/water/scripts/analysis.py, load_geojson(), reverses the rings. -->
+
 | You see | Do |
 |-------|----------|
 | a grey rectangle for every municipality | reverse the boundaries' rings, as `load_geojson()` does: Plotly winds them opposite to the GeoJSON standard |
 | a page that repeats the `{python} f"{geo_mb:.1f}"` MB of boundaries for every year | make the year frames update only the colours (`z`) |
 | the chart drawn twice | assign `fig = fig.add_vline(…)` and end the cell with `fig`: a dashboard cell shows every top-level expression |
 
-: Three traps met building the example dashboard, and their fixes.
+: Three dashboard traps, and their fixes.
 
 The searchable table needs `maxBytes=0`, or `itables` silently drops rows to keep the page small.
 
@@ -432,7 +448,8 @@ In every publication
   utility-supplied.
 
 After `MAX_MISSING` = 1
-: your prediction first; then the computed answer, with @tbl-answer-water.
+: predict before you rebuild: which of its two zones keeps its rows, and why? Then check
+  the computed answer, with @tbl-answer-water.
 
 What may be said
 : what the council's last slide says: a description, and what it does not show.

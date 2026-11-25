@@ -24,6 +24,7 @@ n_capitals = int(raw.drop_duplicates("divipola")["department_capital"].sum())
 WATER = ["irca", "water_coverage", "sewer_coverage"]       # the water-safety and coverage features
 water_share = len(WATER) / len(A.FEATURES)
 r_cov = prepared["water_coverage"].corr(prepared["sewer_coverage"])
+text_holds(r_cov > 0.7, "the two coverages strongly correlated")
 sgp_vs_rain = prepared["sgp_water_pc"].var(ddof=0) / prepared["rainfall_mm"].var(ddof=0)
 by_year = prepared.groupby("year")["sgp_water_pc"]
 z_raw_sgp = (prepared["sgp_water_pc"] - by_year.transform("mean")) / by_year.transform(lambda v: v.std(ddof=0))
@@ -106,7 +107,8 @@ text_holds(len(two) == 2 and share_raw["altitude_m"] > 0.9 and share_raw["water_
 Tunja stands high in the Andes; Cartagena lies on the Caribbean coast. Put their head towns side
 by side in the water table for `{python} A.LAST_YEAR` and ask how far apart they are. In the
 table's own units, the answer is nearly all altitude: metres of height make up
-`{python} f"{share_raw['altitude_m']:.0%}"` of the squared distance between the two rows, and a
+`{python} f"{share_raw['altitude_m']:.0%}"` of the squared distance between the two rows (each
+feature's difference, squared, then summed), and a
 `{python} f"{diff['water_coverage']:.0f}"`-point gap in piped water hardly registers. A clustering
 algorithm sees nothing but such distances. So before it runs, someone decides which rows it sees,
 which numbers, on what scale, and what stands in for a number that is missing. Those decisions are
@@ -306,16 +308,18 @@ cancels, because a z-score divides a distance from the mean by the standard devi
 same unit.
 :::
 
-Scaling also leaves two features that say much the same thing. Water and sewer coverage are
-strongly correlated: r = `{python} f"{r_cov:.2f}"` over the kept rows, where the correlation
-coefficient r runs from −1 to 1, and 1 would mean they rise together along a straight line.
+Scaling also leaves two features that say much the same thing, and that matters because the
+distance adds up every feature's difference: what two such features share counts twice. Water and
+sewer coverage are strongly correlated: r = `{python} f"{r_cov:.2f}"` over the kept rows, where the
+correlation coefficient r runs from −1 to 1, and 1 would mean they rise together along a straight
+line.
 
 ::: practice
 Equal weight is itself a choice, not a neutral default.
 `{python} WORD[len(A.FEATURES)].capitalize()` z-scored features count equally, so the
 `{python} WORD[len(WATER)]` safety-and-coverage variables count for `{python} f"{water_share:.0%}"`
-of the distance and context for the rest. Nor is equal weight per feature equal weight per idea:
-what the two coverages share counts twice. If water safety should weigh more, decide so explicitly
+of the distance and context for the rest. Nor is equal weight per feature equal weight per idea,
+as the two coverages show. If water safety should weigh more, decide so explicitly
 and report it; do not leave it to the units the data happened to come in.
 :::
 

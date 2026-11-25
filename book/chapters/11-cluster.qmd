@@ -5,6 +5,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 from scripts import scenes as sc
 from scripts import water as w
@@ -74,18 +75,32 @@ agree2 = max(np.mean(lab2 == urban), np.mean(lab2 != urban))
 explained = 1 - ktab.loc[k, "inertia"] / (len(X) * n_feat)
 text_holds(np.isclose((X ** 2).sum(), len(X) * n_feat), "inertia of one cluster")
 
+# The silhouette check compares values closer than their sampling noise: score the chosen k and
+# the best k >= 3 on other samples of the same size, and see which comes out ahead.
+k_best = int(cand["silhouette"].idxmax())
+lab_k = clusters["cluster"].to_numpy()               # the chosen fit, in the rows' order of X
+lab_best = KMeans(n_clusters=k_best, random_state=A.SEED, n_init=A.N_INIT).fit(X).labels_
+SIL_SEEDS = range(1, 11)                              # not A.SEED, whose sample is the script's
+gaps = []
+for seed in SIL_SEEDS:
+    pick = np.random.default_rng(seed).choice(len(X), size=A.SILHOUETTE_N, replace=False)
+    gaps.append(silhouette_score(X[pick], lab_k[pick]) - silhouette_score(X[pick], lab_best[pick]))
+text_holds(k_best != k and min(gaps) < 0 < max(gaps)
+           and all(sil_best - ktab.loc[j, "silhouette"] > max(map(abs, gaps)) for j in sil_out)
+           and bool(sil_out), "the silhouette check within its sampling noise, ruling out a clear drop")
+
 # @tbl-k-selection: choose_k()'s rule, row by row.
 def verdict(j: int) -> str:
     if j < 3:
-        return "excluded"
+        return "excluded: zone split"
     if not sil_ok[j]:
         return "silhouette too low"
     if nxt[j] >= A.ELBOW_DROP:
-        return f"one more still cuts ≥ {A.ELBOW_DROP:.0%}"
-    return "chosen" if j == k else "passes, larger"
+        return f"one more cuts ≥ {A.ELBOW_DROP:.0%}"
+    return "chosen: the smallest that passes" if j == k else "passes, but larger"
 
 
-if (verdict(k) != "chosen"
+if (verdict(k) != "chosen: the smallest that passes"
         or any(verdict(j).startswith("chosen") for j in ktab.index if j != k)):
     raise ValueError("choose_k()'s rule and @tbl-k-selection disagree: rewrite the verdicts")
 
@@ -125,7 +140,7 @@ your work is to check what it chose: how many kinds, by what rule, and how close
 
 ::: opener
 - Describe the k-means loop, and why it needs many starts and a fixed seed.
-- Apply the written rule for k, and say how close the call was.
+- Apply the script's rule for k, and say how close the call was.
 - Interpret a low silhouette, a stability check and a PCA picture without over-reading them.
 - Run the clustering step and check the agent's account of k.
 
@@ -149,9 +164,11 @@ two moves until they change nothing:
 3. **Move** each centre to the mean of the points assigned to it.
 4. **Repeat** 2 and 3 until nothing changes.
 
-Neither move ever raises the *inertia*, the sum of squared distances from each point to its
-centre. There are only finitely many ways to group the points, so the algorithm always stops. It
-does not always stop at the best answer: a bad start can trap it in a worse grouping. @fig-kmeans-steps shows
+Each pass either lowers the *inertia*, the sum of squared distances from each point to its centre,
+or leaves the grouping unchanged. There are only finitely many groupings, and with ties always
+broken the same way none can repeat, so the loop reaches a pass where nothing changes
+(scikit-learn also stops when the centres move less than a small tolerance). It may stop at a
+local, not the best, grouping, trapped there by a bad start. @fig-kmeans-steps shows
 the algorithm on `{python} len(km["toy"])` synthetic points in three groups, which are toy data made up
 for the illustration, not the water data.
 
@@ -267,19 +284,23 @@ The rule, written into `choose_k()` in the analysis script, has three parts, and
 applies it row by row:
 
 - **k = 2 is excluded.** Two clusters mostly split urban from rural rows, which we knew already:
-  they match the zone for `{python} f"{agree2:.0%}"` of rows (an *adjusted Rand index*, the
-  script's score of agreement beyond chance, where 1 means identical and 0 no better than chance,
-  of `{python} f"{ktab.loc[2, 'ari_vs_zone']:.2f}"`).
+  they match the zone for `{python} f"{agree2:.0%}"` of rows. The script measures this with the
+  *adjusted Rand index* (ARI), which scores how far two groupings agree beyond what chance would
+  give: 1 means identical, 0 no better than chance. Here it is
+  `{python} f"{ktab.loc[2, 'ari_vs_zone']:.2f}"`.
 - **The elbow:** take the smallest k from 3 up after which one more cluster cuts inertia by less than
   `{python} f"{A.ELBOW_DROP:.0%}"`. Here that is k = `{python} k`: a `{python} ORDINAL[k + 1]` cluster cuts
   inertia by only `{python} f"{next_drop:.0%}"`.
 - **The silhouette check:** k's silhouette must be within `{python} A.SILHOUETTE_TOL` of the best for
   k ≥ 3. At k = `{python} k` it is `{python} f"{ktab.loc[k, 'silhouette']:.3f}"`. The check
-  `{python} sil_out_text`.
+  `{python} sil_out_text`, and it compares values within their sampling noise: on
+  `{python} WORD[len(SIL_SEEDS)]` other samples of `{python} w.fmt(A.SILHOUETTE_N)` rows, k =
+  `{python} k`'s silhouette runs from `{python} f"{-min(gaps):.3f}"` below k = `{python} k_best`'s
+  to `{python} f"{max(gaps):.3f}"` above, so it can only catch a clear drop.
 
 ```{python}
 #| label: tbl-k-selection
-#| tbl-cap: "`choose_k()`'s rule, row by row, on the kept rows: how much one more cluster would cut inertia, the silhouette, and the verdict."
+#| tbl-cap: "`choose_k()`'s rule, row by row: how much one more cluster would cut inertia, the silhouette (on the fixed sample) and the verdict."
 #| output: asis
 lines = ["| k | One more cluster cuts | Silhouette | Verdict |", "|--:|--:|--:|---|"]
 for j in ktab.index:
@@ -297,7 +318,7 @@ k = `{python} k_alt` instead. And the `{python} WORD[k]` clusters account for
 that of a single cluster; the rest is difference within the kinds.
 
 Two more checks follow the fit. **Stability**: refits from `{python} len(A.STABILITY_SEEDS)` other
-seeds agree, with an adjusted Rand index of at least `{python} A.floor_to(s["ari_min"])`, so the result
+seeds agree, with an ARI of at least `{python} A.floor_to(s["ari_min"])`, so the result
 does not depend on the start. That says nothing about other data, features or k; refitting on rows
 drawn again at random (a *bootstrap*), or leaving out one year at a time, would test that.
 **Ordering**: clusters are numbered by their centre's IRCA, from lowest to highest, so a re-run keeps the
@@ -315,7 +336,7 @@ judgement call, and do not force a number of clusters to make a nicer story.
 An official reads the report and asks: "So Colombia has `{python} WORD[k]` kinds of municipal zone?"
 What do you answer?
 
-That `{python} WORD[k]` is a useful summary, not a discovery. A written rule chose it by a narrow
+That `{python} WORD[k]` is a useful summary, not a discovery. An explicit rule chose it by a narrow
 margin, and a threshold one percentage point higher picks `{python} WORD[k_alt]`; the low silhouette
 says the kinds overlap. The clusters describe typical combinations of water, services and context,
 and a zone near the edge of one could as well sit in the next.
@@ -503,9 +524,9 @@ In scripts/analysis.py, run k-means on the z_ features for k=2–8 (random_state
 
 ::: practice
 If you build it, your k may differ from `{python} k` when your preparation differs, and that is fine if
-the reason is sound. What matters is that the rule for choosing k is written down before you see the
-answer, and that the clusters are numbered by a fixed rule (here, centre IRCA, which the prompt calls
-centroid IRCA), so a re-run keeps the same numbers and colours.
+the reason is sound. What matters is that the rule for k is explicit, where anyone can rerun it,
+and that clusters are numbered by a fixed rule (here, centre IRCA, the prompt's centroid IRCA), so a
+re-run keeps the same numbers and colours.
 :::
 
 ## The clusters page {#sec-cluster-page}
@@ -530,7 +551,7 @@ open `clusters.html` in your browser
 Take one route, then build the clusters page.
 
 ::: done
-you can say what k is and why, and `clusters.html` shows the elbow, silhouette and PCA picture.
+`outputs/clusters.parquet` exists, the page charts it, and you can explain k.
 :::
 
 ::: catchup
@@ -545,7 +566,7 @@ Grouped
 : `{python} tj_text`.
 
 How firm
-: k = `{python} k` by a written rule and a narrow margin; the kinds overlap.
+: k = `{python} k` by a stated rule and a narrow margin; the kinds overlap.
 
 What may be said
 : which kind each zone-year was grouped with. Not why, and not yet what the kind is.
@@ -556,7 +577,8 @@ What may be said
 ::: keyideas
 - k-means assigns points to the nearest centre and moves centres to their points' mean; it can
   stall, so it keeps the best of many seeded starts.
-- k is chosen by a rule written beforehand: exclude k = 2, take the elbow, let the silhouette veto.
+- k is chosen by an explicit rule in the script that anyone can rerun: exclude k = 2, take the
+  elbow, let the silhouette veto. Its `{python} f"{A.ELBOW_DROP:.0%}"` threshold is a judgement.
 - The elbow is marginal and the silhouette low: the kinds summarise a continuum.
 - Agreement across seeds shows independence from the start, not from the data or features.
 - PCA and the map show where the kinds stand, not why, and the map leaves rural zone-years out.
