@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5ed9e4edf2048b6b9b588fc3d1daa128.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -682,27 +682,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Antes de cualquier modelo, mira los datos. Explorar te dice lo que un modelo va a poder ver y lo que no: qué columnas están casi vacías, qué zonas nunca se miden y si una serie cambia de nivel por razones que no tienen nada que ver con lo que mide. Nada de eso aparece como un error. Un algoritmo de agrupamiento agrupará de buena gana filas que solo se volvieron comparables porque se llenaron sus vacíos, y el gráfico de una serie cuyo método cambió dibujará una tendencia que no existe.</p>
-<p>Los datos del agua tienen dos sorpresas de ese tipo que un gráfico puede mostrar, y varias más que solo se ven de cerca, en un solo lugar. Para esas, este capítulo presenta a Tunja, el municipio que sigue el resto de la parte.</p>
+<p>La tabla le da a Tunja, la capital del departamento colombiano de Boyacá, 9.80 muertes infantiles por cada 1,000 nacidos vivos en 2016, y 5.59 en 2017. Nada en la tabla marca 2017 como distinto: la columna conserva su nombre y sus unidades, y no falta ninguna fila. Dibujada como una línea, es el tipo de caída que un concejo aplaudiría y que cualquier analista reportaría con gusto. ¿Fue un avance? Decide ahora. La respuesta llega más adelante en este capítulo, y no está en los números.</p>
+<p>Preguntas como esta son la razón para mirar los datos antes de cualquier modelo. Una columna casi vacía, una zona que nadie midió y una serie que cambia de método no producen ningún error; aun así, un agrupamiento juntará filas que solo se volvieron comparables al llenar sus vacíos, y un gráfico dibujará una tendencia que no existe.</p>
+<div class="payoff">
+<div class="box-label">
+<strong>Lo que vas a construir</strong>
+</div>
+<div id="fig-water-explore" class="scaled screenshot quarto-float quarto-figure quarto-figure-center anchored" alt="Una página web con el ancho de un teléfono, titulada Explore the municipal water data (Explora los datos municipales del agua). Debajo, la parte de arriba de una tabla con la proporción de filas sin valor, urbanas y rurales, por columna; en la fila de irca, la proporción rural es mucho más alta.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-water-explore-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/figures/water-explore.png" class="scaled screenshot img-fluid figure-img" style="width:50.0%" alt="Una página web con el ancho de un teléfono, titulada Explore the municipal water data (Explora los datos municipales del agua). Debajo, la parte de arriba de una tabla con la proporción de filas sin valor, urbanas y rurales, por columna; en la fila de irca, la proporción rural es mucho más alta.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-water-explore-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;18.1: <code>explore.html</code> con el ancho de un teléfono: el título y la parte de arriba de la tabla de valores faltantes.
+</figcaption>
+</figure>
+</div>
+</div>
 <div class="opener">
 <div class="box-label">
 <strong>En este capítulo</strong>
 </div>
 <ul>
 <li>Hacerle cuatro preguntas a cualquier tabla antes de modelarla.</li>
-<li>Interpretar dónde falta el IRCA, y decidir qué permite afirmar al análisis descartar esas filas.</li>
+<li>Interpretar dónde falta el IRCA, y decidir qué puede afirmar el análisis si descarta esas filas.</li>
 <li>Decidir si un salto en una serie es un avance o un cambio de método.</li>
-<li>Revisar la primera página del agente contra resultados que ya conoces.</li>
+<li>Comparar la primera página del agente con resultados que ya conoces.</li>
 </ul>
 <div class="opener-meta">
-<p><span class="meta-label"><strong>Partes de</strong></span><code>~/water-quality/</code> tal como lo dejó el <a href="08-water-question.html" class="quarto-xref"><span>Capítulo 17</span></a>.</p>
+<p><span class="meta-label"><strong>Punto de partida</strong></span><code>~/water-quality/</code> tal como lo dejó el <a href="08-water-question.html" class="quarto-xref"><span>Capítulo 17</span></a>.</p>
 <p><span class="meta-label"><strong>Construyes</strong></span><code>explore.qmd</code>, renderizado como <code>explore.html</code>.</p>
 <p><span class="meta-label"><strong>Punto de control</strong></span><code>checkpoints/05-water-explore/</code>, que también contiene el trabajo del <a href="08-water-question.html" class="quarto-xref"><span>Capítulo 17</span></a>.</p>
 </div>
 </div>
 <section id="sec-explore-what" class="level2" data-number="18.1">
 <h2 data-number="18.1" class="anchored" data-anchor-id="sec-explore-what"><span class="header-section-number">18.1</span> Para qué sirve explorar</h2>
-<p>Vale la pena responder cuatro preguntas antes de modelar cualquier tabla, y este capítulo se las hace a los datos del agua:</p>
+<p>Hazle cuatro preguntas a cualquier tabla antes de modelarla. Este capítulo se las hace a los datos del agua:</p>
 <ol type="1">
 <li><strong>¿Qué tan grande es?</strong> Filas y columnas, y qué es una fila.</li>
 <li><strong>¿Qué falta, y dónde?</strong> Los faltantes por columna y por grupo (aquí, por zona).</li>
@@ -721,14 +736,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <img src="09-explore_files/figure-html/fig-wat-bands-output-1.svg" class="img-fluid figure-img" alt="Dos barras horizontales apiladas, urbana y rural. La barra urbana es sobre todo IRCA sin riesgo y de riesgo bajo, con una pequeña parte rayada sin datos. Más de la mitad de la barra rural es rayada, sin datos, y la mayor parte del resto está en el nivel de riesgo alto.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wat-bands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figura&nbsp;18.1: Todas las filas, 2010–2023, incluidas San Andrés y las áreas no municipalizadas, por zona: sin IRCA reportado (rayado) y el nivel de riesgo de la Resolución 2115 del resto. IRCA de prestadores, datos abiertos del INS (datos.gov.co nxt2-39c3).
+Figura&nbsp;18.2: Todas las filas, 2010–2023, incluidas San Andrés y las áreas no municipalizadas, por zona: sin IRCA reportado (rayado) y el nivel de riesgo de la Resolución 2115 del resto. IRCA de prestadores, datos abiertos del INS (datos.gov.co nxt2-39c3).
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Lado a lado, la <a href="#fig-wat-bands" class="quarto-xref">Figura&nbsp;<span>18.1</span></a> muestra las 31,416 filas. El 53% de las filas rurales no tiene ningún IRCA, frente al 14% de las urbanas, porque muchos sistemas rurales nunca se muestrean, o no los opera un prestador y por eso quedan fuera de la tabla de prestadores. Entre las filas rurales que sí tienen un valor, el 51% cae en los niveles alto o inviable sanitariamente, frente al 12% de las urbanas. Esas proporciones juntan los catorce años. Solo en 2023, fueron del 28% y del 6%, las cifras con las que empieza el análisis del agua, después de las caídas del IRCA rural que muestra la <a href="#fig-wat-years" class="quarto-xref">Figura&nbsp;<span>18.2</span></a> más abajo.</p>
-<p>Los dos hechos se suman en la peor dirección: las zonas con peores puntajes son también las que menos se puntúan. Los vacíos no son aleatorios. Dependen de la zona, que los datos registran, y quizá del riesgo mismo, que no registran: en estadística, al segundo tipo se le llama <em>faltantes no aleatorios</em>, y ningún relleno puede repararlo. Cualquier análisis que descarte las filas sin IRCA, como debe hacerlo el del análisis del agua, describe solo los sistemas rurales <em>muestreados</em>, y debería decirlo.</p>
+<p>Las barras de la <a href="#fig-wat-bands" class="quarto-xref">Figura&nbsp;<span>18.2</span></a> cubren las 31,416 filas. El 53% de las filas rurales no tiene ningún IRCA, frente al 14% de las urbanas, porque muchos sistemas rurales nunca se muestrean, o no los opera un prestador y por eso quedan fuera de la tabla de prestadores. Entre las filas rurales que sí tienen un valor, el 51% cae en los niveles alto o inviable sanitariamente, frente al 12% de las urbanas. Esas proporciones juntan los catorce años. Solo en 2023, fueron del 28% y del 6%, las cifras con las que empieza el análisis del agua, después de las caídas del IRCA rural que muestra la <a href="#fig-wat-years" class="quarto-xref">Figura&nbsp;<span>18.3</span></a> más abajo.</p>
+<p>Los dos hechos se suman en la peor dirección: las zonas con peores puntajes son también las que menos se puntúan. Los vacíos no son aleatorios. Siguen a la zona, que los datos registran, y quizá al riesgo mismo, que no registran. Los vacíos que explica una columna registrada se pueden tener en cuenta, por ejemplo llenando dentro de cada zona; los que dependen del propio valor no observado son lo que en estadística se llama <em>faltantes no aleatorios</em>, y ningún relleno puede repararlos. Cualquier análisis que descarte las filas sin IRCA, como hace el análisis del agua, describe solo los sistemas rurales <em>muestreados</em>, y debería decirlo.</p>
+<div class="story">
+<div class="box-label">
+<strong>De la bitácora del proyecto</strong>
+</div>
+<!-- source: book/PLAN.md lines 531–532 (§12, item 2), when this file was Chapter 9. -->
+<p>Un primer borrador de este capítulo llamó a los vacíos rurales “faltantes aleatorios” (<em>missing at random</em>). Una revisión lo detectó. En el sentido de la estadística, eso dice que las columnas registradas explican qué valores faltan; aquí el riesgo mismo puede decidir qué sistemas se puntúan, y ninguna columna lo registra. Un término técnico es una afirmación sobre los datos: contrástalo con las filas, como harías con un número.</p>
+</div>
 <div class="think">
 <div class="box-label">
 <strong>Detente y piensa</strong>
@@ -751,19 +773,24 @@ Figura&nbsp;18.1: Todas las filas, 2010–2023, incluidas San Andrés y las áre
 <img src="09-explore_files/figure-html/fig-wat-years-output-1.svg" class="img-fluid figure-img" alt="Dos líneas a lo largo de los años 2010 a 2023. La mediana urbana es baja y desciende suavemente, del nivel de riesgo bajo en los primeros años a menos de 5 desde mediados de la década. La mediana rural es mucho más alta y casi plana hasta 2015, luego cae bruscamente en 2016 y otra vez en 2020, y termina en el nivel de riesgo bajo.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wat-years-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figura&nbsp;18.2: Mediana del IRCA de prestadores por año y zona, 2010–2023, sobre las filas que lo reportan.
+Figura&nbsp;18.3: Mediana del IRCA de prestadores por año y zona, 2010–2023, sobre las filas que lo reportan.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>La cuarta pregunta importa, como muestra la <a href="#fig-wat-years" class="quarto-xref">Figura&nbsp;<span>18.2</span></a>. La mediana rural cae bruscamente en 2016 y otra vez en 2020. Eso podría ser una mejora del agua rural, o un cambio en qué sistemas se muestrearon; el README de los datos advierte que la caída de 2020 puede reflejar el muestreo, y los datos abiertos no pueden distinguir lo uno de lo otro. Un análisis que compara años no debería leer la caída como un avance sin evidencia de fuera de la tabla.</p>
+<p>La cuarta pregunta también importa. La mediana rural cae bruscamente en 2016 y otra vez en 2020 (<a href="#fig-wat-years" class="quarto-xref">Figura&nbsp;<span>18.3</span></a>). Eso podría ser una mejora del agua rural, o un cambio en qué sistemas se muestrearon: el README de los datos advierte que la caída de 2020 puede reflejar el muestreo, y los datos abiertos no pueden distinguir lo uno de lo otro. No la leas como un avance sin evidencia de fuera de la tabla.</p>
 <p>La mediana rural también termina muy por debajo de la cifra rural nacional de la <a href="08-water-question.html#tbl-irca-bands" class="quarto-xref">Tabla&nbsp;<span>17.1</span></a>: 13.4 en 2023, en el nivel bajo, frente al 36.5 del INCA. Dos cosas explican la brecha. La tabla contiene solo sistemas operados por prestadores (<a href="08-water-question.html#sec-water-why" class="quarto-xref"><span>Sección 17.2</span></a>), y la mediana de las zonas es la zona del medio, a la que las peores zonas no arrastran hacia arriba, y que no está ponderada por cuánta gente bebe esa agua.</p>
 </section>
 <section id="sec-tunja" class="level2" data-number="18.3">
 <h2 data-number="18.3" class="anchored" data-anchor-id="sec-tunja"><span class="header-section-number">18.3</span> Un municipio para seguir: Tunja</h2>
-<p>Los agregados esconden los detalles que hacen que una variable sea confiable o no, así que de aquí en adelante esta parte sigue a un municipio a lo largo de cada paso. Tunja, la capital del departamento de Boyacá, es un buen caso por tres razones que están en sus filas. Como capital de departamento, carga con la advertencia sobre la cobertura que tienen todas las capitales. A diferencia de la mayoría de los municipios, tiene un IRCA para las dos zonas en todos los años: solo 117 de los 1,103 municipios tienen uno para su zona rural en los catorce años, así que el análisis nunca va a perder a Tunja por falta de un puntaje. Y sus dos zonas difieren: su agua rural puntuó en el nivel de riesgo alto todos los años de 2010 a 2014, mientras que su agua urbana nunca puntuó por encima de 11.9.</p>
-<p>Tunja tiene 28 filas, dos zonas a lo largo de catorce años. Las variables de zona, como el IRCA, difieren entre sus dos filas de un año; las municipales, como la precipitación y la mortalidad infantil, se repiten en las dos (<a href="08-water-question.html#tbl-water-features" class="quarto-xref">Tabla&nbsp;<span>17.2</span></a>), así que el explorador y cada resumen las cuentan una vez. Mirar las filas una variable a la vez muestra varias de las advertencias del README en un solo lugar (<a href="#fig-tunja" class="quarto-xref">Figura&nbsp;<span>18.3</span></a>).</p>
+<p>Los agregados esconden los detalles que hacen que una variable sea confiable o no, así que de aquí en adelante esta parte sigue a un municipio a lo largo de cada paso. Tunja es un buen caso por tres razones que están en sus filas:</p>
+<ol type="1">
+<li>Como capital de departamento, carga con la advertencia sobre la cobertura que tienen todas las capitales.</li>
+<li>A diferencia de la mayoría de los municipios, tiene un IRCA para las dos zonas en todos los años: solo 117 de los 1,103 municipios tienen uno para su zona rural en los catorce años, así que el análisis nunca va a perder a Tunja por falta de un puntaje.</li>
+<li>Sus dos zonas difieren: su agua rural puntuó en el nivel de riesgo alto todos los años de 2010 a 2014, mientras que su agua urbana nunca puntuó por encima de 11.9.</li>
+</ol>
+<p>Las variables de zona, como el IRCA, difieren entre las dos filas de Tunja de un año; las municipales, como la precipitación y la mortalidad infantil, se repiten en las dos (<a href="08-water-question.html#sec-water-features" class="quarto-xref"><span>Sección 17.4</span></a>), así que el explorador y cada resumen las cuentan una vez. Variable por variable, sus filas muestran varias de las advertencias del README en un solo lugar (<a href="#fig-tunja" class="quarto-xref">Figura&nbsp;<span>18.4</span></a>).</p>
 <div id="fig-tunja" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-tunja-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -771,7 +798,7 @@ Figura&nbsp;18.2: Mediana del IRCA de prestadores por año y zona, 2010–2023, 
 <script src="../assets/tunja-explorer.js"></script>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-tunja-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figura&nbsp;18.3: Las 28 filas de Tunja, a partir de <code>water_municipal.csv</code>. Elige una vista (los datos, un resumen, una distribución, una serie de tiempo o un diagrama de dispersión), luego una variable y una zona. Las variables que repiten el mismo valor en las filas de las dos zonas son municipales y se cuentan una vez. Algunas palabras del explorador están en inglés.
+Figura&nbsp;18.4: Las 28 filas de Tunja, a partir de <code>water_municipal.csv</code>. Elige una vista (los datos, un resumen, una distribución, una serie de tiempo o un diagrama de dispersión), luego una variable y una zona. Las variables que repiten el mismo valor en las filas de las dos zonas son municipales y se cuentan una vez. Algunas palabras del explorador están en inglés.
 </figcaption>
 </figure>
 </div>
@@ -780,59 +807,52 @@ Figura&nbsp;18.3: Las 28 filas de Tunja, a partir de <code>water_municipal.csv</
 <strong>Detente y piensa</strong>
 </div>
 <div class="think-question">
-<p>La mortalidad infantil de Tunja cae en 2017. ¿Es un avance?</p>
+<p>El capítulo empezó con la mortalidad infantil de Tunja, que cae en 2017. Mira la serie completa en la <a href="#fig-tunja" class="quarto-xref">Figura&nbsp;<span>18.4</span></a>: ¿qué más cambia ese año, y es la caída un avance?</p>
 </div>
 <div class="think-answer">
 <div class="think-answer-label">
 <strong>Respuesta</strong>
 </div>
-<p>No con esta evidencia. La serie cambia de método ese año, de lo que parecen estimaciones modeladas a tasas observadas (el README de los datos, advertencia 8), así que la caída puede ser el cambio mismo, y la tabla no puede decirlo. Una serie así solo se compara dentro de un mismo método.</p>
+<p>No con esta evidencia. Antes de 2017 la línea baja de forma pareja; desde 2017 salta de un año a otro. Ahí la serie cambia de método, de lo que parecen estimaciones modeladas a tasas observadas (el README de los datos, advertencia 8), y 2020 parece venir de otra fuente más. La caída puede ser el cambio mismo, y la tabla no puede decirlo. Una serie así solo se compara dentro de un mismo método, como hace el análisis: 2017–2019 y 2021–2023.</p>
 </div>
 </div>
-<p>Vale la pena encontrar cinco cosas (<a href="#tbl-tunja-caveats" class="quarto-xref">Tabla&nbsp;<span>18.1</span></a>). Como Tunja es capital de departamento, su cobertura no tiene separación urbana y rural, así que el explorador usa el total del municipio. Ese total se reporta exactamente como 0 en 2021, lo que, al lado de sus años vecinos, probablemente significa “no reportado” más que “sin servicio”; esos puntos se dibujan huecos. El índice fiscal <code>idf</code> termina en 2020 y <code>idf_new</code> empieza ahí, en otra escala, así que los dos nunca deben unirse en una sola línea.</p>
+<p>Vale la pena encontrar cinco cosas en las filas de Tunja (<a href="#tbl-tunja-caveats" class="quarto-xref">Tabla&nbsp;<span>18.1</span></a>). Dos se ven en la <a href="#fig-tunja" class="quarto-xref">Figura&nbsp;<span>18.4</span></a>: los puntos huecos marcan una cobertura reportada como 0, que al lado de sus años vecinos probablemente significa “no reportado” más que “sin servicio”, y la mortalidad infantil cambia de método en 2017, el cambio por el que preguntaba el comienzo. Otras dos vienen de cómo se construyen los datos: una capital de departamento como Tunja tiene su cobertura solo como total municipal, sin separación urbana y rural, y el índice municipal de desempeño fiscal cambia de escala en 2020, de <code>idf</code> a <code>idf_new</code>.</p>
 <div id="tbl-tunja-caveats" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-tunja-caveats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;18.1: Cinco advertencias de <code>data/README.md</code>, tal como aparecen en las filas de Tunja, y lo que hace el análisis con cada una.
+Tabla&nbsp;18.1: Cinco advertencias de <code>data/README.md</code> en las filas de Tunja, y lo que hace el análisis.
 </figcaption>
 <div aria-describedby="tbl-tunja-caveats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
+<col style="width: 50%">
+<col style="width: 50%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Advertencia</th>
-<th>En las filas de Tunja</th>
-<th>El análisis</th>
+<th>Advertencia, en Tunja</th>
+<th>Lo que hace el análisis</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Sin separación por zona para la cobertura de las capitales</td>
-<td>solo el total municipal</td>
+<td><strong>Cobertura</strong>: solo el total municipal</td>
 <td>lo usa para llenar, marcado (<a href="10-prepare.html#sec-prepare-steps" class="quarto-xref"><span>Sección 19.1</span></a>)</td>
 </tr>
 <tr class="even">
-<td>Un 0 puede significar “no reportado”</td>
-<td>cobertura 0 en 2021</td>
-<td>lo conserva (<a href="10-prepare.html#sec-prepare-counts" class="quarto-xref"><span>Sección 19.2</span></a>)</td>
+<td><strong>Cobertura de 0</strong> en 2021: ¿“no reportado”?</td>
+<td>la conserva (<a href="10-prepare.html#sec-prepare-counts" class="quarto-xref"><span>Sección 19.2</span></a>)</td>
 </tr>
 <tr class="odd">
-<td>Dos índices fiscales</td>
-<td><code>idf</code> termina en 2020, empieza <code>idf_new</code></td>
-<td>no usa ninguno (<a href="08-water-question.html#sec-water-features" class="quarto-xref"><span>Sección 17.5</span></a>)</td>
+<td><strong>Índice fiscal</strong>: <code>idf</code> termina en 2020; <code>idf_new</code> está en otra escala</td>
+<td>no usa ninguno (<a href="08-water-question.html#sec-water-features" class="quarto-xref"><span>Sección 17.4</span></a>)</td>
 </tr>
 <tr class="even">
-<td>El método nuevo de la mortalidad infantil</td>
-<td>una caída en 2017</td>
+<td><strong>Mortalidad infantil</strong>: un método nuevo desde 2017</td>
 <td>solo 2017–2019 y 2021–2023 (<a href="12-interpret.html#sec-outcomes" class="quarto-xref"><span>Sección 21.4</span></a>)</td>
 </tr>
 <tr class="odd">
-<td>Saber 11 en algunos años</td>
-<td>2014–2017, 2019, 2020 y 2022</td>
+<td><strong>Saber 11</strong>: 2014–2017, 2019, 2020 y 2022</td>
 <td>solo los años publicados (<a href="12-interpret.html#sec-outcomes" class="quarto-xref"><span>Sección 21.4</span></a>)</td>
 </tr>
 </tbody>
@@ -861,7 +881,7 @@ Tabla&nbsp;18.1: Cinco advertencias de <code>data/README.md</code>, tal como apa
 <div class="box-label">
 <strong>Pídele a tu agente</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Lee data/README.md. Crea explore.qmd a partir de data/water_municipal.csv (divipola como texto): filas y columnas, % de faltantes por columna según `zone`, conteos del IRCA por nivel de la Resolución 2115 y `zone`, y la mediana del IRCA por `year` y `zone`, con la etiqueta IRCA de prestadores (utility-supplied, prestadores). Renderízalo; informa los errores.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Lee data/README.md. Crea explore.qmd a partir de data/water_municipal.csv (divipola como texto): filas y columnas, % de faltantes por columna según `zone`, conteos del IRCA por nivel de la Resolución 2115 y `zone`, y la mediana del IRCA por `year` y `zone`, con la etiqueta «IRCA de prestadores» (utility-supplied). Renderízalo; informa los errores.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="agent" data-boxed="true">
 <div class="box-label">
@@ -887,7 +907,7 @@ Tabla&nbsp;18.1: Cinco advertencias de <code>data/README.md</code>, tal como apa
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Revisa la tabla de faltantes antes de confiar en la página. <code>irca</code> debería faltar en más o menos el 53% de las filas rurales y el 14% de las urbanas. Si no está mucho más vacía en las filas rurales que en las urbanas, probablemente el agente contó la columna equivocada, o contó filas en lugar de valores. Ahora sabes la respuesta que debería dar la tabla (<a href="#fig-wat-bands" class="quarto-xref">Figura&nbsp;<span>18.1</span></a>), que es exactamente lo que hace posible la revisión.</p>
+<p>Revisa la tabla de faltantes antes de confiar en la página. <code>irca</code> debería faltar en más o menos el 53% de las filas rurales y el 14% de las urbanas. Si no está mucho más vacía en las filas rurales que en las urbanas, probablemente el agente contó la columna equivocada, o calculó las proporciones sobre todas las filas y no dentro de cada zona. Ahora sabes la respuesta que debería dar la tabla (<a href="#fig-wat-bands" class="quarto-xref">Figura&nbsp;<span>18.2</span></a>), que es justo lo que hace posible la revisión.</p>
 </div>
 </div>
 <div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
@@ -902,22 +922,50 @@ Tabla&nbsp;18.1: Cinco advertencias de <code>data/README.md</code>, tal como apa
 <div class="callout-body-container callout-body">
 <p>Ejecuta el prompt y lee la página.</p>
 <div class="done">
-<p><strong>Terminaste cuando</strong> <code>explore.html</code> muestra las filas y las columnas, los valores faltantes por zona, y el IRCA por nivel, zona y año para 2010–2023.</p>
+<p><strong>Has terminado si</strong> <code>explore.html</code> muestra las filas y las columnas, los valores faltantes por zona, y el IRCA por nivel, zona y año.</p>
 </div>
 <div class="catchup">
-<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu agente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu agente, que respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/05-water-explore/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
-<p>Este recuadro para ponerte al día también cubre el <a href="08-water-question.html" class="quarto-xref"><span>Capítulo 17</span></a>: restaura las reglas y el entorno además de <code>explore.qmd</code>, y copia <code>data/</code> si falta, porque los puntos de control del agua solo contienen fuentes.</p>
+<div class="cards ledger">
+<div class="box-label">
+<strong>Tunja hasta aquí</strong>
+</div>
+<div class="card">
+<div class="card-term">
+Filas
+</div>
+28, de dos zonas a lo largo de catorce años, con un IRCA en cada una.
+</div>
+<div class="card">
+<div class="card-term">
+Agua
+</div>
+la rural, en el nivel de riesgo alto hasta 2014; la urbana, nunca por encima de 11.9.
+</div>
+<div class="card">
+<div class="card-term">
+No tomar al pie de la letra
+</div>
+la cobertura reportada como 0 en 2021; la mortalidad infantil antes y después de 2017.
+</div>
+<div class="card">
+<div class="card-term">
+Lo que se puede decir
+</div>
+lo que se midió, zona por zona y año por año. Nada todavía sobre qué lugares se parecen, ni sobre causas.
+</div>
+</div>
 </section>
 <section id="resumen" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="resumen">Resumen</h2>
 <div class="keyideas">
 <ul>
 <li>Antes de modelar, pregúntale a una tabla su tamaño, qué falta y dónde, cómo se distribuyen los valores clave y cómo se mueven en el tiempo.</li>
-<li>Las filas rurales casi no tienen IRCA y, donde lo tienen, son más riesgosas, así que los resultados describen solo los sistemas muestreados.</li>
+<li>A la mayoría de las filas rurales les falta el IRCA y, donde lo tienen, su agua puntúa peor: los resultados describen solo los sistemas muestreados.</li>
 <li>Los vacíos pueden depender del riesgo mismo, así que llenarlos inventaría una calidad del agua que nadie midió.</li>
 <li>Un salto en una serie puede ser un cambio de método o de muestreo, que la tabla no puede distinguir de un cambio real.</li>
 <li>Mantén separadas las zonas, cuenta una vez las variables municipales y lee los códigos como texto.</li>

@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5ed9e4edf2048b6b9b588fc3d1daa128.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -686,8 +686,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Ya usas una terminal y Git, y tienes un repositorio lleno de trabajo que termina, de una forma u otra, en documentos: un notebook, un script que escribe un archivo de resultados, un conjunto de pruebas. Este capítulo agrega Quarto a un repositorio así y lo lleva, en menos de una hora, a un informe en HTML, Word y PDF en el que cada número se calcula a partir de los resultados del propio repositorio, con una guarda que detiene la construcción cuando una oración deja de ser cierta, y revisado como pull request. Está escrito para quienes trabajan como analistas, en ciencia de datos o en ingeniería de ML o de investigación, y para quienes fundan una empresa con perfil técnico. Si la terminal o Git son nuevos para ti, toma la otra ruta, los capítulos 4 y 5 (<a href="03-setup.html" class="quarto-xref"><span>Capítulo 4</span></a> y <a href="first-report.html" class="quarto-xref"><span>Capítulo 5</span></a>), y vuelve a este capítulo después: da por sabido lo que ellos enseñan.</p>
-<p>El repositorio es pequeño y realista: Acme Signals, una startup ficticia de dos personas, evalúa las versiones de un modelo que ordena los contactos de marketing de un banco según la probabilidad de que cada uno se suscriba, con datos públicos reales. La Parte III construye el resto de sus publicaciones a partir de los mismos resultados. Cada paso funciona igual en un repositorio propio, y la última sección dice qué cambiar.</p>
+<p>En algún lugar de un repositorio en el que trabajas, una oración enuncia un resultado: en un README, en una diapositiva, en un mensaje a un cliente. Abajo hay una oración así sobre el repositorio de este capítulo, y debajo, lo que calculó el propio script del repositorio. No coinciden. Nadie mintió; una oración como esta se escribe una vez, después de una ejecución, y los resultados cambian sin ella. Al final de este capítulo el repositorio tiene un informe en HTML, Word y PDF que no puede hacer eso: cada número que contiene se lee de los resultados, y una guarda detiene el renderizado cuando una oración deja de ser cierta.</p>
+<blockquote class="blockquote">
+<p>v3 es la mejor, con un ROC AUC de 0.772.</p>
+</blockquote>
+<p>Esto es lo que escribió el script, cada versión con su ROC AUC, tal como lo imprime <code>grep roc_auc outputs/metrics.csv | cut -d, -f1,3,4</code>:</p>
+<div class="transcript">
+<pre class="text"><code>v1,roc_auc,0.654131
+v2,roc_auc,0.771529
+v3,roc_auc,0.799267</code></pre>
+</div>
+<div class="payoff">
+<div class="box-label">
+<strong>Lo que vas a construir</strong>
+</div>
+<div id="fig-fast-report" class="scaled screenshot quarto-float quarto-figure quarto-figure-center anchored" alt="Una página web en inglés, con el ancho de un teléfono. Arriba, el título del informe, Evaluation of the contact-ranking model, v1 to v3 (evaluación del modelo que ordena los contactos, de v1 a v3), y su subtítulo, Acme Signals (a fictional company), on the UCI Bank Marketing data (Acme Signals, una empresa ficticia, con los datos Bank Marketing de UCI). Debajo, la fecha de publicación y el primer párrafo del informe, que nombra la mejor versión, da su ROC AUC sobre los contactos reservados para la prueba, con su intervalo, y dice qué proporción de quienes se suscriben se alcanza llamando a los primeros de su lista.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-fast-report-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/figures/eval-report.png" class="scaled screenshot img-fluid figure-img" style="width:85.0%" alt="Una página web en inglés, con el ancho de un teléfono. Arriba, el título del informe, Evaluation of the contact-ranking model, v1 to v3 (evaluación del modelo que ordena los contactos, de v1 a v3), y su subtítulo, Acme Signals (a fictional company), on the UCI Bank Marketing data (Acme Signals, una empresa ficticia, con los datos Bank Marketing de UCI). Debajo, la fecha de publicación y el primer párrafo del informe, que nombra la mejor versión, da su ROC AUC sobre los contactos reservados para la prueba, con su intervalo, y dice qué proporción de quienes se suscriben se alcanza llamando a los primeros de su lista.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fast-report-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;3.1: El informe que construye este capítulo, con el ancho de un teléfono. Renderizado a partir de <code>checkpoints/14-eval-start/report.qmd</code>.
+</figcaption>
+</figure>
+</div>
+</div>
+<p>El repositorio es pequeño y realista: Acme Signals, una startup ficticia de dos personas, evalúa las versiones de un modelo que ordena los contactos de marketing de un banco según la probabilidad de que cada uno se suscriba, con datos públicos reales, y quienes la fundaron tienen que decidir qué versión usará el centro de llamadas del banco. La Parte III construye el resto de sus publicaciones a partir de los mismos resultados. Cada paso funciona igual en un repositorio propio, y la última sección dice qué cambiar.</p>
 <div class="opener">
 <div class="box-label">
 <strong>En este capítulo</strong>
@@ -699,14 +723,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Proteger con una guarda una oración cuyas palabras dependen de los resultados, y revisar el cambio como pull request y desde un clon nuevo.</li>
 </ul>
 <div class="opener-meta">
-<p><span class="meta-label"><strong>Partes de</strong></span>Git y una terminal en los que te mueves con soltura, un agente de programación (<a href="02-assistant.html" class="quarto-xref"><span>Capítulo 2</span></a>) y el repositorio del taller clonado en <code>~/quarto-workshop</code>.</p>
+<p><span class="meta-label"><strong>Punto de partida</strong></span>Git y una terminal en los que te mueves con soltura, un agente de programación (<a href="02-assistant.html" class="quarto-xref"><span>Capítulo 2</span></a>) y el repositorio del taller clonado en <code>~/quarto-workshop</code>.</p>
 <p><span class="meta-label"><strong>Construyes</strong></span><code>~/acme-eval</code>: el repositorio con <code>AGENTS.md</code>, un informe en HTML, Word y PDF, una guarda y una rama revisada como pull request.</p>
 <p><span class="meta-label"><strong>Punto de control</strong></span><code>checkpoints/14-eval-start/</code></p>
 </div>
 </div>
 <section id="sec-fast-route" class="level2" data-number="3.1">
 <h2 data-number="3.1" class="anchored" data-anchor-id="sec-fast-route"><span class="header-section-number">3.1</span> ¿Es esta tu ruta?</h2>
-<p>Toma la vía rápida si todo esto es rutina para ti: moverte entre carpetas y leer un error en una terminal; <code>git status</code>, <code>git diff</code>, ramas y commits; instalar un programa de línea de comandos. Entonces necesitas cuatro herramientas, en las versiones de abajo, y un agente.</p>
+<p>Toma la vía rápida si todo esto es rutina para ti: moverte entre carpetas y leer un error en una terminal; <code>git status</code>, <code>git diff</code>, ramas y commits; instalar un programa de línea de comandos. Si algo de esto es nuevo, toma la otra ruta, el <a href="03-setup.html" class="quarto-xref"><span>Capítulo 4</span></a> y el <a href="first-report.html" class="quarto-xref"><span>Capítulo 5</span></a>, y vuelve después: este capítulo da por sabido lo que ellos enseñan. Si todo es rutina, necesitas cuatro herramientas, en las versiones de abajo, y un agente.</p>
 <div id="tbl-fast-tools" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-fast-tools-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -735,7 +759,7 @@ Tabla&nbsp;3.1: Lo que necesita la vía rápida.
 <tr class="even">
 <td>uv</td>
 <td><code>uv --version</code></td>
-<td>gestiona el Python y los paquetes de cada proyecto (<a href="04-markdown.html#sec-environments" class="quarto-xref"><span>Sección 6.10</span></a>)</td>
+<td>gestiona el Python y los paquetes de cada proyecto (<a href="04-markdown.html#sec-environments" class="quarto-xref"><span>Sección 6.11</span></a>)</td>
 </tr>
 <tr class="odd">
 <td>Quarto</td>
@@ -753,7 +777,7 @@ Tabla&nbsp;3.1: Lo que necesita la vía rápida.
 </figure>
 </div>
 <p>Si falta alguna, el agente la instala con el prompt de la <a href="03-setup.html#sec-step-tools" class="quarto-xref"><span>Sección 4.5</span></a>, y la <a href="03-setup.html#sec-step-assistant" class="quarto-xref"><span>Sección 4.4</span></a> instala el propio agente. Luego clona el repositorio del taller, que contiene el punto de partida, si todavía no lo hiciste:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/project-delphi/quarto-workshop.git ~/quarto-workshop</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/project-delphi/quarto-workshop.git ~/quarto-workshop</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="sec-fast-repo" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="sec-fast-repo"><span class="header-section-number">3.2</span> El repositorio</h2>
@@ -763,11 +787,11 @@ Tabla&nbsp;3.1: Lo que necesita la vía rápida.
 <div class="box-label">
 <strong>Tú haces</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-R</span> ~/quarto-workshop/starters/eval-repo ~/acme-eval</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~/acme-eval</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> init <span class="at">-b</span> main</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add .</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Evaluation repo, as copied"</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-R</span> ~/quarto-workshop/starters/eval-repo ~/acme-eval</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~/acme-eval</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> init <span class="at">-b</span> main</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add .</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Evaluation repo, as copied"</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 <p>Es un proyecto de Python como muchos en la práctica, con diecinueve archivos y ni rastro de Quarto:</p>
@@ -791,58 +815,55 @@ Tabla&nbsp;3.2: El repositorio de partida.
 <tbody>
 <tr class="odd">
 <td><code>data/</code></td>
-<td>la tabla Bank Marketing de UCI, real y sin cambios, con su README y su licencia; un archivo pequeño de cifras de negocio marcado SYNTHETIC</td>
+<td>la tabla real Bank Marketing de UCI, y un archivo SYNTHETIC</td>
 </tr>
 <tr class="even">
 <td><code>releases.yml</code></td>
-<td>las tres versiones del modelo, v1, v2, v3</td>
+<td>las versiones, v1, v2, v3</td>
 </tr>
 <tr class="odd">
 <td><code>src/acme_eval/</code></td>
-<td>la carga de los datos, los modelos y las métricas, como un paquete</td>
+<td>el paquete: carga, modelos, métricas</td>
 </tr>
 <tr class="even">
 <td><code>scripts/evaluate.py</code></td>
-<td>ajusta cada versión una sola vez y escribe todos los resultados en <code>outputs/</code></td>
+<td>ajusta cada versión; escribe <code>outputs/</code></td>
 </tr>
 <tr class="odd">
 <td><code>tests/</code></td>
-<td>cuatro archivos de pytest: la suma de verificación de los datos, que no haya fuga de información (leakage), las métricas, las salidas</td>
+<td>cuatro archivos de pytest</td>
 </tr>
 <tr class="even">
-<td><code>notebooks/explore.ipynb</code></td>
-<td>un notebook exploratorio, guardado sin salidas</td>
-</tr>
-<tr class="odd">
-<td><code>pyproject.toml</code>, <code>uv.lock</code></td>
-<td>el entorno, fijado</td>
+<td><code>notebooks/</code></td>
+<td><code>explore.ipynb</code>, guardado sin salidas</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Ejecuta una vez sus propias comprobaciones, como lo harías con la rama de un colega, para conocer la línea base:</p>
+<p><code>pyproject.toml</code> y <code>uv.lock</code> fijan su entorno, y las pruebas comprueban la suma de verificación de los datos, la fuga de información (leakage), las métricas y las salidas.</p>
+<p>Ejecuta una vez sus propias comprobaciones, como lo harías con la rama de alguien de tu equipo, para conocer la línea base:</p>
 <div class="agent-box">
 <div class="you" data-boxed="true">
 <div class="box-label">
 <strong>Tú haces</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python scripts/evaluate.py</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest <span class="at">-q</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python scripts/evaluate.py</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest <span class="at">-q</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>El primer comando construye <code>.venv/</code> a partir de <code>uv.lock</code>, ajusta las versiones y escribe <code>outputs/</code>; el segundo ejecuta las pruebas. Ninguno de los dos sabe nada de documentos, y nada en este capítulo cambia cómo se ejecutan. Ese es el diseño que hay que conservar: <strong>un script calcula los resultados una sola vez; todos los documentos los leen.</strong> Así los documentos se pueden reconstruir, cambiar de formato y revisar sin volver a ajustar nunca un modelo, y quien revisa puede confiar en que el informe y la ficha del modelo (model card) citan la misma ejecución.</p>
+<p>El primer comando construye <code>.venv/</code> a partir de <code>uv.lock</code>, ajusta las versiones y escribe <code>outputs/</code>; el segundo ejecuta las pruebas. Ninguno de los dos sabe nada de documentos, y nada en este capítulo cambia cómo se ejecutan. Ese es el diseño que hay que conservar: <strong>un script calcula los resultados una sola vez; todos los documentos los leen</strong>, así que los documentos se pueden reconstruir y revisar sin volver a ajustar un modelo, y el informe y la ficha del modelo (model card) citan la misma ejecución.</p>
 </section>
 <section id="sec-fast-rules" class="level2" data-number="3.3">
 <h2 data-number="3.3" class="anchored" data-anchor-id="sec-fast-rules"><span class="header-section-number">3.3</span> Reglas antes que pedidos</h2>
-<p>Inicia el agente en el repositorio (<code>claude</code>, <code>codex</code>, <code>agy</code> u <code>opencode</code>) y dale las reglas del proyecto antes de cualquier trabajo. El prompt nombra lo que contiene un archivo de reglas, como el de la <a href="02-assistant.html#sec-agents-md" class="quarto-xref"><span>Sección 2.5</span></a>, y le pide al agente que lea primero el código, para que las reglas se ajusten a este repositorio y no a uno genérico:</p>
+<p>Inicia el agente en el repositorio (<code>claude</code>, <code>codex</code>, <code>agy</code> u <code>opencode</code>) y dale las reglas del proyecto antes de cualquier trabajo. El prompt nombra lo que contiene un archivo de reglas (<a href="02-assistant.html#sec-agents-md" class="quarto-xref"><span>Sección 2.5</span></a>) y le pide al agente que lea primero el código, para que las reglas se ajusten a este repositorio:</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
 <div class="box-label">
 <strong>Pídele a tu agente</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Lee README.md, pyproject.toml, scripts/evaluate.py y tests/, y luego escribe AGENTS.md, en inglés, para este repositorio: su alcance (di que la empresa es ficticia); reglas (data/ es de solo lectura; los documentos leen outputs/ y nunca ajustan un modelo; cada número de un documento sale de outputs/ mediante código, nunca escrito a mano; ejecuta python, pytest y quarto con `uv run`; nunca hagas commit de outputs/ ni de los archivos renderizados); y los comandos para evaluar, probar y renderizar. Muéstrame el archivo.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Lee README.md, pyproject.toml, scripts/evaluate.py y tests/, y escribe AGENTS.md, en inglés, para este repositorio: su alcance (di que la empresa es ficticia); reglas (data/ es de solo lectura; los documentos leen outputs/ y nunca ajustan un modelo; cada número de un documento sale de outputs/ por código, nunca a mano; ejecuta python, pytest y quarto con `uv run`; no hagas commit de outputs/ ni de lo renderizado); y los comandos para evaluar, probar y renderizar. Muéstrame el archivo.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="agent" data-boxed="true">
 <div class="box-label">
@@ -857,9 +878,9 @@ Tabla&nbsp;3.2: El repositorio de partida.
 <div class="box-label">
 <strong>Tú haces</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">-c</span> add-report</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add AGENTS.md</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Write the project's rules for agents"</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">-c</span> add-report</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add AGENTS.md</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Write the project's rules for agents"</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </section>
@@ -871,7 +892,7 @@ Tabla&nbsp;3.2: El repositorio de partida.
 <div class="box-label">
 <strong>Pídele a tu agente</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Ejecuta `uv add ipykernel nbclient nbformat` y luego renderiza notebooks/explore.ipynb a HTML con `uv run quarto render notebooks/explore.ipynb --execute`. Dime dónde quedó el HTML y qué muestra `git status`.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Ejecuta `uv add ipykernel nbclient nbformat` y luego renderiza notebooks/explore.ipynb a HTML con `uv run quarto render notebooks/explore.ipynb --execute`. Dime dónde quedó el HTML y qué muestra `git status`.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="agent" data-boxed="true">
 <div class="box-label">
@@ -880,7 +901,7 @@ Tabla&nbsp;3.2: El repositorio de partida.
 <p><code>uv add …</code> · <code>uv run quarto render notebooks/explore.ipynb --execute</code></p>
 </div>
 </div>
-<p>Los tres paquetes son lo que Quarto necesita para ejecutar código de Python: un kernel y las bibliotecas que manejan un notebook. <code>--execute</code> importa. Un notebook se renderiza <strong>tal como se guardó</strong>: sin la opción, Quarto muestra las salidas guardadas en el archivo, o ninguna, y no ejecuta nada. Con ella, Quarto ejecuta primero cada celda y, como parte del vocabulario que hay que conocer, <em>escribe las salidas nuevas de vuelta en el notebook</em>.</p>
+<p>Los tres paquetes son lo que Quarto necesita para ejecutar código de Python: un kernel y las bibliotecas que manejan un notebook. <code>--execute</code> importa. Un notebook se renderiza <strong>tal como se guardó</strong>: sin la opción, Quarto muestra las salidas guardadas en el archivo, o ninguna, y no ejecuta nada. Con ella, Quarto ejecuta primero cada celda y (conviene saberlo) <em>escribe las salidas nuevas de vuelta en el notebook</em>.</p>
 <div class="think">
 <div class="box-label">
 <strong>Detente y piensa</strong>
@@ -892,7 +913,7 @@ Tabla&nbsp;3.2: El repositorio de partida.
 <div class="think-answer-label">
 <strong>Respuesta</strong>
 </div>
-<p><code>--execute</code> guardó en el notebook las salidas que calculó: en la prueba, varios cientos de líneas cambiadas. Conservarlas o no es una decisión del equipo, así que tómala a propósito. Este repositorio guarda sus notebooks sin salidas, así que deshaz ese cambio y haz commit solo de los dos archivos que registran los paquetes nuevos.</p>
+<p><code>--execute</code> guardó en el notebook las salidas que calculó. Conservarlas o no es una decisión del equipo, así que tómala a propósito. Este repositorio guarda sus notebooks sin salidas, así que deshaz ese cambio y haz commit solo de los dos archivos que registran los paquetes nuevos.</p>
 </div>
 </div>
 <div class="agent-box">
@@ -900,9 +921,9 @@ Tabla&nbsp;3.2: El repositorio de partida.
 <div class="box-label">
 <strong>Tú haces</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> restore notebooks/explore.ipynb</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add pyproject.toml uv.lock</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Add the packages Quarto needs to run Python"</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> restore notebooks/explore.ipynb</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add pyproject.toml uv.lock</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Add the packages Quarto needs to run Python"</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 <p>El HTML quedó al lado del notebook, <code>notebooks/explore.html</code>, con una carpeta de archivos propios; <code>.gitignore</code> deja afuera los dos.</p>
@@ -910,13 +931,13 @@ Tabla&nbsp;3.2: El repositorio de partida.
 </section>
 <section id="sec-fast-report" class="level2" data-number="3.5">
 <h2 data-number="3.5" class="anchored" data-anchor-id="sec-fast-report"><span class="header-section-number">3.5</span> Un informe que lee los resultados</h2>
-<p>Ahora, el entregable: un informe de la evaluación para quienes deciden qué versión lanzar. Su métrica principal es el <em>ROC AUC</em>, la probabilidad de que una versión ponga a un contacto que se suscribió, elegido al azar, por encima de uno que no se suscribió, también elegido al azar: 0.5 es un orden al azar y 1, uno perfecto. Es un archivo <code>.qmd</code> nuevo al lado del código, y es la especificación, en un solo prompt, de todo lo que el informe tiene que hacer y de cómo lo vas a revisar:</p>
+<p>Ahora, el entregable: un informe de la evaluación para quienes deciden qué versión lanzar. Su métrica principal es el <em>ROC AUC</em>, la probabilidad de que una versión ponga a un suscriptor elegido al azar por encima de un no suscriptor elegido al azar: 0.5 es un orden al azar y 1, uno perfecto. El informe es un archivo <code>.qmd</code> nuevo al lado del código, y el prompt es su especificación: todo lo que el informe tiene que hacer y cómo lo vas a revisar.</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
 <div class="box-label">
 <strong>Pídele a tu agente</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>Ejecuta `uv run python scripts/evaluate.py`. Crea report.qmd, en inglés (formatos html, docx y typst; oculta el código), que lea solo outputs/: una oración que nombre la mejor versión según el ROC AUC, con su AUC y su intervalo del 95% como código en línea; una tabla con las métricas de cada versión, etiquetada `tbl-metrics`, con pie de tabla y citada en el texto; y las curvas ROC como una figura etiquetada `fig-roc`, con pie de figura y texto alternativo. Renderiza los tres formatos y dime qué AUC muestra cada uno.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Ejecuta `uv run python scripts/evaluate.py`. Crea report.qmd, en inglés (formatos html, docx y typst; oculta el código), que lea solo outputs/: una oración que nombre la mejor versión por ROC AUC, con su AUC e intervalo del 95% como código en línea; una tabla de métricas por versión, etiquetada `tbl-metrics`, con pie y citada en el texto; y las curvas ROC como figura etiquetada `fig-roc`, con pie y texto alternativo. Renderiza los tres formatos y dime el AUC que muestra cada uno.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="agent" data-boxed="true">
 <div class="box-label">
@@ -925,67 +946,76 @@ Tabla&nbsp;3.2: El repositorio de partida.
 <p><code>uv run python scripts/evaluate.py</code> · escribe <code>report.qmd</code> · <code>uv run quarto render report.qmd</code> → <code>report.html</code>, <code>report.docx</code>, <code>report.pdf</code></p>
 </div>
 </div>
-<p>Cada frase del prompt es vocabulario que corresponde a una función, y por eso puede ser corto:</p>
+<p>Cada frase del prompt es vocabulario que corresponde a una función, con el nombre que le da Quarto entre paréntesis, y por eso puede ser corto:</p>
 <div id="tbl-fast-vocab" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-fast-vocab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;3.3: El prompt del informe, frase por frase.
+Tabla&nbsp;3.3: El prompt, frase por frase.
 </figcaption>
 <div aria-describedby="tbl-fast-vocab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
+<col style="width: 50%">
+<col style="width: 50%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>El prompt dice</th>
-<th>La función de Quarto</th>
-<th>Revisas</th>
+<th>Qué revisar</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>formatos html, docx y typst</td>
-<td>tres formatos de salida desde un archivo (<a href="05-compute.html#sec-formats" class="quarto-xref"><span>Sección 7.5</span></a>); Typst hace el PDF</td>
-<td>tres archivos, abriendo cada uno</td>
+<td>html, docx y typst</td>
+<td>abre los tres archivos</td>
 </tr>
 <tr class="even">
-<td>oculta el código</td>
-<td><code>echo: false</code></td>
-<td>que no haya código en ninguna salida</td>
+<td>oculta el código (<code>echo: false</code>)</td>
+<td>ninguna salida muestra código</td>
 </tr>
 <tr class="odd">
-<td>código en línea</td>
-<td><code>`{python} …`</code> en una oración (<a href="05-compute.html#sec-code-cells" class="quarto-xref"><span>Sección 7.3</span></a>)</td>
-<td>que el número de la oración sea igual al de <code>outputs/</code></td>
+<td>código en línea (<code>`{python} …`</code>)</td>
+<td>el número es el de <code>outputs/</code></td>
 </tr>
 <tr class="even">
-<td>etiquetada <code>tbl-metrics</code>, citada en el texto</td>
-<td>una referencia cruzada: <code>@tbl-metrics</code> se vuelve “Table 1”, un enlace</td>
-<td>que el texto diga “Table 1”, no “??”</td>
+<td>etiquetada <code>tbl-metrics</code>, citada (<code>@tbl-metrics</code>)</td>
+<td>el texto dice “Table 1”, no “??”</td>
 </tr>
 <tr class="odd">
-<td>pie de figura y texto alternativo</td>
-<td><code>tbl-cap</code>, <code>fig-cap</code>, <code>fig-alt</code> (<a href="05-compute.html#sec-cell-options" class="quarto-xref"><span>Sección 7.4</span></a>)</td>
-<td>que el pie diga qué es; el texto alternativo, qué muestra</td>
+<td>pie y texto alternativo (<code>fig-cap</code>, <code>fig-alt</code>)</td>
+<td>el pie dice qué es; el texto alternativo, qué muestra</td>
 </tr>
 <tr class="even">
-<td>que lea solo outputs/</td>
-<td>la regla del proyecto, de <code>AGENTS.md</code></td>
-<td>el diff: ningún <code>fit</code>, nada de código de modelos</td>
+<td>lea solo outputs/ (regla de <code>AGENTS.md</code>)</td>
+<td>el diff: ningún <code>fit</code> ni código de modelos</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
+<p>La Parte II explica cada una: los formatos en la <a href="05-compute.html#sec-formats" class="quarto-xref"><span>Sección 7.5</span></a> (Typst hace el PDF), el código en línea en la <a href="05-compute.html#sec-code-cells" class="quarto-xref"><span>Sección 7.3</span></a>, y los pies y el texto alternativo en la <a href="05-compute.html#sec-cell-options" class="quarto-xref"><span>Sección 7.4</span></a>.</p>
 <p>Luego verifícalo de tres maneras (<a href="02-assistant.html#sec-three-skills" class="quarto-xref"><span>Sección 2.7</span></a>). <strong>Lee el diff</strong>: <code>git status</code> debería mostrar <code>report.qmd</code> como nuevo y nada más cambiado, y el archivo debería leer archivos de <code>outputs/</code> y no ajustar nada. <strong>Inspecciona el renderizado</strong>: abre <code>report.html</code>, <code>report.docx</code> y <code>report.pdf</code>. El renderizado imprime <code>Output created</code> solo para el primer formato, así que busca los tres archivos. En el proyecto terminado, que está en inglés como todo el ejemplo de Acme, la oración dice:</p>
 <blockquote class="blockquote">
 <p>Of the three releases, <strong>v3</strong> ranks best: its ROC AUC on the 11,303 held-out contacts is 0.799 (0.785 to 0.813).</p>
 </blockquote>
-<p>Es decir: de las versiones, la que está en negrita es la mejor, con su ROC AUC sobre los contactos reservados para la prueba y su intervalo del 95%. <strong>Compáralo con la fuente</strong>, sin el informe: <code>grep roc_auc outputs/metrics.csv</code> imprime el valor de cada versión con su <code>low</code> y su <code>high</code>, y los tres formatos del informe tienen que coincidir con él.</p>
+<p>En español, la oración dice cuál de las versiones es la mejor y cuál es su ROC AUC sobre los contactos reservados para la prueba. Entre paréntesis va su intervalo <em>bootstrap</em> del 95%: el script evalúa 1,000 remuestras de los contactos reservados, cada una extraída con reposición, y da el intervalo que contiene el 95% central de sus AUC.</p>
+<p><strong>Compáralo con la fuente</strong>, sin el informe: <code>grep roc_auc outputs/metrics.csv</code> imprime el valor de cada versión con su <code>low</code> y su <code>high</code>, y los tres formatos del informe tienen que coincidir con él.</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Vuelve a la oración con la que empezó el capítulo y ponla al lado de la del informe. ¿Qué número estaba mal, y de qué versión es?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>El ROC AUC. 0.772 es el de v2; el de v3 es 0.799. El nombre era correcto y el número era una copia de otra fila. El informe no puede cometer ese error: su número es código en línea, y la sección siguiente protege su nombre con una guarda. (La oración se plantó para este ejercicio; el README del repositorio no la contiene.)</p>
+</div>
+</div>
+<!-- Observed in the dry run of 2026-11-18 with Quarto 1.10.20 (this file's setup cell). -->
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -996,90 +1026,93 @@ Tabla&nbsp;3.3: El prompt del informe, frase por frase.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Word no recibe el texto alternativo. En las pruebas, Quarto 1.10.20 puso en la descripción de la imagen de Word el nombre del archivo de la figura, o nada, nunca el <code>fig-alt</code>; el HTML sí lo tenía. Si alguien que lee el archivo de Word usa un lector de pantalla, agrega la descripción en Word, y revisa cada formato que vaya a usar quien lee.</p>
+<p>Word no recibe el texto alternativo: Quarto 1.10.20 pone en la descripción de la imagen de Word el nombre del archivo de la figura, o nada, nunca el <code>fig-alt</code>. Si alguien que lee el archivo de Word usa un lector de pantalla, agrega la descripción en Word.</p>
 </div>
 </div>
 </section>
 <section id="sec-fast-guard" class="level2" data-number="3.6">
 <h2 data-number="3.6" class="anchored" data-anchor-id="sec-fast-guard"><span class="header-section-number">3.6</span> Una guarda para la oración</h2>
-<p>La primera oración del informe nombra a una ganadora. El código en línea mantiene sus números al día, pero la <em>palabra</em> “best” (la mejor), y el nombre que la acompaña, solo son ciertos mientras los datos lo digan. Una <em>guarda</em> es una línea de código al lado de una oración así que detiene el renderizado si la oración se vuelve falsa (<a href="14-publish-many.html#sec-water-website" class="quarto-xref"><span>Sección 23.4</span></a>). Es Python común y corriente, así que encaja en el propio paquete del repositorio:</p>
+<p>La primera oración del informe nombra a una ganadora. El código en línea mantiene sus números al día, pero la <em>palabra</em> “best” (la mejor), y el nombre que la acompaña, solo son ciertos mientras los datos lo digan. Una <em>guarda</em> es una línea de código, junto a una oración de ese tipo, que detiene el renderizado si la oración se vuelve falsa (<a href="14-publish-many.html#sec-water-website" class="quarto-xref"><span>Sección 23.4</span></a>). Es Python común y corriente, así que encaja en el propio paquete del repositorio:</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
 <div class="box-label">
 <strong>Pídele a tu agente</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Agrega src/acme_eval/claims.py con `claim(condition, sentence)`, que lanza un error que cita la oración cuando la condición es falsa. En report.qmd, protege con ella la oración que nombra la mejor versión, y agrega una regla a AGENTS.md, en inglés: una oración cuyas palabras dependen de los resultados lleva un `claim`. Demuestra que la guarda funciona: renderiza una vez con un nombre de versión equivocado a propósito, muéstrame el error, y luego restaura el correcto y renderiza de nuevo.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>Agrega src/acme_eval/claims.py con `claim(condition, sentence)`, que lanza un error que cita la oración cuando la condición es falsa. En report.qmd, protege con ella la oración que nombra la mejor versión, y agrega una regla a AGENTS.md, en inglés: una oración cuyas palabras dependen de los resultados lleva un `claim`. Demuestra que la guarda funciona: renderiza una vez con un nombre de versión equivocado a propósito, muéstrame el error, y luego restaura el correcto y renderiza de nuevo.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>La demostración es lo importante. Una guarda que nunca viste fallar es una guarda que no probaste, y el prompt hace que el agente la rompa a propósito y te muestre el mensaje. Para que pueda fallar, la versión de la oración tiene que estar escrita en algún lugar donde una persona pueda equivocarse, y comprobarse contra <code>outputs/</code>: un nombre leído directamente de los resultados nunca podría contradecirlos. Cada agente redacta el mensaje a su manera; en el proyecto terminado dice:</p>
+<p>La demostración es lo importante. Una guarda que nunca viste fallar es una guarda que no probaste, y el prompt hace que el agente la rompa a propósito y te muestre el mensaje. Para que pueda fallar, la versión de la oración tiene que estar escrita en algún lugar donde una persona pueda equivocarse, y cotejarse con <code>outputs/</code>: un nombre leído directamente de los resultados nunca podría contradecirlos. Cada agente redacta el mensaje a su manera; en el proyecto terminado dice:</p>
 <pre class="text"><code>ClaimError: The results no longer support this sentence: The best version named in this
 report has the highest ROC AUC in metrics.csv.</code></pre>
-<p>Es decir, que los resultados ya no sostienen la oración: la mejor versión que nombra el informe tiene que tener el ROC AUC más alto de metrics.csv. Revisa después que el error deliberado ya no esté. Un renderizado fallido deja los <code>report.html</code>, <code>.docx</code> y <code>.pdf</code> anteriores donde estaban, así que un archivo viejo puede parecer un éxito: lee las últimas líneas del renderizado, y la oración en la fuente. Luego haz commit:</p>
+<p>Es decir: los resultados ya no respaldan la oración “la mejor versión que nombra este informe tiene el ROC AUC más alto de metrics.csv”. Revisa después que el error deliberado ya no esté. Un renderizado fallido deja los <code>report.html</code>, <code>.docx</code> y <code>.pdf</code> anteriores donde estaban, así que un archivo desactualizado puede parecer un éxito: lee las últimas líneas del renderizado, y la oración en la fuente. Luego haz commit:</p>
 <div class="agent-box">
 <div class="you" data-boxed="true">
 <div class="box-label">
 <strong>Tú haces</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> status</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Add a report that reads outputs/, with a guard"</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> status</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Add a report that reads outputs/, with a guard"</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p><code>.gitignore</code> ya deja afuera <code>outputs/</code>, <code>.venv/</code> y los archivos renderizados, así que <code>git add -A</code> toma solo fuentes: la regla nueva de <code>AGENTS.md</code>, <code>report.qmd</code> y <code>claims.py</code>. Igual lee antes <code>git status</code>: en la prueba, un notebook lleno de salidas entró en este commit porque se saltó la restauración de arriba, y <code>git status</code> fue donde se vio.</p>
+<p><code>.gitignore</code> ya deja afuera <code>outputs/</code>, <code>.venv/</code> y los archivos renderizados, así que <code>git add -A</code> toma solo fuentes: la regla nueva de <code>AGENTS.md</code>, <code>report.qmd</code> y <code>claims.py</code>. De todos modos, lee antes <code>git status</code>.</p>
+<div class="story">
+<div class="box-label">
+<strong>De la bitácora del proyecto</strong>
+</div>
+<!-- source: book/chapters/fast-path.qmd lines 186–189 and 296–299 at 651db10; dry run of
+2026-11-18 noted at lines 20–22 -->
+<p>En la prueba de este capítulo, se saltó el paso que restaura el notebook. Renderizar con <code>--execute</code> había cambiado cientos de líneas de <code>notebooks/explore.ipynb</code>, al escribir en él sus salidas, y <code>git add -A</code> las tomó: un notebook lleno de salidas entró en el commit que debía agregar un informe. <code>git status</code>, leído antes del commit, fue el único lugar donde se vio.</p>
+</div>
 <div class="catchup">
-<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu agente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/14-eval-start/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu agente, que respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/14-eval-start/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="sec-fast-pr" class="level2" data-number="3.7">
 <h2 data-number="3.7" class="anchored" data-anchor-id="sec-fast-pr"><span class="header-section-number">3.7</span> Revísalo como pull request</h2>
-<p>Un cambio que hizo un agente se revisa como el de un colega: en una rama, como pull request, con el diff leído archivo por archivo antes de que llegue a <code>main</code> (<a href="07-publish.html#sec-git" class="quarto-xref"><span>Sección 9.1</span></a>). Sube el repositorio a GitHub, privado, y abre el pull request. En la terminal:</p>
+<p>Un cambio que hizo un agente se revisa como el de alguien de tu equipo: en una rama, como pull request, con el diff leído archivo por archivo antes de que llegue a <code>main</code> (<a href="07-publish.html#sec-git" class="quarto-xref"><span>Sección 9.1</span></a>). Sube el repositorio a GitHub, privado, y abre el pull request. En la terminal:</p>
 <div class="agent-box">
 <div class="you" data-boxed="true">
 <div class="box-label">
 <strong>Tú haces</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch main</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> repo create acme-eval <span class="at">--private</span> <span class="at">--source</span><span class="op">=</span>. <span class="at">--push</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch add-report</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin add-report</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch main</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> repo create acme-eval <span class="at">--private</span> <span class="at">--source</span><span class="op">=</span>. <span class="at">--push</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch add-report</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin add-report</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p><code>gh repo create … --source=. --push</code> crea el repositorio a partir de esta carpeta y hace push de <code>main</code>; <code>git push -u</code> hace push de la rama; <code>gh pr create --fill</code> abre un pull request con el título y la descripción tomados de sus commits, e imprime su dirección. En la pestaña <em>Files changed</em> del pull request, o con <code>gh pr diff</code> en la terminal, revísalo como cualquier otro:</p>
+<p><code>gh repo create … --source=. --push</code> crea el repositorio a partir de esta carpeta y hace push de <code>main</code>; <code>git push -u</code> hace push de la rama; <code>gh pr create --fill</code> abre un pull request con el título y la descripción tomados de sus commits, e imprime su dirección. En la pestaña <em>Files changed</em> del pull request, o con <code>gh pr diff</code> en la terminal, revísalo como cualquier otro, con tres revisiones: el alcance, si cambiaron solo los archivos que querías; la corrección, si un número coincide con su fuente; y la reconstrucción, si lo que se guardó con commit se construye por sí solo.</p>
 <div id="tbl-fast-review" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-fast-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;3.4: Las tres revisiones de la <a href="first-report.html#tbl-three-checks" class="quarto-xref">Tabla&nbsp;<span>5.2</span></a>, aplicadas a un pull request.
+Tabla&nbsp;3.4: Tres revisiones para un pull request.
 </figcaption>
 <div aria-describedby="tbl-fast-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
+<col style="width: 50%">
+<col style="width: 50%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Revisión</th>
-<th>Pregunta</th>
 <th>Aquí</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>Alcance</td>
-<td>¿Cambiaron solo los archivos que quería?</td>
-<td><code>AGENTS.md</code>, <code>report.qmd</code>, <code>claims.py</code>, <code>pyproject.toml</code>, <code>uv.lock</code>; nada en <code>data/</code>, <code>tests/</code> ni <code>notebooks/</code></td>
+<td><code>AGENTS.md</code>, <code>report.qmd</code>, <code>claims.py</code>, <code>pyproject.toml</code> y <code>uv.lock</code>, nada más</td>
 </tr>
 <tr class="even">
 <td>Corrección</td>
-<td>¿Un número coincide con su fuente?</td>
-<td>el AUC del informe contra <code>outputs/metrics.csv</code></td>
+<td>el AUC del informe comparado con <code>outputs/metrics.csv</code></td>
 </tr>
 <tr class="odd">
 <td>Reconstrucción</td>
-<td>¿Lo que se subió con commit se construye por sí solo?</td>
 <td>un clon nuevo renderiza el mismo informe (abajo)</td>
 </tr>
 </tbody>
@@ -1093,24 +1126,26 @@ Tabla&nbsp;3.4: Las tres revisiones de la <a href="first-report.html#tbl-three-c
 <div class="box-label">
 <strong>Tú haces</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone ~/acme-eval /tmp/acme-check</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /tmp/acme-check</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch add-report</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python scripts/evaluate.py</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run quarto render report.qmd</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone ~/acme-eval /tmp/acme-check</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /tmp/acme-check</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch add-report</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python scripts/evaluate.py</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run quarto render report.qmd</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>El <code>report.html</code> del clon tiene que mostrar el mismo 0.799. Un renderizado antes de la evaluación se detiene con <code>FileNotFoundError</code> para <code>outputs/summary.json</code>: es el clon diciéndote, con razón, que los resultados se calculan, no se guardan. Si falla cualquier otra cosa, algo que el informe necesita vive solo en tu carpeta: haz commit de eso y vuelve a clonar. Cuando el clon coincida, haz merge del pull request. Un servicio de construcción puede ejecutar la misma comprobación con un clon nuevo en cada pull request, para que nadie tenga que acordarse de hacerla.</p>
+<p>El <code>report.html</code> del clon tiene que mostrar el mismo 0.799. Un renderizado antes de la evaluación se detiene con <code>FileNotFoundError</code> para <code>outputs/summary.json</code>: es el clon diciéndote, con razón, que los resultados se calculan, no se guardan. Si falla cualquier otra cosa, algo que el informe necesita vive solo en tu carpeta: haz commit de eso y vuelve a clonar. Cuando el clon coincida, haz merge del pull request. Un servicio de CI puede ejecutar la misma comprobación con un clon nuevo en cada pull request, para que nadie tenga que acordarse de hacerla.</p>
 </section>
 <section id="sec-fast-own" class="level2" data-number="3.8">
 <h2 data-number="3.8" class="anchored" data-anchor-id="sec-fast-own"><span class="header-section-number">3.8</span> En tu propio repositorio</h2>
-<p>Todo lo anterior se puede trasladar. Apunta los prompts a tus propios archivos:</p>
+<p>Todo lo anterior se puede trasladar, y la primera pregunta es dónde viven tus resultados. En muchos repositorios están atrapados en notebooks: se calculan en una celda, se leen en la pantalla y se copian en una diapositiva. Entonces el primer trabajo no es el informe sino un script que ejecute el análisis una sola vez y escriba sus resultados en archivos, como hace aquí <code>scripts/evaluate.py</code>. Un documento que vuelve a ejecutar un análisis es lento, y dos documentos que lo vuelven a ejecutar cada uno pueden contradecirse. Con los resultados en archivos, apunta los prompts a los tuyos:</p>
 <ul>
-<li><strong>Reglas.</strong> Nombra en <code>AGENTS.md</code> tu carpeta de resultados (<code>outputs/</code>, <code>results/</code>, <code>reports/data/</code>) y tus comandos. Si tu código calcula resultados dentro de notebooks, el primer trabajo es un script que los escriba en archivos: los documentos que vuelven a ejecutar un análisis son lentos y pueden contradecirse entre sí.</li>
-<li><strong>Dependencias.</strong> <code>ipykernel</code>, <code>nbclient</code> y <code>nbformat</code> se suman a tu entorno, mediante uv, Poetry, pip o conda, según como lo gestione tu proyecto; Quarto en sí es un programa aparte y no agrega ninguna dependencia de Python.</li>
+<li><strong>Reglas.</strong> Nombra en <code>AGENTS.md</code> tu carpeta de resultados (<code>outputs/</code>, <code>results/</code>, <code>reports/data/</code>) y tus comandos, y conserva la regla de que los documentos leen resultados y no ajustan nada.</li>
+<li><strong>Dependencias.</strong> <code>ipykernel</code>, <code>nbclient</code> y <code>nbformat</code> se suman a tu entorno mediante lo que ya lo gestione, uv, Poetry, pip o conda; Quarto en sí es un programa aparte y no agrega ninguna dependencia de Python. Lee el diff de los archivos que registran los paquetes.</li>
 <li><strong>Deja afuera las salidas.</strong> Agrega a <code>.gitignore</code> los archivos renderizados y la carpeta de resultados.</li>
 <li><strong>Dónde vive el informe.</strong> En la raíz del repositorio, o en <code>reports/</code>; un solo archivo <code>.qmd</code> no necesita <code>_quarto.yml</code>. Una carpeta con varios documentos se convierte en un <em>proyecto</em> de Quarto (<a href="07-publish.html#sec-london-website" class="quarto-xref"><span>Sección 9.3</span></a>).</li>
+<li><strong>Guardas y revisión.</strong> Dale una guarda a cada oración cuyas palabras dependen de los resultados, mírala fallar una vez, y revisa cada cambio como pull request y desde un clon nuevo.</li>
 </ul>
+<p>Los <a href="../afterword.html#sec-own-projects">proyectos propios</a> del epílogo parten de aquí: un informe de métricas que se reconstruye con los datos del mes siguiente, un material complementario de investigación, un informe mensual para inversionistas y un documento de diseño con números en vivo, cada uno preparado como este capítulo preparó el de Acme.</p>
 <div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1123,7 +1158,7 @@ Tabla&nbsp;3.4: Las tres revisiones de la <a href="first-report.html#tbl-three-c
 <div class="callout-body-container callout-body">
 <p>Ejecuta los cuatro prompts y el pull request en el punto de partida, o en tu propio repositorio.</p>
 <div class="done">
-<p><strong>Terminaste cuando</strong> el pull request muestra las reglas, el informe y la guarda, sus tres formatos coinciden con <code>outputs/metrics.csv</code> y un clon nuevo renderiza el mismo informe.</p>
+<p><strong>Has terminado si</strong> el pull request muestra las reglas, el informe y la guarda, sus tres formatos coinciden con <code>outputs/metrics.csv</code> y un clon nuevo renderiza el mismo informe.</p>
 </div>
 </div>
 </div>

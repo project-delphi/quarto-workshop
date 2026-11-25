@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5ed9e4edf2048b6b9b588fc3d1daa128.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -695,145 +695,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Simon Willison, un desarrollador, les ha hecho a casi todos los modelos nuevos importantes la misma pregunta desde 2024: “Generate an SVG of a pelican riding a bicycle” (“genera un SVG de un pelícano en bicicleta”; un SVG es un dibujo escrito como texto, así que un modelo lo escribe igual que escribe código). Cuatro modelos de Claude, cada uno con tres niveles de <em>esfuerzo</em> (cuánto razona el modelo antes de responder), le respondieron con 12 dibujos, y en todos se reconoce un pelícano en bicicleta. El más caro costó 13.09 centavos de dólar, unas 93 veces lo que costó el más barato que fue suficiente, de 0.14 centavos (<a href="#fig-pelicans" class="quarto-xref">Figura&nbsp;<span>2.2</span></a>).</p>
-<p>Elegir entre esos dibujos es el primero de muchos criterios que enseña este capítulo. Un <em>agente de programación</em> es un programa que escribe y edita archivos y ejecuta comandos cuando se lo pides: tú escribes el prompt (<em>Pide</em>), él teclea, y tú <em>revisas</em> si el resultado está bien. Puede producir en un minuto lo que a mano llevaría una hora, y puede producir con la misma rapidez un trabajo plausible, seguro de sí y equivocado. ¿Cómo obtienes lo primero sin dejarte engañar por lo segundo?</p>
-<div class="opener">
-<div class="box-label">
-<strong>En este capítulo</strong>
-</div>
-<ul>
-<li>Explicar cómo se reparten el trabajo un modelo y un harness, y qué mitad cambiar cuando un agente decepciona.</li>
-<li>Elegir un modelo y un nivel de esfuerzo para una tarea, y mantener bajo el costo de una sesión con <code>/model</code>, <code>/clear</code> y <code>/exit</code>.</li>
-<li>Decidir dónde iniciar un agente, qué comandos suyos aprobar y qué reglas van en <code>AGENTS.md</code>.</li>
-<li>Escribir un prompt que nombre sus archivos, pida un solo paso y termine en una comprobación, y dimensionar una tarea más grande según cómo se puede revisar.</li>
-</ul>
-</div>
-<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Importante</span>Pruébalo
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>No hace falta instalar nada. Pega el prompt de Simon Willison, <code>Generate an SVG of a pelican riding a bicycle</code>, en un chat web en tu navegador (Claude, ChatGPT y Gemini tienen cada uno un plan gratuito; consultado el <span class="nowrap">2026-11-12</span>), luego pégalo otra vez en una conversación nueva y compara las respuestas.</p>
-<div class="done">
-<p><strong>Terminaste cuando</strong> las dos respuestas son distintas, aunque el prompt fue el mismo. Quarto, con la misma fuente, nunca hace eso (<a href="01-quarto.html#sec-not-ai" class="quarto-xref"><span>Sección 1.3</span></a>).</p>
-</div>
-</div>
-</div>
-<section id="sec-model-harness" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="sec-model-harness"><span class="header-section-number">2.1</span> Modelo más harness</h2>
-<p>Un agente de programación son dos programas que trabajan juntos (<a href="#fig-agent-loop" class="quarto-xref">Figura&nbsp;<span>2.1</span></a>).</p>
-<p>El <strong>modelo</strong> es un modelo de lenguaje grande, como Claude de Anthropic, GPT de OpenAI o Gemini de Google. Corre en los servidores del proveedor. Lee texto y escribe texto, y puede responder con una solicitud estructurada para usar una herramienta: “lee este archivo”, “ejecuta este comando”.</p>
-<p>El <strong>harness</strong> es el programa en tu computadora que envuelve al modelo. Claude Code, Codex, Antigravity y OpenCode son harnesses. El harness le da al modelo sus herramientas (leer y escribir archivos, ejecutar comandos, buscar), lleva a cabo las solicitudes de herramientas del modelo, te pregunta antes de hacer cualquier cosa con consecuencias y le devuelve los resultados al modelo. Ese ciclo se repite hasta que el modelo responde con una respuesta en lugar de otra solicitud. Ese ciclo, sobre tus propios archivos y comandos, es lo que lo convierte en un <em>agente</em>: actúa en la carpeta de tu proyecto, una solicitud de herramienta tras otra, hasta terminar el paso, donde un chat web te entrega texto para copiar.</p>
-<div id="fig-agent-loop" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="Tú le das un prompt al harness, y este te muestra los resultados y te pide aprobar comandos. El harness (Claude Code, Codex o Antigravity) le envía la conversación y los resultados de las herramientas al modelo (Claude, GPT o Gemini), que corre en los servidores del proveedor y responde con texto o con una solicitud para usar una herramienta. El harness lleva a cabo las solicitudes de herramientas en la carpeta del proyecto, su raíz: primero lee AGENTS.md y luego lee y edita archivos y ejecuta comandos ahí. El modelo decide, el harness hace, y tú diriges y revisas.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-agent-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="../media/diagrams/agent-loop.svg" class="on-light img-fluid figure-img" alt="Tú le das un prompt al harness, y este te muestra los resultados y te pide aprobar comandos. El harness (Claude Code, Codex o Antigravity) le envía la conversación y los resultados de las herramientas al modelo (Claude, GPT o Gemini), que corre en los servidores del proveedor y responde con texto o con una solicitud para usar una herramienta. El harness lleva a cabo las solicitudes de herramientas en la carpeta del proyecto, su raíz: primero lee AGENTS.md y luego lee y edita archivos y ejecuta comandos ahí. El modelo decide, el harness hace, y tú diriges y revisas.">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-agent-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figura&nbsp;2.1: Cómo funciona un agente de programación. El harness en tu computadora le pasa al modelo la conversación y los resultados de cada herramienta, y el modelo responde con texto o con una solicitud para usar una herramienta; el harness actúa en la carpeta del proyecto y te pregunta antes de ejecutar comandos (OpenCode, por defecto, no).
-</figcaption>
-</figure>
-</div>
-<p>Una forma corta de recordar la división: <strong>el modelo decide, el harness hace, tú diriges y revisas.</strong> Tiene una consecuencia práctica. Muchos harnesses pueden usar varios modelos, así que el mismo harness se comporta distinto con otro modelo, y el mismo modelo se comporta distinto dentro de otro harness. Cuando un agente te decepciona, la causa puede ser cualquiera de las dos mitades, y el arreglo es distinto: un modelo más fuerte si el razonamiento se queda corto, mejores reglas o permisos si el harness hace lo que no debe.</p>
-<div class="why callout callout-style-default callout-note callout-titled" title="Por qué funciona">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Nota</span>Por qué funciona
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>El modelo no puede tocar tu computadora. Todo lo que “hace” es una solicitud que lleva a cabo el harness, y el harness puede mostrarte cada solicitud antes de actuar. Esa es la base de cada hábito de seguridad de este capítulo: apruebas comandos que leíste y revisas los archivos después de que cambian.</p>
-</div>
-</div>
-</section>
-<section id="sec-choose" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="sec-choose"><span class="header-section-number">2.2</span> Elegir un agente y un modelo</h2>
-<p>Este libro cubre cuatro agentes. Los tres primeros vienen de la misma empresa que sus modelos por defecto; OpenCode, un harness de código abierto, usa el modelo que le conectes:</p>
-<div id="tbl-assistants" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;2.1: Los agentes que cubre este libro. Antigravity reemplazó a Gemini CLI para los usuarios del nivel gratuito y de Google One el 18 de junio de 2026 (página de instalación de Gemini CLI, consultada el <span class="nowrap">2026-11-12</span>). La licencia de OpenCode está en su repositorio de GitHub, y sus proveedores en su documentación (ambos consultados el <span class="nowrap">2026-11-20</span>).
-</figcaption>
-<div aria-describedby="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Agente</th>
-<th>Escribes</th>
-<th>Lo hace</th>
-<th>Modelos por defecto</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Claude Code</td>
-<td><code>claude</code></td>
-<td>Anthropic</td>
-<td>Claude</td>
-</tr>
-<tr class="even">
-<td>Codex</td>
-<td><code>codex</code></td>
-<td>OpenAI</td>
-<td>GPT</td>
-</tr>
-<tr class="odd">
-<td>Antigravity</td>
-<td><code>agy</code></td>
-<td>Google</td>
-<td>Gemini</td>
-</tr>
-<tr class="even">
-<td>OpenCode</td>
-<td><code>opencode</code></td>
-<td>un proyecto de código abierto (licencia MIT)</td>
-<td>el que conectes</td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
-<p>Lo que significa “cubre” no es igual para los cuatro. Para los cuatro, el comando de instalación, la cuenta que necesita y cómo lee las reglas del proyecto se revisaron contra la documentación del proveedor (con fecha en el <a href="03-setup.html" class="quarto-xref"><span>Capítulo 4</span></a> y en la <a href="#sec-agents-md" class="quarto-xref"><span>Sección 2.5</span></a>). Las primeras pantallas de Claude Code y de Codex se capturaron para el taller el <span class="nowrap">2026-11-07</span>; las de Antigravity y OpenCode, no. Existen otros agentes; este libro no los revisa, así que no los enumera. Cada prompt del libro está escrito para funcionar en cualquiera de los cuatro. OpenCode se distingue en algo que importa para la seguridad: el agente predeterminado de OpenCode edita archivos y ejecuta comandos sin preguntar, dentro de la carpeta o fuera de ella, salvo que se agreguen reglas con el efecto ask en opencode.jsonc (consultado el <span class="nowrap">2026-11-20</span>), así que el hábito de aprobar cada comando (<a href="#sec-root-folder" class="quarto-xref"><span>Sección 2.4</span></a>) necesita primero esas reglas. La combinación de harness y modelo de un mismo proveedor es la más fácil de configurar, pero no es automáticamente la que mejor se ajusta a una tarea: el harness y el modelo son elecciones separadas.</p>
-<section id="pick-a-model-by-task-not-by-rank" class="level3" data-number="2.2.1">
-<h3 data-number="2.2.1" class="anchored" data-anchor-id="pick-a-model-by-task-not-by-rank"><span class="header-section-number">2.2.1</span> Elige un modelo por la tarea, no por el ranking</h3>
-<p>Cada proveedor ofrece una familia de modelos, de pequeños y baratos a grandes y capaces. No son simplemente versiones mejores y peores de una misma cosa. Los modelos más grandes y recientes suelen seguir mejor instrucciones largas, planear trabajo de varios pasos y recuperarse de sus propios errores. Los modelos pequeños son más rápidos y baratos, y a menudo bastan para ediciones cortas y bien especificadas, como corregir una errata o reformatear una tabla. Unir dos conjuntos de datos o depurar un renderizado fallido recompensa al modelo más fuerte.</p>
-<p>Los prompts de este libro son cortos y específicos, así que basta un modelo mediano con un esfuerzo moderado: Sonnet de Claude con esfuerzo medio, o Haiku para ediciones pequeñas, o Sol de OpenAI con esfuerzo bajo (consultado el <span class="nowrap">2026-11-12</span>). Para trabajo difícil y desconocido, los propios proveedores recomiendan empezar más arriba: Anthropic sugiere empezar con Opus 5.5 para la mayoría de las cargas de trabajo, y OpenAI con GPT-6 Astra para el razonamiento y la programación complejos. Los nombres cambian cada pocos meses, y el <a href="../appendices/k-facts.html" class="quarto-xref"><span>Apéndice K</span></a> reúne los actuales; el consejo, no. Empieza por lo pequeño y sube solo cuando una tarea siga fallando.</p>
-<p><strong>Modelos gratuitos.</strong> Los modelos gratuitos podrían bastar para los prompts de este libro, que son cortos, piden una sola tarea cada uno y terminan en una comprobación que muestra cuándo un modelo se queda corto. Dos rutas no cuestan nada: una cuenta personal de Google puede usar Antigravity en su nivel gratuito, con una cuota que se renueva cada semana (consultado el <span class="nowrap">2026-11-18</span>), y OpenCode ofrece modelos gratuitos por tiempo limitado una vez conectada una cuenta de OpenCode, y la lista cambia de una semana a otra (consultado el <span class="nowrap">2026-11-20</span>). Ninguno se probó con los prompts del libro, así que toma “podrían bastar” como una expectativa. Lee las condiciones de un modelo gratuito antes de usarlo (<a href="at-work.html#sec-at-work-flow" class="quarto-xref"><span>Sección 16.1</span></a>): algunos guardan lo que envías, así que dales solo datos públicos, como los de este libro.</p>
-<p>Los modelos se cobran por <em>token</em>, un fragmento de texto de unos pocos caracteres, con una tarifa para el texto que se le envía al modelo (entrada) y otra para el texto que escribe (salida). Los precios de lista son precios de <em>API</em>: lo que paga un programa por token cuando le envía solicitudes al modelo directamente, a través de la interfaz de programación del proveedor (la API), en lugar de hacerlo con una suscripción mensual.</p>
-<div class="practice callout callout-style-default callout-tip callout-titled" title="En la práctica">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>En la práctica
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p><strong>Los precios cambian cada mes; el principio, no.</strong> El <span class="nowrap">2026-11-12</span>, los precios de lista de los ocho modelos de la <a href="../appendices/k-facts.html#tbl-prices" class="quarto-xref">Tabla&nbsp;<span>K.1</span></a> iban de $0.50 a $50 por millón de tokens de salida, una diferencia de 100 veces entre el más pequeño y el más grande. Esa tabla, con sus fuentes, está en el <a href="../appendices/k-facts.html" class="quarto-xref"><span>Apéndice K</span></a>, el único lugar donde este libro reúne los datos que cambian; léela como una foto de la diferencia entre modelos, no como números para planificar. Las suscripciones cuentan el uso de otra manera, y los modelos que puedes elegir dependen de tu plan y de la versión del agente.</p>
-</div>
-</div>
-<p>Las pruebas de los pelícanos de más abajo usaron el predecesor de Fable 5.2, Fable 5.1, con un precio de lista de 10 / 50 dólares por millón de tokens cuando se hicieron.</p>
-<p>El costo de un nivel fijo de capacidad ha bajado rápido. Midiendo el modelo más barato que alcanza un puntaje dado en un benchmark, la firma de capital de riesgo a16z encontró que el precio bajaba unas diez veces por año, mil veces en los tres años desde noviembre de 2021, y Epoch AI encontró caídas de entre 9 y 900 veces por año según el benchmark (ambos consultados el <span class="nowrap">2026-11-07</span>). Los dos advierten que el ritmo puede bajar, y ninguno mide la frontera, donde el precio del trabajo más capaz puede bajar más despacio. La lección práctica es la misma en cualquier caso: elige por lo que necesita la tarea, no por el precio de hoy.</p>
-</section>
-<section id="one-prompt-four-models-three-efforts" class="level3" data-number="2.2.2">
-<h3 data-number="2.2.2" class="anchored" data-anchor-id="one-prompt-four-models-three-efforts"><span class="header-section-number">2.2.2</span> Un prompt, cuatro modelos, tres esfuerzos</h3>
-<p>Los pelícanos con los que empezó este capítulo hacen concreta la disyuntiva. La <a href="#fig-pelicans" class="quarto-xref">Figura&nbsp;<span>2.2</span></a> muestra una ejecución de cada uno de cuatro modelos de Claude con tres niveles de esfuerzo, con el costo de cada respuesta a precios de lista de la API.</p>
+<p>Desde 2024, el desarrollador Simon Willison les hace una misma petición a los modelos de IA nuevos: “Generate an SVG of a pelican riding a bicycle” (genera un SVG de un pelícano en bicicleta). Un SVG es un dibujo escrito como texto, así que un modelo lo escribe igual que escribe código. Abajo hay doce respuestas, de cuatro modelos. En todas se reconoce un pelícano en bicicleta, y no costaron lo mismo. Antes de mirar los precios, adivina: ¿cuántas veces más costó el más caro que el más barato que fue suficiente?</p>
 <div id="fig-pelicans" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pelicans-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -881,12 +743,145 @@ Tabla&nbsp;2.1: Los agentes que cubre este libro. Antigravity reemplazó a Gemin
 </table>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pelicans-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figura&nbsp;2.2: Un prompt, cuatro modelos, tres esfuerzos: “Generate an SVG of a pelican riding a bicycle”. Imágenes de la serie de pelícanos de Simon Willison, una ejecución por celda; el costo son los tokens de cada respuesta a precios de lista de la API (consultados el <span class="nowrap">2026-11-06</span>).
+Figura&nbsp;2.1: Un prompt, cuatro modelos, tres esfuerzos: “Generate an SVG of a pelican riding a bicycle”. Imágenes de la serie de pelícanos de Simon Willison, una ejecución por celda; el costo son los tokens de cada respuesta a precios de lista de la API.
 </figcaption>
 </figure>
 </div>
-<p>Lee la cuadrícula en dos direcciones. Hacia abajo, el modelo crece y sube el precio por token, así que los costos van de fracciones de centavo a más de diez centavos. De izquierda a derecha, sube el esfuerzo: el modelo razona más y escribe más, así que el costo suele subir mientras el dibujo gana detalles en lugar de volverse correcto. Haiku con esfuerzo bajo tiene el cuadro más débil; de esfuerzo medio para arriba, los cuadros son sólidos, lo que concuerda con el consejo del libro de usar esfuerzo medio, aunque no lo demuestra.</p>
-<p>Mantén la evidencia en proporción. Es una ejecución por celda de una tarea pequeña y autónoma, no un benchmark: si lo vuelves a ejecutar obtienes otros pájaros, y Fable con esfuerzo medio incluso costó menos que Fable con esfuerzo bajo. Más esfuerzo tampoco es siempre mejor: con su esfuerzo máximo, Sonnet 5.5 y Opus 5.5 gastaron cada uno 128,000 tokens razonando, el límite de salida de los modelos, y no devolvieron ningún dibujo (transcripciones de Simon Willison, consultadas el <span class="nowrap">2026-11-12</span>). Un dibujo dice poco de un trabajo largo que une conjuntos de datos y se recupera de errores, que es donde los modelos más fuertes se ganan su precio. Si una diferencia de 93 veces en el precio vale la pena depende por completo de la tarea.</p>
+<p>Cada fila es un modelo y cada columna un nivel de <em>esfuerzo</em>, cuánto razona el modelo antes de responder. El más caro costó 13.09 centavos de dólar, unas 93 veces lo que costó el más barato que fue suficiente, de 0.14 centavos.</p>
+<p>Elegir entre esos dibujos es el primero de muchos criterios que enseña este capítulo. Un <em>agente de programación</em> es un programa que escribe y edita archivos y ejecuta comandos cuando se lo pides: tú escribes el prompt (<em>Pide</em>), él teclea, y tú <em>revisas</em> si el resultado está bien. Puede producir en un minuto lo que a mano llevaría una hora, y puede producir con la misma rapidez un trabajo plausible, seguro de sí y equivocado. ¿Cómo obtienes lo primero sin dejarte engañar por lo segundo?</p>
+<div class="opener">
+<div class="box-label">
+<strong>En este capítulo</strong>
+</div>
+<ul>
+<li>Explicar cómo se reparten el trabajo un modelo y un harness, y qué mitad cambiar cuando un agente decepciona.</li>
+<li>Elegir un modelo y un nivel de esfuerzo para una tarea, y mantener bajo el costo de una sesión con <code>/model</code>, <code>/clear</code> y <code>/exit</code>.</li>
+<li>Decidir dónde iniciar un agente, qué comandos suyos aprobar y qué reglas van en <code>AGENTS.md</code>.</li>
+<li>Escribir un prompt que nombre sus archivos, pida un solo paso y termine en una comprobación, y dimensionar una tarea más grande según cómo se puede revisar.</li>
+</ul>
+</div>
+<p>Si ya usas un agente todos los días, lee de la <a href="#sec-three-skills" class="quarto-xref"><span>Sección 2.7</span></a> a la <a href="#sec-boxes" class="quarto-xref"><span>Sección 2.9</span></a> y hojea el resto.</p>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Importante</span>Pruébalo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>No hace falta instalar nada. Pega el prompt de Simon Willison, <code>Generate an SVG of a pelican riding a bicycle</code>, en un chat web en tu navegador (Claude, ChatGPT y Gemini tienen cada uno un plan gratuito, según el <a href="../appendices/k-facts.html" class="quarto-xref"><span>Apéndice K</span></a>), pégalo otra vez en una conversación nueva y compara las respuestas.</p>
+<div class="done">
+<p><strong>Has terminado si</strong> las respuestas difieren, aunque el prompt fue el mismo. Quarto, con la misma fuente, datos y paquetes, no hace eso (<a href="01-quarto.html#sec-not-ai" class="quarto-xref"><span>Sección 1.3</span></a>).</p>
+</div>
+</div>
+</div>
+<section id="sec-model-harness" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="sec-model-harness"><span class="header-section-number">2.1</span> Modelo más harness</h2>
+<p>Un agente de programación son dos programas que trabajan juntos (<a href="#fig-agent-loop" class="quarto-xref">Figura&nbsp;<span>2.2</span></a>).</p>
+<p>El <strong>modelo</strong> es un modelo de lenguaje grande, como Claude de Anthropic, GPT de OpenAI o Gemini de Google. Corre en los servidores del proveedor. Lee texto y escribe texto, y puede responder con una solicitud estructurada para usar una herramienta: “lee este archivo”, “ejecuta este comando”.</p>
+<p>El <strong>harness</strong> es el programa en tu computadora que envuelve al modelo. Claude Code, Codex, Antigravity y OpenCode son harnesses. El harness le da al modelo sus herramientas (leer y escribir archivos, ejecutar comandos, buscar), lleva a cabo las solicitudes de herramientas del modelo, te pregunta antes de hacer cualquier cosa con consecuencias y le devuelve los resultados al modelo. Ese ciclo se repite hasta que el modelo devuelve una respuesta en lugar de otra solicitud, y es lo que convierte al par en un <em>agente</em>: actúa en la carpeta de tu proyecto, una solicitud de herramienta tras otra, hasta terminar el paso, mientras que un chat web te entrega texto para copiar.</p>
+<p>Una forma corta de recordar la división: <strong>el modelo decide, el harness hace, tú diriges y revisas.</strong> Tiene una consecuencia práctica. Muchos harnesses pueden usar varios modelos, así que el mismo harness se comporta distinto con otro modelo, y el mismo modelo se comporta distinto dentro de otro harness. Cuando un agente te decepciona, la causa puede ser cualquiera de las dos mitades, y el arreglo es distinto: un modelo más fuerte si el razonamiento se queda corto, mejores reglas o permisos si el harness hace lo que no debe.</p>
+<div id="fig-agent-loop" class="on-light quarto-float quarto-figure quarto-figure-center anchored" alt="Tú le das un prompt al harness, y este te muestra los resultados y te pide aprobar comandos. El harness (Claude Code, Codex o Antigravity) le envía la conversación y los resultados de las herramientas al modelo (Claude, GPT o Gemini), que corre en los servidores del proveedor y responde con texto o con una solicitud para usar una herramienta. El harness lleva a cabo las solicitudes de herramientas en la carpeta del proyecto, su raíz: primero lee AGENTS.md y luego lee y edita archivos y ejecuta comandos ahí. El modelo decide, el harness hace, y tú diriges y revisas.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-agent-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/diagrams/agent-loop.svg" class="on-light img-fluid figure-img" alt="Tú le das un prompt al harness, y este te muestra los resultados y te pide aprobar comandos. El harness (Claude Code, Codex o Antigravity) le envía la conversación y los resultados de las herramientas al modelo (Claude, GPT o Gemini), que corre en los servidores del proveedor y responde con texto o con una solicitud para usar una herramienta. El harness lleva a cabo las solicitudes de herramientas en la carpeta del proyecto, su raíz: primero lee AGENTS.md y luego lee y edita archivos y ejecuta comandos ahí. El modelo decide, el harness hace, y tú diriges y revisas.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-agent-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2.2: Cómo funciona un agente de programación: el harness lleva a cabo las solicitudes del modelo en la carpeta de tu proyecto, y te pregunta antes de ejecutar un comando (OpenCode, por defecto, no).
+</figcaption>
+</figure>
+</div>
+<div class="why callout callout-style-default callout-note callout-titled" title="Por qué funciona">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Por qué funciona
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>El modelo no puede tocar tu computadora. Todo lo que “hace” es una solicitud que lleva a cabo el harness, y el harness puede mostrarte cada solicitud antes de actuar. Esa es la base de cada hábito de seguridad de este capítulo: apruebas comandos que leíste y revisas los archivos después de que cambian.</p>
+</div>
+</div>
+</section>
+<section id="sec-choose" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="sec-choose"><span class="header-section-number">2.2</span> Elegir un agente y un modelo</h2>
+<p>Este libro cubre cuatro agentes. Los tres primeros vienen de la misma empresa que sus modelos por defecto; OpenCode, un harness de código abierto, usa el modelo que le conectes:</p>
+<div id="tbl-assistants" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;2.1: Los agentes que cubre este libro.
+</figcaption>
+<div aria-describedby="tbl-assistants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Agente</th>
+<th>Escribes</th>
+<th>Modelos por defecto</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Claude Code, de Anthropic</td>
+<td><code>claude</code></td>
+<td>Claude</td>
+</tr>
+<tr class="even">
+<td>Codex, de OpenAI</td>
+<td><code>codex</code></td>
+<td>GPT</td>
+</tr>
+<tr class="odd">
+<td>Antigravity, de Google</td>
+<td><code>agy</code></td>
+<td>Gemini</td>
+</tr>
+<tr class="even">
+<td>OpenCode, un proyecto de código abierto</td>
+<td><code>opencode</code></td>
+<td>el que conectes</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Cada prompt del libro está escrito para funcionar en los cuatro, y el comando de instalación, la cuenta y el archivo de reglas de cada uno se cotejaron con su documentación. La combinación de harness y modelo de un mismo proveedor es la más fácil de configurar, pero no es automáticamente la que mejor se ajusta a una tarea: el harness y el modelo son elecciones separadas.</p>
+<section id="pick-a-model-by-task-not-by-rank" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="pick-a-model-by-task-not-by-rank"><span class="header-section-number">2.2.1</span> Elige un modelo por la tarea, no por el ranking</h3>
+<p>Cada proveedor ofrece una familia de modelos, de pequeños y baratos a grandes y capaces. No son simplemente versiones mejores y peores de una misma cosa. Los modelos más grandes y recientes suelen seguir mejor instrucciones largas, planear trabajo de varios pasos y recuperarse de sus propios errores. Los modelos pequeños son más rápidos y baratos, y a menudo bastan para ediciones cortas y bien especificadas, como corregir una errata o reformatear una tabla. Unir dos conjuntos de datos o depurar un renderizado fallido es donde rinde el modelo más fuerte.</p>
+<p>Los prompts de este libro son cortos y específicos, así que basta un modelo mediano con esfuerzo medio: Sonnet de Claude con esfuerzo medio, o Haiku para ediciones pequeñas, o Sol de OpenAI con esfuerzo bajo. Para trabajo difícil y desconocido, los propios proveedores recomiendan empezar más arriba: Anthropic sugiere empezar con Opus 5.5 para la mayoría de las cargas de trabajo, y OpenAI con GPT-6 Astra para el razonamiento y la programación complejos. Los nombres cambian cada pocos meses, y el <a href="../appendices/k-facts.html" class="quarto-xref"><span>Apéndice K</span></a> reúne los actuales; el consejo, no. Empieza por ahí y sube solo cuando una tarea siga fallando.</p>
+<p>Algunas rutas a un modelo no cuestan nada; la <a href="03-setup.html#sec-before-setup" class="quarto-xref"><span>Sección 4.1</span></a> las da, junto con lo que debes revisar antes de usar una.</p>
+<p>Los modelos se cobran por <em>token</em>, un fragmento de texto de unos pocos caracteres, con una tarifa para el texto que se le envía al modelo (entrada) y otra para el texto que escribe (salida). Los precios de lista son precios de <em>API</em>: lo que paga un programa por token cuando le envía solicitudes al modelo directamente, a través de la interfaz de programación del proveedor (la API), en lugar de hacerlo con una suscripción mensual.</p>
+<div class="practice callout callout-style-default callout-tip callout-titled" title="En la práctica">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>En la práctica
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Los precios cambian cada mes; el principio, no.</strong> En la última consulta, los precios de lista de los ocho modelos de la <a href="../appendices/k-facts.html#tbl-prices" class="quarto-xref">Tabla&nbsp;<span>K.1</span></a> iban de $0.50 a $50 por millón de tokens de salida, una diferencia de 100 veces entre el más pequeño y el más grande. Esa tabla, con sus fuentes, está en el <a href="../appendices/k-facts.html" class="quarto-xref"><span>Apéndice K</span></a>, el único lugar donde este libro reúne los datos que cambian; léela como una foto de la diferencia, no como números para planificar. Las suscripciones cuentan el uso de otra manera, y los modelos que puedes elegir dependen de tu plan y de la versión del agente.</p>
+</div>
+</div>
+<p>El precio de un nivel fijo de capacidad ha bajado rápido, aunque quizá no en los modelos de punta (los estudios están en Lecturas adicionales), así que elige por lo que necesita la tarea, no por el precio de hoy.</p>
+<p>Los nombres y precios de los modelos de arriba se consultaron el <span class="nowrap">2026-11-12</span>; el <a href="../appendices/k-facts.html" class="quarto-xref"><span>Apéndice K</span></a> tiene la fuente de cada uno.</p>
+</section>
+<section id="one-prompt-four-models-three-efforts" class="level3" data-number="2.2.2">
+<h3 data-number="2.2.2" class="anchored" data-anchor-id="one-prompt-four-models-three-efforts"><span class="header-section-number">2.2.2</span> Un prompt, cuatro modelos, tres esfuerzos</h3>
+<p>Los pelícanos con los que empezó este capítulo hacen concreta la disyuntiva: una ejecución de cada uno de cuatro modelos de Claude con tres niveles de esfuerzo, con cada respuesta a precios de lista de la API (<a href="#fig-pelicans" class="quarto-xref">Figura&nbsp;<span>2.1</span></a>). La fila de Fable es Fable 5.1, el predecesor de Fable 5.2, a su precio de lista de $10 por millón de tokens de entrada y $50 por millón de tokens de salida. Lee la cuadrícula en dos direcciones. Hacia abajo, el modelo crece y sube el precio por token, así que los costos van de fracciones de centavo a más de diez centavos. De izquierda a derecha, sube el esfuerzo: el modelo razona más y escribe más, así que el costo suele subir mientras el dibujo gana detalles en lugar de volverse correcto. Haiku con esfuerzo bajo tiene el cuadro más débil; de esfuerzo medio para arriba, los cuadros son sólidos, lo que concuerda con el consejo del libro de usar esfuerzo medio, aunque no lo demuestra.</p>
+<p>No le des a esta prueba más peso del que tiene. Es una ejecución por celda de una tarea pequeña y autónoma, no un benchmark: si lo vuelves a ejecutar obtienes otros pájaros, y Fable con esfuerzo medio incluso costó menos que Fable con esfuerzo bajo. Más esfuerzo tampoco es siempre mejor: con su esfuerzo máximo, Sonnet 5.5 y Opus 5.5 gastaron cada uno razonando todo su límite de salida, de 128,000 tokens, y no devolvieron ningún dibujo. Un dibujo dice poco de un trabajo largo que une conjuntos de datos y se recupera de errores, que es donde los modelos más fuertes se ganan su precio. Si vale la pena pagar una diferencia de 93 veces en el precio depende por completo de la tarea.</p>
 </section>
 </section>
 <section id="sec-cost" class="level2" data-number="2.3">
@@ -897,54 +892,44 @@ Figura&nbsp;2.2: Un prompt, cuatro modelos, tres esfuerzos: “Generate an SVG o
 <li><strong>Un nivel de esfuerzo más alto</strong> hace que el modelo escriba más tokens de razonamiento por respuesta.</li>
 <li><strong>Una conversación más larga</strong> cuesta más en cada turno, porque el modelo no guarda memoria entre solicitudes: el harness vuelve a enviar la conversación entera cada vez. Todo lo que se envía con una solicitud (la conversación hasta ahí, los archivos leídos, las reglas del proyecto) es el <em>contexto</em> del modelo. El caché de prompts abarata la parte repetida, pero no la hace gratis, y los cachés vencen.</li>
 </ol>
-<p>Los hábitos que siguen son simples: un modelo mediano con esfuerzo moderado, una tarea por conversación y una conversación nueva en cuanto termina una tarea. Tres comandos, que se escriben en el propio agente y no se ejecutan en la terminal (<a href="03-setup.html#sec-two-places" class="quarto-xref"><span>Sección 4.4.1</span></a>), los cubren:</p>
+<p>Los hábitos que siguen son simples: un modelo mediano con esfuerzo medio, una tarea por conversación y una conversación nueva en cuanto termina una tarea. Tres comandos, que se escriben en el propio agente y no se ejecutan en la terminal (<a href="03-setup.html#sec-two-places" class="quarto-xref"><span>Sección 4.4.1</span></a>), los cubren:</p>
 <div id="tbl-slash" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-slash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;2.2: Tres comandos que controlan el costo y el contexto (referencia de comandos de Claude Code y referencia de Codex CLI, consultadas el <span class="nowrap">2026-11-12</span>). Escribe <code>/</code> solo para ver la lista de comandos de tu agente.
+Tabla&nbsp;2.2: Tres comandos que controlan el costo y el contexto; la redacción varía según el agente, así que escribe <code>/</code> para ver los del tuyo.
 </figcaption>
 <div aria-describedby="tbl-slash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
+<col style="width: 50%">
+<col style="width: 50%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Comando</th>
-<th>Claude Code</th>
-<th>Codex</th>
 <th>Úsalo cuando</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><code>/model</code></td>
-<td>cambia el modelo; las flechas ajustan el nivel de esfuerzo si el modelo lo admite</td>
-<td>elige el modelo y el esfuerzo de razonamiento</td>
-<td>un prompt sigue fallando (sube) o el trabajo es rutinario (baja)</td>
+<td>otro modelo o nivel de esfuerzo: cuando un prompt sigue fallando (sube) o el trabajo es rutinario (baja)</td>
 </tr>
 <tr class="even">
 <td><code>/clear</code></td>
-<td>empieza una conversación nueva con el contexto vacío; la anterior se puede retomar</td>
-<td>limpia la terminal y empieza un chat nuevo</td>
-<td>terminó una tarea y empieza otra sin relación</td>
+<td>una conversación nueva con el contexto vacío, cuando termina una tarea y empieza otra sin relación</td>
 </tr>
 <tr class="odd">
 <td><code>/exit</code></td>
-<td>sale; <code>/quit</code> hace lo mismo</td>
-<td>sale; <code>/quit</code> hace lo mismo</td>
-<td>terminaste, o necesitas pasar a otra carpeta</td>
+<td>sale del agente, cuando terminaste o necesitas otra carpeta</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>OpenCode les da otros nombres: <code>/models</code> elige el modelo, <code>/new</code> empieza una sesión nueva en lugar de <code>/clear</code> y, como no tiene <code>/exit</code>, Ctrl+C con el prompt vacío lo cierra (documentación de la TUI y de los atajos de teclado de OpenCode, consultada el <span class="nowrap">2026-11-20</span>).</p>
-<p><code>/clear</code> importa tanto para la calidad como para el costo. Las instrucciones viejas y los archivos leídos antes siguen orientando al modelo mientras estén en la conversación; una conversación nueva los descarta. Nada cambia en el disco, y el archivo de reglas del proyecto se vuelve a leer.</p>
+<p>OpenCode usa otros nombres, y el <a href="../appendices/c-cheatsheet.html" class="quarto-xref"><span>Apéndice C</span></a> los enumera.</p>
+<p><code>/clear</code> importa tanto para la calidad como para el costo. Las instrucciones anteriores y los archivos leídos antes siguen orientando al modelo mientras estén en la conversación; una conversación nueva los descarta. Nada cambia en el disco, y el archivo de reglas del proyecto se vuelve a leer.</p>
 <div class="think">
 <div class="box-label">
 <strong>Detente y piensa</strong>
@@ -962,10 +947,12 @@ Tabla&nbsp;2.2: Tres comandos que controlan el costo y el contexto (referencia d
 </section>
 <section id="sec-root-folder" class="level2" data-number="2.4">
 <h2 data-number="2.4" class="anchored" data-anchor-id="sec-root-folder"><span class="header-section-number">2.4</span> La carpeta raíz es el mundo del agente</h2>
-<p>Un agente trata la carpeta en la que lo inicias como su <em>raíz</em>: lee y edita archivos ahí y en las carpetas de abajo, y ejecuta comandos desde ahí. La primera vez que inicias uno en una carpeta nueva, te pregunta si confías en ella. El aviso de Claude Code, capturado el <span class="nowrap">2026-11-07</span>, advierte que “Claude Code’ll be able to read, edit, and execute files here” (Claude Code podrá leer, editar y ejecutar archivos aquí); Codex hace la misma pregunta en una carpeta que es un repositorio de Git, y dice que puede leer, editar y ejecutar archivos “subject to your permission settings” (según tu configuración de permisos).</p>
+<!-- The two trust prompts as Claude Code 2.1.319 and Codex 0.167.0 printed them, captured
+2026-11-07 (03-setup.qmd, Step 3). -->
+<p>Un agente trata la carpeta en la que lo inicias como su <em>raíz</em>: lee y edita archivos ahí y en las carpetas de abajo, y ejecuta comandos desde ahí. La primera vez que inicias uno en una carpeta nueva, te pregunta si confías en ella. El aviso de Claude Code advierte que “Claude Code’ll be able to read, edit, and execute files here” (Claude Code podrá leer, editar y ejecutar archivos aquí); Codex hace la misma pregunta en una carpeta que es un repositorio de Git, y dice que puede leer, editar y ejecutar archivos “subject to your permission settings” (según tu configuración de permisos).</p>
 <p>Esa pregunta merece una respuesta de verdad. Confía solo en una carpeta que creaste para el trabajo. Nunca inicies un agente en tu carpeta personal, en Documentos ni en ningún lugar que contenga proyectos de otras personas, documentos privados o claves (como <code>~/.ssh</code>). Las instrucciones de proyecto de una carpeta de confianza también se leen y se siguen, lo que es otra razón para confiar solo en tus propias carpetas.</p>
-<p>OpenCode no hace esa pregunta, y por defecto tampoco pregunta antes de actuar: el agente predeterminado de OpenCode edita archivos y ejecuta comandos sin preguntar, dentro de la carpeta o fuera de ella, salvo que se agreguen reglas con el efecto ask en opencode.jsonc (<a href="#sec-choose" class="quarto-xref"><span>Sección 2.2</span></a>; la <a href="03-setup.html#sec-step-assistant" class="quarto-xref"><span>Sección 4.4</span></a> explica cómo hacer que pregunte). Con él, una carpeta pequeña creada para el trabajo, y una mirada a <code>git diff</code> después de cada paso, importan todavía más.</p>
-<p>Empezar en una carpeta de proyecto pequeña tiene tres ventajas prácticas. Las rutas de los prompts quedan cortas (<code>data/attractions.csv</code>), se encuentra el archivo de reglas del proyecto y un error queda dentro de una sola carpeta que puedes restaurar. Pero no es una frontera garantizada: un comando igual puede nombrar una ruta fuera de la carpeta, así que lee cada comando antes de aprobarlo.</p>
+<p>OpenCode, por defecto, no hace ninguna de las dos preguntas: ni si confías en la carpeta, ni antes de actuar. La <a href="03-setup.html#sec-step-assistant" class="quarto-xref"><span>Sección 4.4</span></a> muestra cómo hacer que pregunte.</p>
+<p>Empezar en una carpeta de proyecto pequeña tiene tres ventajas prácticas. Las rutas de los prompts quedan cortas (<code>data/attractions.csv</code>), se encuentra el archivo de reglas del proyecto y un error queda dentro de una sola carpeta que puedes restaurar. Pero no es una frontera garantizada: de todos modos, un comando puede nombrar una ruta fuera de la carpeta, así que lee cada comando antes de aprobarlo.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -982,13 +969,13 @@ Tabla&nbsp;2.2: Tres comandos que controlan el costo y el contexto (referencia d
 </section>
 <section id="sec-agents-md" class="level2" data-number="2.5">
 <h2 data-number="2.5" class="anchored" data-anchor-id="sec-agents-md"><span class="header-section-number">2.5</span> Reglas que perduran: <code>AGENTS.md</code></h2>
-<p>Todo lo que le dices a un agente en la conversación se olvida cuando la conversación termina. Las reglas que deben valer en cada sesión van en un archivo: <code>AGENTS.md</code>, un archivo de Markdown simple en la parte de arriba de la carpeta del proyecto que el agente lee al comienzo de cada sesión. Uno bueno tiene tres partes:</p>
+<p>Todo lo que le dices a un agente en la conversación se olvida cuando la conversación termina. Las reglas que deben valer en cada sesión van en un archivo: <code>AGENTS.md</code>, un archivo de Markdown simple en la raíz de la carpeta del proyecto que el agente lee al comienzo de cada sesión. Uno bueno tiene tres partes:</p>
 <ul>
 <li><strong>Alcance:</strong> qué es el proyecto y qué no es.</li>
 <li><strong>Reglas:</strong> lo que siempre debe cumplirse (“every number comes from a cited file in <code>data/</code>”: cada número sale de un archivo citado en <code>data/</code>).</li>
 <li><strong>Comandos:</strong> cómo construir y revisar el proyecto.</li>
 </ul>
-<p>Los cuatro agentes de este libro lo leen (consultado el <span class="nowrap">2026-10-30</span> y el <span class="nowrap">2026-11-20</span>). Codex lee los archivos <code>AGENTS.md</code> antes de hacer cualquier trabajo. Antigravity lee <code>AGENTS.md</code> o <code>GEMINI.md</code> en las carpetas del proyecto. OpenCode lee cada <code>AGENTS.md</code> desde la carpeta de trabajo hacia arriba, y <code>CLAUDE.md</code> en una carpeta que no lo tenga. Claude Code lee <code>AGENTS.md</code> cuando no hay un <code>CLAUDE.md</code> en la carpeta de trabajo ni más arriba, desde la versión 2.1.277; un <code>CLAUDE.md</code> que contenga la línea <code>@AGENTS.md</code> lo importa, así que un solo archivo puede servirles a los cuatro (documentación de memoria de Claude Code, consultada el <span class="nowrap">2026-11-12</span>). El repositorio detrás de este libro funciona exactamente así: su <code>CLAUDE.md</code> importa su <code>AGENTS.md</code>.</p>
+<p>Los cuatro agentes lo leen. Claude Code lo lee cuando no hay un <code>CLAUDE.md</code>, o a través de un <code>CLAUDE.md</code> de una línea que lo importa (<code>@AGENTS.md</code>), como hace el repositorio detrás de este libro; el <a href="../appendices/k-facts.html" class="quarto-xref"><span>Apéndice K</span></a> indica dónde lo busca cada agente.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -999,7 +986,7 @@ Tabla&nbsp;2.2: Tres comandos que controlan el costo y el contexto (referencia d
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><code>AGENTS.md</code> es contexto, no una imposición. El agente lee las reglas y suele seguirlas, pero igual puede equivocarse. Escribe reglas lo bastante concretas como para revisarlas (“call ALVA counts ‘ALVA member attractions’”: llama a los conteos de ALVA “ALVA member attractions”), y revísalas.</p>
+<p><code>AGENTS.md</code> es contexto, no una imposición. El agente lee las reglas y suele seguirlas, pero aun así puede equivocarse. Escribe reglas lo bastante concretas como para revisarlas (“call ALVA counts ‘ALVA member attractions’”: llama a los conteos de ALVA “ALVA member attractions”), y revísalas.</p>
 </div>
 </div>
 <div class="think">
@@ -1025,7 +1012,7 @@ Tabla&nbsp;2.2: Tres comandos que controlan el costo y el contexto (referencia d
 <p><strong>Un paso a la vez.</strong> Una tarea por prompt mantiene cada cambio lo bastante pequeño como para revisarlo, y te dice qué paso se rompió cuando algo se rompe.</p>
 <p><strong>Pídele que ejecute y compruebe.</strong> Termina con una comprobación que el agente pueda hacer: “renderízalo y dime qué archivo escribió”, “comprueba que el PDF tenga una página”. Un agente que verifica su propio trabajo detecta muchos de sus propios errores.</p>
 <p><strong>Revisa lo que cambió.</strong> La responsabilidad por el resultado es tuya. Lee los archivos que cambiaron (la mayoría de los agentes pueden mostrarte un <em>diff</em>, las líneas agregadas y eliminadas) antes de seguir.</p>
-<p>Los prompts de este libro se diseñaron con ayuda de IA y se afinaron para reducir errores, pero no son magia, y los agentes varían. Cuando un prompt menciona algo que no entiendes (una clave de YAML, una construcción de Markdown, una llamada de Python), pregunta antes de pegarlo:</p>
+<p>Cuando un prompt menciona algo que no entiendes (una clave de YAML, un elemento de Markdown, una llamada de Python), pregunta antes de pegarlo:</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
 <div class="box-label">
@@ -1065,9 +1052,9 @@ Figura&nbsp;2.3: Un chat web redacta un prompt, tú lo lees y el agente de progr
 </section>
 <section id="sec-three-skills" class="level2" data-number="2.7">
 <h2 data-number="2.7" class="anchored" data-anchor-id="sec-three-skills"><span class="header-section-number">2.7</span> Vocabulario, especificación, verificación</h2>
-<p>Con un agente que teclea por ti, rara vez vas a escribir a mano la hoja de estilos de un tema, las opciones de una presentación o una plantilla de PDF. Lo que necesitas, en cambio, son tres habilidades, y cada capítulo de aquí en adelante enseña un formato de salida a través de ellas y no de su sintaxis:</p>
+<p>Con un agente que teclea por ti, necesitas tres habilidades, y cada capítulo de aquí en adelante enseña un formato de salida a través de ellas y no de su sintaxis:</p>
 <ol type="1">
-<li><strong>Vocabulario</strong>: saber qué es posible y cómo se llama, para poder pedirlo. “Notas de presentación”, “una referencia cruzada”, “un documento de referencia para Word”, “un parámetro”: un agente puede producir cualquiera de ellos, pero solo si sabes pedirlo, y un nombre te da la función real donde una descripción te da una improvisación.</li>
+<li><strong>Vocabulario</strong>: saber qué es posible y cómo se llama, para poder pedirlo. “Notas de presentación”, “una referencia cruzada”, “un documento de referencia para Word”, “un parámetro”: un agente puede producir cualquiera de ellos, pero solo si sabes pedirlo, y un nombre te da la función real, mientras que una descripción te da una improvisación.</li>
 <li><strong>Especificación</strong>: escribir una solicitud que el agente pueda llevar a cabo y que tú puedas revisar. Nombra los archivos, las opciones y el resultado, y termina con una comprobación. Las reglas que deben cumplirse en cada sesión, como “cada número sale de <code>outputs/</code>”, van en <code>AGENTS.md</code> (<a href="#sec-agents-md" class="quarto-xref"><span>Sección 2.5</span></a>), así que las dices una sola vez.</li>
 <li><strong>Verificación</strong>: saber cómo se ve una buena salida y confirmarlo de tres maneras. Lee el diff, para ver qué cambió; inspecciona el renderizado, como lo vería quien lo lea; y ejecuta las comprobaciones que pueden correr sin ti, como las pruebas y las <em>guardas</em>, líneas que detienen el renderizado cuando una oración ya no coincide con los datos (<a href="14-publish-many.html#sec-water-website" class="quarto-xref"><span>Sección 23.4</span></a>).</li>
 </ol>
@@ -1092,7 +1079,7 @@ Figura&nbsp;2.3: Un chat web redacta un prompt, tú lo lees y el agente de progr
 <div id="tbl-step-or-task" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-step-or-task-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;2.3: Cuándo darle a un agente una tarea más grande.
+Tabla&nbsp;2.3: Cuándo dar una tarea más grande.
 </figcaption>
 <div aria-describedby="tbl-step-or-task-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -1103,25 +1090,25 @@ Tabla&nbsp;2.3: Cuándo darle a un agente una tarea más grande.
 <thead>
 <tr class="header">
 <th>Dale una tarea más grande cuando</th>
-<th>Mantente en pasos sueltos cuando</th>
+<th>Ve paso a paso cuando</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>puedes describir el resultado terminado y cómo revisarlo</td>
-<td>solo vas a saber que está bien cuando lo veas</td>
+<td>solo sabrás que está bien cuando lo veas</td>
 </tr>
 <tr class="even">
-<td>las comprobaciones corren sin ti: pruebas, guardas, un renderizado</td>
+<td>lo revisan sin ti: pruebas, guardas, un renderizado</td>
 <td>cada paso necesita tu criterio antes del siguiente</td>
 </tr>
 <tr class="odd">
-<td>el trabajo está en una rama, así que deshacerlo es un solo comando</td>
-<td>el cambio toca datos, la publicación o el trabajo de otras personas</td>
+<td>el trabajo está en una rama: deshacerlo es un comando</td>
+<td>el cambio toca datos, la publicación o el trabajo de otros</td>
 </tr>
 <tr class="even">
-<td>una falla sería ruidosa: una prueba en rojo, un renderizado detenido</td>
-<td>una falla sería silenciosa: una oración plausible y equivocada</td>
+<td>una falla saltaría a la vista: prueba en rojo, renderizado detenido</td>
+<td>una falla pasaría inadvertida: una oración plausible y falsa</td>
 </tr>
 </tbody>
 </table>
@@ -1167,7 +1154,7 @@ Tabla&nbsp;2.3: Cuándo darle a un agente una tarea más grande.
 </div>
 </div>
 <p><strong>Pídele a tu agente</strong> contiene el prompt exacto que debes pegar en el agente (en la edición HTML, con un botón para copiarlo). <strong>Probablemente ejecute</strong> enumera lo que el agente probablemente hará, para que lo reconozcas cuando te pida aprobación; esto no lo escribes tú. <strong>Tú haces</strong> enumera las pocas cosas que solo tú puedes hacer: iniciar el agente, iniciar sesión en las cuentas, aprobar comandos, ejecutar una vista previa en vivo, abrir los resultados. El agente ocupa la pestaña de la terminal en la que corre, así que los comandos de un recuadro <strong>Tú haces</strong> van en una segunda pestaña de la terminal abierta en la misma carpeta (<a href="03-setup.html#sec-two-places" class="quarto-xref"><span>Sección 4.4.1</span></a>).</p>
-<p>Juntos, los recuadros son una vuelta del ciclo del título del libro. <strong>Pídele a tu agente</strong> es el paso <em>Pide</em>. <strong>Probablemente ejecute</strong> y <strong>Tú haces</strong> son donde <em>revisas</em>: reconoces cada comando antes de aprobarlo y abres el resultado por tu cuenta. El renderizado es el paso <em>Publica</em>. Cada ejercicio cierra el ciclo con <strong>Terminaste cuando</strong>: la comprobación, escrita de manera que puedas ver si se cumplió.</p>
+<p>Juntos, los recuadros son una vuelta del ciclo del título del libro. <strong>Pídele a tu agente</strong> es el paso <em>Pide</em>. <strong>Probablemente ejecute</strong> y <strong>Tú haces</strong> son donde <em>revisas</em>: reconoces cada comando antes de aprobarlo y abres el resultado por tu cuenta. El renderizado es el paso <em>Publica</em>. Cada ejercicio cierra el ciclo con <strong>Has terminado si</strong>: la comprobación, escrita de manera que puedas ver si se cumplió.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1181,7 +1168,6 @@ Tabla&nbsp;2.3: Cuándo darle a un agente una tarea más grande.
 <p>Aprobar un comando sin leerlo. La mayoría de los comandos de este libro ejecutan una herramienta que nombró el prompt (<code>quarto</code>, <code>uv</code>, <code>git</code>, <code>gh</code>) sobre archivos de la carpeta del proyecto. Detente y pregúntale al agente qué hace un comando antes de aprobar uno que borre archivos (<code>rm</code>), que se ejecute como administrador (<code>sudo</code>) o que toque una carpeta fuera del proyecto que el prompt no nombró.</p>
 </div>
 </div>
-<p>Los prompts son ejemplos, no transcripciones. Los agentes varían de una versión a otra y de una ejecución a otra, así que los archivos que escriban van a diferir en detalles de los que se muestran. Lo que no debería variar es el resultado que revisas. La <a href="#fig-agent-session" class="quarto-xref">Figura&nbsp;<span>2.4</span></a> muestra cómo se ve una sesión.</p>
 <div id="fig-agent-session" class="anim quarto-float quarto-figure quarto-figure-center anchored" alt="La reproducción en una terminal de una sesión con un agente de programación, en inglés y marcada como ilustración. El prompt pide london.md con un título de nivel 1 Visit London y un párrafo de bienvenida. El agente dice que va a crear el archivo y muestra las líneas que escribe: el título y una oración de bienvenida sobre museos gratuitos, historia de la realeza y paseos junto al río. Dice que va a renderizar el archivo para comprobarlo, muestra el comando quarto render london.md y pregunta Allow this command (permitir este comando), con Yes seleccionado. La salida dice Output created: london.html, y el agente informa que london.md tiene el título y un párrafo de bienvenida y que el renderizado no tuvo errores.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-agent-session-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1192,10 +1178,11 @@ Figura&nbsp;2.4: Cómo se ve la ejecución del primer prompt: el agente escribe 
 </figcaption>
 </figure>
 </div>
+<p>La <a href="#fig-agent-session" class="quarto-xref">Figura&nbsp;<span>2.4</span></a> muestra cómo se ve una sesión. Los prompts son ejemplos, no transcripciones: los agentes varían de una versión a otra y de una ejecución a otra, así que los archivos que escriban van a diferir en detalles de los que se muestran. Lo que no debería variar es el resultado que revisas.</p>
 </section>
 <section id="sec-ai-policy" class="level2" data-number="2.10">
 <h2 data-number="2.10" class="anchored" data-anchor-id="sec-ai-policy"><span class="header-section-number">2.10</span> Usar IA en una investigación: decláralo y hazte cargo</h2>
-<p>Si tu trabajo es de investigación, usar un agente trae obligaciones que van más allá de que el código esté bien. Las revistas y los financiadores difieren en los detalles, así que lee la política de tu revista, pero el International Committee of Medical Journal Editors (ICMJE), cuyas recomendaciones siguen muchas revistas, plantea un núcleo común (consultado el <span class="nowrap">2026-11-12</span>; citas traducidas del inglés):</p>
+<p>Si tu trabajo es de investigación, usar un agente trae obligaciones que van más allá de que el código esté bien. Las revistas y los financiadores difieren en los detalles, así que lee la política de tu revista, pero el International Committee of Medical Journal Editors (ICMJE), cuyas recomendaciones siguen muchas revistas, plantea un núcleo común (citas traducidas del inglés):</p>
 <ul>
 <li><strong>Una herramienta de IA nunca es autora.</strong> Los chatbots y otras herramientas asistidas por IA “no deben figurar como autores porque no pueden ser responsables de la exactitud, la integridad y la originalidad del trabajo”.</li>
 <li><strong>Tú eres responsable de lo que produjo.</strong> Las personas son responsables de cualquier material enviado que haya usado tecnologías asistidas por IA, y deben revisar y editar lo que produce la IA, que “puede ser incorrecto, incompleto o sesgado”. Eso incluye las referencias: el material generado por IA no es una fuente primaria aceptable.</li>
@@ -1223,14 +1210,14 @@ Figura&nbsp;2.4: Cómo se ve la ejecución del primer prompt: el agente escribe 
 <div class="keyideas">
 <ul>
 <li>El modelo decide, el harness hace, y tú diriges y revisas; cuando un agente decepciona, cualquiera de las dos mitades puede ser la causa.</li>
-<li>Elige un modelo por la tarea, no por el ranking: un modelo más barato con esfuerzo medio suele bastar para un paso pequeño, y como la conversación entera se vuelve a enviar en cada turno, empieza una nueva para cada tarea sin relación.</li>
+<li>Elige un modelo por la tarea, no por el ranking: un modelo mediano con esfuerzo medio basta para un paso pequeño, y como la conversación entera se vuelve a enviar en cada turno, empieza una nueva para cada tarea sin relación.</li>
 <li>Inicia un agente solo en una carpeta que creaste para el trabajo, y lee cada comando antes de aprobarlo.</li>
 <li>Las reglas que deben durar van en <code>AGENTS.md</code>, que es contexto, no una imposición, así que escríbelas de forma lo bastante concreta como para revisarlas.</li>
 <li>Los buenos prompts son específicos, piden un solo paso y terminan en una comprobación; en una investigación el agente nunca es autor, y su uso se declara.</li>
 <li>Aprende cada formato de salida como vocabulario, especificación y verificación, y dale a un agente una tarea más grande solo cuando sus comprobaciones puedan correr sin ti.</li>
 </ul>
 </div>
-<p>Todo esto da por sentado una computadora en la que un agente, Quarto y Python están instalados y funcionan juntos. ¿La tuya lo está? El <a href="03-setup.html" class="quarto-xref"><span>Capítulo 4</span></a> la deja así en seis pasos revisados.</p>
+<p>Todo esto da por sentado una computadora en la que un agente, Quarto y Python funcionan juntos. Si ya usas a diario una terminal y Git, el <a href="fast-path.html" class="quarto-xref"><span>Capítulo 3</span></a> es el siguiente. Si no, el <a href="03-setup.html" class="quarto-xref"><span>Capítulo 4</span></a> deja lista tu computadora en seis pasos revisados.</p>
 </section>
 <section id="lecturas-adicionales" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="lecturas-adicionales">Lecturas adicionales</h2>
@@ -1243,7 +1230,7 @@ Figura&nbsp;2.4: Cómo se ve la ejecución del primer prompt: el agente escribe 
 <li>Planes gratuitos de los chats web: <a href="https://claude.com/pricing">Claude</a>, <a href="https://chatgpt.com/pricing">ChatGPT</a> y <a href="https://gemini.google/subscriptions/">Gemini</a> (consultados el <span class="nowrap">2026-11-12</span>).</li>
 <li>Gemini CLI, <a href="https://geminicli.com/docs/get-started/installation">instalación</a>, sobre su reemplazo por Antigravity CLI (consultado el <span class="nowrap">2026-11-12</span>).</li>
 <li>Guido Appenzeller, <a href="https://a16z.com/llmflation-llm-inference-cost/">LLMflation</a>, a16z, 2024; Epoch AI, <a href="https://epoch.ai/data-insights/llm-inference-price-trends">LLM inference price trends</a>, 2025 (consultados el <span class="nowrap">2026-11-07</span>).</li>
-<li>Simon Willison, serie <a href="https://simonwillison.net/tags/pelican-riding-a-bicycle/">pelican riding a bicycle</a> (consultada el <span class="nowrap">2026-11-06</span>).</li>
+<li>Simon Willison, serie <a href="https://simonwillison.net/tags/pelican-riding-a-bicycle/">pelican riding a bicycle</a> (consultada el <span class="nowrap">2026-11-06</span>), y las transcripciones de sus ejecuciones con esfuerzo máximo (consultadas el <span class="nowrap">2026-11-12</span>).</li>
 <li>ICMJE, <a href="https://www.icmje.org/recommendations/browse/artificial-intelligence/ai-use-by-authors.html">Use of AI by authors</a> (consultado el <span class="nowrap">2026-11-12</span>).</li>
 </ul>
 

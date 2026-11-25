@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5ed9e4edf2048b6b9b588fc3d1daa128.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -648,6 +648,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#what-the-epub-needed" id="toc-what-the-epub-needed" class="nav-link" data-scroll-target="#what-the-epub-needed">Lo que necesitó el EPUB</a></li>
   <li><a href="#media" id="toc-media" class="nav-link" data-scroll-target="#media">Medios</a></li>
   <li><a href="#reading-the-epub" id="toc-reading-the-epub" class="nav-link" data-scroll-target="#reading-the-epub">Leer el EPUB</a></li>
+  <li><a href="#sec-not-tested" id="toc-sec-not-tested" class="nav-link" data-scroll-target="#sec-not-tested">Lo que no se probó</a></li>
   <li><a href="#building-it" id="toc-building-it" class="nav-link" data-scroll-target="#building-it">Construirlo</a></li>
   </ul>
 </nav>
@@ -690,64 +691,62 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="what-the-epub-needed" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="what-the-epub-needed">Lo que necesitó el EPUB</h2>
-<div id="tbl-epub-fixes" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-epub-fixes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;H.1: Problemas encontrados al construir la edición EPUB, y sus soluciones.
-</figcaption>
-<div aria-describedby="tbl-epub-fixes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Problema</th>
-<th>Solución</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Quarto 1.10.20 elimina del EPUB las partes de un libro, y el contenido de las páginas de las partes</td>
-<td>En el EPUB, las páginas de las partes son capítulos comunes; un script posterior al renderizado anida los capítulos de cada parte debajo de ella en la tabla de contenidos</td>
-</tr>
-<tr class="even">
-<td>La lista de capítulos de un perfil se suma a la lista base, no la reemplaza</td>
-<td>Una sola lista maestra (<code>_chapters.yml</code>) genera una lista de capítulos para cada edición</td>
-</tr>
-<tr class="odd">
-<td><code>when-format="html"</code> también coincide con el EPUB</td>
-<td>El contenido solo para HTML usa <code>when-format="html:js"</code></td>
-</tr>
-<tr class="even">
-<td>Renderizar una edición vacía la carpeta de salida de la otra</td>
-<td>Cada edición tiene su propia carpeta de salida</td>
-</tr>
-<tr class="odd">
-<td>El envoltorio de las figuras de Quarto lleva un atributo <code>alt</code> que el XHTML del EPUB prohíbe</td>
-<td>El script posterior al renderizado lo quita (la imagen conserva su texto alternativo)</td>
-</tr>
-<tr class="even">
-<td>No hay puntos de referencia (landmarks) para la página de derechos de autor ni para el comienzo del texto</td>
-<td>Los agrega el script posterior al renderizado, que además pone la página de derechos de autor antes del prefacio</td>
-</tr>
-<tr class="odd">
-<td>Los títulos de los recuadros y el código tienen fondos claros fijos y texto oscuro, invisibles con el tema nocturno de un lector</td>
-<td>La hoja de estilos deja pasar los colores del lector</td>
-</tr>
-<tr class="even">
-<td>Las líneas de código no se ajustan en un teléfono, y las salidas de las celdas se desplazan de lado</td>
-<td>La hoja de estilos hace que las líneas largas se ajusten y que las salidas quepan</td>
-</tr>
-<tr class="odd">
-<td>Los diagramas anchos son ilegibles en un teléfono</td>
-<td>Los diagramas se dibujan en vertical, de 700 píxeles de ancho con texto de al menos 19 píxeles, y se entregan como PNG al doble de resolución</td>
-</tr>
-</tbody>
-</table>
+<p>Problemas encontrados al construir la edición EPUB, y sus soluciones:</p>
+<div class="cards">
+<div class="card">
+<div class="card-term">
+Quarto 1.10.20 elimina del EPUB las partes de un libro, y el contenido de las páginas de las partes
 </div>
-</figure>
+En el EPUB, las páginas de las partes son capítulos comunes; un script posterior al renderizado anida los capítulos de cada parte debajo de ella en la tabla de contenidos.
+</div>
+<div class="card">
+<div class="card-term">
+La lista de capítulos de un perfil se suma a la lista base, no la reemplaza
+</div>
+Una sola lista maestra (<code>_chapters.yml</code>) genera una lista de capítulos para cada edición.
+</div>
+<div class="card">
+<div class="card-term">
+<code>when-format="html"</code> también coincide con el EPUB
+</div>
+El contenido solo para HTML usa <code>when-format="html:js"</code>.
+</div>
+<div class="card">
+<div class="card-term">
+Renderizar una edición vacía la carpeta de salida de la otra
+</div>
+Cada edición tiene su propia carpeta de salida.
+</div>
+<div class="card">
+<div class="card-term">
+El envoltorio de las figuras de Quarto lleva un atributo <code>alt</code> que el XHTML del EPUB prohíbe
+</div>
+El script posterior al renderizado lo quita (la imagen conserva su texto alternativo).
+</div>
+<div class="card">
+<div class="card-term">
+No hay puntos de referencia (landmarks) para la página de derechos de autor ni para el comienzo del texto
+</div>
+Los agrega el script posterior al renderizado, que además pone la página de derechos de autor antes del prefacio.
+</div>
+<div class="card">
+<div class="card-term">
+Los títulos de los recuadros y el código tienen fondos claros fijos y texto oscuro, invisibles con el tema nocturno de una app de lectura
+</div>
+La hoja de estilos deja pasar los colores del lector.
+</div>
+<div class="card">
+<div class="card-term">
+Las líneas de código no se ajustan en un teléfono, y las salidas de las celdas se desplazan de lado
+</div>
+La hoja de estilos hace que las líneas largas se ajusten y que las salidas quepan.
+</div>
+<div class="card">
+<div class="card-term">
+Los diagramas anchos son ilegibles en un teléfono
+</div>
+Los diagramas se dibujan en vertical, de 700 píxeles de ancho con texto de al menos 19 píxeles, y se entregan como PNG al doble de resolución.
+</div>
 </div>
 <p>El EPUB terminado pasa EPUBCheck 5.4.0, el validador del W3C, sin errores y sin advertencias.</p>
 </section>
@@ -758,49 +757,63 @@ Tabla&nbsp;H.1: Problemas encontrados al construir la edición EPUB, y sus soluc
 <li><strong>Los diagramas</strong> son archivos SVG con un estilo compartido, rasterizados a PNG por Chrome. El sitio web usa el SVG y el EPUB el PNG, elegidos por la opción <code>default-image-extension</code> de Quarto para cada edición.</li>
 <li><strong>Las animaciones 3-D</strong> se graban a partir de las escenas en vivo de la edición web: un script abre la página en Chrome, recorre las vistas y los arrastres de la escena, captura cuadros y arma un GIF con los filtros de paleta de ffmpeg.</li>
 <li><strong>Las animaciones de terminal</strong> se graban con VHS a partir de cintas con guion que ejecutan comandos reales con una cuenta de demostración, para que no aparezca ninguna ruta personal; la sesión del agente es una ilustración con guion, porque las reglas del repositorio descartan las sesiones de agentes de pago para el material didáctico.</li>
-<li><strong>Cada GIF abre en su último cuadro</strong>, mantenido dos segundos, porque los lectores electrónicos que no animan muestran el primer cuadro de un GIF. Cada uno tiene además un PNG fijo, que el sitio web muestra a quienes le piden a su sistema movimiento reducido. Los GIF se mantienen por debajo de 2 MB.</li>
+<li><strong>Cada GIF abre en su último cuadro</strong>, mantenido dos segundos, porque las apps de lectura que no animan imágenes muestran el primer cuadro de un GIF. Cada uno tiene además un PNG fijo, que el sitio web muestra a quienes le piden a su sistema movimiento reducido. Los GIF se mantienen por debajo de 2 MB.</li>
+<li><strong>Las animaciones de Markdown</strong> del <a href="../chapters/04-markdown.html" class="quarto-xref"><span>Capítulo 6</span></a> ponen lo que escribes, a la izquierda, junto a lo que obtienes, a la derecha. El lado derecho no está dibujado: cada paso de la izquierda se guardó en un archivo y lo renderizó Quarto 1.10.20, y la derecha muestra esa página, ampliada. Cada una abre en su par terminado, que es todo lo que muestra una app de lectura sin animaciones, y luego escribe la fuente desde el principio.</li>
 </ul>
 </section>
 <section id="reading-the-epub" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="reading-the-epub">Leer el EPUB</h2>
-<div id="tbl-reading" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-reading-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;H.2: Cómo se comportan las funciones del EPUB en distintos lectores. El <code>book/README.md</code> del repositorio registra qué lectores se probaron, y cuándo.
-</figcaption>
-<div aria-describedby="tbl-reading-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Función</th>
-<th>Dónde funciona</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>GIF animados</td>
-<td>los lectores que animan imágenes los reproducen; los demás muestran el primer cuadro, pensado como imagen fija</td>
-</tr>
-<tr class="even">
-<td>Temas nocturno y sepia</td>
-<td>la hoja de estilos no fija colores de página; las figuras dibujadas con tinta oscura van sobre un panel claro</td>
-</tr>
-<tr class="odd">
-<td>Matemáticas</td>
-<td>escritas como MathML; los lectores sin soporte para MathML pueden mostrarlas como texto simple</td>
-</tr>
-<tr class="even">
-<td>Escenas 3-D en vivo y exploradores</td>
-<td>solo en la edición web, enlazados desde el EPUB; el mapa de Londres también tiene código QR</td>
-</tr>
-</tbody>
-</table>
+<p>Cómo se comportan las funciones del EPUB en distintas apps de lectura:</p>
+<div class="cards">
+<div class="card">
+<div class="card-term">
+GIF animados
 </div>
-</figure>
+Las apps de lectura que animan imágenes los reproducen; las demás muestran el primer cuadro, pensado como imagen fija.
+</div>
+<div class="card">
+<div class="card-term">
+Temas nocturno y sepia
+</div>
+La hoja de estilos no fija colores de página; las figuras dibujadas con tinta oscura van sobre un panel claro.
+</div>
+<div class="card">
+<div class="card-term">
+Matemáticas
+</div>
+Escritas como MathML; las apps de lectura sin soporte para MathML pueden mostrarlas como texto simple.
+</div>
+<div class="card">
+<div class="card-term">
+Escenas 3-D en vivo y exploradores
+</div>
+Solo en la edición web, enlazados desde el EPUB; el mapa de Londres también tiene código QR.
+</div>
+</div>
+<p>El <code>book/README.md</code> del repositorio registra qué apps de lectura se probaron, y cuándo.</p>
+</section>
+<section id="sec-not-tested" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="sec-not-tested">Lo que no se probó</h2>
+<p>Tres cosas que el libro describe no se probaron por completo. Lo que se revisó, y lo que no:</p>
+<div class="cards">
+<div class="card">
+<div class="card-term">
+Las primeras pantallas de los agentes
+</div>
+Las primeras pantallas de Claude Code y de Codex se capturaron el <span class="nowrap">2026-11-07</span> (<a href="../chapters/03-setup.html" class="quarto-xref"><span>Capítulo 4</span></a>); las de Antigravity y OpenCode, no.
+</div>
+<div class="card">
+<div class="card-term">
+El codespace
+</div>
+Construido a partir del contenedor de desarrollo (dev container) del taller y revisado en una computadora local: Quarto, uv, Git y <code>gh</code> presentes, y el primer informe y la prueba se renderizan. No se ejecutó en las máquinas de GitHub (<a href="../chapters/03-setup.html#sec-codespace" class="quarto-xref"><span>Sección 4.8</span></a>).
+</div>
+<div class="card">
+<div class="card-term">
+Los workflows del equipo
+</div>
+El workflow de comprobación se ejecutó localmente con act (0.2.98, en Docker), en verde con el cambio y en rojo con una guarda rota (<a href="../chapters/team.html" class="quarto-xref"><span>Capítulo 15</span></a>). El push, los pull requests, las ejecuciones de <em>Publish</em> y <em>Monthly reports</em>, el caché de uv y la protección de rama necesitan un repositorio de GitHub y no se ejecutaron para esta edición; sus acciones y configuraciones se contrastaron con la documentación de GitHub el <span class="nowrap">2026-11-18</span>.
+</div>
 </div>
 </section>
 <section id="building-it" class="level2 unnumbered">

@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5ed9e4edf2048b6b9b588fc3d1daa128.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -682,27 +682,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>La vía rápida terminó con un informe. Una evaluación real tiene más lectores que eso. El equipo de producto quiere el titular y la tabla; quien revisa riesgos o cumplimiento quiere saber a quién trata de forma distinta el modelo y para qué no debe usarse; quien invierte quiere un número que se movió. La manera de servirles a todos sin que los números se separen es el diseño que el repositorio ya tiene: <strong>un script calcula cada resultado una sola vez, y todos los documentos los leen.</strong> Este capítulo agrega el segundo documento, una <em>ficha del modelo</em> (model card), y hace crecer el informe, y muestra cómo darle a un agente una tarea más grande sin riesgo: pidiendo primero un plan y juzgando después el resultado por sus comprobaciones.</p>
-<p>Es el primer capítulo de esta parte, cuyos capítulos toman cada uno un tipo de salida, aquí una ficha del modelo y luego diapositivas, un sitio y un white paper, y lo enseñan de la misma manera: qué puede hacer y cómo se llama, cómo pedirlo y cómo revisarlo (la <a href="02-assistant.html#sec-three-skills" class="quarto-xref"><span>Sección 2.7</span></a>).</p>
+<p>La vía rápida terminó con un informe y una versión ganadora. Este capítulo les hace una segunda pregunta a los mismos resultados: ¿a quién llama la versión ganadora? La respuesta está en un archivo que el informe nunca abrió. La lista con la que trabajaría el centro de llamadas se inclina hacia algunas edades: a un grupo se lo llama mucho más que a otro. Un informe puede omitirlo. Una ficha del modelo (model card) no, y escribirla es la tarea más grande de este capítulo: entregada entera al agente, con un plan primero y sus comprobaciones después.</p>
+<p>El diseño que lo responde es el que el repositorio ya tiene: <strong>un script calcula cada resultado una sola vez, y todos los documentos los leen</strong>, así que la ficha, el informe y todo lo que venga después citan la misma ejecución.</p>
 <div class="opener">
 <div class="box-label">
 <strong>En este capítulo</strong>
 </div>
 <ul>
-<li>Explicar por qué los resultados se calculan una sola vez y los leen todos los documentos, y qué atrapa cada tipo de comprobación (las pruebas, las guardas, el renderizado).</li>
+<li>Explicar por qué cada resultado se calcula una sola vez, y qué detectan las pruebas, las guardas y el renderizado.</li>
 <li>Pedirle a un agente una ficha del modelo como una sola tarea más grande, con un plan primero, y juzgarla por sus comprobaciones.</li>
 <li>Numerar las secciones y referirse a ellas, a las tablas y a las figuras, de modo que cada referencia se resuelva en HTML, Word y PDF.</li>
 <li>Predecir qué le hace a cada documento un ajuste cambiado, y luego reconstruir y revisar.</li>
 </ul>
 <div class="opener-meta">
-<p><span class="meta-label"><strong>Partes de</strong></span>tu repositorio <code>acme-eval</code> al final del <a href="fast-path.html" class="quarto-xref"><span>Capítulo 3</span></a>, o <code>checkpoints/14-eval-start/</code>.</p>
+<p><span class="meta-label"><strong>Punto de partida</strong></span>tu repositorio <code>acme-eval</code> al final del <a href="fast-path.html" class="quarto-xref"><span>Capítulo 3</span></a>, o <code>checkpoints/14-eval-start/</code>.</p>
 <p><span class="meta-label"><strong>Construyes</strong></span><code>model-card.qmd</code> con <code>references.bib</code>, y un informe con secciones numeradas, en HTML, Word y PDF.</p>
 <p><span class="meta-label"><strong>Punto de control</strong></span><code>checkpoints/15-eval-results/</code></p>
 </div>
 </div>
+<div class="payoff">
+<div class="box-label">
+<strong>Lo que vas a construir</strong>
+</div>
+<div id="fig-results-card" class="scaled screenshot quarto-float quarto-figure quarto-figure-center anchored" alt="La parte superior de una página web al ancho de un teléfono: el título, Model card: contact-ranking model (ficha del modelo: modelo que ordena contactos), y el subtítulo, Acme Signals (a fictional company), una empresa ficticia. Tras una línea discontinua que marca un corte, la sección 2, Intended use (uso previsto), da el uso principal, ordenar la lista de clientes de un banco para una campaña de depósitos a plazo, su público principal y lo que queda fuera de su alcance, desde decisiones de crédito hasta cualquier versión que use duration.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-results-card-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/figures/eval-card-top.png" class="scaled screenshot img-fluid figure-img" style="width:85.0%" alt="La parte superior de una página web al ancho de un teléfono: el título, Model card: contact-ranking model (ficha del modelo: modelo que ordena contactos), y el subtítulo, Acme Signals (a fictional company), una empresa ficticia. Tras una línea discontinua que marca un corte, la sección 2, Intended use (uso previsto), da el uso principal, ordenar la lista de clientes de un banco para una campaña de depósitos a plazo, su público principal y lo que queda fuera de su alcance, desde decisiones de crédito hasta cualquier versión que use duration.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-results-card-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;10.1: La parte superior de la ficha del modelo terminada, renderizada a partir de <code>checkpoints/15-eval-results/model-card.qmd</code>.
+</figcaption>
+</figure>
+</div>
+</div>
 <section id="sec-results-checks" class="level2" data-number="10.1">
 <h2 data-number="10.1" class="anchored" data-anchor-id="sec-results-checks"><span class="header-section-number">10.1</span> Calcular una vez, comprobar de tres maneras</h2>
-<p><code>scripts/evaluate.py</code> es el único código del repositorio que ajusta un modelo. Escribe cinco archivos de texto plano en <code>outputs/</code>, y son los mismos bytes en cada ejecución, porque cada elección aleatoria, la división de los datos, los modelos y el bootstrap, tiene una semilla fija. En la ejecución de este libro:</p>
+<p><code>scripts/evaluate.py</code> es el único código del repositorio que ajusta un modelo. Escribe cinco archivos de texto plano en <code>outputs/</code>, los mismos bytes en cada ejecución en el entorno que fija <code>uv.lock</code>, porque cada elección aleatoria, la división, los modelos y el bootstrap, tiene una semilla fija. En la ejecución de este libro la mejor versión es v3, medida en 11,303 contactos de prueba, de los que se suscribió el 11.7% (la <em>tasa base</em>):</p>
 <div id="tbl-results-outputs" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-outputs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -723,34 +738,34 @@ Tabla&nbsp;10.1: Lo que escribe la evaluación.
 <tbody>
 <tr class="odd">
 <td><code>summary.json</code></td>
-<td>la mejor versión (v3), el tamaño del conjunto de prueba (11,303), la tasa base (11.7%), las semillas, la suma de verificación de los datos y las versiones de los paquetes</td>
+<td>mejor versión, tamaño del conjunto de prueba, tasa base, semillas, versiones</td>
 </tr>
 <tr class="even">
 <td><code>metrics.csv</code></td>
-<td>las métricas de cada versión, con un intervalo bootstrap del 95%</td>
+<td>métricas de cada versión, con intervalos bootstrap</td>
 </tr>
 <tr class="odd">
 <td><code>segments.csv</code></td>
-<td>lo mismo por franja de edad y por ocupación</td>
+<td>lo mismo por franja de edad y ocupación</td>
 </tr>
 <tr class="even">
 <td><code>calibration.csv</code></td>
-<td>las tasas predichas frente a las observadas, en diez intervalos</td>
+<td>tasas predichas frente a observadas, en diez intervalos</td>
 </tr>
 <tr class="odd">
 <td><code>curves.csv</code></td>
-<td>los puntos de las curvas ROC y de precisión-recall</td>
+<td>curvas ROC y de precisión-recall</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Luego, tres tipos de comprobación protegen cosas distintas, y un repositorio profesional necesita los tres:</p>
+<p>Las métricas son el <em>ROC AUC</em>, la probabilidad de que una versión ponga a alguien que se suscribe, elegido al azar, por encima de alguien que no, y tres para la parte superior de la lista: el <em>recall</em>, la proporción de quienes se suscriben a la que llegan las llamadas (llamar al azar al 10% superior llegaría al 10% de esas personas); la <em>precisión</em>, la proporción de llamadas que llegan a una de esas personas; y el <em>lift</em>, la precisión dividida por la <em>tasa base</em>, la proporción de todos los contactos que se suscriben. El <em>intervalo bootstrap</em> de una métrica abarca el 95% central de sus valores cuando el conjunto de prueba se vuelve a sortear, con reposición, muchas veces. Tres tipos de comprobación protegen cosas distintas, y un repositorio necesita los tres:</p>
 <div id="tbl-results-check-kinds" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-check-kinds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;10.2: Tres tipos de comprobación, y lo que atrapa cada uno.
+Tabla&nbsp;10.2: Tres tipos de comprobación, y lo que detecta cada uno.
 </figcaption>
 <div aria-describedby="tbl-results-check-kinds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -763,36 +778,50 @@ Tabla&nbsp;10.2: Tres tipos de comprobación, y lo que atrapa cada uno.
 <tr class="header">
 <th>Comprobación</th>
 <th>Se ejecuta</th>
-<th>Atrapa</th>
+<th>Detecta</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Pruebas</strong> (<code>uv run pytest</code>)</td>
 <td>sobre el código y los datos</td>
-<td>un archivo de datos cambiado (su suma de verificación), una fuga de información (ninguna versión puede usar <code>duration</code>, que solo se conoce después de la llamada), una métrica equivocada, salidas a las que les falta una columna</td>
+<td>un archivo de datos cambiado (su suma de verificación); una fuga</td>
 </tr>
 <tr class="even">
 <td><strong>Guardas</strong> (<code>claim(…)</code> en un documento)</td>
-<td>cuando se renderiza un documento</td>
-<td>una oración cuyas palabras los resultados ya no respaldan: “best”, “most”, “within five points” (la mejor, la mayor, a menos de cinco puntos)</td>
+<td>al renderizar un documento</td>
+<td>una oración que los resultados ya no respaldan</td>
 </tr>
 <tr class="odd">
 <td><strong>El renderizado</strong></td>
 <td>en cada documento, en cada formato</td>
-<td>una referencia que no se resuelve, un archivo que falta, una celda que falla</td>
+<td>una referencia que no se resuelve; una celda que falla</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Una prueba no lee la prosa, y una guarda no prueba el código; ninguna de las dos nota una etiqueta escrita a mano que quedó desactualizada, algo que solo nota quien lee, o una predicción puesta a prueba con una reconstrucción (la <a href="#sec-results-change" class="quarto-xref"><span>Sección 10.4</span></a>).</p>
+<p>Una <em>suma de verificación</em> (checksum) es la huella de un archivo: cambia un byte de los datos y deja de coincidir. Una prueba no lee la prosa, y una guarda no prueba el código; ninguna nota una etiqueta escrita a mano que quedó desactualizada, algo que solo notan quien lee o una predicción puesta a prueba con una reconstrucción (<a href="#sec-results-change" class="quarto-xref"><span>Sección 10.4</span></a>).</p>
+<div class="think">
+<div class="box-label">
+<strong>Detente y piensa</strong>
+</div>
+<div class="think-question">
+<p>Los datos tienen una columna, <code>duration</code>, la duración de cada llamada en segundos. La propia página del conjunto de datos, citada en <code>data/README.md</code>, dice que “highly affects the output target” (afecta mucho a la variable objetivo). ¿Debería usarla una versión?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Respuesta</strong>
+</div>
+<p>No.&nbsp;La duración de una llamada solo se conoce después de la llamada, y el trabajo del modelo es elegir a quién llamar. Un modelo que la recibiera se evaluaría con algo que nunca va a tener en servicio: una <em>fuga de información</em> (leakage), una columna que lleva la respuesta a la evaluación. Ningún renderizado lo notaría; una prueba sí (<code>tests/test_models.py</code>), y por eso el repositorio la tiene.</p>
+</div>
+</div>
 </section>
 <section id="sec-model-card" class="level2" data-number="10.2">
 <h2 data-number="10.2" class="anchored" data-anchor-id="sec-model-card"><span class="header-section-number">10.2</span> Una ficha del modelo, como una tarea más grande</h2>
-<p>Una <em>ficha del modelo</em> es un documento breve que acompaña a un modelo: qué es, para qué sirve y para qué no, cómo se desempeña en general y en los grupos a los que afecta, y qué saben quienes lo hicieron que está mal en él. Mitchell y colegas propusieron el formato en 2019, con una lista fija de secciones, que es el vocabulario para pedirla.</p>
-<p>La ficha es un buen ejemplo de una tarea para entregar entera (la <a href="02-assistant.html#sec-step-or-task" class="quarto-xref"><span>Sección 2.8</span></a>): puedes enunciar el resultado (esas secciones, a partir de esos archivos), y sus comprobaciones se ejecutan sin ti (las guardas, las referencias, el renderizado). Así que pide primero un plan, léelo, y solo entonces deja que el agente trabaje. Empieza una rama para ella, como para cualquier cambio que vayas a revisar:</p>
+<p>Una <em>ficha del modelo</em> es un documento breve que acompaña a un modelo: qué es, para qué sirve y para qué no, cómo se desempeña en general y en los grupos a los que afecta, y qué limitaciones le conocen quienes lo hicieron. Mitchell y colegas propusieron el formato en 2019, con una lista fija de secciones, que es el vocabulario para pedirla.</p>
+<p>La ficha es un buen ejemplo de una tarea para entregar entera (<a href="02-assistant.html#sec-step-or-task" class="quarto-xref"><span>Sección 2.8</span></a>): puedes enunciar el resultado (esas secciones, a partir de esos archivos), y sus comprobaciones se ejecutan sin ti (las guardas, las referencias, el renderizado). Así que pide primero un plan, léelo, y solo entonces deja que el agente trabaje. Empieza una rama para ella, como para cualquier cambio que vayas a revisar:</p>
 <div class="agent-box">
 <div class="you" data-boxed="true">
 <div class="box-label">
@@ -804,7 +833,7 @@ Tabla&nbsp;10.2: Tres tipos de comprobación, y lo que atrapa cada uno.
 <div class="box-label">
 <strong>Pídele a tu agente</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Primero un plan, y espera mi visto bueno: agrega model-card.qmd (html, docx y typst), escrita en inglés, para la mejor versión, con las secciones de Mitchell et al. (2019), "Model Cards for Model Reporting": detalles del modelo, uso previsto, factores, métricas, datos de evaluación, datos de entrenamiento, análisis cuantitativos, consideraciones éticas, y advertencias y recomendaciones. Lee solo outputs/ y data/README.md. Las métricas por subgrupo, por franja de edad y por ocupación, salen de outputs/segments.csv, y la calibración de outputs/calibration.csv. Cita el artículo y el conjunto de datos desde un references.bib nuevo, abriendo antes cada DOI. Protege con `claim` cada oración cuya redacción dependa de los resultados. Renderiza los tres formatos y luego enumera lo que no pudiste verificar.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Plan primero; espera mi visto bueno. Agrega model-card.qmd, en inglés, para la mejor versión, con las secciones de Mitchell et al. (2019). Lee solo outputs/ y data/README.md; los subgrupos por edad y ocupación, de outputs/segments.csv, y la calibración, de outputs/calibration.csv. Cita el artículo y los datos en un references.bib nuevo, abriendo antes cada DOI. Protege con `claim` cada oración cuyo texto dependa de los resultados. Renderiza a html, docx y typst; di qué no pudiste verificar.</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="agent" data-boxed="true">
 <div class="box-label">
@@ -813,15 +842,23 @@ Tabla&nbsp;10.2: Tres tipos de comprobación, y lo que atrapa cada uno.
 <p>responde con un plan · tras tu visto bueno: escribe <code>references.bib</code> y <code>model-card.qmd</code> · <code>uv run quarto render model-card.qmd</code></p>
 </div>
 </div>
-<p><strong>Lee el plan</strong> como lo haría quien revisa. Uno bueno enumera las secciones en orden, dice de dónde sale cada número, nombra los subgrupos y la figura, y dice cómo va a revisar las referencias; en la ejecución de prueba también prometió calcular la etiqueta “top 10%” a partir de <code>outputs/</code> en lugar de escribirla a mano. Si al plan le falta algo, dilo antes de que empiece; es más barato cambiar un plan que un archivo. Luego responde <code>Go ahead.</code> (adelante).</p>
+<!-- Ejecución de prueba del 2026-11-25 (del prompt en inglés), textual, en una copia del punto
+de control 14-eval-start con outputs/ calculado, y el visto bueno enviado tras el plan: un
+subagente de Claude Code con Sonnet 5.5 y otro con Haiku 5.5. Los dos planes nombraron las nueve
+secciones de Mitchell et al., las dos fichas tienen las nueve, y los tres formatos se
+renderizaron. Sonnet usó 8 guardas claim, dos con valores escritos a mano; Haiku, 15. Los dos
+abrieron los DOI a través de Crossref cuando las páginas de ACM y Elsevier los rechazaron, y los
+dos citaron también a Moro et al. (2014). El primer renderizado de Sonnet falló porque
+DataFrame.to_markdown necesita tabulate; usó to_html en su lugar. -->
+<p>El artículo, “Model Cards for Model Reporting”, tiene nueve secciones: detalles del modelo, uso previsto, factores, métricas, datos de evaluación, datos de entrenamiento, análisis cuantitativos, consideraciones éticas, y advertencias y recomendaciones. <strong>Compara el plan</strong> con ellas, como lo haría quien revisa. Un buen plan enumera las secciones en orden, dice de dónde sale cada número, nombra los <em>subgrupos</em> (los resultados de cada franja de edad y de cada ocupación) y la figura, dice cómo va a revisar las referencias, y calcula etiquetas como “top 10%” a partir de <code>outputs/</code> en lugar de escribirlas a mano. Si al plan le falta algo, dilo antes de que empiece. Luego responde: <code>Adelante.</code></p>
 <p>Cuando termina, las comprobaciones son las que pidió el prompt:</p>
 <ul>
 <li><strong>Las guardas.</strong> Lee cada <code>claim(…)</code> del archivo: cada una debe enunciar una oración de la ficha, y su condición debe calcular esa oración a partir de <code>outputs/</code>. Una guarda cuya condición nunca puede ser falsa, como un nombre leído de los resultados comparado consigo mismo, no protege nada.</li>
-<li><strong>Las referencias.</strong> <code>references.bib</code> debe tener a Mitchell et al.&nbsp;y el conjunto de datos, cada uno con un DOI que puedas abrir. En la ejecución de prueba, el registro del DOI del conjunto de datos tenía los autores mezclados, y el agente citó el conjunto de datos tal como lo da la propia página del repositorio de datos: una razón para abrir los DOI, no solo para juntarlos.</li>
-<li><strong>La lista de lo que no pudo verificar.</strong> Es la parte más útil del informe de una tarea más grande. La lista de la ejecución de prueba nombraba cómo se hizo la división, cómo se formaron los intervalos de calibración y que el texto del uso previsto y de la ética era un encuadre suyo. Cada elemento es una pregunta para ti, no un defecto que aceptar.</li>
+<li><strong>Las referencias.</strong> <code>references.bib</code> debe tener a Mitchell et al.&nbsp;y el conjunto de datos, cada uno con un DOI que puedas abrir. Cuando se construyó esta ficha, el registro del DOI del conjunto de datos tenía los autores mezclados, y el agente citó el conjunto de datos tal como lo da la propia página del repositorio: una razón para abrir los DOI, no solo para juntarlos.</li>
+<li><strong>La lista de lo que no pudo verificar</strong>, la parte más útil del informe de una tarea más grande: cómo se hizo la división, cómo se formaron los intervalos de calibración, que el texto de ética es un encuadre suyo. Cada elemento es una pregunta para ti, no un defecto que aceptar.</li>
 <li><strong>El renderizado.</strong> Abre los tres formatos, y mira los subgrupos como los mirarían las personas que los forman.</li>
 </ul>
-<p>Los subgrupos de la ficha terminada dejan clara la idea del ejercicio. Con v3, el 10% superior de la lista, al que se llama, contiene el 47.9% de los contactos de la franja 60+, pero el 5.0% de los de la franja 40-49: el modelo ordena por edad, porque en estos datos la franja 60+ es la que se suscribe con más frecuencia (38.8%). Eso es exacto, y es justamente lo que una ficha debe decir, porque la edad es una característica protegida por la ley del Reino Unido, y un banco que decide a quién llamar necesita saberlo antes de confiar en el ordenamiento.</p>
+<p>Los subgrupos de la ficha terminada lo dejan claro. Con v3, el 10% superior de la lista, al que se llama, contiene el 47.9% de los contactos de la franja 60+, pero el 5.0% de los de la franja 40-49. El ordenamiento sigue la frecuencia con que se suscribe cada franja, y en estos datos la franja 60+ es la que más se suscribe (38.8%). Eso es exacto, y una ficha debe decirlo. La edad es una <em>característica protegida</em> por la ley del Reino Unido: la Ley de Igualdad (Equality Act) de 2010 protege a las personas de la discriminación por esa causa. Los datos son de un banco portugués, pero la ficha pide una revisión legal antes de cualquier uso en el Reino Unido. Un banco tiene que saberlo antes de confiar en el ordenamiento.</p>
 <div id="tbl-results-ages" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-ages-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -886,18 +923,40 @@ Tabla&nbsp;10.3: Los subgrupos de la mejor versión por franja de edad, a partir
 </div>
 </figure>
 </div>
-<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Error frecuente">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<div id="tbl-results-traps" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-traps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabla&nbsp;10.4: Lo encontrado al probar la ficha, el <span class="nowrap">2026-11-18</span>.
+</figcaption>
+<div aria-describedby="tbl-results-traps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Lo que ves</th>
+<th>La solución</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>El primer renderizado se detiene: las tablas con estilo de pandas (<code>df.style</code>) necesitan <code>jinja2</code></td>
+<td>escribir la tabla de otra manera, en lugar de agregar una dependencia</td>
+</tr>
+<tr class="even">
+<td>El PDF cita con otro estilo, con una segunda página “Bibliography”</td>
+<td><code>citeproc: true</code> bajo <code>typst:</code></td>
+</tr>
+<tr class="odd">
+<td>Un <code>model-card.html</code> desactualizado tras un renderizado fallido</td>
+<td>leer las últimas líneas del renderizado antes de abrir el archivo</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Advertencia</span>Error frecuente
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Tres trampas con las que se topó la ejecución de prueba. Las tablas con estilo de pandas (<code>df.style</code>) necesitan el paquete <code>jinja2</code>, que el repositorio no tiene, así que el primer renderizado se detuvo; el agente escribió la tabla de otra manera en lugar de agregar una dependencia, que es la opción preferible. Sin un ajuste, las citas del PDF salieron con un estilo distinto al de HTML y Word, con un título “References” vacío y una segunda página “Bibliography”, porque Quarto le entrega las citas de un PDF de Typst al procesador propio de Typst; <code>citeproc: true</code> bajo <code>typst:</code> hace que los tres formatos usen el mismo (la <a href="#sec-results-sections" class="quarto-xref"><span>Sección 10.3</span></a>). Y un renderizado fallido deja el <code>model-card.html</code> anterior donde estaba, así que lee las últimas líneas del renderizado antes de abrir el archivo.</p>
-</div>
+</figure>
 </div>
 </section>
 <section id="sec-results-sections" class="level2" data-number="10.3">
@@ -906,7 +965,7 @@ Tabla&nbsp;10.3: Los subgrupos de la mejor versión por franja de edad, a partir
 <div id="tbl-results-refs" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-refs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Tabla&nbsp;10.4: Las referencias en un documento, y el ajuste detrás de cada una.
+Tabla&nbsp;10.5: Las referencias, y el ajuste de cada una.
 </figcaption>
 <div aria-describedby="tbl-results-refs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -918,8 +977,8 @@ Tabla&nbsp;10.4: Las referencias en un documento, y el ajuste detrás de cada un
 <thead>
 <tr class="header">
 <th>Pides</th>
-<th>La función de Quarto</th>
-<th>Se renderiza como</th>
+<th>En Quarto</th>
+<th>Se ve como</th>
 </tr>
 </thead>
 <tbody>
@@ -929,18 +988,18 @@ Tabla&nbsp;10.4: Las referencias en un documento, y el ajuste detrás de cada un
 <td>“2 Who is called”</td>
 </tr>
 <tr class="even">
-<td>una referencia a una sección</td>
+<td>citar una sección</td>
 <td><code>## Who is called {#sec-segments}</code> y <code>@sec-segments</code></td>
 <td>“Section 2”, un enlace</td>
 </tr>
 <tr class="odd">
-<td>una referencia a una tabla o una figura</td>
-<td>una celda con la etiqueta <code>tbl-…</code> o <code>fig-…</code>, y <code>@tbl-…</code></td>
+<td>una tabla o figura</td>
+<td>una etiqueta <code>tbl-</code> o <code>fig-</code>, luego <code>@tbl-…</code></td>
 <td>“Table 2”, “Figure 2”</td>
 </tr>
 <tr class="even">
-<td>el mismo estilo de cita en todos los formatos</td>
-<td><code>bibliography:</code>, y <code>citeproc: true</code> para <code>typst</code></td>
+<td>un solo estilo de cita</td>
+<td><code>citeproc: true</code> para <code>typst</code></td>
 <td>“(Mitchell et al.&nbsp;2019)” en los tres</td>
 </tr>
 </tbody>
@@ -948,12 +1007,13 @@ Tabla&nbsp;10.4: Las referencias en un documento, y el ajuste detrás de cada un
 </div>
 </figure>
 </div>
+<p>La comprobación está en el prompt: una referencia sin resolver se renderiza como “??”, en todos los formatos.</p>
 <div class="agent-box">
 <div class="prompt long" data-boxed="true">
 <div class="box-label">
 <strong>Pídele a tu agente</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>En report.qmd, numera las secciones y agrega dos, en inglés: a quién se llama (el recall en el 10% superior por franja de edad, de outputs/segments.csv, como una tabla con la etiqueta `tbl-segments`) y la calibración (una figura con la etiqueta `fig-calibration` a partir de outputs/calibration.csv), cada una con una guarda donde su redacción dependa de los resultados, y refiérete a las dos desde el párrafo inicial con referencias @sec-. Renderiza los tres formatos y comprueba que ninguna referencia cruzada muestre "??".</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>En report.qmd, numera las secciones y agrega dos, en inglés: a quién se llama (recall en el 10% superior por franja de edad, de outputs/segments.csv, tabla con etiqueta `tbl-segments`) y calibración (figura con etiqueta `fig-calibration`, de outputs/calibration.csv), cada una con guarda si su redacción depende de los resultados; remite a ambas desde el párrafo inicial con referencias @sec-. Renderiza los tres formatos y comprueba que ninguna referencia muestre "??".</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="agent" data-boxed="true">
 <div class="box-label">
@@ -962,8 +1022,7 @@ Tabla&nbsp;10.4: Las referencias en un documento, y el ajuste detrás de cada un
 <p>edita <code>report.qmd</code> · <code>uv run quarto render report.qmd</code></p>
 </div>
 </div>
-<p>La comprobación está en el prompt: una referencia sin resolver se renderiza como “??”, en todos los formatos, así que búscalo en cada salida. En la ejecución de prueba, el párrafo inicial se leía igual en HTML, Word y PDF, y terminaba con “Section 2 shows who is called, by age band, and Section 3 whether the predicted probabilities match the rates observed” (la Sección 2 muestra a quién se llama, por franja de edad, y la Sección 3, si las probabilidades predichas coinciden con las tasas observadas).</p>
-<p>La calibración pregunta si una probabilidad predicha puede leerse como una tasa: de los contactos a los que el modelo les da un 20%, ¿se suscribe más o menos uno de cada cinco? La <a href="#fig-results-calibration" class="quarto-xref">Figura&nbsp;<span>10.1</span></a> la dibuja para la mejor versión, a partir del mismo archivo que lee el informe.</p>
+<p>La calibración pregunta si una probabilidad predicha puede leerse como una tasa: de los contactos a los que el modelo les da un 20%, ¿se suscribe más o menos uno de cada cinco? La <a href="#fig-results-calibration" class="quarto-xref">Figura&nbsp;<span>10.2</span></a> la dibuja para la mejor versión.</p>
 <div id="cell-fig-results-calibration" class="cell on-light" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div id="fig-results-calibration" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Puntos unidos por una línea, la tasa observada frente a la probabilidad predicha media, con una diagonal discontinua. Los puntos quedan cerca de la diagonal, la mayoría en probabilidades predichas por debajo de 0.25.">
@@ -972,22 +1031,22 @@ Tabla&nbsp;10.4: Las referencias en un documento, y el ajuste detrás de cada un
 <img src="results_files/figure-html/fig-results-calibration-output-1.svg" class="img-fluid figure-img" alt="Puntos unidos por una línea, la tasa observada frente a la probabilidad predicha media, con una diagonal discontinua. Los puntos quedan cerca de la diagonal, la mayoría en probabilidades predichas por debajo de 0.25.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-results-calibration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figura&nbsp;10.1: Calibración de la mejor versión en los contactos de prueba: la tasa de suscripción observada frente a la probabilidad predicha media, en intervalos de igual tamaño. Sobre la diagonal discontinua, las predicciones son iguales a las tasas.
+Figura&nbsp;10.2: Calibración de la mejor versión en los contactos de prueba: la tasa de suscripción observada frente a la probabilidad predicha media, en intervalos de igual tamaño. Sobre la diagonal discontinua, las predicciones son iguales a las tasas.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Con v3, ningún intervalo se aleja más de 1.7 puntos porcentuales de la diagonal; con la versión más antigua, la mayor distancia es 5.7. El informe dice con una guarda qué versión está mejor calibrada, porque esa palabra, a diferencia de los números, no se deriva sola de los datos.</p>
+<p>Con v3, ningún intervalo se aleja más de 1.7 puntos porcentuales de la diagonal; con la versión más antigua, v1, la mayor distancia es 5.7. El informe dice con una guarda qué versión está mejor calibrada, porque esa palabra, a diferencia de los números, no se deriva sola de los datos.</p>
 <p>Cuando los dos documentos se rendericen, revisa la rama como en la <a href="fast-path.html#sec-fast-pr" class="quarto-xref"><span>Sección 3.7</span></a>: el alcance (<code>model-card.qmd</code>, <code>references.bib</code>, <code>report.qmd</code>, quizá <code>AGENTS.md</code>), un número contra <code>outputs/</code>, y un clon nuevo. Luego haz commit.</p>
 <div class="catchup">
-<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu agente. Respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
+<p><strong>¿Dos minutos sin avanzar?</strong> Pega esto en tu agente, que respalda tu trabajo y lleva el proyecto hasta este punto; luego sigue leyendo desde aquí.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/15-eval-results/README.md</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="sec-results-change" class="level2" data-number="10.4">
 <h2 data-number="10.4" class="anchored" data-anchor-id="sec-results-change"><span class="header-section-number">10.4</span> Cambia un ajuste, explica la reconstrucción</h2>
-<p>El centro de llamadas tiene capacidad para más llamadas. No hay un prompt: esta es la prueba del diseño, y puedes hacerla a mano.</p>
+<p>El centro de llamadas tiene capacidad para más llamadas, así que <code>TOP_SHARE</code> en <code>src/acme_eval/metrics.py</code>, la proporción de la lista a la que se llama, puede duplicarse. No hay un prompt: esta es la prueba del diseño, y puedes hacerla a mano.</p>
 <div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Pruébalo">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -999,13 +1058,12 @@ Figura&nbsp;10.1: Calibración de la mejor versión en los contactos de prueba: 
 </div>
 <div class="callout-body-container callout-body">
 <ol type="1">
-<li><strong>Predice.</strong> La proporción de la lista a la que se llama es <code>TOP_SHARE</code> en <code>src/acme_eval/metrics.py</code>, ahora 0.1. Duplícala. Antes de reconstruir, anota qué números del informe y de la ficha van a cambiar, cuáles no, y si algo va a detener el renderizado.</li>
-<li><strong>Reconstruye</strong>: <code>uv run python scripts/evaluate.py</code>, y luego renderiza los dos documentos.</li>
-<li><strong>Explica</strong> qué cambió, qué no, y cualquier cosa que se haya detenido.</li>
-<li><strong>Deshaz</strong> el cambio con <code>git restore src/acme_eval/metrics.py</code>, y vuelve a evaluar y a renderizar.</li>
+<li><strong>Predice.</strong> Antes de duplicar <code>TOP_SHARE</code>, anota qué números del informe y de la ficha van a cambiar, cuáles no, y si algo va a detener el renderizado.</li>
+<li><strong>Reconstruye</strong>: duplícala, ejecuta <code>uv run python scripts/evaluate.py</code> y renderiza los dos documentos.</li>
+<li><strong>Deshaz</strong>: <code>git restore</code> el archivo, y luego vuelve a evaluar y a renderizar.</li>
 </ol>
 <div class="done">
-<p><strong>Terminaste cuando</strong> puedes nombrar las salidas que cambiaron, las que no, y la línea de código o la guarda detrás de cada una.</p>
+<p><strong>Has terminado si</strong> puedes nombrar lo que cambió, lo que no y lo que se detuvo.</p>
 </div>
 </div>
 </div>
@@ -1020,8 +1078,16 @@ Figura&nbsp;10.1: Calibración de la mejor versión en los contactos de prueba: 
 <div class="think-answer-label">
 <strong>Respuesta</strong>
 </div>
-<p>La cantidad de llamadas (a 2,261), y con ella cada métrica de la parte superior de la lista: el recall, la precisión, el lift y la proporción llamada de cada franja. El ROC AUC, la precisión promedio, la puntuación de Brier, la calibración y la mejor versión no cambian: miden el ordenamiento completo, no dónde se corta. La trampa es todo lo que nombra la proporción con palabras. En la ejecución de prueba, un informe escrito sin guardas sobre esas palabras conservó “top 10%” en el pie de una tabla y en dos etiquetas de fila, junto a las cifras nuevas, y los nombres de las métricas en <code>outputs/</code>, entre ellos <code>recall_top10</code>, también siguieron diciendo 10. En el proyecto terminado, las etiquetas calculan la proporción, y cada pie que la nombra, que no puede calcularla, tiene una guarda: los dos documentos se detienen con “The caption says top 10%, which a caption cannot compute” (el pie dice top 10%, algo que un pie no puede calcular). Dos pruebas unitarias de <code>tests/test_metrics.py</code> también fallan, porque fijan la regla del 10%; es una prueba haciendo su trabajo, y cambiar la proporción implica actualizarlas a propósito. En la ejecución de prueba, la propia ficha del agente también se detuvo en una guarda sobre las ocupaciones a las que menos llegan las llamadas, el tipo de oración que una lista duplicada sí cambia.</p>
+<p>Cambian la cantidad de llamadas (a 2,261) y cada métrica de la parte superior de la lista: el recall, la precisión, el lift, la proporción llamada de cada franja. El ROC AUC, la puntuación de Brier (el error cuadrático medio de las probabilidades) y la calibración no: describen la lista entera, no dónde se corta. La trampa es la proporción nombrada con palabras: un “top 10%” escrito a mano se queda. En el proyecto terminado, los dos documentos se detienen en la guarda de un pie, y dos pruebas unitarias que fijan la regla fallan, a propósito.</p>
 </div>
+</div>
+<div class="story">
+<div class="box-label">
+<strong>De la bitácora del proyecto</strong>
+</div>
+<!-- source: REVISION-PLAN.md line 475 (WP5) and results.qmd lines 272-277 at 651db10. They
+disagree on whose report it was, so the story says only what both record. -->
+<p>Cuando se probó este cambio para el libro, con la lista duplicada, “top 10%” seguía escrito a mano en etiquetas y en un pie, junto a las cifras nuevas. Los números se habían movido y las palabras no. Ahora las etiquetas calculan la proporción, y cada pie que la nombra tiene una guarda. Después de cambiar un ajuste, busca en cada salida su valor anterior escrito con palabras.</p>
 </div>
 </section>
 <section id="resumen" class="level2 unnumbered">

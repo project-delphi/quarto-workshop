@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5ed9e4edf2048b6b9b588fc3d1daa128.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -648,6 +648,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#what-the-epub-needed" id="toc-what-the-epub-needed" class="nav-link" data-scroll-target="#what-the-epub-needed">What the EPUB needed</a></li>
   <li><a href="#media" id="toc-media" class="nav-link" data-scroll-target="#media">Media</a></li>
   <li><a href="#reading-the-epub" id="toc-reading-the-epub" class="nav-link" data-scroll-target="#reading-the-epub">Reading the EPUB</a></li>
+  <li><a href="#sec-not-tested" id="toc-sec-not-tested" class="nav-link" data-scroll-target="#sec-not-tested">What was not tested</a></li>
   <li><a href="#building-it" id="toc-building-it" class="nav-link" data-scroll-target="#building-it">Building it</a></li>
   </ul>
 </nav>
@@ -689,64 +690,62 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="what-the-epub-needed" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="what-the-epub-needed">What the EPUB needed</h2>
-<div id="tbl-epub-fixes" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-epub-fixes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;H.1: Problems met building the EPUB edition, and their fixes.
-</figcaption>
-<div aria-describedby="tbl-epub-fixes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Problem</th>
-<th>Fix</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Quarto 1.10.20 drops a book’s parts, and the part pages’ content, from the EPUB</td>
-<td>Part pages are ordinary chapters in the EPUB; a post-render script nests each part’s chapters under it in the table of contents</td>
-</tr>
-<tr class="even">
-<td>A profile’s chapter list is added to the base list, not substituted for it</td>
-<td>One master list (<code>_chapters.yml</code>) generates a chapter list for each edition</td>
-</tr>
-<tr class="odd">
-<td><code>when-format="html"</code> also matches EPUB</td>
-<td>HTML-only content uses <code>when-format="html:js"</code></td>
-</tr>
-<tr class="even">
-<td>Rendering one edition empties the other’s output folder</td>
-<td>Each edition has its own output folder</td>
-</tr>
-<tr class="odd">
-<td>Quarto’s figure wrapper carries an <code>alt</code> attribute that EPUB’s XHTML forbids</td>
-<td>The post-render script removes it (the image keeps its alt text)</td>
-</tr>
-<tr class="even">
-<td>No landmarks for the copyright page or the start of the text</td>
-<td>Added by the post-render script, which also puts the copyright page before the preface</td>
-</tr>
-<tr class="odd">
-<td>Callout titles and code have fixed light backgrounds and dark text, invisible in a reader’s night theme</td>
-<td>The stylesheet lets the reader’s colours through</td>
-</tr>
-<tr class="even">
-<td>Code lines do not wrap on a phone, and cell outputs scroll sideways</td>
-<td>The stylesheet makes long lines wrap and outputs fit</td>
-</tr>
-<tr class="odd">
-<td>Wide diagrams are unreadable on a phone</td>
-<td>Diagrams are drawn portrait, 700 pixels wide with text of at least 19 pixels, and supplied as PNG at double resolution</td>
-</tr>
-</tbody>
-</table>
+<p>Problems met building the EPUB edition, and their fixes:</p>
+<div class="cards">
+<div class="card">
+<div class="card-term">
+Quarto 1.10.20 drops a book’s parts, and the part pages’ content, from the EPUB
 </div>
-</figure>
+Part pages are ordinary chapters in the EPUB; a post-render script nests each part’s chapters under it in the table of contents.
+</div>
+<div class="card">
+<div class="card-term">
+A profile’s chapter list is added to the base list, not substituted for it
+</div>
+One master list (<code>_chapters.yml</code>) generates a chapter list for each edition.
+</div>
+<div class="card">
+<div class="card-term">
+<code>when-format="html"</code> also matches EPUB
+</div>
+HTML-only content uses <code>when-format="html:js"</code>.
+</div>
+<div class="card">
+<div class="card-term">
+Rendering one edition empties the other’s output folder
+</div>
+Each edition has its own output folder.
+</div>
+<div class="card">
+<div class="card-term">
+Quarto’s figure wrapper carries an <code>alt</code> attribute that EPUB’s XHTML forbids
+</div>
+The post-render script removes it (the image keeps its alt text).
+</div>
+<div class="card">
+<div class="card-term">
+No landmarks for the copyright page or the start of the text
+</div>
+Added by the post-render script, which also puts the copyright page before the preface.
+</div>
+<div class="card">
+<div class="card-term">
+Callout titles and code have fixed light backgrounds and dark text, invisible in a reader’s night theme
+</div>
+The stylesheet lets the reader’s colours through.
+</div>
+<div class="card">
+<div class="card-term">
+Code lines do not wrap on a phone, and cell outputs scroll sideways
+</div>
+The stylesheet makes long lines wrap and outputs fit.
+</div>
+<div class="card">
+<div class="card-term">
+Wide diagrams are unreadable on a phone
+</div>
+Diagrams are drawn portrait, 700 pixels wide with text of at least 19 pixels, and supplied as PNG at double resolution.
+</div>
 </div>
 <p>The finished EPUB passes EPUBCheck 5.4.0, the W3C’s validator, with no errors and no warnings.</p>
 </section>
@@ -758,48 +757,62 @@ Table&nbsp;H.1: Problems met building the EPUB edition, and their fixes.
 <li><strong>3-D animations</strong> are recorded from the website edition’s live scenes: a script opens the page in Chrome, runs the scene’s views and drags, captures frames and assembles a GIF with ffmpeg’s palette filters.</li>
 <li><strong>Terminal animations</strong> are recorded with VHS from scripted tapes that run real commands under a demo account, so no personal path appears; the agent session is a scripted illustration, because the repository’s rules rule out paid agent sessions for teaching material.</li>
 <li><strong>Every GIF opens on its final frame</strong>, held for two seconds, because e-readers that do not animate show a GIF’s first frame. Each also has a still PNG, which the website shows to readers who ask their system for reduced motion. GIFs are kept under 2 MB.</li>
+<li><strong>The Markdown animations</strong> of <a href="../chapters/04-markdown.html" class="quarto-xref"><span>Chapter 6</span></a> pair what you type, on the left, with what you get, on the right. The right-hand side is not drawn: each step on the left was saved in a file and rendered by Quarto 1.10.20, and the right shows that page, enlarged. Each opens on its finished pair, which is all that a reader without animations shows, then types the source from the beginning.</li>
 </ul>
 </section>
 <section id="reading-the-epub" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="reading-the-epub">Reading the EPUB</h2>
-<div id="tbl-reading" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-reading-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;H.2: How the EPUB’s features behave in different readers. The repository’s <code>book/README.md</code> records which readers were tested, and when.
-</figcaption>
-<div aria-describedby="tbl-reading-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Feature</th>
-<th>Where it works</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Animated GIFs</td>
-<td>readers that animate images play them; others show the first frame, designed as a still</td>
-</tr>
-<tr class="even">
-<td>Night and sepia themes</td>
-<td>the stylesheet sets no page colours; figures drawn with dark ink sit on a light panel</td>
-</tr>
-<tr class="odd">
-<td>Mathematics</td>
-<td>written as MathML; readers without MathML support may show it as plain text</td>
-</tr>
-<tr class="even">
-<td>Live 3-D scenes and explorers</td>
-<td>the website edition only, linked from the EPUB; the London map is also QR-coded</td>
-</tr>
-</tbody>
-</table>
+<p>How the EPUB’s features behave in different readers:</p>
+<div class="cards">
+<div class="card">
+<div class="card-term">
+Animated GIFs
 </div>
-</figure>
+Readers that animate images play them; others show the first frame, designed as a still.
+</div>
+<div class="card">
+<div class="card-term">
+Night and sepia themes
+</div>
+The stylesheet sets no page colours; figures drawn with dark ink sit on a light panel.
+</div>
+<div class="card">
+<div class="card-term">
+Mathematics
+</div>
+Written as MathML; readers without MathML support may show it as plain text.
+</div>
+<div class="card">
+<div class="card-term">
+Live 3-D scenes and explorers
+</div>
+The website edition only, linked from the EPUB; the London map is also QR-coded.
+</div>
+</div>
+<p>The repository’s <code>book/README.md</code> records which readers were tested, and when.</p>
+</section>
+<section id="sec-not-tested" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="sec-not-tested">What was not tested</h2>
+<p>Three things the book describes were not tested in full. What was checked, and what was not:</p>
+<div class="cards">
+<div class="card">
+<div class="card-term">
+The agents’ first screens
+</div>
+Claude Code’s and Codex’s first screens were captured on <span class="nowrap">2026-11-07</span> (<a href="../chapters/03-setup.html" class="quarto-xref"><span>Chapter 4</span></a>); Antigravity’s and OpenCode’s were not.
+</div>
+<div class="card">
+<div class="card-term">
+The codespace
+</div>
+Built from the workshop’s dev container and checked on a local computer: Quarto, uv, Git and <code>gh</code> present, and the first report and the test run render. It was not run on GitHub’s own machines (<a href="../chapters/03-setup.html#sec-codespace" class="quarto-xref"><span>Section 4.8</span></a>).
+</div>
+<div class="card">
+<div class="card-term">
+The team’s workflows
+</div>
+The check workflow was run locally with act (0.2.98, in Docker), green on the change and red on a broken guard (<a href="../chapters/team.html" class="quarto-xref"><span>Chapter 15</span></a>). Pushing, pull requests, the Publish and Monthly reports runs, the uv cache and branch protection need a GitHub repository and were not run for this edition; their actions and settings were checked against GitHub’s documentation on <span class="nowrap">2026-11-18</span>.
+</div>
 </div>
 </section>
 <section id="building-it" class="level2 unnumbered">
