@@ -86,7 +86,7 @@ for seed in SIL_SEEDS:
     pick = np.random.default_rng(seed).choice(len(X), size=A.SILHOUETTE_N, replace=False)
     gaps.append(silhouette_score(X[pick], lab_k[pick]) - silhouette_score(X[pick], lab_best[pick]))
 text_holds(k_best != k and min(gaps) < 0 < max(gaps)
-           and all(sil_best - ktab.loc[j, "silhouette"] > max(map(abs, gaps)) for j in sil_out)
+           and all(cand["silhouette"].max() - ktab.loc[j, "silhouette"] > max(map(abs, gaps)) for j in sil_out)
            and bool(sil_out), "the silhouette check within its sampling noise, ruling out a clear drop")
 
 # @tbl-k-selection: choose_k()'s rule, row by row.

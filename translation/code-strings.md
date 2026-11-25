@@ -98,7 +98,7 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/10-prepare.qmd` | 1 | `" and "` | `" y "` |
 | `chapters/10-prepare.qmd` | 2 | `"\| Step \| Tunja, urban \| Tunja, rural \|\n\|---\|---\|---\|"` | `"\| Paso \| Tunja, urbana \| Tunja, rural \|\n\|---\|---\|---\|"` |
 | `chapters/10-prepare.qmd` | 2 | `z =  · +.2f · \| As published \| empty; total  · .1f ·  \| empty; total  · .1f ·  \| · \| Transform \| takes the total,  · .1f · , flagged \| unchanged \| · \| Impute \| nothing to fill \|  · .1f · , its year's rural median, flagged \| · \| Standardise \|  ·  \|  ·  \|` | `z =  · +.2f · \| Tal como se publicó \| vacía; total  · .1f ·  \| vacía; total  · .1f ·  \| · \| Transformar \| toma el total,  · .1f · , marcado \| sin cambios \| · \| Imputar \| nada que llenar \|  · .1f · , la mediana rural de su año, marcada \| · \| Estandarizar \|  ·  \|  ·  \|` |
-| `chapters/10-prepare.qmd` | 4 | `"\| Feature \| Difference \| Share, raw \| Share, z \|"` | `"\| Característica \| Diferencia \| Proporción, original \| Proporción, z \|"` |
+| `chapters/10-prepare.qmd` | 4 | `"\| Feature \| Difference \| Share, raw \| Share, z \|"` | `"\| Característica \| Diferencia \| Original \| En z \|"` |
 | `chapters/11-cluster.qmd` | 1 | `"first"` | `"primer"` |
 | `chapters/11-cluster.qmd` | 1 | `"second"` | `"segundo"` |
 | `chapters/11-cluster.qmd` | 1 | `"third"` | `"tercer"` |
@@ -114,10 +114,10 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/11-cluster.qmd` | 1 | `" and "` | `" y "` |
 | `chapters/11-cluster.qmd` | 1 | `" here"` | `""` |
 | `chapters/11-cluster.qmd` | 1 | `"clusters "` | `"los clústeres "` |
-| `chapters/11-cluster.qmd` | 1 | `"excluded: zone split"` | `"excluido: separa por zona"` |
+| `chapters/11-cluster.qmd` | 1 | `"excluded: zone split"` | `"excluido: separa zonas"` |
 | `chapters/11-cluster.qmd` | 1 | `"silhouette too low"` | `"silueta demasiado baja"` |
 | `chapters/11-cluster.qmd` | 1 | `"chosen: the smallest that passes"` | `"elegido: el menor que pasa"` |
-| `chapters/11-cluster.qmd` | 1 | `"passes, but larger"` | `"pasa, pero es más grande"` |
+| `chapters/11-cluster.qmd` | 1 | `"passes, but larger"` | `"pasa, pero es mayor"` |
 | `chapters/11-cluster.qmd` | 1 | `"chosen: the smallest that passes"` | `"elegido: el menor que pasa"` |
 | `chapters/11-cluster.qmd` | 1 | `"chosen"` | `"elegido"` |
 | `chapters/11-cluster.qmd` | 1 | `"IRCA"` | `"el IRCA"` |

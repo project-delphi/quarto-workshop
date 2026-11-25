@@ -122,7 +122,7 @@ EDGES = A.IRCA_BINS[1:-1]
 near = {c: min(EDGES, key=lambda e: abs(x - e)) for c, x in prof["irca_median"].items()}
 c_edge = int(min(near, key=lambda c: abs(prof.loc[c, "irca_median"] - near[c])))
 x_edge, edge = prof.loc[c_edge, "irca_median"], near[c_edge]
-text_holds(0 < x_edge - edge < 1 and A.IRCA_BANDS[A.IRCA_BINS.index(edge)] == "High"
+text_holds(0.05 <= x_edge - edge < 1 and A.IRCA_BANDS[A.IRCA_BINS.index(edge)] == "High"
            and prof.loc[c_edge, "irca_median_band"] == "High", "a high-risk median just above the medium band")
 
 
@@ -247,6 +247,10 @@ tj_d = {c: sqdist(A.FEATURES, c) for c in cen.index}
 text_holds(sqdist(own, rural_c) < sqdist(own, tj_c) and sqdist(shared, tj_c) < sqdist(shared, rural_c)
            and min(tj_d, key=tj_d.get) == tj_c, "@tbl-tunja-place's distances")
 text_holds(sorted(tj_d, key=tj_d.get)[:2] == [tj_c, rural_c], "the other two centres being farther still")
+# The one feature whose squared difference most separates the two centres, for the reader who
+# wants to check the sums term by term.
+tj_terms = {f: (sqdist([f], tj_c), sqdist([f], rural_c)) for f in A.FEATURES}
+tj_big = max(tj_terms, key=lambda f: abs(tj_terms[f][0] - tj_terms[f][1]))
 
 # Years with no comparable value inside each outcome's span: the gaps in its lines.
 def gaps(col):
@@ -422,6 +426,10 @@ for title, cols in ((f"sus {NUM[len(own)]} propias", own),
     rows.append(f"| {title} | {sqdist(cols, tj_c):.1f} | {sqdist(cols, rural_c):.1f} |")
 print("\n".join(rows))
 ```
+
+La mayor diferencia en una sola característica es de `{python} WORDS[tj_big]`:
+`{python} f"{tj_terms[tj_big][0]:.1f}"` al centro `{python} tj_c` frente a
+`{python} f"{tj_terms[tj_big][1]:.1f}"` al centro `{python} rural_c`.
 
 No está sola: el `{python} f"{tj_c_rural:.0%}"` de las zonas-año de ese clúster son zonas rurales. Una
 etiqueta describe un tipo; para decir algo sobre un miembro, vuelve a sus filas.
