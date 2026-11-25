@@ -86,9 +86,8 @@ Two accounts
 It can cost nothing
 
 :   `{python} fact("agents.antigravity_free", capital=True)`, and
-    `{python} fact("agents.opencode_free")`. None was tested on this book's prompts, so check
-    each result as the book teaches, and read the terms first: some keep what you send
-    (@sec-at-work-flow).
+    `{python} fact("agents.opencode_free")`. None was tested with this book's prompts; read
+    each one's terms first, since some keep what you send (@sec-at-work-flow).
 
 Or pay for what you use, capped
 
@@ -105,11 +104,12 @@ No install rights?
 
 :::
 
-On any route, choose a small model at medium effort (@sec-cost), and start a fresh
-conversation for each task.
+On any route, choose a mid-sized model at medium effort (@sec-choose), and start a fresh
+conversation for each task (@sec-cost).
 
 **A plan for when a step fails.** Errors during setup are normal: each step depends on your
-system, your network and that week's versions. An error tells you what to fix:
+system, your network and that week's versions, so an error does not mean you have failed. It
+tells you what to fix:
 
 1. Look the message up in @sec-troubleshooting, whose Setup table lists failures seen in
    practice, with tested fixes.
@@ -120,7 +120,8 @@ system, your network and that week's versions. An error tells you what to fix:
    paste passwords, keys or private data.
 4. If two suggestions fail, ask a person: your group's help channel, or a colleague.
 
-Checked `{python} checked_span("agents.claude_code_cost", "agents.antigravity_free", "agents.opencode_free", "agents.claude_spend_limit", "agents.openai_spend_limit", "chats.free_chats")`;
+The costs, free routes, spending caps and free web chats above were checked
+`{python} checked_span("agents.claude_code_cost", "agents.antigravity_free", "agents.opencode_free", "agents.claude_spend_limit", "agents.openai_spend_limit", "chats.free_chats")`;
 @sec-facts has each source.
 
 ## Step 1: Get the computer ready {#sec-step-ready}
@@ -152,15 +153,6 @@ collection and keeps it up to date; `apt update` refreshes its list, and `apt in
 invisible as you type. On other Linux distributions, install `curl` and `git` with your usual
 package manager. On **Windows**, follow @sec-windows first: it ends with this same command,
 run inside Ubuntu.
-
-::: story
-<!-- source: book/PLAN.md lines 602–603 (§15, item 4: "no alternatives as inline # comments
-in copyable commands (zsh passes them as arguments)") -->
-An early draft of this book put a note after a `#` on the same line as a command to copy. In
-a script, that is a comment. Pasted into zsh, the Mac's default shell, it was not: the shell
-handed the `#` and the words after it to the command as arguments. So every command here
-stands alone on its line, and a choice between systems is made in the sentence above it.
-:::
 
 ::: tryit
 Run `git --version` in the terminal.
@@ -290,10 +282,21 @@ claude
 
 That last line starts Claude Code; type `codex` for Codex, `agy` for Antigravity, or
 `opencode` for OpenCode. OpenCode does not ask you to sign in: type `/connect` inside it and
-choose a provider. Unlike the other three, it does not ask before it edits files or runs
-commands (@sec-root-folder). To make it ask, add rules with the effect `ask` for its `edit`
-and `shell` actions to `opencode.jsonc`, as its
+choose a provider. By default, it does not ask before it edits files or runs commands
+(@sec-root-folder). To make it ask, add rules with the effect `ask` for its `edit` and `shell`
+actions to `opencode.jsonc`, as its
 [permissions documentation](https://opencode.ai/docs/permissions/) shows.
+
+::: {.story .illustration}
+<!-- The rule: book/PLAN.md lines 602–603 (§15, item 4: "no alternatives as inline # comments
+in copyable commands (zsh passes them as arguments)"). zsh 5.9 with its default options
+(zsh -f -i) printed "a # b c" for "echo a # b c", 2026-11-25; macOS's /etc/zshrc does not
+set interactivecomments. -->
+A page offers the choice inside the command: `claude # or codex`. In a script, everything
+after `#` is a comment. Typed at zsh, the Mac's default shell, it is not: zsh hands `#`, `or`
+and `codex` to `claude` as arguments. So every command in this book stands alone on its line,
+and a choice, of system or of agent, is made in the sentence beside it.
+:::
 
 <!-- The three screens as Claude Code 2.1.319 printed them on 2026-11-07, in an empty folder,
 with folder names changed; Codex 0.167.0 the same day. -->
@@ -401,9 +404,9 @@ conversation.
 
 ## Step 4: Let the agent install the tools {#sec-step-tools}
 
-The remaining tools are Quarto itself, uv, Git and the GitHub command-line tool `gh`. Each has
-its own official install method for each system, which is exactly the kind of detail an
-agent handles well. Start it again in the setup folder, now as one line joined with `&&`
+The remaining tools are Quarto itself, uv and the GitHub command-line tool `gh`; the prompt
+checks Step 1's `git` and `curl` again. Each has its own official install method for each
+system, which is exactly the kind of detail an agent handles well. Start it again in the setup folder, now as one line joined with `&&`
 (with `codex`, `agy` or `opencode` in place of `claude` if that is your agent, here and in the
 next steps):
 
@@ -561,8 +564,13 @@ Steps 1 and 4 are already done.
 on github.com/project-delphi/quarto-workshop: **Code** → **Codespaces** → **Create codespace on main** · wait while it builds · then, in its terminal, `cd ~`
 :::
 
-The repository appears in your home folder as `~/quarto-workshop`, so every path in this book
-works unchanged. From there, follow Step 2, Step 3 with the agent's Linux command, Step 5 and
+<!-- GitHub Docs, "Deep dive into GitHub Codespaces": "your repository is cloned into the
+/workspaces directory in your codespace" (checked 2026-11-25); the link is the
+postCreateCommand in .devcontainer/devcontainer.json. -->
+
+GitHub clones the repository into the codespace's `/workspaces` folder, and the dev container
+file links it into your home folder as `~/quarto-workshop`, so every path in this book works
+unchanged. From there, follow Step 2, Step 3 with the agent's Linux command, Step 5 and
 Step 6 in the codespace's terminal. Three things differ from a computer of your own:
 
 - **Previews.** Start them with `quarto preview --port 4848 --host 0.0.0.0 --no-browser`;
@@ -576,7 +584,8 @@ Step 6 in the codespace's terminal. Three things differ from a computer of your 
 The environment was built from its dev container file and checked on a local computer, not on
 GitHub's own ([what was not tested](../appendices/h-how-built.qmd#sec-not-tested)).
 
-Checked `{python} checked("github.codespaces_free")`; @sec-facts has the source.
+The codespace allowance was checked `{python} checked("github.codespaces_free")`; @sec-facts
+has the source.
 
 ## Summary {.unnumbered}
 
