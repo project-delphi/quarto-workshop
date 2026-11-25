@@ -29,6 +29,7 @@ OUT = BOOK / "media" / "figures"
 PHONE, SCALE = 390, 2  # CSS pixels wide, and device pixels per CSS pixel
 PAD = 12  # CSS pixels kept round the web page's crop
 GAP = 16  # CSS pixels between the crops, with a dashed rule across the middle
+TITLE_GAP = 24  # blank rows (of the 2600 px page) that end the PDF's title
 
 # The file Chapter 4's Step 6 has the agent write, as Chapter 1 prints it (01-quarto.qmd); Chapter 4
 # points to that listing.
@@ -95,12 +96,22 @@ def pdf_crop(pdf: Path, width: int):
     if ink.getbbox() is None:
         raise SystemExit(f"{pdf.name}: the first page is blank")
     rows = [any(ink.getpixel((x, y)) for x in range(0, ink.width, 4)) for y in range(ink.height)]
+    # The title is the first run of ink followed by a clear gap (TITLE_GAP blank rows, so a dotted
+    # letter or a second title line stays inside it); the crop starts after that gap.
     first = rows.index(True)
-    after_title = next(y for y in range(first, len(rows)) if not rows[y])
-    left, top, right, bottom = ink.crop((0, after_title, ink.width, ink.height)).getbbox()
+    after_title = next((y for y in range(first, len(rows) - TITLE_GAP)
+                        if not any(rows[y:y + TITLE_GAP])), None)
+    if after_title is None:
+        raise SystemExit(f"{pdf.name}: no gap after the title on the first page")
+    below = ink.crop((0, after_title, ink.width, ink.height)).getbbox()
+    if below is None:
+        raise SystemExit(f"{pdf.name}: nothing below the title on the first page")
+    left, top, right, bottom = below
     top, bottom = top + after_title, bottom + after_title
-    page = page.crop((max(0, left - 40), max(0, top - 60), right + 120, bottom + 40))
-    fade = round(page.width * 0.12)
+    right_edge = min(page.width, right + 120)
+    page = page.crop((max(0, left - 40), max(0, top - 60), right_edge, bottom + 40))
+    # Fade only the empty margin past the last ink, so no text is dimmed.
+    fade = min(round(page.width * 0.12), right_edge - right)
     for i in range(fade):
         a = (i + 1) / fade
         col = page.crop((page.width - fade + i, 0, page.width - fade + i + 1, page.height))
