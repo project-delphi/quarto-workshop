@@ -5,7 +5,7 @@
 import pandas as pd
 
 from scripts.scenes import london_map, scene_html
-from scripts.prose import alt_text_holds, number_words
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 visits = pd.read_csv("../examples/london/data/visits.csv")
 churches = pd.read_csv("../examples/london/data/churches.csv")
@@ -30,27 +30,30 @@ top_row = attractions.loc[attractions["visits_2025"].idxmax()]
 alt_text_holds(top_row["attraction"].startswith("Natural History Museum")
                and top_row["admission"].startswith("Free"), "fig-london-social")
 
+# The build-log story quotes the total in the phone-width capture of 2026-11-25
+# (media/capture/london_outputs.py, step dashboard).
+total_visits = f"{attractions['visits_2025'].sum():,}"
+total_clipped = total_visits[:-1] + "…"
+text_holds(total_visits == "39,692,434", "the clipped total in the dashboard story")
+
 ldn = london_map()
 top_sight = ldn["top"]["place"]
 top_sight_m = f"{ldn['top']['visits'] / 1e6:.1f}"
 paid_sights = " and the ".join(ldn["paid"]["place"])
 ```
 
-Correct one fact, then count the documents that repeat it. Written by hand, a dashboard, a
-partner brief and a printed flyer each hold their own copy of the same facts, and every copy
-has to be found and fixed. The one that is missed is the one that disagrees in public.
+A manager opens the dashboard between two meetings and gives it a few seconds. A partner
+forwards the brief to a colleague without rereading it. Someone walking past the tourist
+office takes a flyer, glances at it and puts it in a pocket. Three readers, three glances,
+and each must come away with the same facts. A correct document that its reader does not
+use has failed, so this chapter chooses each format for how it will be met, and gives
+every output one test: would that reader read it, and act on it?
 
 This chapter writes all three in one step: a dashboard for managers, a Word brief and its
-covering email for partners, and a flyer for walk-ins. The dashboard and the brief read the
-same data file, so a corrected count reaches both; the flyer copies its facts from
-`data/sights.csv`, a choice @sec-london-change returns to. None of the three needs another to
-exist, which makes them the first job in this book worth splitting across several agents
-at once, and the first chance to ask when that is worth what it costs.
-
-Correct is not enough. A document does its job only when its reader engages with it, and each
-reader meets it differently: a manager scans a dashboard in seconds, a partner forwards a brief,
-a passer-by gives a flyer a glance. So each format here is chosen for how its reader will use
-it, and the test for every output is the same: would that reader read it, and act on it?
+covering email for partners, and an A5 flyer for walk-ins. None needs another to exist, which
+makes them the first job in this book worth splitting across several agents. The dashboard and
+the brief read the data file; the flyer copies its facts, a choice @sec-london-change returns
+to.
 
 ::: opener
 - Choose a format for each audience, and set it.
@@ -70,9 +73,9 @@ Checkpoint
 
 ## Content once, format per audience {#sec-content-once}
 
-Each audience gets the format that suits it, and each format is a setting. This chapter makes
-the first three outputs in @tbl-audiences and the optional advert; @sec-publish makes the
-website.
+Each audience gets the format that suits it, and each format is a setting. Three of the five
+audiences in @tbl-audiences are served here, a fourth optionally, and the fifth, visitors, in
+@sec-publish.
 
 | Audience | Output | Setting |
 |---|---|---|
@@ -86,8 +89,8 @@ website.
 
 **A dashboard** is a page of charts and key numbers arranged in a grid. In a `.qmd` file with
 `format: dashboard`, a level-1 heading starts a page, a level-2 heading starts a row, and each
-cell's output becomes a card in that row (Quarto dashboards documentation, checked
-2026-10-31). The guide's dashboard has two pages; its outline, without the code, is:
+cell's output becomes a card in that row. The guide's dashboard has two pages; its outline,
+without the code, is:
 
 ```markdown
 # Attractions
@@ -123,41 +126,48 @@ London's own list, an editorial choice with no visitor numbers.
 **A Word brief** turns Markdown headings into Word's heading styles, so the partner's copy has a
 navigable outline and working links. Its covering email is not rendered at all: it is a plain
 Markdown file whose message sits in a `text` block, to be copied into an email client, with the
-brief attached. The email deliberately quotes no visitor numbers. The numbers stay in the brief,
+brief attached. The email deliberately quotes no visitor numbers: they stay in the brief,
 where they are computed and cited, as the project's rules require.
 
 **A flyer** is a one-page Typst PDF on A5 paper. `papersize` accepts any of Typst's paper names
-(`a5`, `a4`, `us-letter` and so on), and `margin` sets the margins (Quarto's Typst
-documentation, checked 2026-10-30).
+(`a5`, `a4`, `us-letter` and so on), and `margin` sets the margins.
 
 ![The finished A5 flyer, a one-page Typst PDF. Rendered from `examples/london/london-flyer.qmd`.](../media/figures/london-flyer.png){#fig-london-flyer width=55% .on-light fig-alt="An A5 page titled Visit London, Five sights for one great day, with the photograph of Big Ben, a table of the five sights with their price band and nearest tube station, the Tower of London marked Paid and the others Free, a tip from a local about free museums, and a link to the TfL journey planner."}
 
 ## Sub-agents: one lead, many hands {#sec-sub-agents}
 
-The three outputs are independent: none needs another to exist. That makes them a candidate for
-*sub-agents*, separate agent sessions that your agent starts for one task each
-(@fig-sub-agents). Each sub-agent has its own context, does its task and reports back; your
+The three outputs are independent, which makes them a candidate for *sub-agents*, separate
+agent sessions that your agent starts for one task each (@fig-sub-agents). Each sub-agent has its own context, does its task and reports back; your
 agent, the *lead*, waits for all of them and then checks the results.
 
 ![One lead, three sub-agents. Each writes only its own files and renders nothing; the lead renders the files one at a time.](../media/diagrams/sub-agents){#fig-sub-agents .on-light fig-alt="Your agent, the lead, reads the prompt and starts three sub-agents at once. Each has its own context and writes only its own files: one writes london-dashboard.qmd, one london-email.qmd and london-email-message.md, one london-flyer.qmd. None of them renders. When all three report back, the lead renders the three files one at a time and checks each. Three tasks take about as long as the slowest one, and use more tokens."}
 
 The gain is time: three independent tasks take about as long as the slowest of them. The cost
 is tokens, because each sub-agent does its own reading, reasoning and tool calls. The four
-agents differ in how they offer it (checked 2026-10-31; OpenCode, 2026-11-20). Claude Code starts sub-agents
-in parallel when a prompt asks for them. Codex enables sub-agents by default and starts them
-when asked, and its documentation warns both that parallel edits "can create conflicts" and
-that sub-agent runs use more tokens. Antigravity's
-command-line agent can delegate to parallel sub-agents, but its documentation does not say a
-prompt can require it, so it may do the tasks itself. OpenCode's sub-agents run in their own
-sessions and always in the background, reporting to the lead when each goes idle; its
-documentation does not say the lead waits for them, so with OpenCode, check that every file
-exists before the lead renders.
+agents offer sub-agents differently (@tbl-sub-agents).
+
+| Agent | Runs sub-agents |
+|---|---|
+| Claude Code | in parallel, when a prompt asks |
+| Codex | when asked (on by default); its documentation warns that parallel edits "can create conflicts" |
+| Antigravity | in parallel, but may do the tasks itself |
+| OpenCode | in the background: check that every file exists before the lead renders |
+
+: How each agent runs sub-agents, by its documentation. {#tbl-sub-agents}
 
 Two rules make parallel work safe, and the prompt below states both. **Each sub-agent writes
 only its own files and renders nothing**, so no two of them touch the same file. **The lead
 renders the files one at a time**, because two Quarto renders, or two environment updates by
 `uv run`, in the same folder can collide. Sub-agents read `AGENTS.md` too, so the project's
 rules still apply to their work.
+
+::: {.story .illustration}
+Two helpers are each told to build a page in the same folder. Both finish, and both render at
+once. Each render writes its working files under the same names, so one fails, with a message
+about a file its report never mentions. The lead, reading two confident summaries, sees only
+that an output is missing. Nothing was wrong with either page: the folder was shared and the
+renders were not taken in turn. Leave the rendering to the lead, one file at a time.
+:::
 
 ::: practice
 Use sub-agents when tasks are independent, substantial and write different files. Do not use
@@ -178,38 +188,73 @@ needed a shared list of place names, write that list first, then split the work.
 
 ## One prompt, three audiences {#sec-audiences-do}
 
-::: {.prompt .long}
+The prompt does three things: it says how the work is split, gives each sub-agent its own
+files to write, and keeps the rendering for the lead. It comes in two messages. First, the
+lead's instructions:
+
+::: {.prompt}
 ```default
-Run three sub-agents in parallel, one per item (none? do the items in turn). Each reads london.qmd, data/ and images/, hides code, follows AGENTS.md and only writes its own files: no rendering.
+Run three sub-agents in parallel, one per item of my next message (none? do the items in turn). Each reads london.qmd, data/ and images/, hides code, follows AGENTS.md and only writes its own files: no rendering. Then render the three .qmd files yourself, one at a time, and check each. Wait for the items.
+```
+:::
+
+Then the three items, pasted one after another into a single message:
+
+::: {.prompt}
+```default
 1. london-dashboard.qmd (format: dashboard): Attractions page (value boxes: top attraction, total `visits_2025`, number free; Plotly bars by attraction; a Plotly line of visits by `year` from data/visits.csv; end each chart cell with `fig`, assigning `fig = fig.update_layout(…)`); Churches page (data/churches.csv, names linked to `visit_london`).
+```
+:::
+
+::: {.prompt}
+```default
 2. london-email.qmd: docx partner brief (2025 numbers as inline code, five sights with official links, getting around, sources); london-email-message.md: its covering email in a text block, no numbers.
+```
+:::
+
+::: {.prompt}
+```default
 3. london-flyer.qmd: one A5 Typst page (papersize: a5): Big Ben photo, five sights with price band and nearest tube, local tip.
-Then render the three .qmd files yourself, one at a time, and check each.
 ```
 :::
 
 ::: {.agent}
-starts three sub-agents · waits · renders the three `.qmd` files one at a time
+waits for the items · starts three sub-agents · waits · renders the three `.qmd` files one at a time
 :::
 
 ::: {.you}
-approve its commands · open the four outputs
+send the two messages · approve its commands · open the four outputs
 :::
 
-The lead's renders are `uv run quarto render london-dashboard.qmd`, then `london-email.qmd`,
-then `london-flyer.qmd`, and it reports each sub-agent's progress as it goes. The prompt is
-long because it is three specifications in one, each as concrete as a single
-prompt would be. The lead checks each file it renders; the office's checks are yours. Open
-each output as its reader would: can a manager find the top attraction without reading a
-sentence, can a partner forward the brief and its email as they are, and does the flyer fit on
-one A5 page?
+The lead renders `london-dashboard.qmd`, `london-email.qmd`, then `london-flyer.qmd` with
+`uv run quarto render`, and reports each sub-agent's progress as it goes. It checks each file
+it renders; the office's checks are yours, and the first needs no output at all.
 
-Then check the two rules yourself before you commit. `git status` should list the four new
-files the prompt named, `london-dashboard.qmd`, `london-email.qmd`, `london-email-message.md`
-and `london-flyer.qmd`, and nothing else: no change to `london.qmd`, `data/` or `images/`, and
-none of the rendered files, which `.gitignore` leaves out. A sub-agent that strayed outside
-its own files shows up here, whatever the lead's report says. Then `git add .` and commit with
-a message that says why.
+::: think
+Three sub-agents have reported success. Before you open anything: what should `git status`
+list, exactly?
+
+The four source files the prompt named, `london-dashboard.qmd`, `london-email.qmd`,
+`london-email-message.md` and `london-flyer.qmd`, and nothing else: no rendered file, which
+`.gitignore` leaves out, and nothing in `data/`, `images/` or `london.qmd`. A fifth entry is a
+sub-agent that strayed outside its own files, whatever the lead's summary says.
+:::
+
+Then open each output as its reader would: can a manager find the top attraction without
+reading a sentence, can a partner forward the brief and its email as they are, and does the
+flyer fit on one A5 page?
+
+::: story
+<!-- source: book/media/capture/london_outputs.py, step dashboard, and PLAN-improvement.md
+section 14 (package M): the dashboard captured at a phone's width on 2026-11-25. -->
+When this book captured the finished dashboard at a phone's width, on 2026-11-25, its total
+value box showed `{python} total_visits` as `{python} total_clipped`. Nothing failed: the
+render passed, and the number in the source was right. Look at each output at the size its
+reader uses, and if a dashboard's readers use phones, ask for big totals in a shorter form,
+such as millions.
+:::
+
+When all three pass, `git add .` and commit with a message that says why.
 
 ::: think
 A partner asks for this year's total visits in the covering email itself. Where should the
@@ -219,16 +264,19 @@ In the brief, as inline code, with the email pointing to it. The email is a plai
 that is never rendered, so a number typed there is a copy that will not follow the data.
 :::
 
-::: pitfall
-"End each chart cell with `fig`" is there because of a failure seen in practice: a Plotly chart
-appears twice in a dashboard card when the cell both calls `fig.show()` and returns the figure.
-Assign the figure, end the cell with its name, and nothing else. If a chart's legend looks
-clipped, ask for a horizontal legend with a fixed `entrywidth`; if the flyer spills onto a
-second page, ask for a smaller photo.
-:::
+"End each chart cell with `fig`" is in the prompt because of a failure seen in practice, the
+first row of @tbl-audiences-fixes.
+
+| You see | Ask for |
+|---|---|
+| a Plotly chart twice in one card, from a cell that calls `fig.show()` and returns the figure | the figure assigned, and the cell ended with `fig` |
+| a chart's legend clipped | a horizontal legend with a fixed `entrywidth` |
+| the flyer on two pages | a smaller photo |
+
+: Three faults to look for after the renders, and what to ask for. {#tbl-audiences-fixes}
 
 ::: tryit
-Paste the prompt and approve the renders.
+Send both messages and approve the renders.
 
 ::: done
 you can open a two-page dashboard, a Word brief and its email, and a one-page flyer.
@@ -263,27 +311,27 @@ margin:
 
 ![The finished square advert, styled as a social-media ad: a full-bleed photo under an inset border, a gradient that keeps the text legible and a gold call to action. Rendered from `examples/london/london-social.qmd`.](../media/figures/london-social.jpg){#fig-london-social width=70% fig-alt="A square advert. A photograph of Big Ben's clock tower fills it, the spire rising past a thin white border inset from the edges. Over the darkened lower part: Visit London in large white letters, a short gold rule, the label Top ALVA member attraction 2025, the Natural History Museum with its 2025 visit count, a gold Free to enter badge on the right, and a small credit line for the visits and the photo."}
 
-Everything on the page is placed by raw Typst: the photo fills the square (`fit: "cover"`), a
-rectangle with a navy gradient darkens its lower half, and `place()` positions the border, the
-text and the badge. The facts are still computed. A Python cell reads `attractions.csv` and
-prints them as Typst variables (`#let top-name = "Natural History Museum"`), which the layout
-uses, so a corrected count reaches the advert at the next render like every other output.
+Everything on the page is placed by raw Typst, but the facts are still computed: a Python
+cell reads `attractions.csv` and prints them as Typst variables
+(`#let top-name = "Natural History Museum"`), so a corrected count reaches the advert at the
+next render like every other output.
+
+<!-- Tested with Quarto 1.10.20 and its bundled Typst on 2026-11-12. -->
 
 The finished advert has no title and no level-1 heading: either would land on a page of the
-default size before the square one. This was tested with Quarto 1.10.20 and its bundled Typst
-on 2026-11-12. A raw block is a useful escape hatch, and a costly one: it ties the source to
-one format, so use it only for what the format's settings cannot express.
+default size before the square one, with Quarto 1.10.20 and its bundled Typst. A raw block is
+a useful escape hatch, and a costly one: it ties the source to one format, so use it only for
+what the format's settings cannot express.
 
-If the advert will not come out as one square page, skip it: nothing later depends on it. The
-finished version is `../quarto-workshop/examples/london/london-social.qmd`, which you can copy
-into your folder and render.
+If the advert will not come out as one square page, skip it, or copy the finished
+`../quarto-workshop/examples/london/london-social.qmd` into your folder: nothing later depends
+on it.
 
 ## The sights in three dimensions (optional) {#sec-london-3d}
 
 The guide's data can also be drawn as a map: the five sights as columns as tall as their
 `{python} ldn['year']` visits, Visit London's `{python} word(n_churches)` churches as short markers,
-and the London boroughs around the Thames (@fig-london-map). Nothing in the project changes:
-the scene is drawn from the same files. The tallest column is the `{python} top_sight`, at
+and the London boroughs around the Thames (@fig-london-map). The tallest column is the `{python} top_sight`, at
 `{python} top_sight_m` million visits; the only paid sight is the `{python} paid_sights`.
 
 ::: {.content-visible when-format="html:js"}
@@ -308,12 +356,11 @@ Turn the map yourself
 :::
 :::
 
-Every point, height and border is computed from the project's files: coordinates from
-`data/places.csv` (from Wikidata, CC0), visits from `data/visits.csv`, price bands from
-`data/sights.csv`, and borough boundaries from the Office for National Statistics, clipped at
-the high-water mark so the tidal Thames appears as the gap between the boroughs on its two
-banks. A script written for the workshop's slides, using the three.js library, only draws them.
-The borough tones tell neighbours apart and encode no data.
+Every point, height and border is computed from the project's files (coordinates from
+`data/places.csv`, from Wikidata, visits and price bands from `visits.csv` and `sights.csv`)
+and from the Office for National Statistics' borough boundaries, clipped at the high-water
+mark so the tidal Thames shows as the gap between them. A script written for the workshop's
+slides, using the three.js library, only draws them; the borough tones encode no data.
 
 ### Asking for three.js
 
@@ -329,11 +376,10 @@ Create visits-3d.html with `three.js` from a CDN: a labelled 3-D bar per `attrac
 ![A 3-D bar chart of 2025 visits to five ALVA member attractions, drawn by three.js from this prompt. A dry run by Claude Code (Opus 5.5) on 2026-11-06, following the prompt in a scratch folder; your page will look different.](../media/deck/threejs-visits.png){#fig-threejs-visits width=60% fig-alt="A 3-D bar chart on a dark floor, drawn by three.js: 2025 visits to five ALVA member attractions. Natural History Museum 7.1 million, British Museum 6.4 million, Tate Modern 4.5 million, National Gallery 4.1 million, Tower of London 2.8 million."}
 
 three.js is a free JavaScript library (MIT License) that draws 3-D scenes with WebGL, the
-browser's built-in 3-D graphics, so the reader installs nothing. Two details of the prompt matter. It asks for the numbers
-to be written into the page, because a page opened by double-click cannot read local files. And
-the page loads three.js from a content delivery network (CDN), so it needs the internet to work;
-a published page keeps that dependency, which is why this book, like the workshop's slides,
-ships its own copy of the library.
+browser's built-in 3-D graphics, so the reader installs nothing. The prompt asks for the
+numbers to be written into the page, because a page opened by double-click cannot read local
+files, and the page loads three.js from a content delivery network (CDN), so it needs the
+internet, which is why this book, like the workshop's slides, ships its own copy.
 
 ::: pitfall
 A 3-D chart has to earn its third dimension. Perspective makes bars harder to compare than a plain bar chart:

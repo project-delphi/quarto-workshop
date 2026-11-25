@@ -39,8 +39,7 @@ its `{python} y_now` table, in every copy, until someone noticed.
 
 This chapter makes the guide compute instead. Code reads the data at every render, so a new
 table corrects every sentence, the chart drawn from it and the Word and PDF versions at once,
-without a single number copied by hand. That is the workflow's central promise, and the rest
-of the book builds on it.
+without a single number copied by hand.
 
 ::: opener
 - Write front matter that sets the title block and the formats.
@@ -68,14 +67,18 @@ also compute what it says, so before the guide becomes one, here are the parts o
 
 ```{python}
 #| label: ch5-toy-qmd
-#| output: asis
 import re
 from pathlib import Path
 
+TOY = Path("media/examples/toy.qmd")
 
-def show_file(path: str, lang: str = "markdown") -> str:
-    """A file's text, as it is, in a fence longer than any run of backticks inside it."""
-    text = Path(path).read_text()
+
+def show_file(path: Path, lang: str = "markdown", lines: tuple[int, int] | None = None) -> str:
+    """A file's text, as it is, in a fence longer than any run of backticks inside it; with
+    `lines` (first, last, counted from 1), only those lines."""
+    text = path.read_text()
+    if lines:
+        text = "".join(text.splitlines(keepends=True)[lines[0] - 1:lines[1]])
     ticks = "`" * max(4, 1 + max(map(len, re.findall("`+", text)), default=0))
     return f"{ticks}{lang}\n{text}{ticks}"
 
@@ -83,10 +86,19 @@ def show_file(path: str, lang: str = "markdown") -> str:
 # The screenshot's alt text below quotes the computed sentence: stop if the data change it.
 alt_text_holds(top_name == "Natural History Museum (South Kensington)"
                and top_visits == "7,116,929", "fig-toy-qmd")
-print(show_file("media/examples/toy.qmd"))
+# The file is shown in two halves: up to the fence that is only shown, then the cell onward.
+toy_lines = TOY.read_text().splitlines()
+cell = toy_lines.index("```{python}") + 1  # the cell's first line, counted from 1
+text_holds(toy_lines[cell - 2] == "" and toy_lines.index("```python") < cell,
+           "toy.qmd's halves: front matter, prose and the shown fence, then the cell")
 ```
 
-From the top:
+From the top, the front matter, a sentence and a fence:
+
+```{python}
+#| output: asis
+print(show_file(TOY, lines=(1, cell - 2)))
+```
 
 1. **Front matter.** The block between the two `---` lines at the very top holds the
    document's settings, written in *YAML*, a format for settings in which indentation is
@@ -95,6 +107,14 @@ From the top:
 2. **Markdown.** Everything outside the fences is the Markdown of @sec-md-basics.
 3. **A fence that is only shown.** ```` ```python ```` names a language, so the code is
    coloured as Python, but Quarto never runs it. If it did, `1 / 0` would stop the render.
+
+Then a code cell and a sentence that uses it:
+
+```{python}
+#| output: asis
+print(show_file(TOY, lines=(cell, len(toy_lines))))
+```
+
 4. **A code cell.** ```` ```{{python}} ````, with the language in braces, is a fence whose
    code runs when the document renders. Its first lines, starting `#|`, are *cell options*:
    `label` names the cell, and `echo: false` hides its code from the page.
@@ -181,7 +201,7 @@ In london.qmd, add a Python cell that reads data/attractions.csv and finds the m
 ```
 :::
 
-The agent writes a code cell (@sec-qmd-basics) and a sentence that uses its results:
+The agent writes a code cell (@sec-qmd-basics):
 
 ````markdown
 ```{{python}}
@@ -192,20 +212,22 @@ top_name = top["attraction"]
 top_visits = f"{top['visits_2025']:,}"
 total_visits = f"{attractions['visits_2025'].sum():,}"
 ```
+````
 
+and below it, a sentence that uses its results:
+
+```markdown
 Most visited in 2025: the `{{python}} top_name`, with `{{python}} top_visits` visits.
 London's ten most visited ALVA member attractions drew `{{python}} total_visits` visits.
-````
+```
 
 You do not need to write Python to check it, but you should be able to read it. The cell does
 four things:
 
-1. `import pandas as pd` loads pandas, the package for tables, under the short name `pd`.
-2. `pd.read_csv(...)` reads the CSV file into a table, `attractions`, one row per attraction.
-3. `attractions["visits_2025"].idxmax()` finds the row with the most visits in 2025, and
-   `.loc[…]` takes that row, so `top["attraction"]` is its name.
-4. `.sum()` adds up the column, and `f"{…:,}"` writes a number as text with a comma between
-   the thousands, ready for a sentence.
+1. `import pandas as pd` loads pandas, the package for tables, as `pd`.
+2. `pd.read_csv(...)` reads the CSV file into a table, `attractions`.
+3. `.idxmax()` finds the row with the most 2025 visits, and `.loc[…]` takes it.
+4. `.sum()` adds up the column; `f"{…:,}"` writes a number with thousands commas.
 
 When the document renders, the cell runs and its variables are kept, so each piece of inline
 code, `` `{{python}} name` ``, is replaced by the value of `name`. Rendered in this book from
@@ -213,10 +235,6 @@ the same data file, the sentence reads:
 
 > Most visited in 2025: the `{python} top_name`, with `{python} top_visits` visits. London's
 > ten most visited ALVA member attractions drew `{python} total_visits` visits.
-
-Quarto 1.4 introduced this inline syntax, one for every engine, Python included; R users
-already wrote inline code with knitr's `` `r x` ``, a syntax Quarto still supports (Quarto 1.4
-release notes, checked 2026-11-12).
 
 ::: think
 If `attractions.csv` changes, which values in those two sentences update?
@@ -360,11 +378,12 @@ becomes `{python} new_total`. The Tower's bar grows, and in a chart sorted by vi
 @fig-ldn-top10 is, it moves up past `{python} passed_name`, which has `{python} passed_visits`.
 The first half of the sentence does not change: `{python} tower_new_s` is still fewer than the
 `{python} top_name`'s `{python} top_visits`, so `idxmax()` finds the same row. The typed word
-"ten" does not change either. To check a prediction like this one, make the change yourself
-with `nano`, render, look, then put the real count back with
-`git restore data/attractions.csv`. @sec-london-change asks the same question of the whole
-published project.
+"ten" does not change either.
 :::
+
+To check a prediction like this one, make the change yourself with `nano`, render, look, then
+put the real count back with `git restore data/attractions.csv`. @sec-london-change asks the
+same question of the whole published project.
 
 ::: why
 Why render the code once per format? Because a format can change what code produces: a figure
@@ -372,14 +391,6 @@ may be drawn at a different size or resolution, and some outputs, such as intera
 only make sense in HTML. Re-running is the price of each format getting output made for it.
 For a slow analysis, the cure is to compute once in a script and have every format read the
 results, which is exactly how the water analysis is built (@sec-compute-once).
-:::
-
-::: think
-The bar chart has to appear in the Word file and the PDF as well as the web page. Why does its
-prompt ask for matplotlib, when the next chapter's dashboard uses Plotly?
-
-Matplotlib draws a static image, which every format can hold. Plotly's charts are JavaScript
-that runs in a browser, so they suit the web page and the dashboard but not Word or a PDF.
 :::
 
 ## Three more formats (optional) {#sec-formats-more}
@@ -409,10 +420,9 @@ format:
 1. Reveal.js slides are also HTML, so they need their own file name, or they would overwrite
    `london.html`.
 
-In PowerPoint and Reveal.js, each `##` heading becomes a slide. The EPUB is an e-book: open it
-in an e-book reader such as Calibre (free, for Windows, macOS and Linux) or Books on a Mac.
-This book's EPUB edition is built the same way, with more settings, which @sec-how-built
-describes. @fig-render-many shows the render.
+In PowerPoint and Reveal.js, each `##` heading becomes a slide. Open the EPUB in an e-book
+reader such as Calibre (free, for Windows, macOS and Linux) or Books on a Mac. @fig-render-many
+shows the render.
 
 ![One render, six files: the `format` list in `london.qmd`, a render that runs the code once per format, and the outputs it wrote. A real recording with a demo account; the middle of the render is cut.](../media/gifs/render-many-formats.gif){#fig-render-many .anim fig-alt="A terminal in the london-guide folder. grep shows the format block of london.qmd: html with format links, then docx, typst, pptx, epub and revealjs with the output file london-slides.html. uv run quarto render london.qmd runs, and a listing shows six outputs: london.docx, london.epub, london.html, london.pdf, london.pptx and london-slides.html."}
 
@@ -433,9 +443,8 @@ preview is re-rendering fails with `readfile 'london.quarto_ipynb'`.
 Every render runs every cell again. That is Quarto's default (`freeze: false`), and this book's
 projects keep it deliberately, so outputs always match the data. It also means a slow cell
 slows every render; @sec-publish-many returns to the trade-off and to `freeze: auto`, which
-caches results and needs a rule for when to throw them away.
-
-Each render also prints the harmless `IPKernelApp` warning described in @sec-step-test.
+caches results and needs a rule for when to throw them away. (The `IPKernelApp` warning each
+render prints is harmless: @sec-step-test.)
 
 ::: think
 A later cell uses `attractions`, which an earlier cell creates. You move the later cell above
@@ -446,12 +455,10 @@ It fails with a `NameError`: the cells run top to bottom in one Python session, 
 :::
 
 ::: tryit
-If you have not yet, run the formats prompts (@sec-formats, and optionally @sec-formats-more)
-with the preview stopped, then restart it.
+Run the formats prompts, preview stopped.
 
 ::: done
-`london.docx` and `london.pdf` show the computed sentence and the chart, as do any optional
-formats you made.
+`london.docx` and `london.pdf` show the sentence and chart.
 :::
 
 ::: catchup
@@ -481,9 +488,8 @@ writes a document for each of them at once.
 - Quarto, [Front Matter](https://quarto.org/docs/authoring/front-matter.html) and
   [Execution Options](https://quarto.org/docs/computations/execution-options.html) (checked
   2026-11-12).
-- Quarto, [Inline Code](https://quarto.org/docs/computations/inline-code.html) and the
-  [1.4 release notes](https://opensource.posit.co/blog/2024-01-24_1.4-release/) (checked
-  2026-10-30 and 2026-11-12).
+- Quarto, [Inline Code](https://quarto.org/docs/computations/inline-code.html) (checked
+  2026-10-30).
 - Quarto, [Cross References](https://quarto.org/docs/authoring/cross-references.html) (checked
   2026-11-12).
 - Quarto, [HTML with multiple formats](https://quarto.org/docs/output-formats/html-multi-format.html),
