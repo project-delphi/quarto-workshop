@@ -374,8 +374,8 @@ def checked_with() -> str:
 
 
 def assistant_cost() -> tuple[str, str]:
-    """What Claude Code needs, as the preface says it, and the date it was checked: from
-    book/facts.yml, which the preface quotes, in the page's language."""
+    """What Claude Code needs, and the date it was checked: from book/facts.yml (Chapter 4's
+    "Two accounts" card and Appendix K quote it), in the page's language."""
     e = book_fact("agents", "claude_code_cost")
     return e["text"], e["checked"]
 
@@ -393,8 +393,8 @@ def book_fact(section: str, item: str) -> dict:
 
 
 def assistant_accounts() -> tuple[str, str]:
-    """The setup chapter's list of what each agent's account needs, and its checked date: from
-    book/facts.yml, which the chapter quotes, in the page's language."""
+    """What each agent's account needs, and the latest checked date: from book/facts.yml, which
+    Appendix K prints, in the page's language."""
     es_ = [book_fact("agents", f"{k}_accounts") for k in ("claude_code", "codex", "antigravity", "opencode")]
     return "; ".join(e["text"] for e in es_), max(e["checked"] for e in es_)
 
