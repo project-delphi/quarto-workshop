@@ -18,9 +18,12 @@ pop = raw[raw["year"] == last].groupby("zone")["population"].sum()
 rural_pop, rural_share = pop["rural"] / 1e6, pop["rural"] / pop.sum()
 idf_last = int(raw.loc[raw["idf"].notna(), "year"].max())
 idf_new_first = int(raw.loc[raw["idf_new"].notna(), "year"].min())
+# Tunja, the municipality this part follows (@sec-tunja), and its first ledger card.
+tj = raw[raw["divipola"] == "15001"]
+text_holds(tj["municipio"].eq("TUNJA").all() and tj["departamento"].eq("BOYACÁ").all()
+           and tj["department_capital"].eq(1).all(), "Tunja, the capital of Boyacá department")
 
-# The variables of Part III (@tbl-water-features, @tbl-water-outcomes). Meanings, units and
-# sources are from data/README.md; each variable's level and years are computed from the
+# The variables of Part V, from data/README.md; each one's level and years are computed from the
 # municipalities' rows.
 munis = raw[raw["entity_type"] == "municipality"]
 
@@ -37,25 +40,25 @@ def static(col: str) -> bool:
     return bool(munis.groupby(["divipola", "zone"])[col].nunique().le(1).all())
 
 
-FEATURE_ROWS = [  # name, column, what it measures (unit); source
-    ("IRCA", "irca", "water-risk index, utility-supplied (0–100); INS"),
-    ("Piped water", "water_coverage", "aqueduct coverage (%); TerriData"),
-    ("Sewer", "sewer_coverage", "sewerage coverage (%); TerriData"),
-    ("Poverty", "ipm", "people multidimensionally poor (%); 2018 census"),
-    ("Rural share", "rural_share", "rural share of the population (0–1); DANE"),
-    ("Altitude", "altitude_m", "the head town's height (m); SRTM"),
-    ("Rainfall", "rainfall_mm", "rain over the municipality (mm a year); CHIRPS"),
-    ("MDM", "mdm", "municipal performance score (0–100); TerriData"),
-    ("SGP", "sgp_water_pc", "water transfers (nominal pesos per person, logged); TerriData, DANE"),
+FEATURE_ROWS = [  # name, column, what it measures (unit), table
+    ("IRCA", "irca", "water risk, utility-supplied (0–100)", "water"),
+    ("Piped water", "water_coverage", "aqueduct coverage (%)", "water"),
+    ("Sewer", "sewer_coverage", "sewerage coverage (%)", "water"),
+    ("Poverty (IPM)", "ipm", "people poor in several respects at once, 2018 census (%)", "place"),
+    ("Rural share", "rural_share", "the population's rural share (0–1)", "place"),
+    ("Altitude", "altitude_m", "the head town's height (m)", "place"),
+    ("Rainfall", "rainfall_mm", "rain over the municipality (mm a year)", "place"),
+    ("Performance (MDM)", "mdm", "DNP's score of management and results (0–100)", "water"),
+    ("Transfers (SGP)", "sgp_water_pc", "water transfers (nominal pesos a person, logged)", "water"),
 ]
 OUTCOME_ROWS = [
-    ("Infant mortality", "infant_mortality", "deaths under one year per 1,000 live births; TerriData"),
-    ("Saber 11", "saber11_mean", "mean exam score of the zone's schools (0–500); ICFES"),
-    ("School dropout", "dropout_rate", "public-school pupils who leave during the year (%); MEN"),
+    ("Infant mortality", "infant_mortality", "deaths under one year per 1,000 live births", "outcome"),
+    ("Saber 11", "saber11_mean", "mean exam score of the zone's schools (0–500)", "outcome"),
+    ("School dropout", "dropout_rate", "public-school pupils who leave during the year (%)", "outcome"),
 ]
-VAR_LEVEL = {c: level(c) for _, c, _ in FEATURE_ROWS + OUTCOME_ROWS}
-features_raw = [c for _, c, _ in FEATURE_ROWS]
-if features_raw != w.A.RAW_FEATURES or [c for _, c, _ in OUTCOME_ROWS] != list(w.A.OUTCOMES):
+VAR_LEVEL = {c: level(c) for _, c, _, _ in FEATURE_ROWS + OUTCOME_ROWS}
+features_raw = [c for _, c, _, _ in FEATURE_ROWS]
+if features_raw != w.A.RAW_FEATURES or [c for _, c, _, _ in OUTCOME_ROWS] != list(w.A.OUTCOMES):
     raise ValueError("the analysis's features or outcomes changed: rewrite @tbl-water-features")
 n_mun_feat = sum(VAR_LEVEL[c] == "municipality" for c in features_raw)
 # The prose names IRCA and coverage as zone variables, rainfall and infant mortality as municipal.
@@ -65,21 +68,29 @@ text_holds(all(VAR_LEVEL[c] == "zone" for c in ("irca", "water_coverage", "sewer
 
 
 def level_years(col: str) -> str:
-    lvl = VAR_LEVEL[col]
+    lvl = {"municipality": "municipal"}.get(VAR_LEVEL[col], VAR_LEVEL[col])
     if static(col):
         return f"{lvl}; one value"
     return f"{lvl}; {spans(munis.loc[munis[col].notna(), 'year'].unique())}"
 ```
 
+When your slides end, someone on the council will ask the question the whole room is thinking:
+so is it the water? They will mean their own town and their own children, and they will want a
+yes or a no. You will have a table of scores, groups that an algorithm found, and three outcomes
+compared between them. Whether any of that can answer the question, and what you may honestly
+say instead, is settled long before the last slide: by what the score measures, by what one row
+of the table is, and by the rules you give the agent before it writes a line. This chapter
+settles those three.
+
 In 2023, Colombia's national report on drinking water scored the water of its urban areas at 5.7,
 in the low-risk band, and the water of its rural areas at 36.5, in the high-risk band
-(@tbl-irca-bands). DANE's projections put `{python} f"{rural_pop:.1f}"` million people,
-`{python} f"{rural_share:.0%}"` of the population, in rural zones in `{python} last`. People drink
+(@tbl-irca-bands). The national statistics office, DANE, projects `{python} f"{rural_pop:.1f}"`
+million people, `{python} f"{rural_share:.0%}"` of the population, in rural zones in `{python} last`. People drink
 and cook with this water, so where the risk sits, and what goes with it, is worth knowing.
 
 The question for this part is therefore: **which kinds of municipal zone exist in Colombia, judged
 by water safety, services and context, and how do health and education outcomes differ between
-them?** Part II's numbers were simple counts; these are not. Every step has a way to go wrong that
+them?** Every step has a way to go wrong that
 a clean render will not reveal: a variable that means something narrower than its name, a gap that
 is not random, a comparison that looks causal and is not.
 
@@ -112,9 +123,16 @@ algorithm called k-means (@sec-cluster). Because the unit is a zone in a year, a
 two zones can belong to different kinds, and a zone can move between kinds over the years.
 
 The answer has two readers. Officials will read it as a report, in Word or as a PDF, and a municipal
-council will see it as a short deck of slides (@sec-publish-many). Both will look for where to act,
-and both will be tempted to read a difference between kinds as an effect of the water. So the limits
-are stated now, each with its reason. The water score covers only systems run by a utility
+council will see it as a short deck of slides (@sec-publish-many). Both will look for where to act.
+
+::: {.story .illustration}
+A council meeting, in any town. The analyst shows a chart in which places with riskier water
+record more infant deaths. A member asks whether fixing the water would save those children.
+The analyst says the chart cannot tell. "Then why show it?" The rest of this part is the
+answer: what the chart can say, and how to say it.
+:::
+
+So the limits are stated now, each with its reason. The water score covers only systems run by a utility
 (@sec-water-why). Many rural zones have no score at all, so the results describe sampled systems
 (@sec-water-bands). And the comparisons describe; they cannot establish that water causes any
 outcome (@sec-causation).
@@ -134,7 +152,7 @@ sorts the scale into five bands (@tbl-irca-bands).
 | 35.1–80 | high (*alto*) | rural areas 36.5; self-supplied 43.7 |
 | 80.1–100 | unfit (*inviable sanitariamente*) | |
 
-: The IRCA risk bands (Resolución 2115 de 2007, art. 15) and where the 2023 national figures fall (MinSalud, MinVivienda, INS and Superservicios, *INCA 2023*, Bogotá, January 2025, Tabla 4; both checked 2026-10-30). {#tbl-irca-bands}
+: The IRCA risk bands (Resolución 2115, art. 15) and where the 2023 national figures fall (*INCA 2023*, Tabla 4). {#tbl-irca-bands}
 
 The national average sits in the medium band and hides the urban–rural gap, which is why this
 part's data keep each municipality's two zones apart.
@@ -148,31 +166,18 @@ month's IRCA is the mean over its samples (articles 13 and 14). That is why 0 me
 passed and 100 means every test failed.
 :::
 
+The IRCA in this part's data is not the national report's figure. It comes from an open table published
+by the national health institute, INS (datos.gov.co `nxt2-39c3`). The data's README (caveat 1)
+records a check against the national report: the table's 2023 department rows match the report's
+utility column in 30 of 30 departments, and its total in only 5.
+
+<!-- The check is dated 2026-10-30 in examples/water/data/README.md, caveat 1. -->
 ::: pitfall
-The IRCA in this part's data is not the national figure. The open table it comes from (INS,
-datos.gov.co `nxt2-39c3`) holds the *utility-supplied* ("prestadores") IRCA: samples from systems
-run by a water utility. A check on 2026-10-30, recorded in the data's README (caveat 1), found
-that its 2023 department totals match INCA's utility column in 30 of 30 departments and the overall
-figure in only 5. Self-supplied systems, which have no utility, score far worse (43.7 against 7.4
-in 2023), so the data understate the risk wherever people rely on self-supply, and say nothing
+The table holds the *utility-supplied* ("prestadores") IRCA: samples from systems run by a water
+utility. Self-supplied systems, which have no utility, score far worse (43.7 against 7.4 in
+2023), so the data understate the risk wherever people rely on self-supply, and say nothing
 where no utility exists. Label the variable "utility-supplied IRCA" everywhere it appears.
 :::
-
-## Saber 11, and what an average covers {#sec-water-measures}
-
-One of the outcomes the analysis compares (@sec-water-features) is an education measure,
-**Saber 11**, the national exam taken by students finishing upper secondary school, set by ICFES. It
-has five tests: critical reading, mathematics, social studies and citizenship, natural sciences, and
-English. The global score is five times the weighted mean of the five test scores (each 0 to 100;
-English counts once, the others three times), from 0 to 500, and its mean was fixed at 250 in the
-first sitting in 2014, so that years can be compared (ICFES, *Guía de orientación Saber 11.°
-2017-1*, pp. 101 and 104, checked 2026-10-30).
-
-Both measures are averages, and an average describes only what it averaged over. IRCA is an average
-over the water samples taken, so a system that is never sampled has no IRCA at all. The Saber 11
-mean in the data is an average over the students who sat the exam at schools in that municipality and
-zone, so it says nothing about students who had left school. Keep both facts in mind in every comparison that
-follows.
 
 ## Where the data come from {#sec-water-data}
 
@@ -182,13 +187,13 @@ column they share, here the code that DANE's list of municipalities, **DIVIPOLA*
 Político-Administrativa*), gives each municipality. It has five digits, two for the department and
 three for the municipality, so `05001` is Medellín, in Antioquia (`05`). The sources are:
 
-- **INS** (Instituto Nacional de Salud): the IRCA surveillance results.
-- **DANE** (the national statistics office): the list of municipalities and their codes, population
-  projections and municipal boundaries.
-- **ICFES** and **MEN** (the Ministry of Education): Saber 11 results and school dropout rates.
-- **DNP** (the National Planning Department), through its TerriData portal: water and sewer coverage,
-  multidimensional poverty, municipal performance, transfers for water and infant mortality.
-- **CHIRPS** (the Climate Hazards Center's rainfall data) and **NASA SRTM** (elevation data):
+- the national health institute, **INS**: the IRCA surveillance results;
+- the statistics office, **DANE**: the municipalities and their codes, population and boundaries;
+- the testing institute, **ICFES**, and the education ministry, **MEN**: results of Saber 11, the
+  school-leaving exam, and dropout rates;
+- the planning department, **DNP**, through its TerriData portal: coverage, poverty, municipal
+  performance, water transfers and infant mortality;
+- the Climate Hazards Center's rainfall data, **CHIRPS**, and NASA's elevation data, **SRTM**:
   rainfall, and a derived altitude for each head town.
 
 They arrive as three files, in `examples/water/data/` in the workshop repository:
@@ -203,6 +208,9 @@ smaller settlements and the dispersed countryside. The table covers every one of
 `{python} w.fmt(n_munis)` are municipalities; the rest are the island of San Andrés and areas that
 are not municipalities, whose rows are mostly empty. Because every municipality has all its rows,
 a gap is an empty cell, never a missing row.
+
+This part follows one municipality through every step: Tunja, the capital of Boyacá department,
+code `15001`. @sec-tunja looks at its rows.
 
 ::: think
 A municipality's rural zone has no IRCA in one year. Was its water safe that year?
@@ -227,46 +235,48 @@ The most important design decision in the water analysis is which variables defi
 only describe them.
 
 The **features**, which the clustering sees, are `{python} WORD[n_feat]` variables about water,
-people and place, and government. The **outcomes**, which the analysis only compares, are infant
-mortality, the Saber 11 score and school dropout (@tbl-water-features, @tbl-water-outcomes). Three
-features need a word. The multidimensional poverty index (IPM, *Índice de Pobreza
-Multidimensional*) is the share of a zone's people who are poor in several respects at once, from
-the 2018 census. MDM (*Medición de Desempeño Municipal*) is DNP's score of a municipality's
-management and results. And SGP (*Sistema General de Participaciones*) is the system of national
-transfers to municipalities: the feature is its allocation for drinking water and basic
-sanitation, per person.
-
-Both tables give each variable's level and years, computed from the municipalities' rows. A
-*zone* variable differs between a municipality's urban and rural rows; a *municipal* one is the
-same on both; "one value" is repeated every year. Meanings, units and sources come from
-`data/README.md` (TerriData is DNP's data portal).
+government, and people and place. The **outcomes**, which the analysis only compares, are infant
+mortality, the Saber 11 score and school dropout (@tbl-water-features, @tbl-water-features-place,
+@tbl-water-outcomes).
 
 ```{python}
 #| label: tbl-water-features
-#| tbl-cap: "The nine features the clustering sees: three about water, four about people and place, two about government."
+#| tbl-cap: "Five of the nine features the clustering sees: three about water, two about government."
 #| output: asis
-def var_table(rows: list) -> None:
-    lines = ["| Variable | Measures (unit); source | Level; years |", "|---|---|---|"]
-    lines += [f"| {name} (`{col}`) | {what} | {level_years(col)} |" for name, col, what in rows]
-    print("\n".join(lines))
+def var_table(rows: list, group: str) -> None:
+    lines = ["| Variable, and what it measures | Level; years |", "|--------------|------|"]
+    lines += [f"| **{name}**: {what} | {level_years(col)} |" for name, col, what, g in rows if g == group]
+    print("\n".join(lines).replace("–", "–\u2060"))  # a word joiner: no line break after a dash
 
 
-var_table(FEATURE_ROWS)
+var_table(FEATURE_ROWS, "water")
+```
+
+```{python}
+#| label: tbl-water-features-place
+#| tbl-cap: "The other four features: people and place."
+#| output: asis
+var_table(FEATURE_ROWS, "place")
 ```
 
 ```{python}
 #| label: tbl-water-outcomes
-#| tbl-cap: "The three outcomes, compared between the kinds but never clustered on. Level and years as in @tbl-water-features."
+#| tbl-cap: "The three outcomes, compared between the kinds but never clustered on."
 #| output: asis
-var_table(OUTCOME_ROWS)
+var_table(OUTCOME_ROWS, "outcome")
 ```
 
-The last column matters in every chapter that follows. A *zone* variable is measured separately for
-a municipality's urban and rural zones; a *municipal* one is a single value for the whole
-municipality, repeated on both of its rows. `{python} WORD[n_mun_feat].capitalize()` of the
-`{python} WORD[n_feat]` features are municipal, so a municipality's two rows in a year differ only
-in the other `{python} WORD[n_feat - n_mun_feat]`. And a municipal outcome, such as infant mortality,
-must be counted once per municipality, not once per row.
+The sources are those listed above: INS for the IRCA, DANE for the rural share, SRTM for altitude,
+CHIRPS for rainfall, ICFES for Saber 11, MEN for dropout, and DNP's TerriData for the rest (with
+DANE's population for transfers per person). `data/README.md` gives each meaning and unit.
+
+The second column, computed from the municipalities' rows, matters in every chapter that follows.
+A *zone* variable is measured separately for a municipality's urban and rural zones; a *municipal*
+one is a single value for the whole municipality, repeated on both of its rows; "one value" is the
+same in every year. `{python} WORD[n_mun_feat].capitalize()` of the `{python} WORD[n_feat]`
+features are municipal, so a municipality's two rows in a year differ only in the other
+`{python} WORD[n_feat - n_mun_feat]`. And a municipal outcome, such as infant mortality, must be
+counted once per municipality, not once per row.
 
 **Never cluster on an outcome.** If infant mortality helped define the kinds, the kinds would differ
 in infant mortality by construction, and the comparison in the second question would be circular:
@@ -290,6 +300,17 @@ analysis uses. A variable that changes meaning partway through would create kind
 of the change.
 :::
 
+### Saber 11, and what an average covers {#sec-water-measures}
+
+One outcome needs a word more. **Saber 11** is the national exam taken by students finishing upper
+secondary school, set by ICFES. It is scored from 0 to 500, set so that years can be compared.
+
+Both IRCA and Saber 11 are averages, and an average describes only what it averaged over. IRCA is an
+average over the water samples taken, so a system that is never sampled has no IRCA at all. The
+Saber 11 mean in the data is an average over the students who sat the exam at schools in that
+municipality and zone, so it says nothing about students who had left school. Keep both facts in
+mind in every comparison that follows.
+
 ## Compute once, publish many {#sec-compute-once}
 
 Part II computed in each page. The water analysis computes once (@fig-compute-once). One importable script,
@@ -297,15 +318,11 @@ Part II computed in each page. The water analysis computes once (@fig-compute-on
 only reads those results and draws them. A design choice, such as how many rows to drop for missing
 values, is made in one place, and every output follows at the next render.
 
-![Compute once, publish many. One script turns the data into results once; every publication reads the results, and none recomputes them.](../media/diagrams/compute-once){#fig-compute-once .on-light fig-alt="The data file water_municipal.csv feeds one script, scripts/analysis.py, which Quarto runs before every render. The script prepares the features, chooses k, fits k-means, and computes cluster profiles and outcome comparisons, then writes them once to outputs/: clusters.parquet, cluster_profiles.csv, k_selection.csv, outcomes_by_year.csv, irca_infant.csv and summary.json. Every page reads those files and none recomputes them: the explore and clusters pages, the report in html, docx, pdf and epub, the council slides in revealjs and pptx, a blog post and a dashboard. Together they are one website, published on GitHub Pages."}
-
-The split solves two problems from Part II. A slow computation no longer slows every page and every
-format, because it runs once. And no page can disagree with another, because there is only one
-result to disagree with. Results are saved as Parquet, which keeps column types (a code such as
+A slow computation now runs once, not in every page and format, and no page can disagree with
+another, because there is only one result to disagree with. Results are saved as Parquet, which keeps column types (a code such as
 `05001` stays text instead of becoming the number 5001), and as CSV where people will open them.
 
-This book follows the same rule: every number in the water analysis is computed when the book is built, by
-importing the finished project's `analysis.py` and running it in memory.
+![Compute once, publish many. One script turns the data into results once; every publication reads the results, and none recomputes them.](../media/diagrams/compute-once){#fig-compute-once .on-light fig-alt="The data file water_municipal.csv feeds one script, scripts/analysis.py, which Quarto runs before every render. The script prepares the features, chooses k, fits k-means, and computes cluster profiles and outcome comparisons, then writes them once to outputs/: clusters.parquet, cluster_profiles.csv, k_selection.csv, outcomes_by_year.csv, irca_infant.csv and summary.json. Every page reads those files and none recomputes them: the explore and clusters pages, the report in html, docx, pdf and epub, the council slides in revealjs and pptx, a blog post and a dashboard. Together they are one website, published on GitHub Pages."}
 
 ## Setting up the project: data, rules and environment {#sec-water-rules}
 
@@ -350,9 +367,9 @@ sizes
 The data sit outside the new folder, in `../quarto-workshop/`, so the agent asks before it reads
 there: approve it, as for the London guide (@sec-brief).
 
-Then write the rules. If you have never clustered anything, the worry is fair: the agent can
-write an analysis that runs, renders and is wrong. You do not guard against that by writing the code
-yourself. You guard against it by checking, and a check needs something to check against.
+Then write the rules. The agent can write an analysis that runs, renders and is wrong. You guard
+against that by checking, not by writing the code yourself, and a check needs something to check
+against.
 
 ::: {.prompt}
 ```default
@@ -368,10 +385,8 @@ reads `data/README.md` · writes `AGENTS.md`: scope, rules, the data's caveats
 approve · check that `AGENTS.md` holds all four rules
 :::
 
-The four rules are this chapter in miniature: the inputs are evidence and stay unchanged; the IRCA is
-labelled for what it is; outcomes describe the clusters but never define them; and comparisons between
-clusters do not establish causal effects of water safety. Asking the agent to read the README
-first lets it add the data's caveats to the rules itself.
+The four rules are this chapter in miniature. Asking the agent to read the README first lets it
+add the data's caveats to them itself.
 
 ::: {.prompt}
 ```default
@@ -387,22 +402,43 @@ Give this project its own Python environment with `uv`: run `uv init --bare`, th
 You should see a Python whose path runs through this folder's `.venv`, as for the London guide
 (@sec-environments). The recipe is the London guide's, with the analysis's packages added:
 `scikit-learn` for k-means, `pyarrow` for Parquet, `itables` for the dashboard's searchable table
-and `tabulate` for tables written as Markdown. Packages shared with Part II come from uv's cache.
+and `tabulate` for tables written as Markdown.
+
+Then commit the result yourself, in a new terminal tab, since the agent holds the first. Go to the
+project first, because a tab left in `~/london-guide` would commit there. `git status` should list
+`.gitignore`, `AGENTS.md`, `data/`, `pyproject.toml` and `uv.lock`, and not `.venv/`:
+
+::: {.you}
+```bash
+cd ~/water-quality
+git status
+git add .
+git commit -m "Data, rules and environment"
+```
+:::
 
 ::: tryit
-Copy the data, write the rules and create the environment.
+Copy the data, write the rules, create the environment and commit them.
 
 ::: done
-`AGENTS.md` states the analysis's scope and its rules, `uv run quarto check jupyter` shows
-this project's `.venv` Python, and the first commit holds them. Open a new terminal tab and
-run `cd ~/water-quality` first (a tab left in `~/london-guide` would commit there); then `git status`
-should list `.gitignore`, `AGENTS.md`, `data/`, `pyproject.toml` and `uv.lock`, and not `.venv/`;
-then `git add .` and `git commit -m "Data, rules and environment"` record them, and `git status`
-says the working tree is clean.
+`AGENTS.md` states the scope and the rules, `uv run quarto check jupyter` shows this project's
+`.venv` Python, and after the commit `git status` says the working tree is clean.
+:::
 :::
 
 There is no catch-up here. If you get stuck, the one at the end of @sec-explore restores this
 chapter's work and the next chapter's together.
+
+::: {.cards .ledger title="Tunja so far"}
+On the table
+: code `15001`: `{python} len(tj)` rows, `{python} WORD[tj["zone"].nunique()]` zones over
+  `{python} WORD[tj["year"].nunique()]` years.
+
+Checked
+: nothing yet. Its values are as published.
+
+What may be said
+: nothing: no value has been read against the README's caveats.
 :::
 
 ## Summary {.unnumbered}
@@ -427,9 +463,10 @@ reasons unrelated to water. That is the next chapter's question.
   (checked 2026-10-30).
 - MinSalud, MinVivienda, INS and Superservicios,
   [*Informe Nacional de Calidad del Agua para Consumo Humano INCA 2023*](https://www.minvivienda.gov.co/sites/default/files/documentos/informe-nacional-de-calidad-del-agua-para-consumo-humano-inca-2023.pdf)
-  (checked 2026-10-30).
-- ICFES, [*Guía de orientación Saber 11.° 2017-1*](https://www.icfes.gov.co/wp-content/uploads/2024/11/Guia-de-orientacion-saber-11-2017-1.pdf)
-  (checked 2026-10-30).
+  (Bogotá, January 2025), Tabla 4 (checked 2026-10-30).
+- ICFES, [*Guía de orientación Saber 11.° 2017-1*](https://www.icfes.gov.co/wp-content/uploads/2024/11/Guia-de-orientacion-saber-11-2017-1.pdf),
+  pp. 101 and 104: how the global score is built from the five tests, and why its mean was fixed
+  at 250 in 2014 (checked 2026-10-30).
 - [datos.gov.co](https://www.datos.gov.co/) and DNP [TerriData](https://terridata.dnp.gov.co/), the
   sources' portals; every table, licence and cut-off date is in
   `examples/water/data/README.md` and @sec-sources.
