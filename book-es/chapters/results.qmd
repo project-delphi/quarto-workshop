@@ -21,32 +21,46 @@ most, least = ages["share_called"].idxmax(), ages["share_called"].idxmin()
 cal = ev.calibration()
 cal_best = cal[cal["version"] == best]
 gap = (cal["mean_predicted"] - cal["observed_rate"]).abs().groupby(cal["version"]).max()
+oldest = min(S["releases"], key=lambda r: r["month"])["version"]
 top = ev.percent(S["top_share"], 0)
 calls_double = math.ceil(2 * S["top_share"] * S["test_rows"])
 # The sentences below say: the band called most is also the band most likely to subscribe;
 # the best release is also the best calibrated.
 text_holds(ages["base_rate"].idxmax() == most, "the most-called age band's subscription rate")
 text_holds(gap.idxmin() == best, "the best-calibrated release")
+# The opening says, without numbers, that the called list is not a fair sample of the
+# customers and that one group is called far more often than another.
+text_holds(ages.loc[most, "share_called"] > 2 * S["top_share"] > 2 * ages.loc[least, "share_called"]
+           and ages.loc[most, "share_called"] > 3 * ages.loc[least, "share_called"],
+           "the opening's \"called far more often than another\"")
+# The payoff (media/capture/eval_outputs.py, step card): the card's title, subtitle and section 2.
+import re
+
+CARD = (ev.PROJECT.parents[1] / "checkpoints" / "15-eval-results" / "model-card.qmd").read_text()
+alt_text_holds(dict(re.findall(r'^(title|subtitle): "(.*)"$', CARD, re.M)) == {
+    "title": "Model card: contact-ranking model", "subtitle": "Acme Signals (a fictional company)"}
+    and re.findall(r"^## (.+?) \{#", CARD, re.M)[1] == "Intended use", "fig-results-card")
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
-# checkpoint 14 on 2026-11-18; the pitfalls are the ones that run met.
+# checkpoint 14 on 2026-11-18; the traps in @tbl-results-traps and the story in
+# @sec-results-change are the ones that run met. The model-card prompt was trimmed on
+# 2026-11-25 (PLAN-improvement-briefs-2.md, D3), its nine section names moved out of the
+# fence; the lead dry-runs the trimmed text.
 ```
 
-La vía rápida terminó con un informe. Una evaluación real tiene más lectores que eso. El equipo
-de producto quiere el titular y la tabla; quien revisa riesgos o cumplimiento quiere saber a quién
-trata de forma distinta el modelo y para qué no debe usarse; quien invierte quiere un número que
-se movió. La manera de servirles a todos sin que los números se separen es el diseño que el
-repositorio ya tiene: **un script calcula cada resultado una sola vez, y todos los documentos los
-leen.** Este capítulo agrega el segundo documento, una *ficha del modelo* (model card), y hace
-crecer el informe, y muestra cómo darle a un agente una tarea más grande sin riesgo: pidiendo
-primero un plan y juzgando después el resultado por sus comprobaciones.
+La vía rápida terminó con un informe y una versión ganadora. Este capítulo les hace una segunda
+pregunta a los mismos resultados: ¿a quién llama la versión ganadora? La respuesta está en un
+archivo que el informe nunca abrió. La lista con la que trabajaría el centro de llamadas no es
+una muestra justa de los clientes del banco, y a un grupo se lo llama mucho más que a otro. Un
+informe puede omitirlo. Una ficha del modelo (model card) no, y escribirla es la tarea más grande
+de este capítulo: entregada entera al agente, con un plan primero y sus comprobaciones después.
 
-Es el primer capítulo de esta parte, cuyos capítulos toman cada uno un tipo de salida, aquí una
-ficha del modelo y luego diapositivas, un sitio y un white paper, y lo enseñan de la misma
-manera: qué puede hacer y cómo se llama, cómo pedirlo y cómo revisarlo (la @sec-three-skills).
+El diseño que lo responde es el que el repositorio ya tiene: **un script calcula cada resultado
+una sola vez, y todos los documentos los leen**, así que la ficha, el informe y todo lo que venga
+después citan la misma ejecución.
 
 ::: opener
-- Explicar por qué los resultados se calculan una sola vez y los leen todos los documentos, y
-  qué atrapa cada tipo de comprobación (las pruebas, las guardas, el renderizado).
+- Explicar por qué cada resultado se calcula una sola vez, y qué atrapan las pruebas, las guardas
+  y el renderizado.
 - Pedirle a un agente una ficha del modelo como una sola tarea más grande, con un plan primero,
   y juzgarla por sus comprobaciones.
 - Numerar las secciones y referirse a ellas, a las tablas y a las figuras, de modo que cada
@@ -64,37 +78,62 @@ Punto de control
 : `checkpoints/15-eval-results/`
 :::
 
+::: payoff
+![La parte superior de la ficha del modelo terminada, renderizada a partir de `checkpoints/15-eval-results/model-card.qmd`.](../media/figures/eval-card-top.png){#fig-results-card width=85% fig-alt="La parte superior de una página web al ancho de un teléfono: el título, Model card: contact-ranking model (ficha del modelo: modelo que ordena contactos), y el subtítulo, Acme Signals (a fictional company), una empresa ficticia. Tras una línea discontinua que marca un corte, la sección 2, Intended use (uso previsto), da el uso principal, ordenar la lista de clientes de un banco para una campaña de depósitos a plazo, su público principal y lo que queda fuera de su alcance, desde decisiones de crédito hasta cualquier versión que use duration."}
+:::
+
 ## Calcular una vez, comprobar de tres maneras {#sec-results-checks}
 
 `scripts/evaluate.py` es el único código del repositorio que ajusta un modelo. Escribe cinco
-archivos de texto plano en `outputs/`, y son los mismos bytes en cada ejecución, porque cada
-elección aleatoria, la división de los datos, los modelos y el bootstrap, tiene una semilla fija.
-En la ejecución de este libro:
+archivos de texto plano en `outputs/`, los mismos bytes en cada ejecución en el entorno que fija
+`uv.lock`, porque cada elección aleatoria, la división, los modelos y el bootstrap, tiene una
+semilla fija. En la ejecución de este libro la mejor versión es `{python} best`, medida en
+`{python} f"{S['test_rows']:,}"` contactos de prueba, de los que se suscribió el
+`{python} ev.percent(S["base_rate"])` (la *tasa base*):
 
 | Archivo | Contiene |
 |---|---|
-| `summary.json` | la mejor versión (`{python} best`), el tamaño del conjunto de prueba (`{python} f"{S['test_rows']:,}"`), la tasa base (`{python} ev.percent(S["base_rate"])`), las semillas, la suma de verificación de los datos y las versiones de los paquetes |
-| `metrics.csv` | las métricas de cada versión, con un intervalo bootstrap del 95% |
-| `segments.csv` | lo mismo por franja de edad y por ocupación |
-| `calibration.csv` | las tasas predichas frente a las observadas, en `{python} WORD[cal_best["bin"].nunique()]` intervalos |
-| `curves.csv` | los puntos de las curvas ROC y de precisión-recall |
+| `summary.json` | mejor versión, tamaño del conjunto de prueba, tasa base, semillas, versiones |
+| `metrics.csv` | métricas de cada versión, con intervalos bootstrap |
+| `segments.csv` | lo mismo por franja de edad y ocupación |
+| `calibration.csv` | tasas predichas frente a observadas, en `{python} WORD[cal_best["bin"].nunique()]` intervalos |
+| `curves.csv` | curvas ROC y de precisión-recall |
 
 : Lo que escribe la evaluación. {#tbl-results-outputs}
 
-Luego, tres tipos de comprobación protegen cosas distintas, y un repositorio profesional necesita
-los tres:
+Las métricas son el *ROC AUC*, la probabilidad de que una versión ponga a alguien que se
+suscribe, elegido al azar, por encima de alguien que no, y tres para la parte superior de la
+lista: el *recall*, la proporción de quienes se suscriben a la que llegan las llamadas; la
+*precisión*, la proporción de llamadas que llegan a una de esas personas; y el *lift*, la
+precisión dividida por la tasa base. El *intervalo bootstrap* de una métrica es el rango que
+contiene el `{python} ev.percent(S["confidence"], 0)` central de sus valores cuando el conjunto
+de prueba se vuelve a sortear, con reemplazo, muchas veces. Tres tipos de comprobación protegen
+cosas distintas, y un repositorio necesita los tres:
 
 | Comprobación | Se ejecuta | Atrapa |
 |---|---|---|
-| **Pruebas** (`uv run pytest`) | sobre el código y los datos | un archivo de datos cambiado (su suma de verificación), una fuga de información (ninguna versión puede usar `duration`, que solo se conoce después de la llamada), una métrica equivocada, salidas a las que les falta una columna |
-| **Guardas** (`claim(…)` en un documento) | cuando se renderiza un documento | una oración cuyas palabras los resultados ya no respaldan: "best", "most", "within five points" (la mejor, la mayor, a menos de cinco puntos) |
-| **El renderizado** | en cada documento, en cada formato | una referencia que no se resuelve, un archivo que falta, una celda que falla |
+| **Pruebas** (`uv run pytest`) | sobre el código y los datos | un archivo de datos cambiado (su suma de verificación); una fuga |
+| **Guardas** (`claim(…)` en un documento) | al renderizar un documento | una oración que los resultados ya no respaldan |
+| **El renderizado** | en cada documento, en cada formato | una referencia que no se resuelve; una celda que falla |
 
 : Tres tipos de comprobación, y lo que atrapa cada uno. {#tbl-results-check-kinds}
 
-Una prueba no lee la prosa, y una guarda no prueba el código; ninguna de las dos nota una
-etiqueta escrita a mano que quedó desactualizada, algo que solo nota quien lee, o una predicción
+Una *suma de verificación* (checksum) es la huella de un archivo: cambia un byte de los datos y
+deja de coincidir. Una prueba no lee la prosa, y una guarda no prueba el código; ninguna nota una
+etiqueta escrita a mano que quedó desactualizada, algo que solo notan quien lee o una predicción
 puesta a prueba con una reconstrucción (la @sec-results-change).
+
+::: think
+Los datos tienen una columna, `duration`, la duración de cada llamada en segundos. La propia
+página del conjunto de datos, citada en `data/README.md`, dice que "highly affects the output
+target" (afecta mucho a la variable objetivo). ¿Debería usarla una versión?
+
+No. La duración de una llamada solo se conoce después de la llamada, y el trabajo del modelo es
+elegir a quién llamar. Un modelo que la recibiera se evaluaría con algo que nunca va a tener en
+servicio: una *fuga de información* (leakage), una columna que lleva la respuesta a la
+evaluación. Ningún renderizado lo notaría; una prueba sí (`tests/test_models.py`), y por eso el
+repositorio la tiene.
+:::
 
 ## Una ficha del modelo, como una tarea más grande {#sec-model-card}
 
@@ -117,7 +156,7 @@ git switch -c model-card
 
 ::: {.prompt .long}
 ```default
-Primero un plan, y espera mi visto bueno: agrega model-card.qmd (html, docx y typst), escrita en inglés, para la mejor versión, con las secciones de Mitchell et al. (2019), "Model Cards for Model Reporting": detalles del modelo, uso previsto, factores, métricas, datos de evaluación, datos de entrenamiento, análisis cuantitativos, consideraciones éticas, y advertencias y recomendaciones. Lee solo outputs/ y data/README.md. Las métricas por subgrupo, por franja de edad y por ocupación, salen de outputs/segments.csv, y la calibración de outputs/calibration.csv. Cita el artículo y el conjunto de datos desde un references.bib nuevo, abriendo antes cada DOI. Protege con `claim` cada oración cuya redacción dependa de los resultados. Renderiza los tres formatos y luego enumera lo que no pudiste verificar.
+Plan primero; espera mi visto bueno. Agrega model-card.qmd, en inglés, para la mejor versión, con las secciones de Mitchell et al. (2019). Lee solo outputs/ y data/README.md; los subgrupos por edad y ocupación, de outputs/segments.csv, y la calibración, de outputs/calibration.csv. Cita el artículo y los datos en un references.bib nuevo, abriendo antes cada DOI. Protege con `claim` cada oración cuyo texto dependa de los resultados. Renderiza a html, docx y typst; di qué no pudiste verificar.
 ```
 :::
 
@@ -125,12 +164,23 @@ Primero un plan, y espera mi visto bueno: agrega model-card.qmd (html, docx y ty
 responde con un plan · tras tu visto bueno: escribe `references.bib` y `model-card.qmd` · `uv run quarto render model-card.qmd`
 :::
 
-**Lee el plan** como lo haría quien revisa. Uno bueno enumera las secciones en orden, dice de
-dónde sale cada número, nombra los subgrupos y la figura, y dice cómo va a revisar las
-referencias; en la ejecución de prueba también prometió calcular la etiqueta "top
-`{python} top`" a partir de `outputs/` en lugar de escribirla a mano. Si al plan le falta algo,
-dilo antes de que empiece; es más barato cambiar un plan que un archivo. Luego responde
-`Go ahead.` (adelante).
+<!-- Ejecución de prueba del 2026-11-25 (del prompt en inglés), textual, en una copia del punto
+de control 14-eval-start con outputs/ calculado, y el visto bueno enviado tras el plan: un
+subagente de Claude Code con Sonnet 5.5 y otro con Haiku 5.5. Los dos planes nombraron las nueve
+secciones de Mitchell et al., las dos fichas tienen las nueve, y los tres formatos se
+renderizaron. Sonnet usó 8 guardas claim, dos con valores escritos a mano; Haiku, 15. Los dos
+abrieron los DOI a través de Crossref cuando las páginas de ACM y Elsevier los rechazaron, y los
+dos citaron también a Moro et al. (2014). El primer renderizado de Sonnet falló porque
+DataFrame.to_markdown necesita tabulate; usó to_html en su lugar. -->
+
+El artículo, "Model Cards for Model Reporting", tiene nueve secciones: detalles del modelo, uso
+previsto, factores, métricas, datos de evaluación, datos de entrenamiento, análisis
+cuantitativos, consideraciones éticas, y advertencias y recomendaciones.
+**Lee el plan** contra ellas, como lo haría quien revisa. Un buen plan enumera las secciones en
+orden, dice de dónde sale cada número, nombra los *subgrupos* (los resultados de cada franja de
+edad y de cada ocupación) y la figura, dice cómo va a revisar las referencias, y calcula
+etiquetas como "top `{python} top`" a partir de `outputs/` en lugar de escribirlas a mano. Si al
+plan le falta algo, dilo antes de que empiece. Luego responde `Go ahead.` (adelante).
 
 Cuando termina, las comprobaciones son las que pidió el prompt:
 
@@ -139,26 +189,26 @@ Cuando termina, las comprobaciones son las que pidió el prompt:
   condición nunca puede ser falsa, como un nombre leído de los resultados comparado consigo
   mismo, no protege nada.
 - **Las referencias.** `references.bib` debe tener a Mitchell et al. y el conjunto de datos,
-  cada uno con un DOI que puedas abrir. En la ejecución de prueba, el registro del DOI del
+  cada uno con un DOI que puedas abrir. Cuando se construyó esta ficha, el registro del DOI del
   conjunto de datos tenía los autores mezclados, y el agente citó el conjunto de datos tal como
-  lo da la propia página del repositorio de datos: una razón para abrir los DOI, no solo para
-  juntarlos.
-- **La lista de lo que no pudo verificar.** Es la parte más útil del informe de una tarea más
-  grande. La lista de la ejecución de prueba nombraba cómo se hizo la división, cómo se formaron
-  los intervalos de calibración y que el texto del uso previsto y de la ética era un encuadre
-  suyo. Cada elemento es una pregunta para ti, no un defecto que aceptar.
+  lo da la propia página del repositorio: una razón para abrir los DOI, no solo para juntarlos.
+- **La lista de lo que no pudo verificar**, la parte más útil del informe de una tarea más
+  grande: cómo se hizo la división, cómo se formaron los intervalos de calibración, que el texto
+  de ética es un encuadre suyo. Cada elemento es una pregunta para ti, no un defecto que aceptar.
 - **El renderizado.** Abre los tres formatos, y mira los subgrupos como los mirarían las
   personas que los forman.
 
-Los subgrupos de la ficha terminada dejan clara la idea del ejercicio. Con `{python} best`, el
-`{python} top` superior de la lista, al que se llama, contiene el
+Los subgrupos de la ficha terminada lo dejan claro. Con `{python} best`, el `{python} top`
+superior de la lista, al que se llama, contiene el
 `{python} ev.percent(ages.loc[most, "share_called"])` de los contactos de la franja
 `{python} most`, pero el `{python} ev.percent(ages.loc[least, "share_called"])` de los de la
-franja `{python} least`: el modelo ordena por edad, porque en estos datos la franja
-`{python} most` es la que se suscribe con más frecuencia
-(`{python} ev.percent(ages.loc[most, "base_rate"])`). Eso es exacto, y es justamente lo que una
-ficha debe decir, porque la edad es una característica protegida por la ley del Reino Unido, y un
-banco que decide a quién llamar necesita saberlo antes de confiar en el ordenamiento.
+franja `{python} least`: su ordenamiento sigue la edad, porque en estos datos la franja
+`{python} most` es la que más se suscribe (`{python} ev.percent(ages.loc[most, "base_rate"])`).
+Eso es exacto, y una ficha debe decirlo. La edad es una *característica protegida* por la ley del
+Reino Unido: la Ley de Igualdad (Equality Act) de 2010 protege a las personas de la
+discriminación por esa causa. Los datos son de un banco portugués, pero la ficha pide una
+revisión legal antes de cualquier uso en el Reino Unido. Un banco tiene que saberlo antes de
+confiar en el ordenamiento.
 
 ```{python}
 #| label: tbl-results-ages
@@ -171,17 +221,13 @@ for band, r in ages.iterrows():
 print("\n".join(lines))
 ```
 
-::: pitfall
-Tres trampas con las que se topó la ejecución de prueba. Las tablas con estilo de pandas
-(`df.style`) necesitan el paquete `jinja2`, que el repositorio no tiene, así que el primer
-renderizado se detuvo; el agente escribió la tabla de otra manera en lugar de agregar una
-dependencia, que es la opción preferible. Sin un ajuste, las citas del PDF salieron con un estilo
-distinto al de HTML y Word, con un título "References" vacío y una segunda página
-"Bibliography", porque Quarto le entrega las citas de un PDF de Typst al procesador propio de
-Typst; `citeproc: true` bajo `typst:` hace que los tres formatos usen el mismo
-(la @sec-results-sections). Y un renderizado fallido deja el `model-card.html` anterior donde estaba,
-así que lee las últimas líneas del renderizado antes de abrir el archivo.
-:::
+| Lo que ves | La solución |
+|---|---|
+| El primer renderizado se detiene: las tablas con estilo de pandas (`df.style`) necesitan `jinja2` | escribir la tabla de otra manera, en lugar de agregar una dependencia |
+| El PDF cita con otro estilo, con una segunda página "Bibliography" | `citeproc: true` bajo `typst:` |
+| Un `model-card.html` viejo tras un renderizado fallido | leer las últimas líneas del renderizado antes de abrir el archivo |
+
+: Lo encontrado al probar la ficha, el 2026-11-18. {#tbl-results-traps}
 
 ## Secciones, números y referencias {#sec-results-sections}
 
@@ -189,18 +235,21 @@ El informe suma dos secciones, y quien lee un documento en tres formatos necesit
 Las secciones numeradas y las referencias cruzadas lo hacen posible, y cada una es un ajuste o una
 etiqueta:
 
-| Pides | La función de Quarto | Se renderiza como |
+| Pides | En Quarto | Se ve como |
 |---|---|---|
 | secciones numeradas | `number-sections: true` | "2 Who is called" |
-| una referencia a una sección | `## Who is called {#sec-segments}` y `@sec-segments` | "Section 2", un enlace |
-| una referencia a una tabla o una figura | una celda con la etiqueta `tbl-…` o `fig-…`, y `@tbl-…` | "Table 2", "Figure 2" |
-| el mismo estilo de cita en todos los formatos | `bibliography:`, y `citeproc: true` para `typst` | "(Mitchell et al. 2019)" en los tres |
+| citar una sección | `## Who is called {#sec-segments}` y `@sec-segments` | "Section 2", un enlace |
+| una tabla o figura | una etiqueta `tbl-` o `fig-`, luego `@tbl-…` | "Table 2", "Figure 2" |
+| un solo estilo de cita | `citeproc: true` para `typst` | "(Mitchell et al. 2019)" en los tres |
 
-: Las referencias en un documento, y el ajuste detrás de cada una. {#tbl-results-refs}
+: Las referencias, y el ajuste de cada una. {#tbl-results-refs}
+
+La comprobación está en el prompt: una referencia sin resolver se renderiza como "??", en todos
+los formatos.
 
 ::: {.prompt .long}
 ```default
-En report.qmd, numera las secciones y agrega dos, en inglés: a quién se llama (el recall en el 10% superior por franja de edad, de outputs/segments.csv, como una tabla con la etiqueta `tbl-segments`) y la calibración (una figura con la etiqueta `fig-calibration` a partir de outputs/calibration.csv), cada una con una guarda donde su redacción dependa de los resultados, y refiérete a las dos desde el párrafo inicial con referencias @sec-. Renderiza los tres formatos y comprueba que ninguna referencia cruzada muestre "??".
+En report.qmd, numera las secciones y agrega dos, en inglés: a quién se llama (recall en el 10% superior por franja de edad, de outputs/segments.csv, tabla con etiqueta `tbl-segments`) y calibración (figura con etiqueta `fig-calibration`, de outputs/calibration.csv), cada una con guarda si su redacción depende de los resultados; remite a ambas desde el párrafo inicial con referencias @sec-. Renderiza los tres formatos y comprueba que ninguna referencia muestre "??".
 ```
 :::
 
@@ -208,17 +257,9 @@ En report.qmd, numera las secciones y agrega dos, en inglés: a quién se llama 
 edita `report.qmd` · `uv run quarto render report.qmd`
 :::
 
-La comprobación está en el prompt: una referencia sin resolver se renderiza como "??", en todos
-los formatos, así que búscalo en cada salida. En la ejecución de prueba, el párrafo inicial se
-leía igual en HTML, Word y PDF, y terminaba con "Section 2 shows who is called, by age band, and
-Section 3 whether the predicted probabilities match the rates observed" (la Sección 2 muestra a
-quién se llama, por franja de edad, y la Sección 3, si las probabilidades predichas coinciden con
-las tasas observadas).
-
 La calibración pregunta si una probabilidad predicha puede leerse como una tasa: de los contactos
 a los que el modelo les da un 20%, ¿se suscribe más o menos uno de cada cinco?
-La @fig-results-calibration la dibuja para la mejor versión, a partir del mismo archivo que lee el
-informe.
+La @fig-results-calibration la dibuja para la mejor versión.
 
 ```{python}
 #| label: fig-results-calibration
@@ -241,8 +282,8 @@ with style():
 ```
 
 Con `{python} best`, ningún intervalo se aleja más de `{python} f"{100 * gap[best]:.1f}"` puntos
-porcentuales de la diagonal; con la versión más antigua, la mayor distancia es
-`{python} f"{100 * gap['v1']:.1f}"`. El informe dice con una guarda qué versión está mejor
+porcentuales de la diagonal; con la versión más antigua, `{python} oldest`, la mayor distancia
+es `{python} f"{100 * gap[oldest]:.1f}"`. El informe dice con una guarda qué versión está mejor
 calibrada, porque esa palabra, a diferencia de los números, no se deriva sola de los datos.
 
 Cuando los dos documentos se rendericen, revisa la rama como en la @sec-fast-pr: el alcance
@@ -257,43 +298,41 @@ Catch me up: follow ../quarto-workshop/checkpoints/15-eval-results/README.md
 
 ## Cambia un ajuste, explica la reconstrucción {#sec-results-change}
 
-El centro de llamadas tiene capacidad para más llamadas. No hay un prompt: esta es la prueba del
-diseño, y puedes hacerla a mano.
+El centro de llamadas tiene capacidad para más llamadas, así que `TOP_SHARE` en
+`src/acme_eval/metrics.py`, la proporción de la lista a la que se llama, puede duplicarse. No hay
+un prompt: esta es la prueba del diseño, y puedes hacerla a mano.
 
 ::: tryit
-1. **Predice.** La proporción de la lista a la que se llama es `TOP_SHARE` en
-   `src/acme_eval/metrics.py`, ahora `{python} S["top_share"]`. Duplícala. Antes de
-   reconstruir, anota qué números del informe y de la ficha van a cambiar, cuáles no, y si algo
-   va a detener el renderizado.
-2. **Reconstruye**: `uv run python scripts/evaluate.py`, y luego renderiza los dos documentos.
-3. **Explica** qué cambió, qué no, y cualquier cosa que se haya detenido.
-4. **Deshaz** el cambio con `git restore src/acme_eval/metrics.py`, y vuelve a evaluar y a
-   renderizar.
+1. **Predice.** Antes de duplicar `TOP_SHARE`, anota qué números del informe y de la ficha van a
+   cambiar, cuáles no, y si algo va a detener el renderizado.
+2. **Reconstruye**: duplícala, ejecuta `uv run python scripts/evaluate.py` y renderiza los dos
+   documentos.
+3. **Deshaz**: `git restore` el archivo, y luego vuelve a evaluar y a renderizar.
 
 ::: done
-puedes nombrar las salidas que cambiaron, las que no, y la línea de código o la guarda detrás de
-cada una.
+puedes nombrar lo que cambió, lo que no y lo que se detuvo.
 :::
 :::
 
 ::: think
 ¿Qué debería cambiar, qué no, y cuál es la trampa?
 
-La cantidad de llamadas (a `{python} f"{calls_double:,}"`), y con ella cada métrica de la parte
-superior de la lista: el recall, la precisión, el lift y la proporción llamada de cada franja. El
-ROC AUC, la precisión promedio, la puntuación de Brier, la calibración y la mejor versión no
-cambian: miden el ordenamiento completo, no dónde se corta. La trampa es todo lo que nombra la
-proporción con palabras. En la ejecución de prueba, un informe escrito sin guardas sobre esas
-palabras conservó "top 10%" en el pie de una tabla y en dos etiquetas de fila, junto a las cifras
-nuevas, y los nombres de las métricas en `outputs/`, entre ellos `recall_top10`, también
-siguieron diciendo 10. En el proyecto terminado, las etiquetas calculan la proporción, y cada pie
-que la nombra, que no puede calcularla, tiene una guarda: los dos documentos se detienen con "The
-caption says top 10%, which a caption cannot compute" (el pie dice top 10%, algo que un pie no
-puede calcular). Dos pruebas unitarias de `tests/test_metrics.py` también fallan, porque fijan la
-regla del 10%; es una prueba haciendo su trabajo, y cambiar la proporción implica actualizarlas a
-propósito. En la ejecución de prueba, la propia ficha del agente también se detuvo en una guarda
-sobre las ocupaciones a las que menos llegan las llamadas, el tipo de oración que una lista
-duplicada sí cambia.
+Cambian la cantidad de llamadas (a `{python} f"{calls_double:,}"`) y cada métrica de la parte
+superior de la lista: el recall, la precisión, el lift, la proporción llamada de cada franja. El
+ROC AUC, la puntuación de Brier (el error cuadrático medio de las probabilidades) y la
+calibración no: describen la lista entera, no dónde se corta. La trampa es la proporción nombrada
+con palabras: un "top 10%" escrito a mano se queda. En el proyecto terminado, los dos documentos
+se detienen en la guarda de un pie, y dos pruebas unitarias que fijan la regla fallan, a
+propósito.
+:::
+
+::: story
+<!-- source: REVISION-PLAN.md line 475 (WP5) and results.qmd lines 272-277 at 651db10. They
+disagree on whose report it was, so the story says only what both record. -->
+Cuando se probó este cambio para el libro, con la lista duplicada, "top 10%" seguía escrito a
+mano en etiquetas y en un pie, junto a las cifras nuevas. Los números se habían movido y las
+palabras no. Ahora las etiquetas calculan la proporción, y cada pie que la nombra tiene una
+guarda. Después de cambiar un ajuste, busca en cada salida su valor anterior escrito con palabras.
 :::
 
 ## Resumen {.unnumbered}
