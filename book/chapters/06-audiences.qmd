@@ -25,6 +25,10 @@ alt_text_holds(len(attractions) == 10
                and attractions.loc[attractions["visits_2025"].idxmax(), "attraction"]
                .startswith("Natural History Museum")
                and (first_year, last_year) == (2015, 2025), "fig-london-dashboard")
+# The payoff's and the phone dashboard's alt texts name the top attraction and the year.
+alt_text_holds(last_year == 2025 and attractions.loc[attractions["visits_2025"].idxmax(),
+               "attraction"].startswith("Natural History Museum"),
+               "fig-london-audiences, fig-london-dashboard-phone")
 # The square advert's alt text names the top attraction and says it is free to enter.
 top_row = attractions.loc[attractions["visits_2025"].idxmax()]
 alt_text_holds(top_row["attraction"].startswith("Natural History Museum")
@@ -33,7 +37,7 @@ alt_text_holds(top_row["attraction"].startswith("Natural History Museum")
 # The build-log story quotes the total in the phone-width capture of 2026-11-25
 # (media/capture/london_outputs.py, step dashboard).
 total_visits = f"{attractions['visits_2025'].sum():,}"
-total_clipped = total_visits[:-1] + "…"
+total_shown = total_visits[:-1]  # the capture showed all but its last figure
 text_holds(total_visits == "39,692,434", "the clipped total in the dashboard story")
 
 ldn = london_map()
@@ -54,6 +58,10 @@ covering email for partners, and an A5 flyer for walk-ins. None needs another to
 makes them the first job in this book worth splitting across several agents. The dashboard and
 the brief read the data file; the flyer copies its facts, a choice @sec-london-change returns
 to.
+
+::: payoff
+![Three outputs at a phone's width: the dashboard's first value box, the start of the partner brief (its source rendered as a web page) and the top of the flyer. Rendered from `examples/london`.](../media/figures/london-audiences.png){#fig-london-audiences width=50% fig-alt="Three crops, one above another. A blue dashboard value box with a trophy: Most visited: Natural History Museum, and its 2025 visits in large figures. The partner brief's heading, Why London, over one bullet giving the 2025 visits to London's ten most visited ALVA member attractions. The top of the flyer: Visit London, Five sights for one great day."}
+:::
 
 ::: opener
 - Choose a format for each audience, and set it.
@@ -113,8 +121,6 @@ as a *div*: a block of Markdown between two lines of three colons, whose class i
 `.valuebox`, tells Quarto what to make of it. Quarto's other special blocks, such as callouts,
 use the same syntax.
 
-![The finished dashboard's Attractions page: three value boxes, ALVA's ten most visited London members in 2025, and visits to the five sights by year. Rendered from `examples/london/london-dashboard.qmd`.](../media/figures/london-dashboard.png){#fig-london-dashboard fig-alt="A dashboard titled London attractions dashboard, with Attractions and Churches tabs. Three value boxes: the most visited attraction, the Natural History Museum, with its 2025 visits; the total visits to the ten; and how many of the ten are free to enter. Below, a horizontal bar chart of 2025 visits to London's ten most visited ALVA member attractions, and a line chart of visits per year from 2015 to 2025 for five sights, with a deep dip in 2020 and 2021."}
-
 It also needs a second data file. `data/visits.csv` holds the yearly visits to the five sights
 from `{python} first_year` to `{python} last_year`, from ALVA's annual tables. Two notes travel
 with it, from the data's README. The years 2020 and 2021 are pandemic years, not comparable
@@ -122,6 +128,8 @@ with the others. And from 2024 the Natural History Museum's count includes its r
 gardens, so for that museum 2024 and 2025 are not like-for-like with earlier years.
 `data/churches.csv` lists the `{python} word(n_churches)` cathedrals and churches on Visit
 London's own list, an editorial choice with no visitor numbers.
+
+![The finished dashboard's Attractions page: three value boxes, ALVA's ten most visited London members in 2025, and visits to the five sights by year. Rendered from `examples/london/london-dashboard.qmd`.](../media/figures/london-dashboard.png){#fig-london-dashboard fig-alt="A dashboard titled London attractions dashboard, with Attractions and Churches tabs. Three value boxes: the most visited attraction, the Natural History Museum, with its 2025 visits; the total visits to the ten; and how many of the ten are free to enter. Below, a horizontal bar chart of 2025 visits to London's ten most visited ALVA member attractions, and a line chart of visits per year from 2015 to 2025 for five sights, with a deep dip in 2020 and 2021."}
 
 **A Word brief** turns Markdown headings into Word's heading styles, so the partner's copy has a
 navigable outline and working links. Its covering email is not rendered at all: it is a plain
@@ -248,11 +256,14 @@ flyer fit on one A5 page?
 <!-- source: book/media/capture/london_outputs.py, step dashboard, and PLAN-improvement.md
 section 14 (package M): the dashboard captured at a phone's width on 2026-11-25. -->
 When this book captured the finished dashboard at a phone's width, on 2026-11-25, its total
-value box showed `{python} total_visits` as `{python} total_clipped`. Nothing failed: the
-render passed, and the number in the source was right. Look at each output at the size its
+value box showed `{python} total_visits` only as far as `{python} total_shown`: the last
+figure ran past the box's edge. Nothing failed: the render passed, and the number in the
+source was right. Look at each output at the size its
 reader uses, and if a dashboard's readers use phones, ask for big totals in a shorter form,
 such as millions.
 :::
+
+![The dashboard on a phone: the total is cut off.](../media/figures/london-dashboard-phone.png){#fig-london-dashboard-phone width=50% fig-alt="Three value boxes, one above another, as a phone shows the dashboard. Blue: Most visited: Natural History Museum, with its 2025 visits. Purple: Visits to the top 10 (ALVA members), 2025, whose total runs past the box's right edge, so its last figure is cut off. Green: Top 10 with free entry, with how many of the ten are free."}
 
 When all three pass, `git add .` and commit with a message that says why.
 
