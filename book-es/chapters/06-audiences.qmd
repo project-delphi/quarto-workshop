@@ -206,19 +206,17 @@ luego reparte el trabajo.
 ## Un prompt, tres públicos {#sec-audiences-do}
 
 El prompt hace tres cosas: dice cómo se reparte el trabajo, le da a cada subagente sus propios
-archivos para escribir y le deja el renderizado a la sesión principal. Llega en dos mensajes.
-Primero, las instrucciones para la sesión principal:
+archivos para escribir y le deja el renderizado a la sesión principal. Llega en cuatro mensajes,
+uno por recuadro. Primero, las instrucciones para la sesión principal:
 
 ::: {.prompt}
 ```default
-Ejecuta tres subagentes en paralelo, uno por elemento de mi próximo mensaje (¿no hay? haz los elementos uno tras otro). Cada uno lee london.qmd, data/ e images/, oculta el código, sigue AGENTS.md y solo escribe sus propios archivos: nada de renderizar. Los textos de las salidas, en inglés. Luego renderiza tú los tres archivos .qmd, uno por uno, y revisa cada uno. Espera los elementos.
+Ejecuta tres subagentes en paralelo, uno por elemento de mis próximos tres mensajes (¿no hay? haz los elementos uno tras otro). Cada uno lee london.qmd, data/ e images/, oculta el código, sigue AGENTS.md y solo escribe sus propios archivos: nada de renderizar. Los textos de las salidas, en inglés. Luego renderiza tú los tres archivos .qmd, uno por uno, y revisa cada uno. Empieza cuando hayan llegado los tres elementos.
 ```
 :::
 
-Luego los tres elementos, uno por recuadro. Copia el primer recuadro y pégalo en el agente, pega
-después el segundo y el tercero, y presiona Enter solo cuando estén los tres: numerados del 1 al 3,
-llegan como un solo mensaje. Si por error enviaste uno solo, envía los otros dos juntos; a la
-sesión principal se le pidió que esperara los elementos.
+Luego los tres elementos, un mensaje cada uno: copia un recuadro, pégalo en el agente, presiona
+Enter y sigue con el siguiente. La sesión principal espera hasta tener los tres.
 
 ::: {.prompt}
 ```default
@@ -239,23 +237,25 @@ sesión principal se le pidió que esperara los elementos.
 :::
 
 ::: {.agent}
-espera los elementos · inicia tres subagentes · espera · renderiza los tres archivos `.qmd` uno por uno
+espera los tres elementos · inicia tres subagentes · espera · renderiza los tres archivos `.qmd` uno por uno
 :::
 
 ::: {.you}
-envías el mensaje de la sesión principal y luego los tres elementos juntos · apruebas sus comandos · abres las cuatro salidas
+envías los cuatro mensajes · apruebas sus comandos · abres las cuatro salidas
 :::
 
-<!-- Prueba del 2026-11-25 de la versión en inglés de este prompt, literal, con los dos mensajes
-(los tres elementos como uno), en una copia del punto de control 02-london-qmd: un subagente de
-Claude Code con Sonnet 5.5 y otro con Haiku 5.5. Cada uno esperó los elementos. Ninguno pudo
-iniciar subagentes propios, así que los dos tomaron la alternativa del prompt e hicieron los
-elementos uno tras otro; la ruta en paralelo no se puso a prueba. Los dos renderizaron los tres
-archivos uno por uno: un dashboard con tres cuadros de valor y dos gráficos de Plotly, un informe
-en Word cuyas cifras coinciden con data/, y un folleto A5 de una página (el de Haiku cupo en su
-tercer renderizado). Los dos contaron "number free" como los valores de admission que empiezan con
-"Free". El primer renderizado del dashboard de Sonnet falló porque DataFrame.to_markdown necesita
-tabulate; escribió la tabla a mano. data/ e images/ quedaron sin cambios. -->
+<!-- Prueba del 2026-11-25 de la versión en inglés de este prompt, literal, con los cuatro
+mensajes enviados de uno en uno y cada uno respondido antes del siguiente, en una copia del
+punto de control 02-london-qmd: un subagente de Claude Code con Sonnet 5.5 y otro con Haiku 5.5.
+Tras el mensaje de la sesión principal y tras los elementos 1 y 2, cada uno dijo que esperaba y
+no había empezado nada; cada uno empezó solo al llegar el elemento 3. Ninguno pudo iniciar
+subagentes propios, así que los dos siguieron la alternativa del prompt e hicieron los elementos
+uno tras otro; la vía en paralelo no se probó. Los dos renderizaron los tres archivos uno por
+uno: un tablero con tres cuadros de valor y dos gráficos de Plotly, un informe de Word cuyas
+cifras coinciden con data/ y un folleto A5 de una página (el de Haiku cupo al tercer
+renderizado). data/ e images/ no cambiaron. Una versión anterior enviaba los tres elementos
+como un solo mensaje; pegar tres recuadros antes de un solo Enter resultó propenso a errores,
+de ahí un mensaje por recuadro. El prompt en español no se probó. -->
 
 La sesión principal renderiza `london-dashboard.qmd`, `london-email.qmd` y luego
 `london-flyer.qmd` con `uv run quarto render`, y va informando el avance de cada subagente. Revisa
@@ -312,7 +312,7 @@ primera fila de la @tbl-audiences-fixes.
 : Tres fallas que buscar después de los renderizados, y qué pedir. {#tbl-audiences-fixes}
 
 ::: tryit
-Envía ambos mensajes; aprueba lo que pida.
+Envía los mensajes; aprueba lo que pida.
 
 ::: done
 abres un dashboard de dos páginas, un informe en Word y su correo, y un folleto de una página.

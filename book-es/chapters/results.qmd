@@ -28,8 +28,8 @@ calls_double = math.ceil(2 * S["top_share"] * S["test_rows"])
 # the best release is also the best calibrated.
 text_holds(ages["base_rate"].idxmax() == most, "the most-called age band's subscription rate")
 text_holds(gap.idxmin() == best, "the best-calibrated release")
-# The opening says, without numbers, that the called list is not a fair sample of the
-# customers and that one group is called far more often than another.
+# The opening says, without numbers, that the called list leans towards some ages and that
+# one group is called far more often than another.
 text_holds(ages.loc[most, "share_called"] > 2 * S["top_share"] > 2 * ages.loc[least, "share_called"]
            and ages.loc[most, "share_called"] > 3 * ages.loc[least, "share_called"],
            "the opening's \"called far more often than another\"")
@@ -49,8 +49,8 @@ alt_text_holds(dict(re.findall(r'^(title|subtitle): "(.*)"$', CARD, re.M)) == {
 
 La vía rápida terminó con un informe y una versión ganadora. Este capítulo les hace una segunda
 pregunta a los mismos resultados: ¿a quién llama la versión ganadora? La respuesta está en un
-archivo que el informe nunca abrió. La lista con la que trabajaría el centro de llamadas no es
-una muestra justa de los clientes del banco, y a un grupo se lo llama mucho más que a otro. Un
+archivo que el informe nunca abrió. La lista con la que trabajaría el centro de llamadas se
+inclina hacia algunas edades: a un grupo se lo llama mucho más que a otro. Un
 informe puede omitirlo. Una ficha del modelo (model card) no, y escribirla es la tarea más grande
 de este capítulo: entregada entera al agente, con un plan primero y sus comprobaciones después.
 
@@ -103,9 +103,11 @@ semilla fija. En la ejecución de este libro la mejor versión es `{python} best
 
 Las métricas son el *ROC AUC*, la probabilidad de que una versión ponga a alguien que se
 suscribe, elegido al azar, por encima de alguien que no, y tres para la parte superior de la
-lista: el *recall*, la proporción de quienes se suscriben a la que llegan las llamadas; la
-*precisión*, la proporción de llamadas que llegan a una de esas personas; y el *lift*, la
-precisión dividida por la tasa base. El *intervalo bootstrap* de una métrica es el rango que
+lista: el *recall*, la proporción de quienes se suscriben a la que llegan las llamadas
+(llamar al azar al `{python} ev.percent(S["top_share"], 0)` superior llegaría al
+`{python} ev.percent(S["top_share"], 0)` de esas personas); la *precisión*, la proporción de
+llamadas que llegan a una de esas personas; y el *lift*, la precisión dividida por la *tasa
+base*, la proporción de todos los contactos que se suscriben. El *intervalo bootstrap* de una métrica es el rango que
 contiene el `{python} ev.percent(S["confidence"], 0)` central de sus valores cuando el conjunto
 de prueba se vuelve a sortear, con reemplazo, muchas veces. Tres tipos de comprobación protegen
 cosas distintas, y un repositorio necesita los tres:
@@ -202,8 +204,8 @@ Los subgrupos de la ficha terminada lo dejan claro. Con `{python} best`, el `{py
 superior de la lista, al que se llama, contiene el
 `{python} ev.percent(ages.loc[most, "share_called"])` de los contactos de la franja
 `{python} most`, pero el `{python} ev.percent(ages.loc[least, "share_called"])` de los de la
-franja `{python} least`: su ordenamiento sigue la edad, porque en estos datos la franja
-`{python} most` es la que más se suscribe (`{python} ev.percent(ages.loc[most, "base_rate"])`).
+franja `{python} least`. El ordenamiento sigue la frecuencia con que se suscribe cada franja, y
+en estos datos la franja `{python} most` es la que más se suscribe (`{python} ev.percent(ages.loc[most, "base_rate"])`).
 Eso es exacto, y una ficha debe decirlo. La edad es una *característica protegida* por la ley del
 Reino Unido: la Ley de Igualdad (Equality Act) de 2010 protege a las personas de la
 discriminación por esa causa. Los datos son de un banco portugués, pero la ficha pide una
