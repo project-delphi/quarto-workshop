@@ -35,11 +35,11 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/04-markdown.qmd` | 1 | `"ninth"` | `"noveno"` |
 | `chapters/04-markdown.qmd` | 1 | `"tenth"` | `"décimo"` |
 | `chapters/04-markdown.qmd` | 1 | `" and "` | `" y "` |
-| `chapters/05-compute.qmd` | 9 | `"Visits in 2025"` | `"Visitas en 2025"` |
+| `chapters/05-compute.qmd` | 12 | `"Visits in 2025"` | `"Visitas en 2025"` |
 | `chapters/06-audiences.qmd` | 1 | `" and the "` | `" y el "` |
-| `chapters/06-audiences.qmd` | 7 | `"Map"` | `"Mapa"` |
-| `chapters/06-audiences.qmd` | 7 | `"Tilt: height is visits"` | `"Inclinado: la altura son las visitas"` |
-| `chapters/06-audiences.qmd` | 7 | `"Up close: the five sights"` | `"De cerca: las cinco atracciones"` |
+| `chapters/06-audiences.qmd` | 10 | `"Map"` | `"Mapa"` |
+| `chapters/06-audiences.qmd` | 10 | `"Tilt: height is visits"` | `"Inclinado: la altura son las visitas"` |
+| `chapters/06-audiences.qmd` | 10 | `"Up close: the five sights"` | `"De cerca: las cinco atracciones"` |
 | `chapters/07-publish.qmd` | 1 | `"zeroth"` | `"cero"` |
 | `chapters/07-publish.qmd` | 1 | `"first"` | `"primer"` |
 | `chapters/07-publish.qmd` | 1 | `"second"` | `"segundo"` |
@@ -51,8 +51,9 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/07-publish.qmd` | 1 | `"eighth"` | `"octavo"` |
 | `chapters/07-publish.qmd` | 1 | `"ninth"` | `"noveno"` |
 | `chapters/07-publish.qmd` | 1 | `"tenth"` | `"décimo"` |
-| `chapters/07-publish.qmd` | 6 | `"slides"` | `"diapositivas"` |
-| `chapters/07-publish.qmd` | 6 | `"\| Page \| Writes \| attrac­tions \| visits \| churches \| sights \|"` | `"\| Página \| Escribe \| attrac­tions \| visits \| churches \| sights \|"` |
+| `chapters/07-publish.qmd` | 8 | `"\| Page \| attrac­tions \| visits \| churches \| sights \|"` | `"\| Página \| attrac­tions \| visits \| churches \| sights \|"` |
+| `chapters/07-publish.qmd` | 9 | `"slides"` | `"diapositivas"` |
+| `chapters/07-publish.qmd` | 9 | `" and "` | `" y "` |
 | `chapters/08-water-question.qmd` | 1 | `"zone"` | `"zona"` |
 | `chapters/08-water-question.qmd` | 1 | `"municipality"` | `"municipio"` |
 | `chapters/08-water-question.qmd` | 1 | `"water-risk index, utility-supplied (0–100); INS"` | `"índice de riesgo del agua, de prestadores (0–100); INS"` |
@@ -175,6 +176,7 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/14-publish-many.qmd` | 14 | `"the post"` | `"la entrada"` |
 | `chapters/14-publish-many.qmd` | 14 | `"none"` | `"ninguno"` |
 | `chapters/14-publish-many.qmd` | 14 | ` file · ` · ` · \|  ·  \|  ·  \|  ·  \|  ·  \|` | ` archivo · ` · ` · \|  ·  \|  ·  \|  ·  \|  ·  \|` |
+| `chapters/exercises-london.qmd` | 2 | `\| Attraction \| Visits in  ·  \| · \|  ·  \|  · , ·  \| · \n: Visits in  ·  to five ALVA member attractions. One cell is wrong.` | `\| Atracción \| Visitas en  ·  \| · \|  ·  \|  · , ·  \| · \n: Visitas en  ·  a cinco atracciones miembro de ALVA. Una celda está mal.` |
 | `chapters/exercises-water.qmd` | 1 | `"no-risk water"` | `"agua sin riesgo"` |
 | `chapters/results.qmd` | 4 | `"\| Age band \| Test contacts \| Called \| Subscription rate \| Recall \|"` | `"\| Franja de edad \| Contactos de prueba \| Llamados \| Tasa de suscripción \| Recall \|"` |
 | `chapters/results.qmd` | 6 | `"Mean predicted probability"` | `"Probabilidad predicha media"` |
