@@ -6,17 +6,22 @@ in the cells is identical. Review that each one only reaches the page.
 
 | File | Cell | English | Spanish |
 |---|--:|---|---|
-| `appendices/e-checkpoints.qmd` | 2 | `"zeroth"` | `"cero"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"first"` | `"primer"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"second"` | `"segundo"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"third"` | `"tercer"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"fourth"` | `"cuarto"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"fifth"` | `"quinto"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"sixth"` | `"sexto"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"seventh"` | `"séptimo"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"eighth"` | `"octavo"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"ninth"` | `"noveno"` |
-| `appendices/e-checkpoints.qmd` | 2 | `"tenth"` | `"décimo"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"zeroth"` | `"cero"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"first"` | `"primer"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"second"` | `"segundo"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"third"` | `"tercer"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"fourth"` | `"cuarto"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"fifth"` | `"quinto"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"sixth"` | `"sexto"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"seventh"` | `"séptimo"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"eighth"` | `"octavo"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"ninth"` | `"noveno"` |
+| `appendices/e-checkpoints.qmd` | 3 | `"tenth"` | `"décimo"` |
+| `appendices/e-checkpoints.qmd` | 4 | `"more"` | `"más"` |
+| `appendices/e-checkpoints.qmd` | 4 | `"fewer"` | `"menos"` |
+| `appendices/e-checkpoints.qmd` | 4 | `The wrong cell is in the row for  · . The table prints  · , · ; its row in  · `data/visits.csv` for  ·  says  · , · , so the table shows  · , ·  visits  ·  than ALVA counted. The figure is not a  · typo: it is that sight's  ·  count, a year out of date, in the right column and  · the right units.` | `La celda equivocada está en la fila de  · . La tabla imprime  · , · ; su fila en  · `data/visits.csv` para  ·  dice  · , · , así que la tabla muestra  · , ·  visitas  ·  de las que contó ALVA. La cifra no es una  · errata: es el conteo de  ·  de esa atracción, con un año de atraso, en la columna  · correcta y en las unidades correctas.` |
+| `appendices/e-checkpoints.qmd` | 5 | `"higher"` | `"más alto"` |
+| `appendices/e-checkpoints.qmd` | 5 | `"lower"` | `"más bajo"` |
 | `appendices/k-facts.qmd` | 1 | `"sources "` | `"fuentes "` |
 | `appendices/k-facts.qmd` | 1 | `g · .2f · [source]( · ) · [ · ]( · )` | `g · .2f · [fuente]( · ) · [ · ]( · )` |
 | `appendices/k-facts.qmd` | 2 | `##  ·  { · .unnumbered} · \n · ** · .**  · . Checked  · ,  · .\n` | `##  ·  { · .unnumbered} · \n · ** · .**  · . Consultado el  · ,  · .\n` |
@@ -55,32 +60,45 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/07-publish.qmd` | 6 | `"\| Page \| Writes \| attrac­tions \| visits \| churches \| sights \|"` | `"\| Página \| Escribe \| attrac­tions \| visits \| churches \| sights \|"` |
 | `chapters/08-water-question.qmd` | 1 | `"zone"` | `"zona"` |
 | `chapters/08-water-question.qmd` | 1 | `"municipality"` | `"municipio"` |
-| `chapters/08-water-question.qmd` | 1 | `"water-risk index, utility-supplied (0–100); INS"` | `"índice de riesgo del agua, de prestadores (0–100); INS"` |
+| `chapters/08-water-question.qmd` | 1 | `"water risk, utility-supplied (0–100)"` | `"riesgo del agua, de prestadores (0–100)"` |
 | `chapters/08-water-question.qmd` | 1 | `"Piped water"` | `"Acueducto"` |
-| `chapters/08-water-question.qmd` | 1 | `"aqueduct coverage (%); TerriData"` | `"cobertura de acueducto (%); TerriData"` |
+| `chapters/08-water-question.qmd` | 1 | `"aqueduct coverage (%)"` | `"cobertura de acueducto (%)"` |
 | `chapters/08-water-question.qmd` | 1 | `"Sewer"` | `"Alcantarillado"` |
-| `chapters/08-water-question.qmd` | 1 | `"sewerage coverage (%); TerriData"` | `"cobertura de alcantarillado (%); TerriData"` |
-| `chapters/08-water-question.qmd` | 1 | `"Poverty"` | `"Pobreza"` |
-| `chapters/08-water-question.qmd` | 1 | `"people multidimensionally poor (%); 2018 census"` | `"personas en pobreza multidimensional (%); censo de 2018"` |
+| `chapters/08-water-question.qmd` | 1 | `"sewerage coverage (%)"` | `"cobertura de alcantarillado (%)"` |
+| `chapters/08-water-question.qmd` | 1 | `"Poverty, IPM"` | `"Pobreza, IPM"` |
+| `chapters/08-water-question.qmd` | 1 | `"people poor in several respects at once, 2018 census (%)"` | `"personas pobres en varios aspectos a la vez, censo de 2018 (%)"` |
 | `chapters/08-water-question.qmd` | 1 | `"Rural share"` | `"Proporción rural"` |
-| `chapters/08-water-question.qmd` | 1 | `"rural share of the population (0–1); DANE"` | `"proporción rural de la población (0–1); DANE"` |
+| `chapters/08-water-question.qmd` | 1 | `"the population's rural share (0–1)"` | `"la proporción rural de la población (0–1)"` |
 | `chapters/08-water-question.qmd` | 1 | `"Altitude"` | `"Altitud"` |
-| `chapters/08-water-question.qmd` | 1 | `"the head town's height (m); SRTM"` | `"la altura de la cabecera (m); SRTM"` |
+| `chapters/08-water-question.qmd` | 1 | `"the head town's height (m)"` | `"la altura de la cabecera (m)"` |
 | `chapters/08-water-question.qmd` | 1 | `"Rainfall"` | `"Precipitación"` |
-| `chapters/08-water-question.qmd` | 1 | `"rain over the municipality (mm a year); CHIRPS"` | `"lluvia sobre el municipio (mm al año); CHIRPS"` |
-| `chapters/08-water-question.qmd` | 1 | `"municipal performance score (0–100); TerriData"` | `"puntaje de desempeño municipal (0–100); TerriData"` |
-| `chapters/08-water-question.qmd` | 1 | `"water transfers (nominal pesos per person, logged); TerriData, DANE"` | `"transferencias para agua (pesos corrientes por persona, en logaritmo); TerriData, DANE"` |
+| `chapters/08-water-question.qmd` | 1 | `"rain over the municipality (mm a year)"` | `"lluvia sobre el municipio (mm al año)"` |
+| `chapters/08-water-question.qmd` | 1 | `"DNP's score of management and results (0–100)"` | `"puntaje del DNP de gestión y resultados (0–100)"` |
+| `chapters/08-water-question.qmd` | 1 | `"water transfers (nominal pesos a person, logged)"` | `"transferencias para agua (pesos corrientes por persona, en logaritmo)"` |
 | `chapters/08-water-question.qmd` | 1 | `"Infant mortality"` | `"Mortalidad infantil"` |
-| `chapters/08-water-question.qmd` | 1 | `"deaths under one year per 1,000 live births; TerriData"` | `"muertes de menores de un año por cada 1,000 nacidos vivos; TerriData"` |
-| `chapters/08-water-question.qmd` | 1 | `"mean exam score of the zone's schools (0–500); ICFES"` | `"puntaje medio del examen en los colegios de la zona (0–500); ICFES"` |
+| `chapters/08-water-question.qmd` | 1 | `"deaths under one year per 1,000 live births"` | `"muertes de menores de un año por cada 1,000 nacidos vivos"` |
+| `chapters/08-water-question.qmd` | 1 | `"mean exam score of the zone's schools (0–500)"` | `"puntaje medio del examen en los colegios de la zona (0–500)"` |
 | `chapters/08-water-question.qmd` | 1 | `"School dropout"` | `"Deserción escolar"` |
-| `chapters/08-water-question.qmd` | 1 | `"public-school pupils who leave during the year (%); MEN"` | `"estudiantes de colegios públicos que se retiran durante el año (%); MEN"` |
+| `chapters/08-water-question.qmd` | 1 | `"public-school pupils who leave during the year (%)"` | `"estudiantes de colegios públicos que se retiran durante el año (%)"` |
 | `chapters/08-water-question.qmd` | 1 | `"municipality"` | `"municipio"` |
 | `chapters/08-water-question.qmd` | 1 | `"zone"` | `"zona"` |
 | `chapters/08-water-question.qmd` | 1 | `"municipality"` | `"municipio"` |
+| `chapters/08-water-question.qmd` | 1 | `"municipality"` | `"municipio"` |
 | `chapters/08-water-question.qmd` | 1 | `; one value · ; ` | `; un solo valor · ; ` |
-| `chapters/08-water-question.qmd` | 2 | `"\| Variable \| Measures (unit); source \| Level; years \|"` | `"\| Variable \| Mide (unidad); fuente \| Nivel; años \|"` |
-| `chapters/10-prepare.qmd` | 3 | `"\| Feature \| Difference \| Share, raw \| Share, z \|"` | `"\| Característica \| Diferencia \| Proporción, original \| Proporción, z \|"` |
+| `chapters/08-water-question.qmd` | 2 | `"\| Variable, and what it measures \| Level; years \|"` | `"\| Variable, y lo que mide \| Nivel; años \|"` |
+| `chapters/09-explore.qmd` | 5 | `"Infant mortality"` | `"Mortalidad infantil"` |
+| `chapters/09-explore.qmd` | 5 | `"reported as 0"` | `"reportado como 0"` |
+| `chapters/09-explore.qmd` | 5 | `"2020: another source"` | `"2020: otra fuente"` |
+| `chapters/09-explore.qmd` | 5 | `"new method from 2017"` | `"método nuevo desde 2017"` |
+| `chapters/10-prepare.qmd` | 1 | `"points"` | `"pts."` |
+| `chapters/10-prepare.qmd` | 1 | `"points"` | `"pts."` |
+| `chapters/10-prepare.qmd` | 1 | `"points"` | `"pts."` |
+| `chapters/10-prepare.qmd` | 1 | `"points"` | `"pts."` |
+| `chapters/10-prepare.qmd` | 1 | `"points"` | `"pts."` |
+| `chapters/10-prepare.qmd` | 1 | `" and "` | `" y "` |
+| `chapters/10-prepare.qmd` | 2 | `"\| Step \| Tunja, urban \| Tunja, rural \|\n\|---\|---\|---\|"` | `"\| Paso \| Tunja, urbana \| Tunja, rural \|\n\|---\|---\|---\|"` |
+| `chapters/10-prepare.qmd` | 2 | `z =  · +.2f · \| As published \| empty; total  · .1f ·  \| empty; total  · .1f ·  \| · \| Transform \| takes the total,  · .1f · , flagged \| unchanged \| · \| Impute \| nothing to fill \|  · .1f · , its year's rural median, flagged \| · \| Standardise \|  ·  \|  ·  \|` | `z =  · +.2f · \| Tal como se publicó \| vacía; total  · .1f ·  \| vacía; total  · .1f ·  \| · \| Transformar \| toma el total,  · .1f · , marcado \| sin cambios \| · \| Imputar \| nada que llenar \|  · .1f · , la mediana rural de su año, marcada \| · \| Estandarizar \|  ·  \|  ·  \|` |
+| `chapters/10-prepare.qmd` | 4 | `"\| Feature \| Difference \| Share, raw \| Share, z \|"` | `"\| Característica \| Diferencia \| Proporción, original \| Proporción, z \|"` |
 | `chapters/11-cluster.qmd` | 1 | `"first"` | `"primer"` |
 | `chapters/11-cluster.qmd` | 1 | `"second"` | `"segundo"` |
 | `chapters/11-cluster.qmd` | 1 | `"third"` | `"tercer"` |
@@ -96,11 +114,11 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/11-cluster.qmd` | 1 | `" and "` | `" y "` |
 | `chapters/11-cluster.qmd` | 1 | `" here"` | `""` |
 | `chapters/11-cluster.qmd` | 1 | `"clusters "` | `"los clústeres "` |
-| `chapters/11-cluster.qmd` | 1 | `"excluded: the urban–rural split"` | `"excluido: la separación urbana–rural"` |
-| `chapters/11-cluster.qmd` | 1 | `"silhouette too far below the best"` | `"silueta demasiado por debajo de la mejor"` |
-| `chapters/11-cluster.qmd` | 1 | `"chosen: the smallest that passes"` | `"elegido: el más pequeño que pasa"` |
+| `chapters/11-cluster.qmd` | 1 | `"excluded: zone split"` | `"excluido: separa por zona"` |
+| `chapters/11-cluster.qmd` | 1 | `"silhouette too low"` | `"silueta demasiado baja"` |
+| `chapters/11-cluster.qmd` | 1 | `"chosen: the smallest that passes"` | `"elegido: el menor que pasa"` |
 | `chapters/11-cluster.qmd` | 1 | `"passes, but larger"` | `"pasa, pero es más grande"` |
-| `chapters/11-cluster.qmd` | 1 | `"chosen: the smallest that passes"` | `"elegido: el más pequeño que pasa"` |
+| `chapters/11-cluster.qmd` | 1 | `"chosen: the smallest that passes"` | `"elegido: el menor que pasa"` |
 | `chapters/11-cluster.qmd` | 1 | `"chosen"` | `"elegido"` |
 | `chapters/11-cluster.qmd` | 1 | `"IRCA"` | `"el IRCA"` |
 | `chapters/11-cluster.qmd` | 1 | `"piped-water coverage"` | `"la cobertura de acueducto"` |
@@ -115,7 +133,7 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/11-cluster.qmd` | 1 | `'rises'` | `'sube'` |
 | `chapters/11-cluster.qmd` | 1 | `'falls'` | `'baja'` |
 | `chapters/11-cluster.qmd` | 1 | `"sits below the others"` | `"queda por debajo de los demás"` |
-| `chapters/11-cluster.qmd` | 1 | `cluster  ·  and  · all  ·  of its zone-years, urban and rural, fall in  · its urban zone-years fall in  ·  and its rural ones in  · one more still cuts  · .0% ·  or more ·  with ` | `el clúster  ·  y  · sus  ·  zonas-año, urbanas y rurales, caen todas en  · sus zonas-año urbanas caen en  ·  y las rurales en  · uno más todavía recorta un  · .0% ·  o más ·  con ` |
+| `chapters/11-cluster.qmd` | 1 | `cluster  ·  and  · all  ·  of its zone-years, urban and rural, fall in  · its urban zone-years fall in  ·  and its rural ones in  · one more cuts ≥  · .0% ·  with ` | `el clúster  ·  y  · sus  ·  zonas-año, urbanas y rurales, caen todas en  · sus zonas-año urbanas caen en  ·  y las rurales en  · uno más recorta ≥  · .0% ·  con ` |
 | `chapters/11-cluster.qmd` | 2 | `"The four steps are listed above."` | `"Los cuatro pasos se enumeran arriba."` |
 | `chapters/11-cluster.qmd` | 5 | `"\| k \| One more cluster cuts \| Silhouette \| Verdict \|"` | `"\| k \| Un clúster más recorta \| Silueta \| Veredicto \|"` |
 | `chapters/11-cluster.qmd` | 7 | `"The 2-D picture is the figure above."` | `"La imagen 2-D es la figura de arriba."` |
@@ -144,9 +162,8 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/12-interpret.qmd` | 2 | `"Cities and large towns"` | `"Ciudades y pueblos grandes"` |
 | `chapters/12-interpret.qmd` | 2 | `"Highland towns"` | `"Pueblos de tierras altas"` |
 | `chapters/12-interpret.qmd` | 2 | `"Lowland towns"` | `"Pueblos de tierras bajas"` |
-| `chapters/12-interpret.qmd` | 4 | `"\| \| Kind \| Zone-years \| Municipalities \| Median IRCA (0–100) \|"` | `"\| \| Tipo \| Zonas-año \| Municipios \| Mediana del IRCA (0–100) \|"` |
-| `chapters/12-interpret.qmd` | 5 | `" (filled)"` | `" (llenada)"` |
-| `chapters/12-interpret.qmd` | 5 | `+.1f · _imputed · \| Feature \| Tunja, rural \| Centre  ·  \| Centre  ·  \| · its own  · the shared  · \|  ·  \|  ·  \|  ·  \|  ·  \| · \| *Squared distance,  · * \| \| * · .1f · * \| * · .1f · * \| · \| **Squared distance, all  · ** \| \| ** · .1f · ** \| ** · .1f · ** \|` | `+.1f · _imputed · \| Característica \| Tunja, rural \| Centro  ·  \| Centro  ·  \| · sus  ·  propias · las  ·  compartidas · \|  ·  \|  ·  \|  ·  \|  ·  \| · \| *Distancia al cuadrado,  · * \| \| * · .1f · * \| * · .1f · * \| · \| **Distancia al cuadrado, las  · ** \| \| ** · .1f · ** \| ** · .1f · ** \|` |
+| `chapters/12-interpret.qmd` | 4 | `"\| Cluster · kind \| Zone-years \| Median IRCA \|"` | `"\| Clúster · tipo \| Zonas-año \| Mediana del IRCA \|"` |
+| `chapters/12-interpret.qmd` | 5 | `\| Over \| Centre  ·  \| Centre  ·  \| · its own  ·  features · the shared  · all  · \|  ·  \|  · .1f ·  \|  · .1f ·  \|` | `\| Características \| Centro  ·  \| Centro  ·  \| · sus  ·  propias · las  ·  compartidas · las  · \|  ·  \|  · .1f ·  \|  · .1f ·  \|` |
 | `chapters/12-interpret.qmd` | 6 | `"Infant mortality\nper 1,000 births"` | `"Mortalidad infantil\npor 1,000 nacidos vivos"` |
 | `chapters/12-interpret.qmd` | 6 | `"Saber 11\nmean score"` | `"Saber 11\npuntaje medio"` |
 | `chapters/12-interpret.qmd` | 6 | `"School dropout\n(%)"` | `"Deserción escolar\n(%)"` |
@@ -154,6 +171,7 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/12-interpret.qmd` | 7 | `"Saber 11 score\n(higher is better)"` | `"Puntaje Saber 11\n(más es mejor)"` |
 | `chapters/12-interpret.qmd` | 7 | `"Dropout %\n(lower is better)"` | `"Deserción %\n(menos es mejor)"` |
 | `chapters/12-interpret.qmd` | 8 | `Box plots of  · , one per cluster. Medians:  · cluster  ·  ( · )  · .1f · cluster  ·  no data` | `Diagramas de caja de  · , uno por clúster. Medianas:  · clúster  ·  ( · )  · .1f · clúster  ·  sin datos` |
+| `chapters/12-interpret.qmd` | 10 | `"box: middle half\nline: median\ndashes: mean\nwhiskers: middle 90%"` | `"caja: mitad central\nlínea: mediana\nguiones: media\nbigotes: 90% central"` |
 | `chapters/13-causation.qmd` | 2 | `"2017–2019 and 2021–2023"` | `"2017–2019 y 2021–2023"` |
 | `chapters/13-causation.qmd` | 2 | `"Poverty"` | `"Pobreza"` |
 | `chapters/13-causation.qmd` | 2 | `"Rural share"` | `"Proporción rural"` |
@@ -169,12 +187,12 @@ in the cells is identical. Review that each one only reaches the page.
 | `chapters/13-causation.qmd` | 5 | `"IRCA band: N no risk · L low · M medium · H high · U unfit"` | `"Nivel del IRCA: S sin riesgo · B bajo · M medio · A alto · I inviable"` |
 | `chapters/13-causation.qmd` | 5 | `"IRCA band: N no risk · L low · M medium\nH high · U unfit"` | `"Nivel del IRCA: S sin riesgo · B bajo · M medio\nA alto · I inviable"` |
 | `chapters/13-causation.qmd` | 6 | `"\| \| n \| ρ \| 95% interval \| SD of IRCA \|"` | `"\| \| n \| ρ \| Intervalo del 95% \| DE del IRCA \|"` |
-| `chapters/13-causation.qmd` | 6 | ` to  · \| All places \|  ·  \|  ·  \|  ·  \|  · .1f ·  \| · \| Cluster  ·  \|  ·  \|  ·   · \|  ·  \|  · .1f ·  \|` | ` a  · \| Todos los lugares \|  ·  \|  ·  \|  ·  \|  · .1f ·  \| · \| Clúster  ·  \|  ·  \|  ·   · \|  ·  \|  · .1f ·  \|` |
+| `chapters/13-causation.qmd` | 6 | ` to  · \| All places \|  ·  \|  ·  \|  ·  \|  · .1f ·  \| · \| Cluster  ·  \|  ·  \|  ·   · \|  ·  \|  · .1f ·  \|` | ` a  · \| Todos \|  ·  \|  ·  \|  ·  \|  · .1f ·  \| · \| Clúster  ·  \|  ·  \|  ·   · \|  ·  \|  · .1f ·  \|` |
+| `chapters/14-publish-many.qmd` | 1 | `"2017–2019 and 2021–2023"` | `"2017–2019 y 2021–2023"` |
 | `chapters/14-publish-many.qmd` | 14 | `"none"` | `"ninguno"` |
-| `chapters/14-publish-many.qmd` | 14 | `"\| Page \| Reads `outputs/` \| Reads `data/` \| Writes \|"` | `"\| Página \| Lee `outputs/` \| Lee `data/` \| Escribe \|"` |
+| `chapters/14-publish-many.qmd` | 14 | `"\| Page \| Reads `outputs/` \| Writes \|"` | `"\| Página \| Lee `outputs/` \| Escribe \|"` |
 | `chapters/14-publish-many.qmd` | 14 | `"the post"` | `"la entrada"` |
-| `chapters/14-publish-many.qmd` | 14 | `"none"` | `"ninguno"` |
-| `chapters/14-publish-many.qmd` | 14 | ` file · ` · ` · \|  ·  \|  ·  \|  ·  \|  ·  \|` | ` archivo · ` · ` · \|  ·  \|  ·  \|  ·  \|  ·  \|` |
+| `chapters/14-publish-many.qmd` | 14 | ` file · \|  ·  \|  ·  \|  ·  \|` | ` archivo · \|  ·  \|  ·  \|  ·  \|` |
 | `chapters/exercises-water.qmd` | 1 | `"no-risk water"` | `"agua sin riesgo"` |
 | `chapters/results.qmd` | 4 | `"\| Age band \| Test contacts \| Called \| Subscription rate \| Recall \|"` | `"\| Franja de edad \| Contactos de prueba \| Llamados \| Tasa de suscripción \| Recall \|"` |
 | `chapters/results.qmd` | 6 | `"Mean predicted probability"` | `"Probabilidad predicha media"` |
