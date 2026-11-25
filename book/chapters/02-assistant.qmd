@@ -3,8 +3,9 @@
 ```{python}
 #| label: ch2-setup
 from scripts.facts import checked, fact, table
-from scripts.prose import alt_text_holds
-# The pelican experiment's costs, from the deck's record of Simon Willison's runs.
+from scripts.prose import alt_text_holds, language, number_words
+# The pelican experiment's costs, from the deck's record of Simon Willison's runs: each
+# reply's tokens at the API list prices checked on 2026-11-06 (assets/pelicans/README.md).
 import re
 from pathlib import Path
 
@@ -29,21 +30,49 @@ alt_text_holds(pelican_cost == QUOTED_CENTS, "fig-pelicans")
 prices = table("models", "prices")
 out_lo = min(r["output"] for r in prices["rows"])
 out_hi = max(r["output"] for r in prices["rows"])
+WORD = number_words()
 
 
 def dollars(x: float) -> str:
     """A price as the table prints it: 50, or 0.50."""
     return f"{x:g}" if x == int(x) else f"{x:.2f}"
+
+
+def when(*keys: str, tables: tuple = ()) -> str:
+    """The date, or the first and last dates, on which the facts a section quotes were checked
+    (Appendix K has each one's date and source)."""
+    dates = sorted({checked(k) for k in keys} | {str(t["checked"]) for t in tables})
+    return dates[0] if len(dates) == 1 else f"{dates[0]}{' a ' if language() == 'es' else ' to '}{dates[-1]}"
 ```
 
-Simon Willison, a developer, has asked most major new models the same question since 2024:
-"Generate an SVG of a pelican riding a bicycle" (an SVG is a drawing written as text, so a
-model writes one as it writes code). Four Claude models, each at three *effort* levels (how
-long the model reasons before answering), answered it with `{python} len(pelican_cost)`
-drawings, and every one is recognisably
-a pelican on a bicycle. The dearest cost `{python} f"{dearest:.2f}"` cents, about
-`{python} f"{ratio:.0f}"` times as much as the cheapest that was good enough, at
-`{python} f"{cheapest_ok:.2f}"` cents (@fig-pelicans).
+Since 2024 the developer Simon Willison has put one request to most new AI models:
+"Generate an SVG of a pelican riding a bicycle." An SVG is a drawing written as text, so a
+model writes one the way it writes code. Below are `{python} WORD[len(pelican_cost)]` answers,
+from four models. Every one is recognisably a pelican on a bicycle, and they did not cost
+the same. Before you look at the prices, guess: how many times dearer was the dearest
+than the cheapest that was good enough?
+
+::: {.content-visible when-format="html:js"}
+::: {#fig-pelicans}
+
+| Model | low effort | medium effort | high effort |
+|---|---|---|---|
+| **Haiku 5.5** | ![Haiku at low effort: white pelican with one orange leg on a simple red bicycle, bright green grass, yellow sun.](../media/deck/pelicans/haiku-low.svg){width=160} 0.09¢ | ![Haiku at medium effort: grey-winged pelican on a red bicycle with a proper frame and speed lines.](../media/deck/pelicans/haiku-medium.svg){width=160} 0.14¢, enough | ![Haiku at high effort: pelican leaning forward on a red bicycle, two orange legs, yellow sun.](../media/deck/pelicans/haiku-high.svg){width=160} 0.25¢ |
+| **Sonnet 5.5** | ![Sonnet at low effort: white pelican with a wing reaching the handlebars of a red bicycle, yellow sun.](../media/deck/pelicans/sonnet-low.svg){width=160} 1.63¢ | ![Sonnet at medium effort: white pelican on a thin red bicycle, legs bent towards the pedals, yellow sun.](../media/deck/pelicans/sonnet-medium.svg){width=160} 1.80¢, enough | ![Sonnet at high effort: pelican with a curved neck and feathered wing on a red bicycle with a ground shadow.](../media/deck/pelicans/sonnet-high.svg){width=160} 2.34¢ |
+| **Opus 5.5** | ![Opus at low effort: white pelican on a red bicycle with speed lines and a yellow sun.](../media/deck/pelicans/opus-low.svg){width=160} 3.79¢ | ![Opus at medium effort: crested pelican with a large pouch on a red bicycle with a chain ring, yellow sun.](../media/deck/pelicans/opus-medium.svg){width=160} 5.89¢ | ![Opus at high effort: crested pelican on a small red bicycle with a chain ring, clouds and speed lines.](../media/deck/pelicans/opus-high.svg){width=160} 6.74¢ |
+| **Fable 5.1** | ![Fable at low effort: black-outlined pelican on a black bicycle with speed lines, pale background.](../media/deck/pelicans/fable-low.svg){width=160} 10.02¢ | ![Fable at medium effort: white pelican on a red bicycle with black wheels, pale sky.](../media/deck/pelicans/fable-medium.svg){width=160} 9.91¢ | ![Fable at high effort: white pelican with a long wing on a black bicycle, on a road with dashed lines.](../media/deck/pelicans/fable-high.svg){width=160} 13.09¢ |
+
+One prompt, four models, three efforts: "Generate an SVG of a pelican riding a bicycle". Images from Simon Willison's pelican series, one run per cell; cost is each reply's tokens at API list prices.
+:::
+:::
+
+::: {.content-visible when-format="epub"}
+![One prompt, four models, three efforts: "Generate an SVG of a pelican riding a bicycle". Images from Simon Willison's pelican series, one run per cell; cost is each reply's tokens at API list prices.](../media/figures/pelican-grid.png){#fig-pelicans .on-light fig-alt="A grid of twelve drawings of a pelican riding a bicycle: one row per model (Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.1) and one column per effort (low, medium, high), each with its cost. Every cell shows a recognisable pelican on a bicycle. Costs rise from 0.09 cents for Haiku on low effort to 13.09 cents for Fable on high effort. Haiku and Sonnet on medium effort, at 0.14 and 1.80 cents, are marked as enough."}
+:::
+
+Each row is one model and each column an *effort* level, how long the model reasons before
+answering. The dearest cost `{python} f"{dearest:.2f}"` cents, about `{python} f"{ratio:.0f}"`
+times as much as the cheapest that was good enough, at `{python} f"{cheapest_ok:.2f}"` cents.
 
 Choosing between those drawings is the first of many judgements this chapter teaches. A
 *coding agent* is a program that writes and edits files and runs commands at your
@@ -63,11 +92,13 @@ without being fooled by the second?
   larger task by how it can be checked.
 :::
 
+If you already use an agent every day, read @sec-three-skills to @sec-boxes and skim the rest.
+
 ::: tryit
 No installation needed. Paste Simon Willison's prompt,
 `Generate an SVG of a pelican riding a bicycle`, into a web chat in your browser
-(`{python} fact("chats.free_chats")`, checked `{python} checked("chats.free_chats")`), then
-paste it again in a new conversation and compare the replies.
+(`{python} fact("chats.free_chats")`, as @sec-facts records), then paste it again in a new
+conversation and compare the replies.
 
 ::: done
 the two replies differ, although the prompt was the same. Quarto, given the same source,
@@ -87,11 +118,9 @@ The **harness** is the program on your computer that surrounds the model. Claude
 Codex, Antigravity and OpenCode are harnesses. The harness gives the model its tools (reading and
 writing files, running commands, searching), carries out the model's tool requests, asks you
 before it does anything consequential, and sends the results back to the model. That loop
-repeats until the model replies with an answer instead of another request. That loop, run on
-your own files and commands, is what makes it an *agent*: it acts in your project folder, one
-tool request after another, until the step is done, where a web chat hands you text to copy.
-
-![How a coding agent works. The harness on your computer passes the conversation and the results of each tool to the model, which replies with text or a request to use a tool; the harness acts in the project folder and asks you before it runs commands (OpenCode, by default, does not).](../media/diagrams/agent-loop){#fig-agent-loop .on-light fig-alt="You give the harness a prompt, and it shows you results and asks you to approve commands. The harness (Claude Code, Codex or Antigravity) sends the conversation and tool results to the model (Claude, GPT or Gemini), which runs on the vendor's servers and replies with text or a request to use a tool. The harness carries out tool requests in the project folder, its root: it reads AGENTS.md first, then reads and edits files and runs commands there. The model decides, the harness does, and you direct and check."}
+repeats until the model replies with an answer instead of another request, and it is what
+makes the pair an *agent*: it acts in your project folder, one tool request after another,
+until the step is done, where a web chat hands you text to copy.
 
 A short way to remember the split: **the model decides, the harness does, you direct and
 check.** It has a practical consequence. Many harnesses can run several models, so the same
@@ -99,6 +128,8 @@ harness behaves differently with a different model, and the same model behaves d
 inside a different harness. When an agent disappoints you, the cause can be either half,
 and the fix is different: a stronger model for reasoning that falls short, better rules or
 permissions for a harness that does the wrong thing.
+
+![How a coding agent works: the harness carries out the model's requests in your project folder, and asks you before it runs a command (OpenCode, by default, does not).](../media/diagrams/agent-loop){#fig-agent-loop .on-light fig-alt="You give the harness a prompt, and it shows you results and asks you to approve commands. The harness (Claude Code, Codex or Antigravity) sends the conversation and tool results to the model (Claude, GPT or Gemini), which runs on the vendor's servers and replies with text or a request to use a tool. The harness carries out tool requests in the project folder, its root: it reads AGENTS.md first, then reads and edits files and runs commands there. The model decides, the harness does, and you direct and check."}
 
 ::: why
 The model cannot touch your computer. Everything it "does" is a request that the harness
@@ -112,26 +143,19 @@ review files after they change.
 This book covers four agents. The first three come from the same company as their default
 models; OpenCode, an open-source harness, runs whichever model you connect to it:
 
-| Agent | You type | Made by | Default models |
-|---|---|---|---|
-| Claude Code | `claude` | Anthropic | Claude |
-| Codex | `codex` | OpenAI | GPT |
-| Antigravity | `agy` | Google | Gemini |
-| OpenCode | `opencode` | an open-source project (MIT licence) | any you connect |
+| Agent | You type | Default models |
+|---|---|---|
+| Claude Code, by Anthropic | `claude` | Claude |
+| Codex, by OpenAI | `codex` | GPT |
+| Antigravity, by Google | `agy` | Gemini |
+| OpenCode, an open-source project | `opencode` | any you connect |
 
-: The agents this book covers. Antigravity replaced Gemini CLI for unpaid-tier and Google One users on 18 June 2026 (Gemini CLI installation page, checked 2026-11-12). OpenCode's licence is in its GitHub repository, and its providers in its documentation (both checked 2026-11-20). {#tbl-assistants}
+: The agents this book covers. {#tbl-assistants}
 
-What "covers" means differs between them. For all four, the install command, the account it
-needs and how it reads project rules were checked against the vendor's documentation (dated in
-@sec-setup and @sec-agents-md). The first screens of Claude Code and Codex were captured for
-the workshop on 2026-11-07; Antigravity's and OpenCode's were not. Other agents exist; this book does not
-check them, so it does not list them. Every prompt in the book is written to work in any of
-the four. OpenCode differs in one way that matters for safety:
-`{python} fact("agents.opencode_permissions")` (checked
-`{python} checked("agents.opencode_permissions")`), so the habit of approving each
-command (@sec-root-folder) needs those rules first. A vendor's own pairing of harness and
-model is the easiest to set up, but it is not automatically the best fit for a task: the
-harness and the model are separate choices.
+Every prompt in the book is written to work in all four, and the install command, account
+and rules file of each were checked against its documentation. A vendor's own pairing of
+harness and model is the easiest to set up, but it is not automatically the best fit for a
+task: the harness and the model are separate choices.
 
 ### Pick a model by task, not by rank
 
@@ -143,19 +167,13 @@ fixing a typo or reformatting a table. Joining two datasets or debugging a faile
 rewards the stronger model.
 
 The prompts in this book are short and specific, so a mid-sized model at a moderate effort
-setting is enough: `{python} fact("models.everyday_models")` (checked
-`{python} checked("models.everyday_models")`). For unfamiliar, hard work, the vendors' own
-advice starts higher: `{python} fact("models.vendor_starting_points")`. The names change every
-few months, and @sec-facts keeps the current ones; the advice does not. Start small, and move
+setting is enough: `{python} fact("models.everyday_models")`. For unfamiliar, hard work, the
+vendors' own advice starts higher: `{python} fact("models.vendor_starting_points")`. The names
+change every few months, and @sec-facts keeps the current ones; the advice does not. Start small, and move
 up only when a task keeps failing.
 
-**Free models.** Free models might be decent for this book's prompts, which are short, ask for
-one task each and end in a check that shows when a model falls short. Two routes cost nothing:
-`{python} fact("agents.antigravity_free")` (checked `{python} checked("agents.antigravity_free")`),
-and `{python} fact("agents.opencode_free")` (checked `{python} checked("agents.opencode_free")`).
-None was tested on the book's prompts, so treat "might be decent" as an expectation. Read a
-free model's terms before you use it (@sec-at-work-flow): some keep what you send, so give
-them only public data, such as this book's.
+Some routes to a model cost nothing at all; @sec-before-setup gives them, and what to check
+before you use one.
 
 Models are priced by the *token*, a fragment of text of a few characters, with one rate for
 the text sent to the model (input) and another for the text it writes (output). List prices
@@ -164,8 +182,8 @@ directly, through the vendor's programming interface (the API), rather than thro
 monthly subscription.
 
 ::: practice
-**Prices change monthly; the principle does not.** On `{python} prices["checked"]`, the list
-prices of the eight models in @tbl-prices ran from \$`{python} dollars(out_lo)` to
+**Prices change monthly; the principle does not.** When last checked, the list prices of the
+`{python} WORD[len(prices["rows"])]` models in @tbl-prices ran from \$`{python} dollars(out_lo)` to
 \$`{python} dollars(out_hi)` per million output tokens, a `{python} f"{out_hi / out_lo:.0f}"`-fold
 spread between the smallest and the largest. That table, with its sources, is in @sec-facts,
 the one place this book keeps facts that change; read it as a snapshot of the spread, not as
@@ -173,43 +191,20 @@ numbers to plan with. Subscriptions count usage differently, and which models yo
 depends on your plan and the agent's version.
 :::
 
-The pelican runs below used Fable 5.2's predecessor, Fable 5.1, listed at 10 / 50 dollars per
-million tokens when they were made.
+The price of a fixed level of capability has been falling fast, though perhaps not at the
+frontier (the studies are in Further reading), so choose by what the task needs, not by
+today's price.
 
-The cost of a fixed level of capability has been falling fast. Measuring the cheapest model
-that reaches a given benchmark score, the venture firm a16z found the price falling about
-tenfold a year, a thousandfold over the three years from November 2021, and Epoch AI found
-falls of between 9 and 900 times a year depending on the benchmark (both checked
-2026-11-07). Both warn that the pace may slow, and neither measures the frontier, where the
-price of the most capable work may fall more slowly. The practical lesson is the same either
-way: choose by what the task needs, not by today's price.
+Checked `{python} when("models.everyday_models", "models.vendor_starting_points", tables=(prices,))`;
+@sec-facts has each source.
 
 ### One prompt, four models, three efforts
 
-The pelicans this chapter opened with make the trade-off concrete. @fig-pelicans shows one
-run of each of four Claude models at three effort levels, with each reply's cost at API list
-prices.
-
-::: {.content-visible when-format="html:js"}
-::: {#fig-pelicans}
-
-| Model | low effort | medium effort | high effort |
-|---|---|---|---|
-| **Haiku 5.5** | ![Haiku at low effort: white pelican with one orange leg on a simple red bicycle, bright green grass, yellow sun.](../media/deck/pelicans/haiku-low.svg){width=160} 0.09¢ | ![Haiku at medium effort: grey-winged pelican on a red bicycle with a proper frame and speed lines.](../media/deck/pelicans/haiku-medium.svg){width=160} 0.14¢, enough | ![Haiku at high effort: pelican leaning forward on a red bicycle, two orange legs, yellow sun.](../media/deck/pelicans/haiku-high.svg){width=160} 0.25¢ |
-| **Sonnet 5.5** | ![Sonnet at low effort: white pelican with a wing reaching the handlebars of a red bicycle, yellow sun.](../media/deck/pelicans/sonnet-low.svg){width=160} 1.63¢ | ![Sonnet at medium effort: white pelican on a thin red bicycle, legs bent towards the pedals, yellow sun.](../media/deck/pelicans/sonnet-medium.svg){width=160} 1.80¢, enough | ![Sonnet at high effort: pelican with a curved neck and feathered wing on a red bicycle with a ground shadow.](../media/deck/pelicans/sonnet-high.svg){width=160} 2.34¢ |
-| **Opus 5.5** | ![Opus at low effort: white pelican on a red bicycle with speed lines and a yellow sun.](../media/deck/pelicans/opus-low.svg){width=160} 3.79¢ | ![Opus at medium effort: crested pelican with a large pouch on a red bicycle with a chain ring, yellow sun.](../media/deck/pelicans/opus-medium.svg){width=160} 5.89¢ | ![Opus at high effort: crested pelican on a small red bicycle with a chain ring, clouds and speed lines.](../media/deck/pelicans/opus-high.svg){width=160} 6.74¢ |
-| **Fable 5.1** | ![Fable at low effort: black-outlined pelican on a black bicycle with speed lines, pale background.](../media/deck/pelicans/fable-low.svg){width=160} 10.02¢ | ![Fable at medium effort: white pelican on a red bicycle with black wheels, pale sky.](../media/deck/pelicans/fable-medium.svg){width=160} 9.91¢ | ![Fable at high effort: white pelican with a long wing on a black bicycle, on a road with dashed lines.](../media/deck/pelicans/fable-high.svg){width=160} 13.09¢ |
-
-One prompt, four models, three efforts: "Generate an SVG of a pelican riding a bicycle". Images from Simon Willison's pelican series, one run per cell; cost is each reply's tokens at API list prices (checked 2026-11-06).
-:::
-:::
-
-::: {.content-visible when-format="epub"}
-![One prompt, four models, three efforts: "Generate an SVG of a pelican riding a bicycle". Images from Simon Willison's pelican series, one run per cell; cost is each reply's tokens at API list prices (checked 2026-11-06).](../media/figures/pelican-grid.png){#fig-pelicans .on-light fig-alt="A grid of twelve drawings of a pelican riding a bicycle: one row per model (Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.1) and one column per effort (low, medium, high), each with its cost. Every cell shows a recognisable pelican on a bicycle. Costs rise from 0.09 cents for Haiku on low effort to 13.09 cents for Fable on high effort. Haiku and Sonnet on medium effort, at 0.14 and 1.80 cents, are marked as enough."}
-:::
-
-Read the grid in two directions. Down the rows, the model grows and the price per token rises,
-so costs climb from fractions of a cent to more than ten cents. Across the columns, effort
+The pelicans this chapter opened with make the trade-off concrete: one run of each of four
+Claude models at three effort levels, each reply priced at API list prices (@fig-pelicans).
+The Fable row is Fable 5.1, Fable 5.2's predecessor, at its list price of 10 / 50 dollars per
+million tokens. Read the grid in two directions. Down the rows, the model grows and the price
+per token rises, so costs climb from fractions of a cent to more than ten cents. Across the columns, effort
 rises: the model reasons longer and writes more, so the cost usually rises while the picture
 gains details rather than becoming correct. Haiku on low effort has the weakest frame; from
 medium effort up, the frames are sound, which is consistent with, though no proof of, the
@@ -217,11 +212,10 @@ book's advice of medium effort.
 
 Keep the evidence in proportion. It is one run per cell of one small, self-contained task,
 not a benchmark: run it again and you get different birds, and Fable on medium effort even
-cost less than Fable on low. More effort is not always better, either: at their maximum
-effort, Sonnet 5.5 and Opus 5.5 each spent 128,000 tokens reasoning, the models' output limit,
-and returned no drawing (Simon Willison's transcripts, checked 2026-11-12). A drawing
-says little about a long job that joins datasets and recovers from errors, which is where
-stronger models earn their price. Whether a `{python} f"{ratio:.0f}"`-fold difference in
+cost less than Fable on low. More effort is not always better, either: at maximum effort,
+Sonnet 5.5 and Opus 5.5 each spent their whole output limit of 128,000 tokens reasoning, and
+returned no drawing. A drawing says little about a long job that joins datasets and recovers
+from errors, which is where stronger models earn their price. Whether a `{python} f"{ratio:.0f}"`-fold difference in
 price is worth paying depends entirely on the task.
 
 ## What a conversation costs {#sec-cost}
@@ -241,17 +235,15 @@ The habits that follow are simple: a mid-sized model at moderate effort, one tas
 conversation, and a fresh conversation as soon as a task is done. Three commands, typed into
 the agent itself rather than run in the terminal (@sec-two-places), cover them:
 
-| Command | Claude Code | Codex | Use it when |
-|---|---|---|---|
-| `/model` | switches the model; arrows adjust the effort level where the model supports it | chooses the model and reasoning effort | a prompt keeps failing (go up) or the work is routine (go down) |
-| `/clear` | starts a new conversation with empty context; the old one can be resumed | clears the terminal and starts a fresh chat | a task is finished and an unrelated one starts |
-| `/exit` | exits; `/quit` is the same | exits; `/quit` is the same | you are done, or need to move to another folder |
+| Command | Use it when |
+|---|---|
+| `/model` | another model or effort level: when a prompt keeps failing (go up) or the work is routine (go down) |
+| `/clear` | a new conversation with empty context, when one task ends and an unrelated one starts |
+| `/exit` | leaves the agent, when you are done or need another folder |
 
-: Three commands that control cost and context (Claude Code commands reference and Codex CLI reference, checked 2026-11-12). Type `/` alone to list your agent's commands. {#tbl-slash}
+: Three commands that control cost and context; wording differs by agent, so type `/` to list yours. {#tbl-slash}
 
-OpenCode names them differently: `/models` picks the model, `/new` starts a fresh session in
-place of `/clear`, and, as it has no `/exit`, Ctrl+C on an empty prompt quits (OpenCode TUI and
-keybinds documentation, checked 2026-11-20).
+OpenCode's names differ, and @sec-cheatsheet lists them.
 
 `/clear` matters for quality as well as cost. Old instructions and files read earlier keep
 steering the model while they remain in the conversation; a fresh conversation drops them.
@@ -267,22 +259,23 @@ project's rules file is read again.
 
 ## The root folder is the agent's world {#sec-root-folder}
 
+<!-- The two trust prompts as Claude Code 2.1.319 and Codex 0.167.0 printed them, captured
+2026-11-07 (03-setup.qmd, Step 3). -->
+
 An agent treats the folder you start it in as its *root*: it reads and edits files there
 and in the folders below, and runs commands from there. The first time you start one in a
-new folder, it asks whether you trust it. Claude Code's prompt, captured on 2026-11-07,
-warns that "Claude Code'll be able to read, edit, and execute files here"; Codex asks the same
-question in a folder that is a Git repository, and says it can read, edit and run files
-"subject to your permission settings".
+new folder, it asks whether you trust it. Claude Code's prompt warns that "Claude Code'll be
+able to read, edit, and execute files here"; Codex asks the same question in a folder that is
+a Git repository, and says it can read, edit and run files "subject to your permission
+settings".
 
 That question deserves a real answer. Trust only a folder you created for the work. Never
 start an agent in your home folder, in Documents, or anywhere that holds other people's
 projects, private documents or keys (such as `~/.ssh`). Project instructions in a trusted
 folder are read and followed too, which is another reason to trust only your own folders.
 
-OpenCode asks no such question, and by default it does not ask before acting either:
-`{python} fact("agents.opencode_permissions")` (@sec-choose; @sec-step-assistant says how to
-make it ask). With it, a small folder made for the work, and a look at `git diff` after each
-step, matter even more.
+OpenCode, by default, asks neither question: not whether to trust the folder, and not before
+it acts. @sec-step-assistant shows how to make it ask.
 
 Starting in a small project folder has three practical benefits. Paths in prompts stay short
 (`data/attractions.csv`), the project's rules file is found, and a mistake stays inside one
@@ -306,13 +299,9 @@ has three parts:
 - **Rules:** what must always hold ("every number comes from a cited file in `data/`").
 - **Commands:** how to build and check the project.
 
-All four agents in this book read it (checked 2026-10-30 and 2026-11-20). Codex reads `AGENTS.md` files
-before doing any work. Antigravity reads `AGENTS.md` or `GEMINI.md` in the project's folders. OpenCode reads each
-`AGENTS.md` from the working folder upwards, and `CLAUDE.md` in a folder without one.
-Claude Code reads `AGENTS.md` when there is no `CLAUDE.md` in the working folder or above
-it, from version 2.1.277; a `CLAUDE.md` containing the line `@AGENTS.md` imports it, so one
-file can serve all four (Claude Code memory documentation, checked 2026-11-12). The
-repository behind this book works exactly that way: its `CLAUDE.md` imports its `AGENTS.md`.
+All four agents read it. Claude Code reads it when there is no `CLAUDE.md`, or through a
+one-line `CLAUDE.md` that imports it (`@AGENTS.md`), as the repository behind this book does;
+@sec-facts has where each agent looks.
 
 ::: pitfall
 `AGENTS.md` is context, not enforcement. The agent reads the rules and usually follows
@@ -350,9 +339,8 @@ work catches many of its own mistakes.
 **Check what changed.** You are responsible for the result. Read the changed files (most
 agents can show you a *diff*, the lines added and removed) before moving on.
 
-The prompts in this book were designed with AI assistance and refined to reduce errors, but
-they are not magic, and agents vary. When a prompt mentions something you do not
-understand (a YAML key, a Markdown construct, a Python call), ask before you paste:
+When a prompt mentions something you do not understand (a YAML key, a Markdown construct, a
+Python call), ask before you paste:
 
 ::: {.prompt}
 ```default
@@ -380,9 +368,8 @@ the vendor: no passwords, keys, unpublished data or personal information.
 
 ## Vocabulary, specification, verification {#sec-three-skills}
 
-With an agent doing the typing, you will rarely write a theme's stylesheet, a slide deck's
-options or a PDF template by hand. What you need instead is three skills, and every chapter
-from here on teaches a format through them rather than through its syntax:
+With an agent doing the typing, you need three skills, and every chapter from here on teaches
+a format through them rather than through its syntax:
 
 1. **Vocabulary**: knowing what is possible and what it is called, so you can ask for it.
    "Speaker notes", "a cross-reference", "a reference document for Word", "a parameter":
@@ -474,18 +461,18 @@ command does before you approve one that deletes files (`rm`), runs as the admin
 (`sudo`), or touches a folder outside the project that the prompt did not name.
 :::
 
-The prompts are examples, not transcripts. Agents vary from version to version and run to
-run, so the files they write will differ in detail from the ones shown. What should not vary
-is the result you check. @fig-agent-session shows what a session looks like.
-
 ![What running the first prompt looks like: the agent writes the file, asks before running a command, renders and reports. An illustration (a scripted replay of a typical session), not a recording: your agent's screens will look different.](../media/gifs/agent-session.gif){#fig-agent-session .anim fig-alt="A terminal replay of a coding-agent session, labelled as an illustration. The prompt asks for london.md with a level-1 heading Visit London and one welcome paragraph. The agent says it will create the file and shows the lines it writes: the heading and a welcome sentence about free museums, royal history and riverside walks. It says it will render the file to check it, shows the command quarto render london.md, and asks Allow this command, with Yes selected. The output reads Output created: london.html, and the agent reports that london.md has the heading and one welcome paragraph and that the render had no errors."}
+
+@fig-agent-session shows what a session looks like. The prompts are examples, not
+transcripts: agents vary from version to version and run to run, so the files they write
+will differ in detail from the ones shown. What should not vary is the result you check.
 
 ## Using AI in research: say it, own it {#sec-ai-policy}
 
 If your work is research, using an agent raises obligations beyond getting the code
 right. Journals and funders differ in detail, so read your venue's own policy, but the
 International Committee of Medical Journal Editors (ICMJE), whose recommendations many
-journals follow, states a common core (checked 2026-11-12):
+journals follow, states a common core:
 
 - **An AI tool is never an author.** Chatbots and other AI-assisted tools "should not be listed
   as authors because they cannot be responsible for the accuracy, integrity, and originality
@@ -533,8 +520,9 @@ exception for it, so when in doubt, disclose.
   task only when its checks can run without you.
 :::
 
-All of this assumes a computer on which an agent, Quarto and Python are installed and
-working together. Is yours? @sec-setup gets it there in six checked steps.
+All of this assumes a computer on which an agent, Quarto and Python work together. If a
+terminal and Git are routine, @sec-fast-path is next. If not, @sec-setup gets your computer
+ready in six checked steps.
 
 ## Further reading {.unnumbered}
 
@@ -560,6 +548,7 @@ working together. Is yours? @sec-setup gets it there in six checked steps.
   2024; Epoch AI, [LLM inference price trends](https://epoch.ai/data-insights/llm-inference-price-trends),
   2025 (checked 2026-11-07).
 - Simon Willison, [pelican riding a bicycle](https://simonwillison.net/tags/pelican-riding-a-bicycle/)
-  series (checked 2026-11-06).
+  series (checked 2026-11-06), and the transcripts of its maximum-effort runs (checked
+  2026-11-12).
 - ICMJE, [Use of AI by authors](https://www.icmje.org/recommendations/browse/artificial-intelligence/ai-use-by-authors.html)
   (checked 2026-11-12).

@@ -5,7 +5,9 @@
 # The evaluation project's results, computed by its own script (scripts/evaluation.py), and
 # the starter repository readers copy.
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
+import re
+
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 S = ev.summary()
 best = S["best_version"]
@@ -20,23 +22,69 @@ text_holds("notebooks/explore.ipynb" in starter, "the starter's notebook")
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a fresh
 # copy of starters/eval-repo on 2026-11-18: all four worked, the three formats showed the same
 # numbers, and a fresh clone rebuilt them; the pitfalls below are what that run met.
+
+# The planted error that opens the chapter: the best release's name with the ROC AUC of the
+# rival, the release with the next-highest ROC AUC (ev.rival()). Appendix E's answer calls the
+# same function, so the two cannot drift.
+def fast_plant() -> dict:
+    """The opening's sentence, its wrong and right ROC AUC as printed, and whose the wrong one is."""
+    rival = ev.rival()
+    wrong = f"{ev.value(rival, 'roc_auc')['value']:.3f}"
+    right = f"{ev.value(best, 'roc_auc')['value']:.3f}"
+    text_holds(wrong != right, "the planted ROC AUC differs from the best release's as printed")
+    return {"sentence": f"{best} ranks best, with a ROC AUC of {wrong}.", "wrong": wrong,
+            "right": right, "rival": rival}
+
+
+PLANT = fast_plant()
+# What `grep roc_auc outputs/metrics.csv | cut -d, -f1,3,4` prints: the file's own rows, with
+# their version, metric and value (columns 1, 3 and 4), unchanged.
+header, *rows = (ev.run() / "metrics.csv").read_text().splitlines()
+text_holds(header.split(",")[:4] == ["version", "month", "metric", "value"], "metrics.csv's first four columns")
+auc_lines = [",".join(row.split(",")[i] for i in (0, 2, 3)) for row in rows if "roc_auc" in row]
+text_holds(len(auc_lines) == len(versions), "one ROC AUC row per release in metrics.csv")
+# The payoff picture (media/capture/eval_outputs.py, step report) is checkpoint 14's report.html;
+# its alt text quotes the report's title and subtitle.
+report_head = (ev.PROJECT.parents[1] / "checkpoints" / "14-eval-start" / "report.qmd").read_text()
+alt_text_holds(dict(re.findall(r'^(title|subtitle): "(.*)"$', report_head, re.M)) == {
+    "title": "Evaluation of the contact-ranking model, v1 to v3",
+    "subtitle": "Acme Signals (a fictional company), on the UCI Bank Marketing data"}, "fig-fast-report")
 ```
 
-You already use a terminal and Git, and you have a repository full of work that ends up,
-one way or another, in documents: a notebook, a script that writes a results file, a test
-suite. This chapter adds Quarto to such a repository and takes it, in under an hour, to a
-report in HTML, Word and PDF whose every number is computed from the repository's own
-results, with a guard that stops the build when a sentence stops being true, reviewed as a
-pull request. It is written for analysts, data scientists, ML and research engineers and
-technical founders. If the terminal or Git is new to you, take the other route, Chapters 4
-and 5 (@sec-setup and @sec-first-report), and come back to this chapter afterwards: it
-assumes what they teach.
+Somewhere in a repository you work on, a sentence states a result: in a README, on a
+slide, in a message to a client. Below is such a sentence about this chapter's repository,
+and under it what the repository's own script computed. They disagree. Nobody lied; a
+sentence like this is typed once, after one run, and the results move on. By the end of
+this chapter the repository has a report in HTML, Word and PDF that cannot do that: every
+number in it is read from the results, and a guard stops the build when a sentence stops
+being true.
+
+```{python}
+#| output: asis
+print(f"> {PLANT['sentence']}")
+```
+
+That sentence was written for this exercise; the repository's README does not hold it. Here
+is what the script wrote, each release with its ROC AUC, as
+`grep roc_auc outputs/metrics.csv | cut -d, -f1,3,4` prints it:
+
+::: transcript
+```{python}
+#| output: asis
+print("```text\n" + "\n".join(auc_lines) + "\n```")
+```
+:::
+
+::: payoff
+![The report this chapter builds, at a phone's width. Rendered from `checkpoints/14-eval-start/report.qmd`.](../media/figures/eval-report.png){#fig-fast-report width=85% fig-alt="A web page at a phone's width. At the top, the report's title, Evaluation of the contact-ranking model, v1 to v3, and its subtitle, Acme Signals (a fictional company), on the UCI Bank Marketing data. Below them, the date it was published and the report's first paragraph, which names the best release, gives its ROC AUC on the held-out contacts with its interval, and says what share of the subscribers calling the top of its list reaches."}
+:::
 
 The repository is a small, realistic one: Acme Signals, a fictional two-person start-up,
 evaluates the releases of a model that ranks a bank's marketing contacts by how likely each
-is to subscribe, on real public data. Part III builds the rest of its publications from the
-same results. Every step works the same on a repository of your own, and the last section
-says what to change.
+is to subscribe, on real public data, and its founders must decide which release the bank's
+call centre will use. Part III builds the rest of its publications from the same results.
+Every step works the same on a repository of your own, and the last section says what to
+change.
 
 ::: opener
 - Add Quarto to an existing repository without changing how its code runs.
@@ -62,7 +110,9 @@ Checkpoint
 
 Take the fast path if all of these are routine for you: moving between folders and reading
 an error in a terminal; `git status`, `git diff`, branches and commits; installing a
-command-line tool. Then you need four tools at the versions below, and an agent.
+command-line tool. If any is new, take the other route, @sec-setup and @sec-first-report, and
+come back afterwards: this chapter assumes what they teach. Otherwise you need four tools at
+the versions below, and an agent.
 
 | Tool | Check | Needed |
 |---|---|---|
@@ -101,15 +151,17 @@ Quarto in sight:
 
 | Path | Holds |
 |---|---|
-| `data/` | the UCI Bank Marketing table, real and unchanged, with its README and licence; a small file of business figures marked SYNTHETIC |
-| `releases.yml` | the `{python} WORD[len(versions)]` releases of the model, `{python} ", ".join(versions)` |
-| `src/acme_eval/` | loading, the models and the metrics, as a package |
-| `scripts/evaluate.py` | fits each release once and writes every result to `outputs/` |
-| `tests/` | `{python} WORD[n_tests]` pytest files: the data's checksum, no leakage, metrics, outputs |
-| `notebooks/explore.ipynb` | an exploratory notebook, saved without outputs |
-| `pyproject.toml`, `uv.lock` | the environment, pinned |
+| `data/` | the real UCI Bank Marketing table, and a SYNTHETIC file |
+| `releases.yml` | the releases, `{python} ", ".join(versions)` |
+| `src/acme_eval/` | the package: loading, models, metrics |
+| `scripts/evaluate.py` | fits each release; writes `outputs/` |
+| `tests/` | `{python} WORD[n_tests]` pytest files |
+| `notebooks/` | `explore.ipynb`, saved without outputs |
 
 : The starter repository. {#tbl-fast-starter}
+
+`pyproject.toml` and `uv.lock` pin its environment, and the tests check the data's checksum,
+leakage, the metrics and the outputs.
 
 Run its own checks once, as you would on a colleague's branch, so that you know the baseline:
 
@@ -123,16 +175,14 @@ uv run pytest -q
 The first command builds `.venv/` from `uv.lock`, fits the releases and writes `outputs/`;
 the second runs the tests. Neither knows anything about documents, and nothing in this
 chapter changes how they run. That is the design to keep: **one script computes the results
-once; every document reads them.** The documents can then be rebuilt, reformatted and
-reviewed without ever re-fitting a model, and a reviewer can trust that the report and the
-model card quote the same run.
+once; every document reads them**, so documents can be rebuilt and reviewed without re-fitting
+a model, and the report and the model card quote the same run.
 
 ## Rules before requests {#sec-fast-rules}
 
-Start the agent in the repository (`claude`, `codex`, `agy` or `opencode`) and give it the project's
-rules before any work. The prompt names what a rule file holds (@sec-agents-md), and asks
-the agent to read the code first, so that the rules fit this repository rather than a
-generic one:
+Start the agent in the repository (`claude`, `codex`, `agy` or `opencode`) and give it the
+project's rules before any work. The prompt names what a rule file holds (@sec-agents-md) and
+has the agent read the code first, so that the rules fit this repository:
 
 ::: {.prompt}
 ```default
@@ -183,10 +233,9 @@ After the render, `git status` lists `notebooks/explore.ipynb` as modified, as w
 `pyproject.toml` and `uv.lock`. You did not ask for the notebook to change. What happened,
 and what do you do?
 
-`--execute` saved the outputs it computed into the notebook: in the test run, several
-hundred changed lines. Whether to keep them is a team's decision, so make it on purpose.
-This repository keeps its notebooks without outputs, so undo that change and commit only the
-two files that record the new packages.
+`--execute` saved the outputs it computed into the notebook. Whether to keep them is a
+team's decision, so make it on purpose. This repository keeps its notebooks without outputs,
+so undo that change and commit only the two files that record the new packages.
 :::
 
 ::: {.you}
@@ -209,8 +258,9 @@ it a notebook while it is a place for exploring.
 
 Now the deliverable: a report of the evaluation for the people who decide which release to
 ship. Its headline metric is *ROC AUC*, the probability that a release ranks a random
-subscriber above a random non-subscriber: 0.5 is a random ranking, 1 a perfect one. It is a new `.qmd` file beside the code, and it is the specification, in one prompt, of
-everything the report must do and how you will check it:
+subscriber above a random non-subscriber: 0.5 is a random ranking, 1 a perfect one. The report
+is a new `.qmd` file beside the code, and the prompt is its specification: everything the
+report must do and how you will check it.
 
 ::: {.prompt}
 ```default
@@ -222,19 +272,22 @@ Run `uv run python scripts/evaluate.py`. Create report.qmd (formats html, docx a
 `uv run python scripts/evaluate.py` · writes `report.qmd` · `uv run quarto render report.qmd` → `report.html`, `report.docx`, `report.pdf`
 :::
 
-Every phrase of the prompt is vocabulary that maps to one feature, which is why it can be
-short:
+Every phrase of the prompt is vocabulary that maps to one feature, Quarto's name for it in
+brackets, which is why it can be short:
 
-| The prompt says | Quarto's feature | You check |
-|---|---|---|
-| formats html, docx and typst | three formats from one file (@sec-formats); Typst makes the PDF | three files, each opened |
-| hide code | `echo: false` | no code in any output |
-| inline code | `` `{{python}} …` `` in a sentence (@sec-code-cells) | the sentence's number equals `outputs/` |
-| labelled `tbl-metrics`, referred to | a cross-reference: `@tbl-metrics` becomes "Table 1", a link | the text says "Table 1", not "??" |
-| caption and alt text | `tbl-cap`, `fig-cap`, `fig-alt` (@sec-cell-options) | the caption says what it is; the alt text, what it shows |
-| reads only outputs/ | the project's rule, from `AGENTS.md` | the diff: no `fit`, no model code |
+| The prompt says | You check |
+|---|---|
+| formats html, docx and typst | three files, each opened |
+| hide code (`echo: false`) | no code in any output |
+| inline code (`` `{{python}} …` ``) | the sentence's number equals `outputs/` |
+| labelled `tbl-metrics`, referred to (`@tbl-metrics`) | the text says "Table 1", not "??" |
+| caption and alt text (`fig-cap`, `fig-alt`) | the caption says what it is; the alt text, what it shows |
+| reads only outputs/ (a rule in `AGENTS.md`) | the diff: no `fit`, no model code |
 
 : The report prompt, phrase by phrase. {#tbl-fast-vocab}
+
+Part II explains each: formats in @sec-formats (Typst makes the PDF), inline code in
+@sec-code-cells, captions and alt text in @sec-cell-options.
 
 Then verify it three ways (@sec-three-skills). **Read the diff**: `git status` should list
 `report.qmd` as new and nothing else changed, and the file should read files from `outputs/`
@@ -250,11 +303,21 @@ In the finished project the sentence reads:
 prints each version's value with its `low` and `high`, and the report's three formats must
 all agree with it.
 
+::: think
+Go back to the sentence that opened the chapter, and put it beside the report's. Which number
+was wrong, and whose is it?
+
+The ROC AUC. `{python} PLANT["wrong"]` is `{python} PLANT["rival"]`'s; `{python} best`'s is
+`{python} PLANT["right"]`. The name was right and the number was a copy from another row. The
+report cannot make that slip: its number is inline code, and the next section guards its name.
+:::
+
+<!-- Observed in the dry run of 2026-11-18 with Quarto 1.10.20 (this file's setup cell). -->
+
 ::: pitfall
-Word does not get the alt text. In the test runs, Quarto 1.10.20 put the figure's file name,
-or nothing, in the Word picture's description, never `fig-alt`; the HTML had it. If a reader
-of the Word file uses a screen reader, add the description in Word, and check each format a
-reader will use.
+Word does not get the alt text: Quarto 1.10.20 puts the figure's file name, or nothing, in the
+Word picture's description, never `fig-alt`. If a reader of the Word file uses a screen
+reader, add the description in Word.
 :::
 
 ## A guard for the sentence {#sec-fast-guard}
@@ -295,8 +358,17 @@ git commit -m "Add a report that reads outputs/, with a guard"
 
 `.gitignore` already leaves out `outputs/`, `.venv/` and the rendered files, so `git add -A`
 takes only sources: `AGENTS.md`'s new rule, `report.qmd` and `claims.py`. Read `git status`
-first anyway: in the test run, a notebook full of outputs went into this commit because the
-restore above was skipped, and `git status` was where it showed.
+first anyway.
+
+::: story
+<!-- source: book/chapters/fast-path.qmd lines 186–189 and 296–299 at 651db10; dry run of
+2026-11-18 noted at lines 20–22 -->
+In the test run of this chapter, the step that restores the notebook was skipped. Rendering
+with `--execute` had written several hundred lines of outputs into `notebooks/explore.ipynb`,
+and `git add -A` took them: a notebook full of outputs went into the commit that was meant to
+add a report. Nothing failed. `git status`, read before the commit, was the one place it
+showed.
+:::
 
 ::: catchup
 ```default
@@ -323,15 +395,17 @@ gh pr create --base main --fill
 `gh repo create … --source=. --push` creates the repository from this folder and pushes
 `main`; `git push -u` pushes the branch; `gh pr create --fill` opens a pull request titled
 and described from its commits, and prints its address. On the pull request's *Files changed*
-tab, or with `gh pr diff` in the terminal, review it as you would any other:
+tab, or with `gh pr diff` in the terminal, review it as you would any other, with three
+checks: scope, whether only the files you meant changed; correctness, whether a number
+matches its source; and rebuild, whether what was committed builds on its own.
 
-| Check | Asks | Here |
-|---|---|---|
-| Scope | Did only the files I meant change? | `AGENTS.md`, `report.qmd`, `claims.py`, `pyproject.toml`, `uv.lock`; nothing in `data/`, `tests/` or `notebooks/` |
-| Correctness | Does a number match its source? | the report's AUC against `outputs/metrics.csv` |
-| Rebuild | Does what was committed build on its own? | a fresh clone renders the same report (below) |
+| Check | Here |
+|---|---|
+| Scope | `AGENTS.md`, `report.qmd`, `claims.py`, `pyproject.toml` and `uv.lock`, nothing else |
+| Correctness | the report's AUC against `outputs/metrics.csv` |
+| Rebuild | a fresh clone renders the same report (below) |
 
-: The three checks of @tbl-three-checks, applied to a pull request. {#tbl-fast-review}
+: Three checks for a pull request. {#tbl-fast-review}
 
 The last check is the one a reviewer cannot do by reading. Clone the repository afresh and
 build it from nothing; the results come first, because `outputs/` is computed, not
@@ -356,19 +430,28 @@ check on every pull request, so that nobody has to remember it.
 
 ## On your own repository {#sec-fast-own}
 
-Everything above transfers. Point the prompts at your own files:
+Everything above transfers, and the first question is where your results live. In many
+repositories they are trapped in notebooks: computed in a cell, read off the screen and
+copied into a slide. Then the first job is not the report but a script that runs the
+analysis once and writes its results to files, as `scripts/evaluate.py` does here. A document
+that re-runs an analysis is slow, and two documents that each re-run it can disagree with
+each other. With the results in files, point the prompts at your own:
 
 - **Rules.** Name your results folder (`outputs/`, `results/`, `reports/data/`) and your
-  commands in `AGENTS.md`. If your code computes results inside notebooks, the first job is a
-  script that writes them to files: documents that re-run an analysis are slow and can
-  disagree with each other.
-- **Dependencies.** `ipykernel`, `nbclient` and `nbformat` join your environment, through
-  uv, Poetry, pip or conda, as your project manages it; Quarto itself is a separate program
-  and adds no Python dependency.
+  commands in `AGENTS.md`, and keep the rule that documents read results and fit nothing.
+- **Dependencies.** `ipykernel`, `nbclient` and `nbformat` join your environment through
+  whatever already manages it, uv, Poetry, pip or conda; Quarto itself is a separate program
+  and adds no Python dependency. Read the diff of the files that record the packages.
 - **Ignore the outputs.** Add the rendered files and the results folder to `.gitignore`.
 - **Where the report lives.** At the top of the repository, or in `reports/`; one `.qmd` file
   needs no `_quarto.yml`. A folder of several documents becomes a Quarto *project*
   (@sec-london-website).
+- **Guards and review.** Give every sentence whose words depend on the results a claim, watch
+  it fail once, and review each change as a pull request and a fresh clone.
+
+The afterword's [projects of your own](../afterword.qmd#sec-own-projects) start from here: a
+metrics brief rebuilt from next month's data, a research supplement, a monthly investor update
+and a design document with live numbers, each set up the way this chapter set up Acme's.
 
 ::: tryit
 Run the four prompts and the pull request on the starter, or on your own repository.
