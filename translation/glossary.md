@@ -47,6 +47,10 @@ Conventions that apply everywhere:
 | You're done when | Terminaste cuando | | `::: done` |
 | Exercise | Ejercicio | | |
 | website edition / EPUB edition | edición web / edición EPUB | | |
+| story; From the build log | historia; De la bitácora del proyecto | | `::: story` label (`filters/book.lua`); "a story from the build log" → "una historia de la bitácora del proyecto" |
+| illustration; An illustration | ilustración; Una ilustración | | `.illustration` story label |
+| What you will build | Lo que vas a construir | | `::: payoff` label |
+| card (`::: cards`) | tarjeta | | "the cards below" → "las tarjetas que siguen" |
 
 ## The loop and the agent
 
@@ -198,6 +202,9 @@ Conventions that apply everywhere:
 | silhouette | silueta | | |
 | adjusted Rand index (ARI) | índice de Rand ajustado (ARI) | | |
 | bootstrap | bootstrap | EN | |
+| resample; with replacement | remuestra; con reposición | | the bootstrap's draws (fast path) |
+| held-out (contacts, rows) | reservados para la prueba | | "the held-out contacts" → "los contactos reservados para la prueba" |
+| checksum | suma de verificación | | the starter's data test |
 | hyperparameter | hiperparámetro | | |
 | random seed | semilla aleatoria | | |
 | Euclidean distance | distancia euclidiana | | |

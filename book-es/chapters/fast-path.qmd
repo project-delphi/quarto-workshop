@@ -5,7 +5,9 @@
 # The evaluation project's results, computed by its own script (scripts/evaluation.py), and
 # the starter repository readers copy.
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
+import re
+
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 S = ev.summary()
 best = S["best_version"]
@@ -17,25 +19,61 @@ n_tests = sum(1 for f in starter if f.startswith("tests/test_"))
 text_holds(not any(f.endswith(".qmd") or f == "AGENTS.md" for f in starter),
            "the starter has no Quarto file and no AGENTS.md")
 text_holds("notebooks/explore.ipynb" in starter, "the starter's notebook")
+# The report prompt asks for a "95% interval"; the script's intervals must be that wide.
+text_holds(S["confidence"] == 0.95, "the report prompt's 95% interval")
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a fresh
 # copy of starters/eval-repo on 2026-11-18: all four worked, the three formats showed the same
 # numbers, and a fresh clone rebuilt them; the pitfalls below are what that run met.
+
+# The planted error that opens the chapter: the best release's name with the ROC AUC of the
+# rival, the release with the next-highest ROC AUC (ev.rival()). Appendix E's answer calls the
+# same function (ev.fast_plant()), so the two cannot drift.
+PLANT = ev.fast_plant()
+# What `grep roc_auc outputs/metrics.csv | cut -d, -f1,3,4` prints: the file's own rows, with
+# their version, metric and value (columns 1, 3 and 4), unchanged.
+header, *rows = (ev.run() / "metrics.csv").read_text().splitlines()
+text_holds(header.split(",")[:4] == ["version", "month", "metric", "value"], "metrics.csv's first four columns")
+auc_lines = [",".join(row.split(",")[i] for i in (0, 2, 3)) for row in rows if "roc_auc" in row]
+text_holds(len(auc_lines) == len(versions), "one ROC AUC row per release in metrics.csv")
+# The payoff picture (media/capture/eval_outputs.py, step report) is checkpoint 14's report.html;
+# its alt text quotes the report's title and subtitle.
+report_head = (ev.PROJECT.parents[1] / "checkpoints" / "14-eval-start" / "report.qmd").read_text()
+alt_text_holds(dict(re.findall(r'^(title|subtitle): "(.*)"$', report_head, re.M)) == {
+    "title": "Evaluation of the contact-ranking model, v1 to v3",
+    "subtitle": "Acme Signals (a fictional company), on the UCI Bank Marketing data"}, "fig-fast-report")
 ```
 
-Ya usas una terminal y Git, y tienes un repositorio lleno de trabajo que termina, de una forma u
-otra, en documentos: un notebook, un script que escribe un archivo de resultados, un conjunto de
-pruebas. Este capítulo agrega Quarto a un repositorio así y lo lleva, en menos de una hora, a un
-informe en HTML, Word y PDF en el que cada número se calcula a partir de los resultados del
-propio repositorio, con una guarda que detiene la construcción cuando una oración deja de ser
-cierta, y revisado como pull request. Está escrito para quienes trabajan como analistas, en
-ciencia de datos o en ingeniería de ML o de investigación, y para quienes fundan una empresa con
-perfil técnico. Si la terminal o Git son nuevos para ti, toma la otra ruta, los capítulos 4 y 5
-(@sec-setup y @sec-first-report), y vuelve a este capítulo después: da por sabido lo que ellos
-enseñan.
+En algún lugar de un repositorio en el que trabajas, una oración enuncia un resultado: en un
+README, en una diapositiva, en un mensaje a un cliente. Abajo hay una oración así sobre el
+repositorio de este capítulo, y debajo, lo que calculó el propio script del repositorio. No
+coinciden. Nadie mintió; una oración como esta se escribe una vez, después de una ejecución, y
+los resultados cambian sin ella. Al final de este capítulo el repositorio tiene un informe en
+HTML, Word y PDF que no puede hacer eso: cada número que contiene se lee de los resultados, y
+una guarda detiene la construcción cuando una oración deja de ser cierta.
+
+```{python}
+#| output: asis
+print(f"> {PLANT['sentence']}")
+```
+
+Esto es lo que escribió el script, cada versión con su ROC AUC, tal como lo imprime
+`grep roc_auc outputs/metrics.csv | cut -d, -f1,3,4`:
+
+::: transcript
+```{python}
+#| output: asis
+print("```text\n" + "\n".join(auc_lines) + "\n```")
+```
+:::
+
+::: payoff
+![El informe que construye este capítulo, con el ancho de un teléfono. Renderizado a partir de `checkpoints/14-eval-start/report.qmd`.](../media/figures/eval-report.png){#fig-fast-report width=85% fig-alt="Una página web en inglés, con el ancho de un teléfono. Arriba, el título del informe, Evaluation of the contact-ranking model, v1 to v3 (evaluación del modelo que ordena los contactos, de v1 a v3), y su subtítulo, Acme Signals (a fictional company), on the UCI Bank Marketing data (Acme Signals, una empresa ficticia, con los datos Bank Marketing de UCI). Debajo, la fecha de publicación y el primer párrafo del informe, que nombra la mejor versión, da su ROC AUC sobre los contactos reservados para la prueba, con su intervalo, y dice qué proporción de quienes se suscriben se alcanza llamando a los primeros de su lista."}
+:::
 
 El repositorio es pequeño y realista: Acme Signals, una startup ficticia de dos personas, evalúa
 las versiones de un modelo que ordena los contactos de marketing de un banco según la
-probabilidad de que cada uno se suscriba, con datos públicos reales. La Parte III construye el
+probabilidad de que cada uno se suscriba, con datos públicos reales, y quienes la fundaron
+tienen que decidir qué versión usará el centro de llamadas del banco. La Parte III construye el
 resto de sus publicaciones a partir de los mismos resultados. Cada paso funciona igual en un
 repositorio propio, y la última sección dice qué cambiar.
 
@@ -63,7 +101,9 @@ Punto de control
 
 Toma la vía rápida si todo esto es rutina para ti: moverte entre carpetas y leer un error en una
 terminal; `git status`, `git diff`, ramas y commits; instalar un programa de línea de comandos.
-Entonces necesitas cuatro herramientas, en las versiones de abajo, y un agente.
+Si algo de esto es nuevo, toma la otra ruta, el @sec-setup y el @sec-first-report, y vuelve
+después: este capítulo da por sabido lo que ellos enseñan. Si todo es rutina, necesitas cuatro
+herramientas, en las versiones de abajo, y un agente.
 
 | Herramienta | Comprobación | Necesitas |
 |---|---|---|
@@ -102,18 +142,20 @@ ni rastro de Quarto:
 
 | Ruta | Contiene |
 |---|---|
-| `data/` | la tabla Bank Marketing de UCI, real y sin cambios, con su README y su licencia; un archivo pequeño de cifras de negocio marcado SYNTHETIC |
-| `releases.yml` | las `{python} WORD[len(versions)]` versiones del modelo, `{python} ", ".join(versions)` |
-| `src/acme_eval/` | la carga de los datos, los modelos y las métricas, como un paquete |
-| `scripts/evaluate.py` | ajusta cada versión una sola vez y escribe todos los resultados en `outputs/` |
-| `tests/` | `{python} WORD[n_tests]` archivos de pytest: la suma de verificación de los datos, que no haya fuga de información (leakage), las métricas, las salidas |
-| `notebooks/explore.ipynb` | un notebook exploratorio, guardado sin salidas |
-| `pyproject.toml`, `uv.lock` | el entorno, fijado |
+| `data/` | la tabla real Bank Marketing de UCI, y un archivo SYNTHETIC |
+| `releases.yml` | las versiones, `{python} ", ".join(versions)` |
+| `src/acme_eval/` | el paquete: carga, modelos, métricas |
+| `scripts/evaluate.py` | ajusta cada versión; escribe `outputs/` |
+| `tests/` | `{python} WORD[n_tests]` archivos de pytest |
+| `notebooks/` | `explore.ipynb`, guardado sin salidas |
 
 : El repositorio de partida. {#tbl-fast-starter}
 
-Ejecuta una vez sus propias comprobaciones, como lo harías con la rama de un colega, para conocer
-la línea base:
+`pyproject.toml` y `uv.lock` fijan su entorno, y las pruebas comprueban la suma de verificación
+de los datos, la fuga de información (leakage), las métricas y las salidas.
+
+Ejecuta una vez sus propias comprobaciones, como lo harías con la rama de alguien de tu equipo,
+para conocer la línea base:
 
 ::: {.you}
 ```bash
@@ -125,20 +167,20 @@ uv run pytest -q
 El primer comando construye `.venv/` a partir de `uv.lock`, ajusta las versiones y escribe
 `outputs/`; el segundo ejecuta las pruebas. Ninguno de los dos sabe nada de documentos, y nada en
 este capítulo cambia cómo se ejecutan. Ese es el diseño que hay que conservar: **un script
-calcula los resultados una sola vez; todos los documentos los leen.** Así los documentos se pueden
-reconstruir, cambiar de formato y revisar sin volver a ajustar nunca un modelo, y quien revisa
-puede confiar en que el informe y la ficha del modelo (model card) citan la misma ejecución.
+calcula los resultados una sola vez; todos los documentos los leen**, así que los documentos se
+pueden reconstruir y revisar sin volver a ajustar un modelo, y el informe y la ficha del modelo
+(model card) citan la misma ejecución.
 
 ## Reglas antes que pedidos {#sec-fast-rules}
 
-Inicia el agente en el repositorio (`claude`, `codex`, `agy` u `opencode`) y dale las reglas del proyecto
-antes de cualquier trabajo. El prompt nombra lo que contiene un archivo de reglas, como el de
-la @sec-agents-md, y le pide al agente que lea primero el código, para que las reglas se ajusten
-a este repositorio y no a uno genérico:
+Inicia el agente en el repositorio (`claude`, `codex`, `agy` u `opencode`) y dale las reglas del
+proyecto antes de cualquier trabajo. El prompt nombra lo que contiene un archivo de
+reglas (@sec-agents-md) y le pide al agente que lea primero el código, para que las reglas se
+ajusten a este repositorio:
 
 ::: {.prompt}
 ```default
-Lee README.md, pyproject.toml, scripts/evaluate.py y tests/, y luego escribe AGENTS.md, en inglés, para este repositorio: su alcance (di que la empresa es ficticia); reglas (data/ es de solo lectura; los documentos leen outputs/ y nunca ajustan un modelo; cada número de un documento sale de outputs/ mediante código, nunca escrito a mano; ejecuta python, pytest y quarto con `uv run`; nunca hagas commit de outputs/ ni de los archivos renderizados); y los comandos para evaluar, probar y renderizar. Muéstrame el archivo.
+Lee README.md, pyproject.toml, scripts/evaluate.py y tests/, y escribe AGENTS.md, en inglés, para este repositorio: su alcance (di que la empresa es ficticia); reglas (data/ es de solo lectura; los documentos leen outputs/ y nunca ajustan un modelo; cada número de un documento sale de outputs/ por código, nunca a mano; ejecuta python, pytest y quarto con `uv run`; no hagas commit de outputs/ ni de lo renderizado); y los comandos para evaluar, probar y renderizar. Muéstrame el archivo.
 ```
 :::
 
@@ -185,10 +227,9 @@ que conocer, *escribe las salidas nuevas de vuelta en el notebook*.
 Después del renderizado, `git status` muestra `notebooks/explore.ipynb` como modificado, además de
 `pyproject.toml` y `uv.lock`. No pediste que el notebook cambiara. ¿Qué pasó y qué haces?
 
-`--execute` guardó en el notebook las salidas que calculó: en la prueba, varios cientos de líneas
-cambiadas. Conservarlas o no es una decisión del equipo, así que tómala a propósito. Este
-repositorio guarda sus notebooks sin salidas, así que deshaz ese cambio y haz commit solo de los
-dos archivos que registran los paquetes nuevos.
+`--execute` guardó en el notebook las salidas que calculó. Conservarlas o no es una decisión del
+equipo, así que tómala a propósito. Este repositorio guarda sus notebooks sin salidas, así que
+deshaz ese cambio y haz commit solo de los dos archivos que registran los paquetes nuevos.
 :::
 
 ::: {.you}
@@ -211,15 +252,14 @@ explorar.
 ## Un informe que lee los resultados {#sec-fast-report}
 
 Ahora, el entregable: un informe de la evaluación para quienes deciden qué versión lanzar. Su
-métrica principal es el *ROC AUC*, la probabilidad de que una versión ponga a un contacto que se
-suscribió, elegido al azar, por encima de uno que no se suscribió, también elegido al azar: 0.5 es
-un orden al azar y 1, uno perfecto. Es un archivo `.qmd` nuevo al lado del código, y es la
-especificación, en un solo prompt, de todo lo que el informe tiene que hacer y de cómo lo vas a
-revisar:
+métrica principal es el *ROC AUC*, la probabilidad de que una versión ponga a un suscriptor
+elegido al azar por encima de un no suscriptor elegido al azar: 0.5 es un orden al azar y 1,
+uno perfecto. El informe es un archivo `.qmd` nuevo al lado del código, y el prompt es su
+especificación: todo lo que el informe tiene que hacer y cómo lo vas a revisar.
 
 ::: {.prompt}
 ```default
-Ejecuta `uv run python scripts/evaluate.py`. Crea report.qmd, en inglés (formatos html, docx y typst; oculta el código), que lea solo outputs/: una oración que nombre la mejor versión según el ROC AUC, con su AUC y su intervalo del 95% como código en línea; una tabla con las métricas de cada versión, etiquetada `tbl-metrics`, con pie de tabla y citada en el texto; y las curvas ROC como una figura etiquetada `fig-roc`, con pie de figura y texto alternativo. Renderiza los tres formatos y dime qué AUC muestra cada uno.
+Ejecuta `uv run python scripts/evaluate.py`. Crea report.qmd, en inglés (formatos html, docx y typst; oculta el código), que lea solo outputs/: una oración que nombre la mejor versión por ROC AUC, con su AUC e intervalo del 95% como código en línea; una tabla de métricas por versión, etiquetada `tbl-metrics`, con pie y citada en el texto; y las curvas ROC como figura etiquetada `fig-roc`, con pie y texto alternativo. Renderiza los tres formatos y dime el AUC que muestra cada uno.
 ```
 :::
 
@@ -227,18 +267,22 @@ Ejecuta `uv run python scripts/evaluate.py`. Crea report.qmd, en inglés (format
 `uv run python scripts/evaluate.py` · escribe `report.qmd` · `uv run quarto render report.qmd` → `report.html`, `report.docx`, `report.pdf`
 :::
 
-Cada frase del prompt es vocabulario que corresponde a una función, y por eso puede ser corto:
+Cada frase del prompt es vocabulario que corresponde a una función, con el nombre que le da
+Quarto entre paréntesis, y por eso puede ser corto:
 
-| El prompt dice | La función de Quarto | Revisas |
-|---|---|---|
-| formatos html, docx y typst | tres formatos de salida desde un archivo (@sec-formats); Typst hace el PDF | tres archivos, abriendo cada uno |
-| oculta el código | `echo: false` | que no haya código en ninguna salida |
-| código en línea | `` `{{python}} …` `` en una oración (@sec-code-cells) | que el número de la oración sea igual al de `outputs/` |
-| etiquetada `tbl-metrics`, citada en el texto | una referencia cruzada: `@tbl-metrics` se vuelve "Table 1", un enlace | que el texto diga "Table 1", no "??" |
-| pie de figura y texto alternativo | `tbl-cap`, `fig-cap`, `fig-alt` (@sec-cell-options) | que el pie diga qué es; el texto alternativo, qué muestra |
-| que lea solo outputs/ | la regla del proyecto, de `AGENTS.md` | el diff: ningún `fit`, nada de código de modelos |
+| El prompt dice | Qué revisar |
+|---|---|
+| html, docx y typst | abre los tres archivos |
+| oculta el código (`echo: false`) | ninguna salida muestra código |
+| código en línea (`` `{{python}} …` ``) | el número es el de `outputs/` |
+| etiquetada `tbl-metrics`, citada (`@tbl-metrics`) | el texto dice "Table 1", no "??" |
+| pie y texto alternativo (`fig-cap`, `fig-alt`) | el pie dice qué es; el texto alternativo, qué muestra |
+| lea solo outputs/ (regla de `AGENTS.md`) | el diff: ningún `fit` ni código de modelos |
 
-: El prompt del informe, frase por frase. {#tbl-fast-vocab}
+: El prompt, frase por frase. {#tbl-fast-vocab}
+
+La Parte II explica cada una: los formatos en la @sec-formats (Typst hace el PDF), el código en
+línea en la @sec-code-cells, y los pies y el texto alternativo en la @sec-cell-options.
 
 Luego verifícalo de tres maneras (@sec-three-skills). **Lee el diff**: `git status` debería
 mostrar `report.qmd` como nuevo y nada más cambiado, y el archivo debería leer archivos de
@@ -252,15 +296,32 @@ oración dice:
 > `{python} ev.interval(best, "roc_auc")`.
 
 Es decir: de las versiones, la que está en negrita es la mejor, con su ROC AUC sobre los
-contactos reservados para la prueba y su intervalo del 95%. **Compáralo con la fuente**, sin el
-informe: `grep roc_auc outputs/metrics.csv` imprime el valor de cada versión con su `low` y su `high`, y
-los tres formatos del informe tienen que coincidir con él.
+contactos reservados para la prueba. Los corchetes contienen su intervalo *bootstrap* del
+`{python} f"{S['confidence']:.0%}"`: el script evalúa `{python} f"{S['n_bootstrap']:,}"`
+remuestras de los contactos reservados, cada una extraída con reposición, y da el rango del
+`{python} f"{S['confidence']:.0%}"` central de sus AUC.
+
+**Compáralo con la fuente**, sin el informe: `grep roc_auc outputs/metrics.csv` imprime el valor
+de cada versión con su `low` y su `high`, y los tres formatos del informe tienen que coincidir
+con él.
+
+::: think
+Vuelve a la oración con la que empezó el capítulo y ponla al lado de la del informe. ¿Qué número
+estaba mal, y de qué versión es?
+
+El ROC AUC. `{python} PLANT["wrong"]` es el de `{python} PLANT["rival"]`; el de `{python} best`
+es `{python} PLANT["right"]`. El nombre era correcto y el número era una copia de otra fila. El
+informe no puede cometer ese error: su número es código en línea, y la sección siguiente protege
+su nombre con una guarda. (La oración se plantó para este ejercicio; el README del repositorio no
+la contiene.)
+:::
+
+<!-- Observed in the dry run of 2026-11-18 with Quarto 1.10.20 (this file's setup cell). -->
 
 ::: pitfall
-Word no recibe el texto alternativo. En las pruebas, Quarto 1.10.20 puso en la descripción de la
-imagen de Word el nombre del archivo de la figura, o nada, nunca el `fig-alt`; el HTML sí lo
-tenía. Si alguien que lee el archivo de Word usa un lector de pantalla, agrega la descripción en
-Word, y revisa cada formato que vaya a usar quien lee.
+Word no recibe el texto alternativo: Quarto 1.10.20 pone en la descripción de la imagen de Word
+el nombre del archivo de la figura, o nada, nunca el `fig-alt`. Si alguien que lee el archivo de
+Word usa un lector de pantalla, agrega la descripción en Word.
 :::
 
 ## Una guarda para la oración {#sec-fast-guard}
@@ -305,8 +366,16 @@ git commit -m "Add a report that reads outputs/, with a guard"
 
 `.gitignore` ya deja afuera `outputs/`, `.venv/` y los archivos renderizados, así que
 `git add -A` toma solo fuentes: la regla nueva de `AGENTS.md`, `report.qmd` y `claims.py`. Igual
-lee antes `git status`: en la prueba, un notebook lleno de salidas entró en este commit porque se
-saltó la restauración de arriba, y `git status` fue donde se vio.
+lee antes `git status`.
+
+::: story
+<!-- source: book/chapters/fast-path.qmd lines 186–189 and 296–299 at 651db10; dry run of
+2026-11-18 noted at lines 20–22 -->
+En la prueba de este capítulo, se saltó el paso que restaura el notebook. Renderizar con
+`--execute` había cambiado cientos de líneas de `notebooks/explore.ipynb`, al escribir en él sus
+salidas, y `git add -A` las tomó: un notebook lleno de salidas entró en el commit que debía
+agregar un informe. `git status`, leído antes del commit, fue el único lugar donde se vio.
+:::
 
 ::: catchup
 ```default
@@ -316,9 +385,9 @@ Catch me up: follow ../quarto-workshop/checkpoints/14-eval-start/README.md
 
 ## Revísalo como pull request {#sec-fast-pr}
 
-Un cambio que hizo un agente se revisa como el de un colega: en una rama, como pull request, con
-el diff leído archivo por archivo antes de que llegue a `main` (@sec-git). Sube el repositorio a
-GitHub, privado, y abre el pull request. En la terminal:
+Un cambio que hizo un agente se revisa como el de alguien de tu equipo: en una rama, como pull
+request, con el diff leído archivo por archivo antes de que llegue a `main` (@sec-git). Sube el
+repositorio a GitHub, privado, y abre el pull request. En la terminal:
 
 ::: {.you}
 ```bash
@@ -333,15 +402,18 @@ gh pr create --base main --fill
 `gh repo create … --source=. --push` crea el repositorio a partir de esta carpeta y hace push de
 `main`; `git push -u` hace push de la rama; `gh pr create --fill` abre un pull request con el
 título y la descripción tomados de sus commits, e imprime su dirección. En la pestaña *Files
-changed* del pull request, o con `gh pr diff` en la terminal, revísalo como cualquier otro:
+changed* del pull request, o con `gh pr diff` en la terminal, revísalo como cualquier otro, con
+tres revisiones: el alcance, si cambiaron solo los archivos que querías; la corrección, si un
+número coincide con su fuente; y la reconstrucción, si lo que se guardó con commit se construye
+por sí solo.
 
-| Revisión | Pregunta | Aquí |
-|---|---|---|
-| Alcance | ¿Cambiaron solo los archivos que quería? | `AGENTS.md`, `report.qmd`, `claims.py`, `pyproject.toml`, `uv.lock`; nada en `data/`, `tests/` ni `notebooks/` |
-| Corrección | ¿Un número coincide con su fuente? | el AUC del informe contra `outputs/metrics.csv` |
-| Reconstrucción | ¿Lo que se subió con commit se construye por sí solo? | un clon nuevo renderiza el mismo informe (abajo) |
+| Revisión | Aquí |
+|---|---|
+| Alcance | `AGENTS.md`, `report.qmd`, `claims.py`, `pyproject.toml` y `uv.lock`, nada más |
+| Corrección | el AUC del informe contra `outputs/metrics.csv` |
+| Reconstrucción | un clon nuevo renderiza el mismo informe (abajo) |
 
-: Las tres revisiones de la @tbl-three-checks, aplicadas a un pull request. {#tbl-fast-review}
+: Tres revisiones para un pull request. {#tbl-fast-review}
 
 La última revisión es la que quien revisa no puede hacer leyendo. Clona el repositorio de nuevo y
 constrúyelo desde cero; primero van los resultados, porque `outputs/` se calcula, no se guarda con
@@ -367,20 +439,32 @@ un clon nuevo en cada pull request, para que nadie tenga que acordarse de hacerl
 
 ## En tu propio repositorio {#sec-fast-own}
 
-Todo lo anterior se puede trasladar. Apunta los prompts a tus propios archivos:
+Todo lo anterior se puede trasladar, y la primera pregunta es dónde viven tus resultados. En
+muchos repositorios están atrapados en notebooks: se calculan en una celda, se leen en la
+pantalla y se copian en una diapositiva. Entonces el primer trabajo no es el informe sino un
+script que ejecute el análisis una sola vez y escriba sus resultados en archivos, como hace aquí
+`scripts/evaluate.py`. Un documento que vuelve a ejecutar un análisis es lento, y dos documentos
+que lo vuelven a ejecutar cada uno pueden contradecirse. Con los resultados en archivos, apunta
+los prompts a los tuyos:
 
 - **Reglas.** Nombra en `AGENTS.md` tu carpeta de resultados (`outputs/`, `results/`,
-  `reports/data/`) y tus comandos. Si tu código calcula resultados dentro de notebooks, el primer
-  trabajo es un script que los escriba en archivos: los documentos que vuelven a ejecutar un
-  análisis son lentos y pueden contradecirse entre sí.
-- **Dependencias.** `ipykernel`, `nbclient` y `nbformat` se suman a tu entorno, mediante uv,
-  Poetry, pip o conda, según como lo gestione tu proyecto; Quarto en sí es un programa aparte y
-  no agrega ninguna dependencia de Python.
+  `reports/data/`) y tus comandos, y conserva la regla de que los documentos leen resultados y no
+  ajustan nada.
+- **Dependencias.** `ipykernel`, `nbclient` y `nbformat` se suman a tu entorno mediante lo que
+  ya lo gestione, uv, Poetry, pip o conda; Quarto en sí es un programa aparte y no agrega ninguna
+  dependencia de Python. Lee el diff de los archivos que registran los paquetes.
 - **Deja afuera las salidas.** Agrega a `.gitignore` los archivos renderizados y la carpeta de
   resultados.
 - **Dónde vive el informe.** En la raíz del repositorio, o en `reports/`; un solo archivo `.qmd`
   no necesita `_quarto.yml`. Una carpeta con varios documentos se convierte en un *proyecto* de
   Quarto (@sec-london-website).
+- **Guardas y revisión.** Dale una guarda a cada oración cuyas palabras dependen de los
+  resultados, mírala fallar una vez, y revisa cada cambio como pull request y desde un clon nuevo.
+
+Los [proyectos propios](../afterword.qmd#sec-own-projects) del epílogo parten de aquí: un informe
+de métricas que se reconstruye con los datos del mes siguiente, un material complementario de
+investigación, un informe mensual para inversionistas y un documento de diseño con números en
+vivo, cada uno preparado como este capítulo preparó el de Acme.
 
 ::: tryit
 Ejecuta los cuatro prompts y el pull request en el punto de partida, o en tu propio repositorio.
@@ -409,8 +493,8 @@ el pull request muestra las reglas, el informe y la guarda, sus tres formatos co
 
 El informe es la primera de las publicaciones del proyecto. La Parte III construye el resto a
 partir de los mismos resultados: una ficha del modelo, una presentación para las partes
-interesadas, un sitio del proyecto con una sola marca y un documento técnico (white paper). Si llegaste por la vía
-rápida, la guía de Londres de la Parte II queda ahí como referencia para cuando un capítulo la
+interesadas, un sitio del proyecto con una sola marca y un documento técnico (white paper). Si
+llegaste por la vía rápida, la guía de Londres de la Parte II queda ahí como referencia para cuando un capítulo la
 mencione.
 
 ## Lecturas adicionales {.unnumbered}

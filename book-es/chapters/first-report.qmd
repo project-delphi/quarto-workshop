@@ -128,11 +128,32 @@ text_holds(changed_text != csv_text, "the Tate Modern row of the data")
 ```{python}
 #| label: first-show-file
 #| include: false
-def show_file(path: Path, lang: str = "markdown") -> str:
-    """A file's text, as it is, in a fence longer than any run of backticks inside it."""
+def show_file(path: Path, lang: str = "markdown", lines: tuple[int, int] | None = None) -> str:
+    """A file's text, as it is, or its lines first to last (counted from 1), in a fence longer
+    than any run of backticks inside it."""
     text = path.read_text()
+    if lines:
+        text = "".join(text.splitlines(keepends=True)[lines[0] - 1:lines[1]])
     ticks = "`" * max(4, 1 + max(map(len, re.findall("`+", text)), default=0))
     return f"{ticks}{lang}\n{text}{ticks}"
+
+
+# `cat report.qmd` is shown in three parts, split at its blank lines: the settings (lines
+# 1-4), the cell (6-16) and the sentences (18-26). Stop if the starter changes.
+qmd_lines = report.splitlines()
+SETTINGS, CELL, SENTENCES = (1, 4), (6, 16), (18, len(qmd_lines))
+text_holds(len(qmd_lines) == 26 and qmd_lines[3] == "---" and qmd_lines[4] == ""
+           and qmd_lines[5] == "```{python}" and qmd_lines[15] == "```" and qmd_lines[16] == ""
+           and qmd_lines[17].startswith("Five of London"),
+           "the starter's report.qmd, split at its blank lines (lines 1-4, 6-16 and 18-26)")
+
+
+def trimmed(hunks: list[str], keep: int = 1) -> list[str]:
+    """Hunks as git_hunks gives them, with only `keep` unchanged lines on each side of a change
+    (the @@ lines stay as Git prints them)."""
+    changed = [i for i, line in enumerate(hunks) if line[:1] in "+-"]
+    return [line for i, line in enumerate(hunks)
+            if line.startswith("@@") or any(abs(i - j) <= keep for j in changed)]
 ```
 
 En algún lugar del informe de este capítulo hay un número equivocado. El informe se renderiza
@@ -204,13 +225,13 @@ en Linux, `/Users/ana/first-report` en una Mac, con tu propio nombre). `ls` enum
 
 | Nombre | Contiene |
 |---|---|
-| `report.qmd` | la fuente del informe: la configuración, una celda de código y sus oraciones |
+| `report.qmd` | la fuente: configuración, una celda de código y oraciones |
 | `data/` | `visits.csv`, los datos que lee el informe |
-| `AGENTS.md` | las reglas del proyecto para el agente (@sec-agents-md) |
-| `README.md` | qué es la carpeta, en unas pocas líneas |
-| `pyproject.toml`, `uv.lock` | los paquetes de Python que necesita el informe, con versiones exactas |
+| `AGENTS.md` | las reglas para el agente (@sec-agents-md) |
+| `README.md` | qué es la carpeta, en pocas líneas |
+| `pyproject.toml`, `uv.lock` | los paquetes de Python, con versiones exactas |
 
-: Lo que contiene el punto de partida. {#tbl-first-files}
+: Lo que trae el punto de partida. {#tbl-first-files}
 
 ::: tryit
 Si todavía no lo hiciste, copia el punto de partida y entra en él con `cd ~/first-report`.
@@ -220,38 +241,8 @@ Si todavía no lo hiciste, copia el punto de partida y entra en él con `cd ~/fi
 :::
 :::
 
-### Un nombre con un espacio {#a-name-with-a-space .unnumbered}
-
-La terminal parte lo que escribes en cada espacio, así que el nombre de una carpeta con un espacio
-necesita cuidado. Pruébalo una vez, desde tu carpeta personal. En la terminal:
-
-```bash
-cd ~
-mkdir "my reports"
-cd my reports
-```
-
-`cd` se queja, con palabras que dependen de tu shell:
-
-::: transcript
-```text
-bash: cd: too many arguments            (Ubuntu)
-cd: string not in pwd: my               (Mac)
-```
-:::
-
-`cd` recibió dos nombres, `my` y `reports`. Mantén el nombre de una pieza con comillas,
-`cd "my reports"`, o con una barra invertida antes del espacio, `cd my\ reports`. Completar con
-Tab escribe la barra invertida por ti: escribe `cd my` y presiona Tab. Luego ordena y vuelve:
-
-```bash
-cd ~
-rmdir "my reports"
-cd ~/first-report
-```
-
-Las carpetas de este libro no tienen espacios en el nombre, y las tuyas tampoco necesitan
-tenerlos: un guion, como en `first-report`, hace el mismo trabajo.
+Las carpetas de este libro no tienen espacios en el nombre; la sección del @sec-terminal sobre
+las [rutas](../appendices/b-terminal.qmd#sec-keys-paths) muestra lo que hace un espacio.
 
 ## Renderízalo tú {#sec-first-render}
 
@@ -368,18 +359,38 @@ La fuente del informe dice de dónde sale cada número. En la terminal:
 cat report.qmd
 ```
 
+Imprime el archivo entero, que aquí se muestra en tres partes. Primero viene la configuración,
+entre las líneas `---`:
+
 ::: transcript
 ```{python}
 #| output: asis
-print(show_file(START / "report.qmd", "text"))
+print(show_file(START / "report.qmd", "text", SETTINGS))
 ```
 :::
 
-Conociste estas partes en la @sec-what-quarto: la configuración entre las líneas `---`, una celda
-de código que lee `data/visits.csv` y calcula `total`, `top` y `free`, y el código en línea, las
-piezas `` `{{python}} …` ``, que Quarto reemplaza por valores calculados. El @sec-compute explica
-cada línea. Por ahora, fíjate en qué se calcula y qué no. Todos los demás números de la página
-son código en línea que lee los datos; la oración de Tate Modern se escribió a mano.
+Luego, una celda de código que lee `data/visits.csv` y calcula `total`, `top` y `free`:
+
+::: transcript
+```{python}
+#| output: asis
+print(show_file(START / "report.qmd", "text", CELL))
+```
+:::
+
+Luego, las oraciones. Las piezas `` `{{python}} …` `` son código en línea, que Quarto reemplaza
+por valores calculados:
+
+::: transcript
+```{python}
+#| output: asis
+print(show_file(START / "report.qmd", "text", SENTENCES))
+```
+:::
+
+Conociste estas partes en la @sec-what-quarto, y el @sec-compute explica cada línea. Por ahora,
+fíjate en qué se calcula y qué no. Todos los demás números de la página son código en línea que
+lee los datos; la oración de Tate Modern se escribió a mano.
 
 ::: why
 Un número escrito a mano es una copia, hecha una vez por una persona, y después nada la conecta
@@ -490,11 +501,10 @@ El *árbol de trabajo* (*working tree*) son los archivos de la carpeta tal como 
 el commit en el que están ahora tus archivos.
 
 ::: pitfall
-Si `git commit` dice "Author identity unknown", Git todavía no sabe tu nombre (el paso 5
-del @sec-setup lo configura). Ejecuta las dos líneas `git config --global` que imprime, con tu propio
-nombre y tu correo, y luego vuelve a hacer commit. Si omites `-m "…"`, Git abre un editor para el
-mensaje: sal sin guardar (en nano, Ctrl+X; en Vim, Esc, luego `:q!` y Enter) y vuelve a ejecutar
-el comando con `-m`.
+Si `git commit` dice "Author identity unknown", ejecuta las dos líneas `git config --global` que
+imprime, con tu propio nombre y tu correo (el paso 5 del @sec-setup los configura), y luego
+vuelve a hacer commit. Sin `-m "…"`, Git abre un editor para el mensaje: sal sin guardar (en
+nano, Ctrl+X; en Vim, Esc, luego `:q!` y Enter) y vuelve a ejecutar el comando con `-m`.
 :::
 
 ::: tryit
@@ -522,12 +532,13 @@ presiona Retroceso para borrar el `{python} code(first_old)` y escribe
 `{python} code(first_new)`, para que el número diga `{python} code(trial)`. Guarda con Ctrl+O y
 luego Enter; sal con Ctrl+X.
 
+<!-- nano opening Pico: seen on macOS 26, 2026-11-12. -->
+
 ::: pitfall
 En nano, Ctrl+O ("write Out", escribir) pide el nombre del archivo: presiona Enter para
 conservarlo. Ctrl+X sale; si no guardaste, nano pregunta primero: Y y luego Enter guarda, N
 descarta los cambios. Las teclas aparecen en la parte de abajo de la pantalla, donde `^`
-significa Ctrl. En una Mac, `nano` abre Pico, que usa las mismas teclas (comprobado en macOS 26,
-el 2026-11-12).
+significa Ctrl. En una Mac, `nano` abre Pico, que usa las mismas teclas.
 :::
 
 Antes de renderizar, pregúntale a Git qué cambiaste:
@@ -553,17 +564,17 @@ no changes added to commit (use "git add" and/or "git commit -a")
 ```
 :::
 
-Un *diff* son las líneas que un cambio eliminó y agregó. Las líneas reales son largas, así que
-aquí cada una se corta donde ves …:
+Un *diff* son las líneas que un cambio eliminó y agregó. Aquí está recortado: las líneas reales
+son largas, así que cada una se corta donde ves …, y solo se conserva una línea sin cambios a
+cada lado del cambio, sin la línea `index` que Git imprime en segundo lugar:
 
 ::: transcript
 ```{python}
 #| output: asis
 screen(["diff --git a/data/visits.csv b/data/visits.csv",
-        f"index {blob(csv_text)}..{blob(changed_text)} 100644",
         "--- a/data/visits.csv", "+++ b/data/visits.csv"]
        + [line if line.startswith("@@") else short(line)
-          for line in git_hunks(csv_text.splitlines(), changed_text.splitlines())])
+          for line in trimmed(git_hunks(csv_text.splitlines(), changed_text.splitlines()))])
 ```
 :::
 
@@ -792,21 +803,22 @@ commit y una después. Aquí están, aplicadas a este:
 
 | Revisión | Pregunta | Aquí |
 |---|---|---|
-| Alcance | ¿Cambiaron solo los archivos que quería cambiar? | `git status` enumera solo `report.qmd`; `git diff` muestra las líneas |
-| Corrección | ¿Coincide un número con su fila de origen? | la cifra de Tate Modern de la página contra su fila en `cut -d, -f1,2 data/visits.csv` |
-| Reconstrucción | ¿Lo que registraste con commit se construye por sí solo? | renderiza un clon nuevo del repositorio (abajo) |
+| Alcance | ¿Cambiaron solo los archivos que quería cambiar? | `git status` enumera solo `report.qmd` |
+| Corrección | ¿Coincide un número con su fila de origen? | la cifra de Tate Modern de la página contra su fila |
+| Reconstrucción | ¿Lo que registraste con commit se construye por sí solo? | un clon nuevo se renderiza (abajo) |
 
 : Las tres revisiones, aplicadas a la primera edición del agente. {#tbl-three-checks}
 
 **Alcance.** `git status` debería enumerar un archivo modificado, `report.qmd`. Si también aparece
 `data/visits.csv`, el agente rompió la regla del proyecto: `git restore data/visits.csv` deshace
-esa parte. El diff se va a ver más o menos como este, de una versión escrita a mano para probar el
-paso (recortado en el …); el de un agente va a diferir en los detalles:
+esa parte. El diff se va a ver más o menos como las dos partes de abajo, de una versión escrita a
+mano para probar el paso; el de un agente va a diferir en los detalles. Está recortado: se
+omiten las líneas `diff --git` e `index`, y se conserva una línea sin cambios a cada lado de un
+cambio. El primer cambio agrega dos líneas a la celda:
 
-::: transcript
 ```{python}
-#| output: asis
-# The tested hand-made fix, applied to the starter's own report.qmd.
+#| include: false
+# The tested hand-made fix, applied to the starter's own report.qmd, as Git's two hunks.
 src = report.splitlines()
 i_free = next(i for i, line in enumerate(src) if line.startswith("free = "))
 fixed = (src[:i_free + 1]
@@ -817,16 +829,30 @@ fixed = [line.replace(typed.group(0),
                       'Tate Modern, on the South Bank, had `{python} f"{tate:,}"` visits.')
          for line in fixed]
 text_holds(fixed != src, "the hand-made fix to report.qmd")
-old_qmd, new_qmd = report, "\n".join(fixed) + "\n"
-screen(["diff --git a/report.qmd b/report.qmd",
-        f"index {blob(old_qmd)}..{blob(new_qmd)} 100644",
-        "--- a/report.qmd", "+++ b/report.qmd"]
-       + [line if line[:1] in "+-" else short(line, 44) for line in git_hunks(src, fixed)])
+fix_lines = [line if line[:1] in "+-" else short(line, 44) for line in trimmed(git_hunks(src, fixed))]
+at = [i for i, line in enumerate(fix_lines) if line.startswith("@@")]
+text_holds(len(at) == 2, "the fix's two hunks: the cell, then the sentence")
+cell_hunk, sentence_hunk = fix_lines[at[0]:at[1]], fix_lines[at[1]:]
+text_holds(sum(l.startswith("+") for l in cell_hunk) == 2 and not any(l.startswith("-") for l in cell_hunk),
+           "the first hunk adds the cell's two lines")
+```
+
+::: transcript
+```{python}
+#| output: asis
+screen(["--- a/report.qmd", "+++ b/report.qmd"] + cell_hunk)
 ```
 :::
 
-El número escrito a mano desapareció, y en su lugar hay código en línea que busca Tate Modern en
-los datos.
+El segundo reemplaza el número escrito a mano por código en línea que busca Tate Modern en los
+datos:
+
+::: transcript
+```{python}
+#| output: asis
+screen(sentence_hunk)
+```
+:::
 
 **Corrección.** Vuelve a cargar `report.html`: la oración ahora debería decir
 `{python} f"{tate:,}"`, que es el `{python} tate` de la fila `Tate Modern` en la salida de `cut`
