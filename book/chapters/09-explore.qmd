@@ -69,7 +69,7 @@ infant_years = spans(A.INFANT_YEARS)
 
 The table gives Tunja, the capital of Colombia's Boyacá department,
 `{python} f"{tj_im[2016]:.2f}"` infant deaths for every 1,000 live births in 2016, and
-`{python} f"{tj_im[2017]:.2f}"` in 2017. Nothing in the table marks the year: the column keeps its
+`{python} f"{tj_im[2017]:.2f}"` in 2017. Nothing in the table flags 2017 as different: the column keeps its
 name and its units, and no row is missing. Drawn as a line, it is the kind of fall a council would
 applaud and an analyst would be glad to report. Was it progress? Decide now. The answer comes later
 in this chapter, and it is not in the numbers.
@@ -79,7 +79,7 @@ measured and a series that changes its method raise no error, yet a clustering w
 comparable only by filling their gaps, and a chart will draw a trend that is not there.
 
 ::: payoff
-![`explore.html` at a phone's width: the title and the top of the table of missing values.](../media/figures/water-explore.png){#fig-water-explore width=50% fig-alt="A web page at a phone's width, titled Explore the municipal water data. Below a dashed line marking a cut, the top of a table of the share of rows missing a value, urban and rural, by column; in the irca row the rural share is far higher."}
+![`explore.html` at a phone's width: the title and the top of the table of missing values.](../media/figures/water-explore.png){#fig-water-explore width=50% fig-alt="A web page at a phone's width, titled Explore the municipal water data. Below it, the top of a table of the share of rows missing a value, urban and rural, by column; in the irca row the rural share is far higher."}
 :::
 
 ::: opener
@@ -149,16 +149,19 @@ were `{python} f"{high_last['rural']:.0%}"` and `{python} f"{high_last['urban']:
 that open the water analysis, after the falls in rural IRCA that @fig-wat-years shows below.
 
 The two facts compound, in the worst direction: the zones whose scores are worse are also the
-ones least often scored. The gaps are not random. They depend on zone, which the data record, and
-perhaps on the risk itself, which they do not: statisticians call the second kind *missing not at
-random*, and no fill can repair it. Any analysis that drops the rows without IRCA, as the water analysis's
-must, describes *sampled* rural systems only, and should say so.
+ones least often scored. The gaps are not random. They follow the zone, which the data record,
+and perhaps the risk itself, which they do not. Gaps that a recorded column explains can be
+allowed for, by filling within each zone for instance; gaps that depend on the unseen value
+itself are what statisticians call *missing not at random*, and no fill can repair them. Any
+analysis that drops the rows without IRCA, as the water analysis does, describes *sampled* rural
+systems only, and should say so.
 
 ::: story
 <!-- source: book/PLAN.md lines 531–532 (§12, item 2), when this file was Chapter 9. -->
-An early draft of this chapter called the rural gaps "missing at random", the opposite of the
-claim above. A review caught it. The phrase sounded right and rendered without complaint, and it
-would have licensed filling the gaps with typical values. A technical term is a claim about the
+An early draft of this chapter called the rural gaps "missing at random". A review caught it.
+In the statistician's sense, that says the recorded columns account for which values are
+missing; here the risk itself may decide which systems are scored, and no column records it. The
+phrase sounded right and rendered without complaint. A technical term is a claim about the
 data: check it against the rows, as you would a number.
 :::
 
@@ -292,17 +295,20 @@ change itself, and the table cannot tell. Compare such a series only within one 
 analysis does: `{python} infant_years`.
 :::
 
-Five things are worth finding in Tunja's rows (@tbl-tunja-caveats). Hollow points mark a coverage
-reported as 0, which beside its neighbouring years probably means "not reported" rather than "no
-service".
+Five things are worth finding in Tunja's rows (@tbl-tunja-caveats). Two show in @fig-tunja:
+hollow points mark a coverage reported as 0, which beside its neighbouring years probably means
+"not reported" rather than "no service", and infant mortality changes method in 2017, the change
+the opening asked about. Two more come from how the data are built: a department capital such
+as Tunja has its coverage only as a municipal total, with no urban or rural split, and the
+municipal fiscal-performance index changes scale in `{python} idf_last`, from `idf` to `idf_new`.
 
-| In Tunja's rows | The analysis |
+| Caveat, in Tunja's rows | What the analysis does |
 |---|---|
-| coverage: the municipal total only | fills it, flagged (@sec-prepare-steps) |
-| coverage 0 in `{python} spans(tj_zero)`: "not reported"? | keeps it (@sec-prepare-counts) |
-| `idf` ends in `{python} idf_last`, as `idf_new` starts on another scale | uses neither (@sec-water-features) |
-| infant mortality: a new method from 2017 | `{python} infant_years` only (@sec-outcomes) |
-| Saber 11: `{python} saber_years` | published years only (@sec-outcomes) |
+| **Coverage**: the municipal total only | fills it, flagged (@sec-prepare-steps) |
+| **Coverage of 0** in `{python} spans(tj_zero)`: "not reported"? | keeps it (@sec-prepare-counts) |
+| **Fiscal index**: `idf` ends in `{python} idf_last`; `idf_new` is on another scale | uses neither (@sec-water-features) |
+| **Infant mortality**: a new method from 2017 | `{python} infant_years` only (@sec-outcomes) |
+| **Saber 11**: `{python} saber_years` | published years only (@sec-outcomes) |
 
 : Five caveats from `data/README.md` in Tunja's rows, and what the analysis does. {#tbl-tunja-caveats}
 
@@ -335,7 +341,7 @@ number loses them, and with them the join to any other table.
 Check the missingness table before trusting the page. `irca` should be missing in about
 `{python} rural_missing` of rural rows and `{python} urban_missing` of urban ones. If it is not much
 sparser in rural rows than in urban ones, the agent probably counted the wrong column, or
-counted rows rather than values. You now know the answer the table should give (@fig-wat-bands),
+worked out the shares over all rows rather than within each zone. You now know the answer the table should give (@fig-wat-bands),
 which is exactly what makes the check possible.
 :::
 
@@ -366,7 +372,7 @@ Not at face value
 : coverage reported as 0 in `{python} spans(tj_zero)`; infant mortality across 2017.
 
 What may be said
-: what was measured, zone by zone and year by year. Nothing yet about kinds, or causes.
+: what was measured, zone by zone and year by year. Nothing yet about which places are alike, or about causes.
 :::
 
 ## Summary {.unnumbered}
