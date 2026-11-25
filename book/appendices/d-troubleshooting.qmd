@@ -2,59 +2,114 @@
 
 Problems seen while building and teaching the workshop, and the mistakes @sec-first-errors makes on purpose,
 with fixes that were tested. [Reading an error](b-terminal.qmd#sec-keys-errors) says which line of an error to read first. For setup on Windows,
-see also [the Windows stuck table](a-windows.qmd#sec-windows-stuck). For anything not listed: copy the command and the whole error into a web chat
+see also [If you are stuck](a-windows.qmd#sec-windows-stuck) in @sec-windows. For anything not listed: copy the command and the whole error into a web chat
 with your system's name, try one suggested fix at a time, and never paste passwords or keys.
 
-## Setup {.unnumbered}
+## Setup {#sec-trouble-setup .unnumbered}
 
-| Problem | Fix |
-|---|---|
-| Mac: a pop-up asks to install "command line developer tools" | Expected the first time `git` runs. Click Install and wait (or run `xcode-select --install` first); if the agent is waiting, tell it `done` |
-| `command not found` for `uv`, `claude`, `codex`, `agy` or `opencode` just after installing | Open a new terminal tab. On a Mac, Claude Code's installer prints a line to add under "Setup notes": paste it, then open the tab |
-| `quarto: command not found` in Ubuntu, though it works in PowerShell | Windows installers put tools where Ubuntu cannot use them: install Quarto inside Ubuntu (@sec-step-tools) |
-| The prompt shows `/mnt/c/...` | You are in a Windows folder: `cd ~`, and keep projects there |
-| `gh auth login` or the agent cannot open a browser | Expected in WSL: copy the link or code it prints into your Windows browser (for `gh`: github.com/login/device). Codex: `codex login --device-auth` |
-| Downloads or `git clone` fail on a company network | A proxy can block `curl`, `git` and `uv`: try another network |
-| `git commit` says "Please tell me who you are" | Set your name and email with the two `git config --global` lines from the setup check |
-| `not a valid Python environment` | A stale `.venv`: delete it (`rm -rf .venv`); `uv run` rebuilds it |
+::: cards
+Mac: a pop-up asks to install "command line developer tools"
+:   Expected the first time `git` runs. Click Install and wait (or run `xcode-select --install`
+    first); if the agent is waiting, tell it `done`.
 
-: Setup problems. {#tbl-trouble-setup}
+`command not found` for `uv`, `claude`, `codex`, `agy` or `opencode` just after installing
+:   Open a new terminal tab. On a Mac, Claude Code's installer prints a line to add under "Setup
+    notes": paste it, then open the tab.
+
+`quarto: command not found` in Ubuntu, though it works in PowerShell
+:   Windows installers put tools where Ubuntu cannot use them: install Quarto inside Ubuntu
+    (@sec-step-tools).
+
+The prompt shows `/mnt/c/...`
+:   You are in a Windows folder: `cd ~`, and keep projects there.
+
+`gh auth login` or the agent cannot open a browser
+:   Expected in WSL: copy the link or code it prints into your Windows browser (for `gh`:
+    github.com/login/device). Codex: `codex login --device-auth`.
+
+Downloads or `git clone` fail on a company network
+:   A proxy can block `curl`, `git` and `uv`: try another network.
+
+`git commit` says "Please tell me who you are"
+:   Set your name and email with the two `git config --global` lines from the setup check.
+
+`not a valid Python environment`
+:   A stale `.venv`: delete it (`rm -rf .venv`); `uv run` rebuilds it.
+:::
 
 ## The terminal {.unnumbered}
 
-| Message | Cause and fix |
-|---|---|
-| `zsh: command not found: quatro` (Mac) or `quatro: command not found` (Ubuntu) | A typo in the command's name. Press the up arrow, correct it, then Enter (@sec-first-errors). If the name is right, see the `command not found` row in @tbl-trouble-setup |
-| `` error: Failed to spawn: `quatro` ``, then `No such file or directory (os error 2)` | The same typo after `uv run`: uv found no program of that name. Press the up arrow, correct it, then Enter |
-| `bash: cd: too many arguments` (Ubuntu) or `cd: string not in pwd: my` (Mac) | The folder's name has a space, so `cd` read two names: `cd "my reports"`, or type `cd my` and press Tab ([Paths](b-terminal.qmd#sec-keys-paths)) |
+::: cards
+`zsh: command not found: quatro` (Mac) or `quatro: command not found` (Ubuntu)
+:   A typo in the command's name. Press the up arrow, correct it, then Enter
+    (@sec-first-errors). If the name is right, see `command not found` under
+    [Setup](d-troubleshooting.qmd#sec-trouble-setup).
 
-: Terminal messages. {#tbl-trouble-terminal}
+`` error: Failed to spawn: `quatro` ``, then `No such file or directory (os error 2)`
+:   The same typo after `uv run`: uv found no program of that name. Press the up arrow,
+    correct it, then Enter.
+
+`bash: cd: too many arguments` (Ubuntu) or `cd: string not in pwd: my` (Mac)
+:   The folder's name has a space, so `cd` read two names: `cd "my reports"`, or type `cd my`
+    and press Tab ([Paths](b-terminal.qmd#sec-keys-paths)).
+:::
 
 ## Rendering and preview {.unnumbered}
 
-| Problem | Cause and fix |
-|---|---|
-| `ERROR: No valid input files passed to render` | Quarto found no file of that name in this folder: you are in the wrong folder, or the name is misspelt. `pwd` and `ls` show where you are; `cd` to the project, such as `cd ~/first-report` (@sec-first-errors) |
-| `ERROR: YAMLException: …`, with numbered lines and a caret (`^`) | A mistake in the front matter. YAML often notices it one line *after* it, so check the line the caret points to and the line above: a missing space after a colon (`can not read a block mapping entry`), a stray indent (`bad indentation of a mapping entry`), a missing closing quote (`unexpected end of the stream within a double quoted scalar`). Fix it by hand, or undo every change since the last commit with `git restore report.qmd` (@sec-first-errors) |
-| `readfile 'london.quarto_ipynb'`, or a locked file | A render ran while `quarto preview` was rendering the same file. Let the preview render, or stop it (Ctrl+C) before rendering several formats, then restart it (@sec-render-mechanics) |
-| Typst PDF fails: `cannot parse length '60px'` | Typst does not accept CSS pixels in image sizes: write `{height=60}` or `{width="30%"}` |
-| A Plotly chart appears twice in a dashboard card | The cell both calls `fig.show()` (or a bare `fig.add_…()`) and returns the figure: assign, and end the cell with `fig` |
-| `itables` drops rows from a dashboard table | Its default size limit: `show(df, maxBytes=0)` |
-| A Plotly map is a grey rectangle | The GeoJSON's rings wind the other way from Plotly's expectation: reverse them (`load_geojson()` in the water project's script) |
-| A page shows old numbers after the data changed | `freeze: auto` reuses results until the page's own source changes: delete `_freeze/` and render again (@sec-water-website) |
+::: cards
+`ERROR: No valid input files passed to render`
+:   Quarto found no file of that name in this folder: you are in the wrong folder, or the name
+    is misspelt. `pwd` and `ls` show where you are; `cd` to the project, such as
+    `cd ~/first-report` (@sec-first-errors).
 
-: Rendering problems. {#tbl-trouble-render}
+`ERROR: YAMLException: …`, with numbered lines and a caret (`^`)
+:   A mistake in the front matter. YAML often notices it a line late, so check the caret's
+    line and the one above ([Reading an error](b-terminal.qmd#sec-keys-errors)): a missing
+    space after a colon (`can not read a block mapping entry`), a stray indent (`bad
+    indentation of a mapping entry`), a missing closing quote (`unexpected end of the stream
+    within a double quoted scalar`). Fix it by hand, or undo every change since the last
+    commit with `git restore report.qmd` (@sec-first-errors).
+
+`readfile 'london.quarto_ipynb'`, or a locked file
+:   A render ran while `quarto preview` was rendering the same file. Let the preview render, or
+    stop it (Ctrl+C) before rendering several formats, then restart it (@sec-render-mechanics).
+
+`[typst]: Compiling … error: file not found (searched at …)`
+:   Typst could not find a file the page names, usually an image path; the HTML may already
+    have rendered.
+
+A Plotly chart appears twice in a dashboard card
+:   The cell both calls `fig.show()` (or a bare `fig.add_…()`) and returns the figure: assign,
+    and end the cell with `fig`.
+
+`itables` drops rows from a dashboard table
+:   Its default size limit: `show(df, maxBytes=0)`.
+
+A Plotly map is a grey rectangle
+:   The GeoJSON's rings wind the other way from Plotly's expectation: reverse them
+    (`load_geojson()` in the water project's script).
+
+A page shows old numbers after the data changed
+:   `freeze: auto` reuses results until the page's own source changes: delete `_freeze/` and
+    render again (@sec-water-website).
+:::
 
 ## Python and Jupyter {.unnumbered}
 
-| Message | Meaning |
-|---|---|
-| `quarto check` says Jupyter is not available | Harmless during setup: each project gets its own environment from uv, and Quarto runs Python through `uv run` |
-| `Kernel is running over TCP without encryption`, after `[IPKernelApp] WARNING` | Harmless: the connection is between Quarto and a Python process on your own computer |
-| `There is an unactivated Python environment in .venv` | Run Quarto through `uv run`, which activates the project's environment |
-| A water checkpoint has no data | Water checkpoints hold sources only: `cp -R ../quarto-workshop/examples/water/data .` |
+::: cards
+`quarto check` says Jupyter is not available
+:   Harmless during setup: each project gets its own environment from uv, and Quarto runs
+    Python through `uv run`.
 
-: Python and Jupyter messages. {#tbl-trouble-python}
+`Kernel is running over TCP without encryption`, after `[IPKernelApp] WARNING`
+:   Harmless: the connection is between Quarto and a Python process on your own computer.
+
+`There is an unactivated Python environment in .venv`
+:   Run Quarto through `uv run`, which activates the project's environment.
+
+A water checkpoint has no data
+:   Water checkpoints hold sources only: `cp -R ../quarto-workshop/examples/water/data .`
+:::
 
 Backups that copy `.venv/` are slow and pointless, because `uv run` rebuilds it. The checkpoints' backup
 command leaves it out, and works on macOS, Linux and WSL:
@@ -65,11 +120,18 @@ b="../project-backup-$(date +%Y%m%d-%H%M%S)" && mkdir "$b" && tar -cf - --exclud
 
 ## Publishing {.unnumbered}
 
-| Problem | Fix |
-|---|---|
-| The first publish fails: "the remote origin does not have a branch named gh-pages" | The first `quarto publish gh-pages` must be interactive: run `uv run quarto publish gh-pages` and press Enter at the question. `--no-prompt` works once the branch exists |
-| A push fails with `HTTP 400`, "RPC failed" | `git config http.postBuffer 524288000`, then push again |
-| 404 right after publishing | GitHub Pages takes 20 to 60 seconds to deploy: wait a minute and reload (Cmd+Shift+R on a Mac, Ctrl+F5 elsewhere) |
-| A link checker reports `403 Forbidden` for a museum's site | Some sites block automated requests: open the link in a browser |
+::: cards
+The first publish fails: "the remote origin does not have a branch named gh-pages"
+:   The first `quarto publish gh-pages` must be interactive: run `uv run quarto publish gh-pages`
+    and press Enter at the question. `--no-prompt` works once the branch exists.
 
-: Publishing problems. {#tbl-trouble-publish}
+A push fails with `HTTP 400`, "RPC failed"
+:   `git config http.postBuffer 524288000`, then push again.
+
+404 right after publishing
+:   GitHub Pages takes 20 to 60 seconds to deploy: wait a minute and reload (Cmd+Shift+R on a
+    Mac, Ctrl+F5 elsewhere).
+
+A link checker reports `403 Forbidden` for a museum's site
+:   Some sites block automated requests: open the link in a browser.
+:::

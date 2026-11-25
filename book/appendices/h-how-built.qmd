@@ -20,19 +20,38 @@ unchanged, through a small script that imitates the slide framework the bundle e
 
 ## What the EPUB needed {.unnumbered}
 
-| Problem | Fix |
-|---|---|
-| Quarto 1.10.20 drops a book's parts, and the part pages' content, from the EPUB | Part pages are ordinary chapters in the EPUB; a post-render script nests each part's chapters under it in the table of contents |
-| A profile's chapter list is added to the base list, not substituted for it | One master list (`_chapters.yml`) generates a chapter list for each edition |
-| `when-format="html"` also matches EPUB | HTML-only content uses `when-format="html:js"` |
-| Rendering one edition empties the other's output folder | Each edition has its own output folder |
-| Quarto's figure wrapper carries an `alt` attribute that EPUB's XHTML forbids | The post-render script removes it (the image keeps its alt text) |
-| No landmarks for the copyright page or the start of the text | Added by the post-render script, which also puts the copyright page before the preface |
-| Callout titles and code have fixed light backgrounds and dark text, invisible in a reader's night theme | The stylesheet lets the reader's colours through |
-| Code lines do not wrap on a phone, and cell outputs scroll sideways | The stylesheet makes long lines wrap and outputs fit |
-| Wide diagrams are unreadable on a phone | Diagrams are drawn portrait, 700 pixels wide with text of at least 19 pixels, and supplied as PNG at double resolution |
+Problems met building the EPUB edition, and their fixes:
 
-: Problems met building the EPUB edition, and their fixes. {#tbl-epub-fixes}
+::: cards
+Quarto 1.10.20 drops a book's parts, and the part pages' content, from the EPUB
+:   Part pages are ordinary chapters in the EPUB; a post-render script nests each part's
+    chapters under it in the table of contents.
+
+A profile's chapter list is added to the base list, not substituted for it
+:   One master list (`_chapters.yml`) generates a chapter list for each edition.
+
+`when-format="html"` also matches EPUB
+:   HTML-only content uses `when-format="html:js"`.
+
+Rendering one edition empties the other's output folder
+:   Each edition has its own output folder.
+
+Quarto's figure wrapper carries an `alt` attribute that EPUB's XHTML forbids
+:   The post-render script removes it (the image keeps its alt text).
+
+No landmarks for the copyright page or the start of the text
+:   Added by the post-render script, which also puts the copyright page before the preface.
+
+Callout titles and code have fixed light backgrounds and dark text, invisible in a reader's night theme
+:   The stylesheet lets the reader's colours through.
+
+Code lines do not wrap on a phone, and cell outputs scroll sideways
+:   The stylesheet makes long lines wrap and outputs fit.
+
+Wide diagrams are unreadable on a phone
+:   Diagrams are drawn portrait, 700 pixels wide with text of at least 19 pixels, and supplied
+    as PNG at double resolution.
+:::
 
 The finished EPUB passes EPUBCheck 5.4.0, the W3C's validator, with no errors and no warnings.
 
@@ -50,17 +69,53 @@ All media are rebuilt by one script, `media/build.py`, run by `make media`:
 - **Every GIF opens on its final frame**, held for two seconds, because e-readers that do not animate show a
   GIF's first frame. Each also has a still PNG, which the website shows to readers who ask their system for
   reduced motion. GIFs are kept under 2 MB.
+- **The Markdown animations** of @sec-markdown pair what you type, on the left, with what you
+  get, on the right. The right-hand side is not drawn: each step on the left was saved in a file
+  and rendered by Quarto 1.10.20, and the right shows that page, enlarged. Each opens on its
+  finished pair, which is all that a reader without animations shows, then types the source
+  from the beginning.
 
 ## Reading the EPUB {.unnumbered}
 
-| Feature | Where it works |
-|---|---|
-| Animated GIFs | readers that animate images play them; others show the first frame, designed as a still |
-| Night and sepia themes | the stylesheet sets no page colours; figures drawn with dark ink sit on a light panel |
-| Mathematics | written as MathML; readers without MathML support may show it as plain text |
-| Live 3-D scenes and explorers | the website edition only, linked from the EPUB; the London map is also QR-coded |
+How the EPUB's features behave in different readers:
 
-: How the EPUB's features behave in different readers. The repository's `book/README.md` records which readers were tested, and when. {#tbl-reading}
+::: cards
+Animated GIFs
+:   Readers that animate images play them; others show the first frame, designed as a still.
+
+Night and sepia themes
+:   The stylesheet sets no page colours; figures drawn with dark ink sit on a light panel.
+
+Mathematics
+:   Written as MathML; readers without MathML support may show it as plain text.
+
+Live 3-D scenes and explorers
+:   The website edition only, linked from the EPUB; the London map is also QR-coded.
+:::
+
+The repository's `book/README.md` records which readers were tested, and when.
+
+## What was not tested {.unnumbered #sec-not-tested}
+
+Three things the book describes were not tested in full. What was checked, and what was not:
+
+::: cards
+The agents' first screens
+:   Claude Code's and Codex's first screens were captured on 2026-11-07 (@sec-setup);
+    Antigravity's and OpenCode's were not.
+
+The codespace
+:   Built from the workshop's dev container and checked on a local computer: Quarto, uv, Git and
+    `gh` present, and the first report and the test run render. It was not run on GitHub's own
+    machines (@sec-codespace).
+
+The team's workflows
+:   The check workflow was run locally with act (0.2.98, in Docker), green on the change and red
+    on a broken guard (@sec-team). Pushing, pull requests, the Publish and Monthly reports runs,
+    the uv cache and branch protection need a GitHub repository and were not run for this
+    edition; their actions and settings were checked against GitHub's documentation on
+    2026-11-18.
+:::
 
 ## Building it {.unnumbered}
 

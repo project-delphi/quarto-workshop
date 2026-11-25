@@ -25,18 +25,8 @@ text_holds("notebooks/explore.ipynb" in starter, "the starter's notebook")
 
 # The planted error that opens the chapter: the best release's name with the ROC AUC of the
 # rival, the release with the next-highest ROC AUC (ev.rival()). Appendix E's answer calls the
-# same function, so the two cannot drift.
-def fast_plant() -> dict:
-    """The opening's sentence, its wrong and right ROC AUC as printed, and whose the wrong one is."""
-    rival = ev.rival()
-    wrong = f"{ev.value(rival, 'roc_auc')['value']:.3f}"
-    right = f"{ev.value(best, 'roc_auc')['value']:.3f}"
-    text_holds(wrong != right, "the planted ROC AUC differs from the best release's as printed")
-    return {"sentence": f"{best} ranks best, with a ROC AUC of {wrong}.", "wrong": wrong,
-            "right": right, "rival": rival}
-
-
-PLANT = fast_plant()
+# same function (ev.fast_plant()), so the two cannot drift.
+PLANT = ev.fast_plant()
 # What `grep roc_auc outputs/metrics.csv | cut -d, -f1,3,4` prints: the file's own rows, with
 # their version, metric and value (columns 1, 3 and 4), unchanged.
 header, *rows = (ev.run() / "metrics.csv").read_text().splitlines()
