@@ -7,7 +7,7 @@
 import yaml
 
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
+from scripts.prose import alt_text_holds, number_words, text_holds
 from scripts.wcag import contrast, scss_variables
 
 CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "17-eval-site"
@@ -53,6 +53,12 @@ THEME_VARS = {"body text": "$body-color", "headings": "$presentation-heading-col
 text_holds(all(text_colour[use].lower() == theme[var].lower() for use, var in THEME_VARS.items())
            and background.lower() == theme["$body-bg"].lower(),
            "the brand's text colours, the deck theme's of @tbl-slides-contrast")
+# The pictures (media/capture/eval_outputs.py, step site): the home page's title and first
+# listed document, and the navbar's `background: light` that the "after" crop shows.
+home = yaml.safe_load((CHECKPOINT / "index.qmd").read_text().split("---")[1])
+alt_text_holds(home["title"] == "Which release of the contact-ranking model should a call centre use?"
+               and home["listing"]["contents"][0] == "report.qmd", "fig-sites-home")
+alt_text_holds(site["website"]["navbar"].get("background") == "light", "fig-sites-navbar-after")
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
 # checkpoint 16 on 2026-11-18; the traps in @tbl-sites-traps, the navbar story and the
 # checker's findings are the ones that run, and the build of the finished site, met.
@@ -88,6 +94,10 @@ You build
 
 Checkpoint
 : `checkpoints/17-eval-site/`
+:::
+
+::: payoff
+![The finished site's home page at a phone's width, rendered from `checkpoints/17-eval-site/`.](../media/figures/eval-site-home.png){#fig-sites-home width=85% fig-alt="A web page at a phone's width, on a warm off-white background: a navbar with a menu button, the Acme Signals logo and a search icon, then the title, Which release of the contact-ranking model should a call centre use?, in bold navy. After a dashed line marking a cut, the heading The documents and the first row of a table: a link to the evaluation report, beside what it holds."}
 :::
 
 ## One brand, every format {#sec-sites-brand-reach}
@@ -226,6 +236,10 @@ logo was the same navy, so the bar hid it. `background: light` in the navbar fix
 build log reports what was written, not what can be seen: look at the site, not only its
 log.
 :::
+
+![Without `background: light`, the navbar takes the brand's navy, and the logo's name, drawn in the same navy, all but vanishes.](../media/figures/eval-site-navbar-before.png){#fig-sites-navbar-before width=85% fig-alt="A navy bar holding a menu button, a small white bar-chart mark, the word Acme in a dark navy that barely shows against the bar, and a search icon."}
+
+![With `background: light`, as the finished site has it, the logo can be seen.](../media/figures/eval-site-navbar-after.png){#fig-sites-navbar-after width=85% fig-alt="The same bar on a warm off-white background: the menu button, the Acme Signals logo, a navy square with white bars beside the company's name, and the search icon."}
 
 ## Checks for every page {#sec-sites-checks}
 

@@ -32,6 +32,13 @@ text_holds(gap.idxmin() == best, "the best-calibrated release")
 text_holds(ages.loc[most, "share_called"] > 2 * S["top_share"] > 2 * ages.loc[least, "share_called"]
            and ages.loc[most, "share_called"] > 3 * ages.loc[least, "share_called"],
            "the opening's \"called far more often than another\"")
+# The payoff (media/capture/eval_outputs.py, step card): the card's title, subtitle and section 2.
+import re
+
+CARD = (ev.PROJECT.parents[1] / "checkpoints" / "15-eval-results" / "model-card.qmd").read_text()
+alt_text_holds(dict(re.findall(r'^(title|subtitle): "(.*)"$', CARD, re.M)) == {
+    "title": "Model card: contact-ranking model", "subtitle": "Acme Signals (a fictional company)"}
+    and re.findall(r"^## (.+?) \{#", CARD, re.M)[1] == "Intended use", "fig-results-card")
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
 # checkpoint 14 on 2026-11-18; the traps in @tbl-results-traps and the story in
 # @sec-results-change are the ones that run met. The model-card prompt was trimmed on
@@ -68,6 +75,10 @@ You build
 
 Checkpoint
 : `checkpoints/15-eval-results/`
+:::
+
+::: payoff
+![The top of the finished model card, rendered from `checkpoints/15-eval-results/model-card.qmd`.](../media/figures/eval-card-top.png){#fig-results-card width=85% fig-alt="The top of a web page at a phone's width: the title, Model card: contact-ranking model, and the subtitle, Acme Signals (a fictional company). After a dashed line marking a cut, section 2, Intended use, gives the primary use, ordering a bank's list of customers for a term-deposit campaign, the primary users, and what is out of scope, from decisions about credit to any version that uses duration."}
 :::
 
 ## Compute once, check three ways {#sec-results-checks}

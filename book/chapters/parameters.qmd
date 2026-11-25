@@ -8,7 +8,7 @@ import csv
 import re
 
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 ROOT = ev.PROJECT.parents[1]
 CHECKPOINT = ROOT / "checkpoints" / "19-eval-params"
@@ -36,6 +36,49 @@ MIN_STUDENTS = int(re.search(r"^MIN_STUDENTS = (\d+)", (FEEDBACK / "feedback.qmd
 FEW = int(re.search(r"^FEW_SUBSCRIBERS = (\d+)", (CHECKPOINT / "src" / "acme_eval" / "params.py").read_text(), re.M).group(1))
 # The months the prompts and the text type: one in the data, one outside it.
 text_holds("2026-06" in months and "2027-01" not in months, "the months 2026-06 and 2027-01")
+
+# The update as rendered for the last two months, by media/capture/eval_outputs.py (step
+# update), which saved the pictures and each month's sentences: if stale, rerun it.
+import difflib
+import json
+from pathlib import Path
+
+captured = json.loads((Path(ev.__file__).resolve().parents[1] / "media" / "figures"
+                       / "eval-update-sentences.json").read_text(encoding="utf-8"))
+first_month, last_month = captured["months"]
+text_holds([first_month, last_month] == months[-2:], "the update's two months, the data's last two")
+A, B = (captured["sentences"][m] for m in (first_month, last_month))
+FIGURES = ("Paying customers", "Pilots", "Monthly recurring revenue", "Contacts ranked")
+alt_text_holds(all(sum(s.startswith(f) and "(synthetic)" in s and " from " in s for s in month) == 1
+                   for f in FIGURES for month in (A, B)), "fig-params-update-a and -b")
+MONTH_NAMES = "January|February|March|April|May|June|July|August|September|October|November|December"
+
+
+def wording(s: str) -> str:
+    """A sentence without its months and numbers: what is left is its wording."""
+    return re.sub(r"\d[\d,.-]*", "#", re.sub(rf"\b({MONTH_NAMES}) \d{{4}}", "M", s))
+
+
+# Pair the two months' sentences by their wording: the same words (identical, or only their
+# figures and months differ), changed words, or a sentence in one month only.
+same, refigured, reworded, only_first = [], [], [], []
+for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, [wording(s) for s in A],
+                                                  [wording(s) for s in B]).get_opcodes():
+    if op == "equal":
+        for x, y in zip(A[i1:i2], B[j1:j2]):
+            (same if x == y else refigured).append(x)
+    elif op == "replace" and i2 - i1 == j2 - j1:
+        reworded += list(zip(A[i1:i2], B[j1:j2]))
+    elif op == "delete":
+        only_first += A[i1:i2]
+    else:
+        raise ValueError("the update's two months no longer pair as the think box says: rewrite it")
+text_holds(len(reworded) == 1 and same and refigured and len(only_first) == 2
+           and any("new this month" in s for s in only_first)
+           and any("invented for teaching" in s for s in same)
+           and any(s.startswith("The model’s figures are real") for s in same),
+           "the think box on the update's two months")
+customers = next(s for s in B if s.startswith("Paying customers"))
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5), in copies of
 # checkpoint 18 and of the feedback example's data, on 2026-11-18; the traps in
 # @tbl-params-traps are the ones those runs, and the build of the finished documents, met.
@@ -79,6 +122,12 @@ You build
 
 Checkpoint
 : `checkpoints/19-eval-params/`, and `examples/feedback/`
+:::
+
+::: payoff
+![The finished update for the second-to-last month in its data, at a phone's width: every business figure is marked synthetic.](../media/figures/eval-update-a.png){#fig-params-update-a width=85% fig-alt="The top of a web page at a phone's width: the sentence saying which month the update covers; then, after a dashed line marking a cut, its four business figures, paying customers, pilots, monthly recurring revenue and contacts ranked, each marked (synthetic) and set against the month before."}
+
+![The same update, rendered for the last month.](../media/figures/eval-update-b.png){#fig-params-update-b width=85% fig-alt="The same part of the update for the following month: the month it covers, then the same four business figures, each marked (synthetic) and set against the month before."}
 :::
 
 ## One document, many values {#sec-params-vocab}
@@ -152,6 +201,19 @@ from `outputs/` and are the real evaluation's. A month before the first release 
 than inventing a model figure. And a month that is not in the data stops the render: try
 `-P month:2027-01`.
 
+::: think
+The finished update was rendered for its last two months, `{python} first_month` and
+`{python} last_month`, from one source. Between the two, which sentences should differ: the
+figures, the change from the month before, the release that was live? Which must not?
+
+`{python} WORD[len(refigured)].capitalize()` differ only in their figures and months. One
+changes its words: "`{python} reworded[0][0].rstrip(".")`" becomes
+"`{python} reworded[0][1].rstrip(".")`". `{python} WORD[len(only_first)].capitalize()` appear
+only in `{python} first_month`, when its release was new. `{python} WORD[len(same)].capitalize()`
+are word for word the same, the synthetic label and the method note among them: if those
+differed, a parameter would have leaked into text it should not reach.
+:::
+
 Here is the mechanism, in the finished update. Its parameters cell:
 
 ```{python}
@@ -181,8 +243,8 @@ print(f"```python\n{chooser}\n```")
 
 `params.direction()` compares the two printed numbers and returns "up", "down" or
 "unchanged"; the guard then checks the printed text, so a word and the figures beside it can
-never disagree. The update
-writes the word into its sentence, and a month with no month before it says so instead.
+never disagree. The update writes the word into its sentence, and a month with no month before
+it says so instead. For `{python} last_month`, it wrote "`{python} customers.rstrip(".")`".
 
 ::: pitfall
 The update is not in the site's `render` list, and should not be: it is not a public page. So

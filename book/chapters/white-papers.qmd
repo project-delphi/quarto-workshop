@@ -8,7 +8,7 @@ import importlib.util
 import re
 
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "18-eval-whitepaper"
 paper = (CHECKPOINT / "whitepaper.qmd").read_text()
@@ -34,6 +34,12 @@ text_holds(all(e["key"] in cited_paper | cited_card for e in entries),
            "every entry of the project's bibliography is cited by the paper or the model card")
 how_many = "all of them" if len(cited_paper) == len(entries) else f"{WORD[len(cited_paper)]} of them"
 text_holds(all(refs[k] for k in refs), "the paper refers to equations, tables, figures and sections")
+# The payoff (media/capture/eval_outputs.py, step whitepaper): the title block's words.
+meta = dict(re.findall(r'^(title|subtitle): "(.*)"$', paper, re.M))
+partial = (CHECKPOINT / "templates" / "whitepaper" / "typst-show.typ").read_text()
+alt_text_holds(meta == {"title": "Ranking calls with three releases", "subtitle": "An evaluation of the "
+                        "contact-ranking model of Acme Signals, a fictional company, on public "
+                        "bank-marketing data"} and "[Technical white paper]" in partial, "fig-wp-title")
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
 # checkpoint 17 on 2026-11-18; the traps in @tbl-wp-traps, the think box's unopenable paper and
 # the "pbge" story are the ones that run, and the build of the finished paper, met. On
@@ -73,6 +79,10 @@ Checkpoint
 : `checkpoints/18-eval-whitepaper/`
 :::
 
+::: payoff
+![The house title block, at the top of page 1 of the finished white paper's PDF, rendered from `checkpoints/18-eval-whitepaper/`.](../media/figures/eval-whitepaper-p1.png){#fig-wp-title width=85% fig-alt="The top of an A4 page on a warm off-white background: the Acme Signals logo on the left and the label Technical white paper on the right, above a navy rule; the title, Ranking calls with three releases, in large bold navy; a grey subtitle, An evaluation of the contact-ranking model of Acme Signals, a fictional company, on public bank-marketing data; and a line with the company's name and the date."}
+:::
+
 ## What a white paper is made of {#sec-wp-vocab}
 
 | Part | Quarto calls it |
@@ -84,12 +94,6 @@ Checkpoint
 | a citation style | `csl:` and a style file; `citeproc: true` for the PDF |
 
 : A white paper's parts, and their names in Quarto 1.10.20. {#tbl-wp-vocab}
-
-The finished paper refers to `{python} counted(len(refs["eq"]), "equation")`,
-`{python} counted(len(refs["tbl"]), "table")`, `{python} counted(len(refs["fig"]), "figure")`
-and `{python} counted(len(refs["sec"]), "section")` by number. A reference that does not resolve
-renders as "??", so a search of each format for it is the check a reader would make by eye,
-done once: in the finished paper's three formats, it found none.
 
 ## The paper {#sec-wp-paper}
 
@@ -122,6 +126,12 @@ Check it as its outside reader would. **References resolve**: search each output
 agree**: a number in the Results text equals the same number in the table. **The abstract
 stands alone**: someone who reads only the abstract knows what was evaluated, the headline
 result and its main limit.
+
+The finished paper refers to `{python} counted(len(refs["eq"]), "equation")`,
+`{python} counted(len(refs["tbl"]), "table")`, `{python} counted(len(refs["fig"]), "figure")`
+and `{python} counted(len(refs["sec"]), "section")` by number. A reference that does not resolve
+renders as "??", so a search of each format for it is the check a reader would make by eye,
+done once: in the finished paper's three formats, it found none.
 
 ## References a reader can check {#sec-wp-refs}
 
