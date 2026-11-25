@@ -11,7 +11,7 @@ from pathlib import Path
 import yaml
 
 from scripts import water as w
-from scripts.prose import number_words, text_holds
+from scripts.prose import alt_text_holds, number_words, spans, text_holds
 
 NUM = number_words(zero="no")
 WORD = number_words()
@@ -43,6 +43,18 @@ tj_cl = clusters[clusters["divipola"] == "15001"]
 tj_c = int(tj_cl["cluster"].iloc[0])
 names = w.names()
 text_holds(tj_cl["cluster"].nunique() == 1, "Tunja's one kind, in the ledger")
+# The pictures of the finished project (media/capture/water_outputs.py, steps council and phone)
+# are described in words: stop the render when the sources no longer say what the alt texts do.
+last_slide = (wat / "slides.qmd").read_text().split("## What this does and does not show", 1)[1].split(":::", 1)[0]
+alt_text_holds(sum(line.startswith("- ") for line in last_slide.splitlines()) == 5
+               and "**Descriptive only: this does not establish a causal effect of water quality.**" in last_slide
+               and spans(w.A.INFANT_YEARS) == "2017–2019 and 2021–2023", "fig-water-last-slide")
+post_src = next((wat / "posts").glob("*/index.qmd")).read_text()
+alt_text_holds(yaml.safe_load(post_src.split("---")[1])["title"] == "Four kinds of municipal zone",
+               "fig-water-post-phone")
+summ = w.res()["summary"]
+alt_text_holds(summ["kept"] == 11_235 and w.res()["k"] == 4 and (summ["first_year"], summ["last_year"]) == (2016, 2023),
+               "fig-water-dashboard-phone")
 ```
 
 The officials will read the findings as a report, so they need it in the formats offices pass around:
@@ -68,6 +80,10 @@ You build
 
 Checkpoint
 : `checkpoints/10-water-report/` to `checkpoints/13-water-website/`
+:::
+
+::: payoff
+![The council deck's last slide. Rendered from `examples/water/slides.qmd`.](../media/figures/water-slides-last.png){#fig-water-last-slide width=85% fig-alt="A slide titled What this does and does not show, with five bullets. The figures are medians by kind and year, and infant mortality and dropout are municipal values. Infant mortality changes method in 2017, so only 2017 to 2019 and 2021 to 2023 are compared. Within each kind, utility-supplied IRCA and infant mortality are barely related. In bold: Descriptive only: this does not establish a causal effect of water quality. And poverty, rurality, health-service access and reporting quality differ between the kinds."}
 :::
 
 ## The report, in Word and PDF {#sec-water-report}
@@ -123,7 +139,8 @@ open `slides.html` in your browser and `slides.pptx` in PowerPoint or LibreOffic
 The agent should count six slides in each, the title included. In both formats each `##` heading
 starts a slide. A PowerPoint slide holds text, or one figure, or one
 table, so keep each slide to one thing. The council deck repeats the "descriptive only" message on its
-last slide, where a council will look for the conclusion (@fig-water-slides).
+last slide, where a council will look for the conclusion (@fig-water-last-slide); @fig-water-slides is
+another of the six.
 
 ![One of the six council slides, in the Reveal.js version. Rendered from `examples/water/slides.qmd`.](../media/figures/water-slides.png){#fig-water-slides width=85% fig-alt="A council slide titled How the kinds differ: a heatmap of the four named kinds against nine features in standard-deviation units, red above and blue below the year's average, with a note that IRCA is the utility-supplied figure."}
 
@@ -204,13 +221,13 @@ The preview's home page should list one post, whose title states the real k.
 
 The post's title states the number of clusters, so a change in the analysis could leave it wrong. The
 finished post protects itself with one line in its setup cell, `assert k == 4`, which fails the render if
-the analysis ever finds a different k (@fig-water-post). That line is a *guard*: it stops the render when
+the analysis ever finds a different k (@fig-water-post-phone). That line is a *guard*: it stops the render when
 a sentence's words, not only its numbers, no longer match the data, because a loud failure is better than
 a quiet falsehood. This book guards its own sentences the same way. @sec-outcomes says that the highest
 recorded infant mortality is not in the cluster with the worst water; if new data made that false, the
 book would stop building rather than print it.
 
-![The finished blog post, whose title states the number of clusters the analysis found. Rendered from `examples/water/posts/four-kinds-of-municipal-zone/index.qmd`.](../media/figures/water-post.png){#fig-water-post width=85% fig-alt="A blog post titled Four kinds of municipal zone, tagged water, clustering and Colombia, with an opening paragraph about the zone-years and the nine features used, and a list of the four kinds, each with its zone-years, municipalities, median IRCA, piped-water coverage and poverty."}
+![The finished blog post at a phone's width, its title stating the number of clusters the analysis found. Rendered from `examples/water/posts/four-kinds-of-municipal-zone/index.qmd`.](../media/figures/water-post-phone.png){#fig-water-post-phone width=85% fig-alt="The top of a blog post at a phone's width, titled Four kinds of municipal zone, tagged water, clustering and Colombia, with its one-sentence description and the date it was published."}
 
 ### Fresh or frozen?
 
@@ -355,7 +372,7 @@ Add Kinds, Outcomes and Method pages to dashboard.qmd from outputs/ only: a heat
 ```
 :::
 
-![The finished dashboard's map page. Rendered from `examples/water/dashboard.qmd`.](../media/figures/water-dashboard.png){#fig-water-dashboard fig-alt="The dashboard's Map page: four value boxes (zone-years clustered, the number of kinds, the median urban IRCA in 2023 and the share of sampled rural zones in the high or unfit band), a map of Colombia's municipalities coloured by the IRCA band of their urban zone, light for no risk to dark for unfit, with a year slider, a table of the four kinds with their zone-years and median IRCA, and a note about the map's data. Tabs lead to the Kinds, Outcomes, Method and Municipalities pages."}
+![The finished dashboard's Map page at a phone's width: its first two value boxes. Rendered from `examples/water/dashboard.qmd`.](../media/figures/water-dashboard-phone.png){#fig-water-dashboard-phone width=85% fig-alt="Two value boxes from the dashboard's Map page at a phone's width: Zone-years clustered, 2016 to 2023, 11,235, and Kinds of municipal zone (k), 4."}
 
 | You see | Do |
 |-------|----------|
@@ -377,14 +394,14 @@ Create whitepaper.qmd from outputs/: A4 Typst, "New Computer Modern"; an abstrac
 ```
 :::
 
+![The first page of the finished water white paper. Rendered from `examples/water/whitepaper.qmd`.](../media/figures/water-whitepaper-p1.png){#fig-water-whitepaper width=70% .on-light fig-alt="The first page of an A4 paper set in a LaTeX-style typeface, titled Drinking-water quality and infant mortality in Colombian municipal zones, with the subtitle A descriptive cluster analysis, 2016 to 2023, an abstract, and the start of a numbered Introduction with citations in square brackets."}
+
 ::: pitfall
 "Open each DOI" is there for a reason: an agent can produce a plausible reference that does not exist.
 A *DOI* is a document's permanent identifier, and `https://doi.org/` followed by it opens the publisher's
 page, so it is a quick test that a reference exists. Ask the agent to drop any reference it cannot
 open rather than guess, and check the reference list yourself.
 :::
-
-![The first page of the finished water white paper. Rendered from `examples/water/whitepaper.qmd`.](../media/figures/water-whitepaper-p1.png){#fig-water-whitepaper width=70% .on-light fig-alt="The first page of an A4 paper set in a LaTeX-style typeface, titled Drinking-water quality and infant mortality in Colombian municipal zones, with the subtitle A descriptive cluster analysis, 2016 to 2023, an abstract, and the start of a numbered Introduction with citations in square brackets."}
 
 ::: catchup
 ```default
