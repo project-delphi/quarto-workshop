@@ -203,9 +203,15 @@ git commit -m "Leave the environment and rendered files out of Git"
 :::
 
 `git status` now says `nothing to commit, working tree clean`, and it will not list
-`london.html` or `.venv/` when they appear, because `.gitignore` names them. Keep this terminal
-tab for Git, and start the agent in a new tab, in the same folder (type `codex`, `agy` or
-`opencode` instead of `claude` if you use one of those):
+`london.html` or `.venv/` when they appear, because `.gitignore` names them. From here on you
+work in three terminal tabs, all in `~/london-guide/`:
+
+- **Git**: this tab, for `git status`, `git diff` and commits.
+- **Agent**: a new tab, opened now, where you paste each prompt.
+- **Preview**: a third, opened in @sec-md-render, where `quarto preview` runs.
+
+Start the agent in its tab (type `codex`, `agy` or `opencode` instead of `claude` if you use
+one of those):
 
 ::: {.you}
 ```bash
@@ -283,7 +289,7 @@ Render london.md with quarto render and tell me which file it wrote.
 :::
 
 ::: {.you}
-in a third terminal tab:
+in the preview tab, a third terminal tab:
 
 ```bash
 cd ~/london-guide
@@ -416,8 +422,9 @@ Before you run `git diff`: how many files will it show, and will any line of the
 with `-`, the mark of a removed line?
 
 One file, `london.md`, and no removed line: the prompt only added, so every changed line
-starts with `+`. The `--- a/london.md` line at the top is a header naming the old version, not
-a change. A `-` line among the changes would be a change you did not ask for: read it first.
+starts with `+`, provided the file ended with a newline. (If it did not, its old last line
+shows as removed and added again.) The `--- a/london.md` line is a header naming the old
+version, not a change. Any other `-` line is a change you did not ask for: read it first.
 :::
 
 Here is the diff, without its `index` line, and cut after the fifth sight with "…":
@@ -562,7 +569,15 @@ The table in `london.md` is plain Markdown:
 
 Vertical bars separate columns, and the row of dashes under the header marks it as a header;
 the relative number of dashes sets the relative column widths. A link or an image works inside
-a cell.
+a cell. The prompt's "no unit" is for the PDF made in the next chapter: Typst has no pixel
+unit, so `{height=60px}` in a table stops the PDF with `invalid number suffix`, while a bare
+`60` is read as pixels in every format.
+
+<!-- Scratch render with Quarto 1.10.20, 2026-11-25, of a one-row table holding this image:
+{height=60} gives height="60" in HTML, 0.625 in in Word and height: 0.625in in Typst, and all
+three render. {height=60px} gives the same HTML and Word, but reaches Typst as height: 60px,
+and the PDF fails with "error: invalid number suffix: `px`". The same image on a line of its
+own, a figure, is converted to 0.625in and renders. -->
 
 The guide has no code yet, so the agent reads the file and types its values into the
 table: a cited *copy* of the facts, not a link to them. The next chapter makes numbers
@@ -864,7 +879,8 @@ Keep the preview running meanwhile: `london.md` needs no Python yet.
 Run the environment prompt and commit it.
 
 ::: done
-`uv run quarto check jupyter` names this folder's `.venv`, and `git status` is clean.
+`uv run quarto check jupyter` names `.venv`, and `git status` says
+`nothing to commit, working tree clean`.
 :::
 
 ::: catchup

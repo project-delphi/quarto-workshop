@@ -24,6 +24,9 @@ def flow(name: str) -> str:
 uses = sorted({u for name in ("check.yml", "publish.yml", "monthly.yml")
                for u in re.findall(r"uses:\s*(\S+)", flow(name))})
 pins = ", ".join(uses[:-1]) + " and " + uses[-1]
+checkout = next(u for u in uses if u.startswith("actions/checkout@"))
+text_holds(re.fullmatch(r"actions/checkout@v\d+", checkout) is not None, "a major tag such as checkout's")
+# Re-checked 2026-11-25 (releases/latest): all still the latest; setup-uv has v10.4.0 (2026-11-20).
 runs = re.findall(r"^\s+run:\s*(.+)$", flow("check.yml"), re.M)
 cron = re.search(r'cron:\s*"([^"]+)"', flow("monthly.yml")).group(1)
 minute, hour, day = cron.split()[:3]
@@ -61,8 +64,7 @@ results no longer support turns it red, naming the sentence.
 
 This chapter adds that to the Acme project, with the rules a team needs for agents' changes:
 one change per pull request, nothing generated committed, and nothing called done until it has
-been rebuilt. It then publishes the site from `main` and renders the monthly reports on a
-schedule, both by the same build.
+been rebuilt. The same build then publishes the site and renders the monthly reports.
 
 ::: opener
 - Write the rules a team's agents follow, and a pull request template a reviewer can use.
@@ -110,6 +112,9 @@ GitHub Actions, and its parts have names:
 | "nothing reaches `main` unbuilt" | a *protected branch* |
 
 : CI's parts, and what GitHub Actions calls them. {#tbl-team-vocab}
+
+A workflow's *steps* run in order, each an action (`uses:`) or a command (`run:`), and the log
+shows each one green or red. A file a run keeps for you to download is an *artifact*.
 
 A workflow should run the commands you run, not new ones. The project's `AGENTS.md` already
 lists its rebuild: compute the results, run the tests, render the site, check the pages. CI runs
@@ -179,7 +184,7 @@ The file's rows for that metric, `recall_top10`:
 
 ```{python}
 #| output: asis
-print("| `version` | `value` | `low`, `high` |\n|---|--:|--:|")
+print(f"| `version` | `value` | `low`, `high` (the {ev.percent(S['confidence'], 0)} interval) |\n|---|--:|--:|")
 for _, row in csv_rows.iterrows():
     print(f"| {row['version']} | {row['value']} | {row['low']}, {row['high']} |")
 ```
@@ -201,26 +206,37 @@ Create .github/workflows/check.yml: on every pull request and every push to `mai
 ```
 :::
 
-The finished workflows pin `{python} pins`, the latest releases when this chapter was tested,
-and Quarto `{python} quarto`. Ask for the versions to be looked up: an agent's memory of an
-action's version is as old as its training, and an old major version can stop working when
-GitHub retires what it runs on. Name the versions of the tools as well, since a prompt that
-said only "uv" got that day's newest. It worked, but a build that installs whatever is newest
-is not the same build next month.
+The finished workflows pin `{python} pins`, the latest releases on 2026-11-18, when this
+chapter was tested, and Quarto `{python} quarto`. Ask for the versions to be looked up: an
+agent's memory of an action's version is as old as its training, and an old major version can
+stop working when GitHub retires what it runs on. A major tag such as `{python} checkout` moves
+with each release; the strict pin, which GitHub's guide to secure use recommends, is a
+commit's full SHA. Name the tools' versions too: a prompt that said only "uv" got that day's
+newest, and a build that installs whatever is newest is not the same build next month.
 
 ::: {.you}
 ```bash
 git push -u origin team-rules
 gh pr create --base main --fill
+```
+:::
+
+Review it against its template's three checks, and only then merge it, with a merge commit
+(`--merge`): `ci` starts from `team-rules`, so the second pull request then shows only the
+workflow. Squashing would put new commits on `main`, and the second would list the old ones
+again.
+
+::: {.you}
+```bash
 gh pr merge team-rules --merge
 git push -u origin ci
 gh pr create --base main --fill
 ```
 :::
 
-Review the first pull request against its template's three checks, and merge it with a merge
-commit, as above, so that the second shows only the workflow. The second runs the check, step
-by step on its *Checks* tab; merge it when it is green.
+The second pull request runs the check, step by step on its *Checks* tab. The first run
+downloads Quarto and every package, which takes a few minutes; later runs restore uv's
+downloads from a cache. Merge it when it is green.
 
 What it costs: `{python} fact("github.actions_free")` (@sec-facts). A private repository's
 check uses that allowance; a public one does not.
@@ -285,9 +301,8 @@ the same build first. The permission to deploy belongs to the deploy job alone; 
 prompt: unprompted, an agent may give it to the whole workflow.
 
 ::: pitfall
-Where it may go comes first (@sec-sites-publish): `{python} fact("github.pages_private")`. The
-Acme evaluation is of public data and could be public; a client's evaluation could not, and
-publishing it needs a host your organisation approves, or no site at all, only the PDFs.
+Where it may go comes first (@sec-sites-publish): `{python} fact("github.pages_private")`. A
+client's evaluation needs a host your organisation approves, or no site at all, only the PDFs.
 :::
 
 ## Reports on a schedule {#sec-team-schedule}
@@ -301,6 +316,8 @@ Create .github/workflows/monthly.yml: on the 2nd of every month at 06:17 UTC, an
 ```
 :::
 
+<!-- The schedule's rules, the `timezone:` key among them, checked against GitHub's workflow
+syntax and events pages on 2026-11-25. -->
 The finished schedule is the cron line "`{python} cron`": minute `{python} minute`, hour
 `{python} hour`, day `{python} day` of every month. GitHub reads it in UTC unless a `timezone:`
 line beside it names one, such as `timezone: "Europe/London"`; it runs on the latest commit of
@@ -322,6 +339,8 @@ YAML file might not have. Check any time arithmetic an agent writes.
 ::: pitfall
 GitHub turns scheduled workflows off in a public repository after sixty days with no activity.
 A monthly report that matters needs someone who notices when it does not arrive.
+
+<!-- source: GitHub, events that trigger workflows, schedule; checked 2026-11-25. -->
 :::
 
 ::: catchup
@@ -357,7 +376,9 @@ sentence, and `ls .github/workflows` lists `check.yml`, `monthly.yml` and `publi
 - GitHub, [workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax),
   [events that trigger workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
   and [custom workflows for Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
-  (checked 2026-11-18).
+  (checked 2026-11-25).
+- GitHub, [secure use reference](https://docs.github.com/en/actions/reference/security/secure-use),
+  on pinning actions to a commit SHA (checked 2026-11-25).
 - GitHub, [about protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
   (checked 2026-11-18).
 - Quarto, [GitHub Actions](https://quarto.org/docs/publishing/github-pages.html#github-action)
