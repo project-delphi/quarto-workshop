@@ -21,6 +21,7 @@ most, least = ages["share_called"].idxmax(), ages["share_called"].idxmin()
 cal = ev.calibration()
 cal_best = cal[cal["version"] == best]
 gap = (cal["mean_predicted"] - cal["observed_rate"]).abs().groupby(cal["version"]).max()
+oldest = min(S["releases"], key=lambda r: r["month"])["version"]
 top = ev.percent(S["top_share"], 0)
 calls_double = math.ceil(2 * S["top_share"] * S["test_rows"])
 # The sentences below say: the band called most is also the band most likely to subscribe;
@@ -48,7 +49,7 @@ alt_text_holds(dict(re.findall(r'^(title|subtitle): "(.*)"$', CARD, re.M)) == {
 
 The fast path ended with one report and one winner. This chapter asks a second question of
 the same results: whom does the winning release call? The answer is in a file the report
-never opened, and it is not one its makers would have guessed from the headline. The list the
+never opened. The list the
 call centre would work from is not a fair sample of the bank's customers, and one group is
 called far more often than another. A report can leave that out. A model card cannot, and
 writing one is this chapter's larger task: handed to the agent whole, with a plan first and
@@ -84,9 +85,9 @@ Checkpoint
 ## Compute once, check three ways {#sec-results-checks}
 
 `scripts/evaluate.py` is the only code in the repository that fits a model. It writes five
-plain files to `outputs/`, and they are the same bytes on every run, because every random
-choice, the split, the models and the bootstrap, has a fixed seed. In this book's run the best
-release is `{python} best`, measured on `{python} f"{S['test_rows']:,}"` test contacts, of whom
+plain files to `outputs/`, the same bytes on every run in the environment `uv.lock` pins,
+because every random choice, the split, the models and the bootstrap, has a fixed seed. In
+this book's run the best release is `{python} best`, measured on `{python} f"{S['test_rows']:,}"` test contacts, of whom
 `{python} ev.percent(S["base_rate"])` subscribed (the *base rate*):
 
 | File | Holds |
@@ -99,10 +100,13 @@ release is `{python} best`, measured on `{python} f"{S['test_rows']:,}"` test co
 
 : What the evaluation writes. {#tbl-results-outputs}
 
-A metric's *bootstrap interval* is the range that holds the middle
+The metrics are *ROC AUC*, the probability that a release ranks a random subscriber above a
+random non-subscriber, and three for the top of the list: *recall*, the share of subscribers
+the calls reach; *precision*, the share of calls that reach one; and *lift*, precision over
+the base rate. A metric's *bootstrap interval* is the range that holds the middle
 `{python} ev.percent(S["confidence"], 0)` of its values when the test set is re-drawn, with
-replacement, many times. Three kinds of check then guard different things, and a professional repository needs all
-three:
+replacement, many times. Three kinds of check guard different things, and a repository
+needs all three:
 
 | Check | Runs | Catches |
 |---|---|---|
@@ -168,10 +172,10 @@ The paper, "Model Cards for Model Reporting", has nine sections: model details, 
 factors, metrics, evaluation data, training data, quantitative analyses, ethical
 considerations, and caveats and recommendations.
 **Read the plan** against them, as a reviewer would. A good plan lists the sections in order,
-says where each number comes from, names the slices and the figure, says how it will check the
-references, and computes labels such as "top `{python} top`" from `outputs/` rather than
-typing them. If the plan misses something, say so before it starts; it is cheaper to change a
-plan than a file. Then reply `Go ahead.`
+says where each number comes from, names the *slices* (the results for each age band and each
+job) and the figure, says how it will check the references, and computes labels such as "top
+`{python} top`" from `outputs/` rather than typing them. If the plan misses something, say so
+before it starts. Then reply `Go ahead.`
 
 When it finishes, the checks are the ones the prompt asked for:
 
@@ -183,24 +187,24 @@ When it finishes, the checks are the ones the prompt asked for:
   DOI you can open. When this card was built, the dataset's DOI record had its authors
   garbled, and the agent cited the dataset as the repository's own page gives it: a reason to
   open DOIs, not only to collect them.
-- **The list of what it could not verify.** This is the most useful part of a larger task's
-  report. Expect items such as how the split was made, how the calibration bins were formed,
-  and that the intended-use and ethics text is the agent's own framing. Each item is a
-  question for you, not a defect to accept.
+- **The list of what it could not verify**, the most useful part of a larger task's report:
+  how the split was made, how the calibration bins were formed, that the ethics text is its
+  own framing. Each item is a question for you, not a defect to accept.
 - **The render.** Open the three formats, and look at the slices as their subjects would.
 
-The finished card's slices make the point of the exercise. Under `{python} best`, the
+The finished card's slices make the point. Under `{python} best`, the
 called top `{python} top` of the list holds `{python} ev.percent(ages.loc[most, "share_called"])`
 of the contacts aged `{python} most` but `{python} ev.percent(ages.loc[least, "share_called"])`
-of those aged `{python} least`: the model ranks by age, because in these data the
+of those aged `{python} least`: its ranking follows age, because in these data the
 `{python} most` band subscribes most often (`{python} ev.percent(ages.loc[most, "base_rate"])`).
-That is accurate, and it is exactly what a card must say, because age is a protected
-characteristic in UK law, and a bank deciding whom to call needs to know it before it relies on
-the ranking.
+That is accurate, and a card must say it. Age is a *protected characteristic* in UK law: the
+Equality Act 2010 protects people from discrimination because of it. The data are a
+Portuguese bank's, but the card asks for legal review before any UK deployment. A bank must
+know before it relies on the ranking.
 
 ```{python}
 #| label: tbl-results-ages
-#| tbl-cap: "The best release's slices by age band, from the evaluation's outputs: the share of each band in the called list, the band's subscription rate, and the share of its subscribers the calls reach."
+#| tbl-cap: "The best release's slices by age band, from the evaluation's outputs: the share of each band's contacts in the called list, the band's subscription rate, and the share of its subscribers the calls reach."
 #| output: asis
 lines = ["| Age band | Test contacts | Called | Subscription rate | Recall |", "|---|--:|--:|--:|--:|"]
 for band, r in ages.iterrows():
@@ -212,7 +216,7 @@ print("\n".join(lines))
 | What you see | The fix |
 |---|---|
 | The first render stops: pandas' styled tables (`df.style`) need `jinja2` | write the table another way, rather than add a dependency |
-| The PDF cites in another style, with a second "Bibliography" page | `citeproc: true` under `typst:`, so all three formats use one processor |
+| The PDF cites in another style, with a second "Bibliography" page | `citeproc: true` under `typst:` |
 | An old `model-card.html` after a failed render | read the render's last lines before you open the file |
 
 : Met while testing the card, 2026-11-18. {#tbl-results-traps}
@@ -226,12 +230,12 @@ Numbered sections and cross-references do that, and each is one setting or one l
 |---|---|---|
 | numbered sections | `number-sections: true` | "2 Who is called" |
 | a section referred to | `## Who is called {#sec-segments}` and `@sec-segments` | "Section 2", a link |
+| a table or figure | a `tbl-` or `fig-` label, then `@tbl-…` | "Table 2", "Figure 2" |
+| one citation style | `citeproc: true` for `typst` | "(Mitchell et al. 2019)" in all three |
 
-: Sections, and the setting behind each. {#tbl-results-refs}
+: References, and the setting behind each. {#tbl-results-refs}
 
-Tables and figures are referred to the same way, by their `tbl-` and `fig-` labels
-(@tbl-fast-vocab). The check is in the prompt: an unresolved reference renders as "??", in
-every format, so the prompt asks for each output to be searched for it.
+The check is in the prompt: an unresolved reference renders as "??", in every format.
 
 ::: {.prompt .long}
 ```default
@@ -245,7 +249,7 @@ edits `report.qmd` · `uv run quarto render report.qmd`
 
 Calibration asks whether a predicted probability can be read as a rate: of the contacts the
 model gives 20%, do about one in five subscribe? @fig-results-calibration draws it for the
-best release, from the same file the report reads.
+best release.
 
 ```{python}
 #| label: fig-results-calibration
@@ -268,9 +272,9 @@ with style():
 ```
 
 For `{python} best`, no bin is more than `{python} f"{100 * gap[best]:.1f}"` percentage points
-from the diagonal; for the oldest release, the largest gap is `{python} f"{100 * gap['v1']:.1f}"`. The report says which release is
-best calibrated with a guard, because that word, unlike the numbers, does not follow the
-data by itself.
+from the diagonal; for the oldest release, `{python} oldest`, the largest gap is
+`{python} f"{100 * gap[oldest]:.1f}"`. The report says which release is best calibrated with a
+guard, because that word, unlike the numbers, does not follow the data by itself.
 
 When both documents render, review the branch as in @sec-fast-pr: the scope (`model-card.qmd`,
 `references.bib`, `report.qmd`, perhaps `AGENTS.md`), one number against `outputs/`, and a
@@ -284,26 +288,18 @@ Catch me up: follow ../quarto-workshop/checkpoints/15-eval-results/README.md
 
 ## Change a setting, explain the rebuild {#sec-results-change}
 
-The call centre has room for more calls. No prompt is supplied: this is the test of the
+The call centre has room for more calls, so `TOP_SHARE` in `src/acme_eval/metrics.py`, the
+share of the list that is called, can double. No prompt is supplied: this is the test of the
 design, and you can do it by hand.
 
-::: story
-<!-- source: REVISION-PLAN.md line 475 (WP5: "the dry run found 'top 10%' typed in our own
-checkpoint's labels and captions, now computed or guarded"); results.qmd lines 272-277 at
-651db10 -->
-This project failed its own exercise. A dry run of this chapter's change found "top 10%"
-still typed in our own checkpoint: in a table caption and two row labels, beside the new
-figures. The numbers had moved and the words had not. The labels are computed now, and
-each caption that names the share has a guard.
-:::
-
 ::: tryit
-1. **Predict.** `TOP_SHARE` in `src/acme_eval/metrics.py` is `{python} S["top_share"]`: double it, and write down what will change, what will not, and what will stop.
-2. **Rebuild**: `uv run python scripts/evaluate.py`, then render both documents.
-3. **Undo**: `git restore src/acme_eval/metrics.py`, and rebuild.
+1. **Predict.** Before you double `TOP_SHARE`, write down which numbers in the report and the
+   card will change, which will not, and whether anything will stop the render.
+2. **Rebuild**: double it, run `uv run python scripts/evaluate.py`, render both documents.
+3. **Undo**: `git restore` the file, then evaluate and render again.
 
 ::: done
-you can explain what changed and what stopped.
+you can name what changed, what did not and what stopped.
 :::
 :::
 
@@ -312,10 +308,19 @@ What should change, what should not, and what is the trap?
 
 The number of calls (to `{python} f"{calls_double:,}"`) and every top-of-list metric change:
 recall, precision, lift, each band's share called. ROC AUC, the Brier score (the mean squared
-error of the probabilities) and the calibration do not: they measure the whole ranking, not
+error of the probabilities) and the calibration do not: they describe the whole list, not
 where it is cut. The trap is the share named in words: a typed "top 10%" stays. In the
 finished project both documents stop on a caption's guard, and two unit tests that pin the
 rule fail, on purpose.
+:::
+
+::: story
+<!-- source: REVISION-PLAN.md line 475 (WP5) and results.qmd lines 272-277 at 651db10. They
+disagree on whose report it was, so the story says only what both record. -->
+When this change was tested for the book, with the list doubled, "top 10%" was still typed
+in labels and a caption, beside the new figures. The numbers had moved and the words had
+not. The labels compute the share now, and each caption that names it has a guard. After
+you change a setting, search every output for its old value in words.
 :::
 
 ## Summary {.unnumbered}
