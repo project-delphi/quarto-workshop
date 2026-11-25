@@ -63,7 +63,7 @@ local L = LABELS.en
 
 local BOX = {}
 local ASIDE = {}
-local catchups = 0  -- catch-up boxes seen so far in this file (3)
+local catchups = 0  -- catch-up boxes seen so far in this chapter (3)
 local function set_language(meta)
   local lang = meta.lang and pandoc.utils.stringify(meta.lang) or ""
   L = lang:match("^es") and LABELS.es or LABELS.en
@@ -313,7 +313,12 @@ return {
       end
       return aside(div) or walked
     end,
-    Header = heading_words,
+    -- The EPUB is rendered as one document, so the catch-up count (3) starts again at each
+    -- chapter's title; Header and Div are visited in document order in this pass.
+    Header = function(header)
+      if header.level == 1 then catchups = 0 end
+      return heading_words(header)
+    end,
     Image = scaled },
   { Blocks = group_boxes },
 }

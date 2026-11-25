@@ -185,8 +185,14 @@ To redo part of it, name the steps and limit the tapes or capture scripts with `
 make media STEPS="tapes stills check" ONLY=terminal-basics
 make book-html && make media STEPS="capture stills check" ONLY=kmeans
 make media STEPS="capture stills check" ONLY=md_side_by_side
+CAPTURE_STEPS=explore make media STEPS="capture" ONLY=water_outputs
 make media STEPS="diagrams"
 ```
+
+A capture script that makes several pictures names its steps; `CAPTURE_STEPS` (or the steps as
+arguments) runs only those, so one new picture does not remake the others. Each picture of a
+rendered page records its text size in pixels at capture in `pagefit.yml` (`screenshots`), so
+`make book-pages` can check that a phone shows its text at 9 px or more.
 
 Rules every animation follows:
 
