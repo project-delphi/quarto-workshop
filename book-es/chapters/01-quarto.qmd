@@ -80,7 +80,7 @@ Hechos a mano, esos `{python} in_words(n_outputs)` archivos serían
 `{python} in_words(n_outputs)` copias de los mismos conteos, y con las copias fallan tres
 cosas:
 
-- **Números viejos.** Se pasa por alto una copia, y el informe para los socios no coincide con
+- **Números desactualizados.** Se pasa por alto una copia, y el informe para los socios no coincide con
   el dashboard.
 - **Origen perdido.** Seis meses después, nadie puede decir qué versión de los datos produjo el
   número del white paper.
@@ -94,7 +94,7 @@ equivocado. Son lo que pasa cuando la *salida* se trata como lo que se edita. La
 estructural: edita la fuente y deja que un programa reconstruya las salidas. La @fig-drift
 sigue una corrección de ALVA por los dos flujos de trabajo.
 
-![A mano, las copias quedan viejas; desde una sola fuente, un solo renderizado las actualiza todas.](../media/diagrams/drift){#fig-drift .on-light fig-alt="Dos maneras de publicar los conteos de atracciones de la guía de Londres después de que ALVA corrige una cifra en attractions.csv. A mano: cada número se copia en cada salida, una por una, así que la guía web y el dashboard reciben el número nuevo mientras el informe en Word, la tarjeta para redes sociales y el white paper siguen mostrando el viejo. Una sola fuente: las celdas de código de las páginas .qmd del proyecto leen attractions.csv, y un solo quarto render reconstruye la guía web, el dashboard, el informe en Word, la tarjeta para redes sociales y el white paper, todos con el número corregido."}
+![A mano, las copias se desactualizan; desde una sola fuente, un solo renderizado las actualiza todas.](../media/diagrams/drift){#fig-drift .on-light fig-alt="Dos maneras de publicar los conteos de atracciones de la guía de Londres después de que ALVA corrige una cifra en attractions.csv. A mano: cada número se copia en cada salida, una por una, así que la guía web y el dashboard reciben el número nuevo mientras el informe en Word, la tarjeta para redes sociales y el white paper siguen mostrando el viejo. Una sola fuente: las celdas de código de las páginas .qmd del proyecto leen attractions.csv, y un solo quarto render reconstruye la guía web, el dashboard, el informe en Word, la tarjeta para redes sociales y el white paper, todos con el número corregido."}
 
 ## Qué es Quarto {#sec-what-quarto}
 
@@ -158,7 +158,7 @@ error te dice qué paso se detuvo, y eso te dice dónde buscar.
 Un renderizado de `london.qmd` se detiene con `KeyError: 'visits_2025'`. ¿Qué paso falló y dónde
 buscas primero?
 
-En el paso 1, ejecutar. Una celda de código le pidió a los datos una columna que no tienen, así
+En el paso 1, ejecutar. Una celda de código les pidió a los datos una columna que no tienen, así
 que compara la celda con los nombres de columna del archivo de datos. La configuración de los
 formatos no es el problema: Pandoc y Typst nunca llegaron a ejecutarse.
 :::
@@ -276,7 +276,7 @@ Con versiones
 :::
 
 Con Git, cualquier estado anterior se puede restaurar, dos estados se pueden comparar y un
-resultado se puede atar a los archivos exactos que lo produjeron. Los paquetes de Python del
+resultado se puede vincular a los archivos exactos que lo produjeron. Los paquetes de Python del
 proyecto también quedan fijados, en un archivo de bloqueo o lockfile (`uv.lock`, que se
 presenta en la @sec-environments), así que la computadora de alguien de tu equipo construye el
 mismo *entorno* que la tuya: la versión de Python y los paquetes con los que corre el código.
@@ -291,7 +291,7 @@ declarado y la misma configuración. Tres cosas la rompen sin avisar:
   aleatoria, está fijada.
 - **Un caché.** Quarto puede guardar los resultados calculados para ahorrar tiempo (`freeze`).
   Una página congelada se vuelve a ejecutar cuando cambia su fuente, no cuando cambian sus
-  datos, así que puede servir un resultado viejo; el @sec-publish-many muestra cómo vaciarlo de
+  datos, así que puede servir un resultado desactualizado; el @sec-publish-many muestra cómo vaciarlo de
   forma segura.
 
 ```{python}
@@ -320,7 +320,7 @@ hay que corregir.
 Reproducible no significa correcto. Un análisis equivocado se reproduce a la perfección: el mismo
 número equivocado aparece en cada formato, cada vez. La reproducibilidad hace que los errores se
 puedan *encontrar*, porque cualquiera puede rastrear un número hasta su código y sus datos, pero
-igual tienes que revisar los resultados contra sus fuentes. El @sec-causation es un ejemplo
+de todos modos tienes que contrastar los resultados con sus fuentes. El @sec-causation es un ejemplo
 extenso de un resultado que se reproduce sin problemas y que aun así no se debe leer como parece
 a primera vista.
 :::
@@ -338,12 +338,12 @@ una línea de comandos y algo de preparación. Ese trato no siempre conviene:
 - **Diseños maquetados.** Quarto produce documentos estructurados: títulos, párrafos, figuras,
   tablas. Typst y CSS pueden llevar el aspecto bastante lejos, pero un póster o un folleto muy
   cargado de marca y maquetado al milímetro es más fácil en una herramienta de diseño.
-- **La fidelidad de los formatos en los bordes.** Cada formato solo puede llevar lo que admite:
+- **Los límites de cada formato.** Cada formato solo puede llevar lo que admite:
   en la salida de PowerPoint de Quarto una tabla no puede contener imágenes, así que la tabla de
   fotos de la guía de Londres muestra en su versión `pptx` el texto alternativo de cada foto.
   Revisa cada formato que prometas entregar.
 - **Documentos de una sola vez.** Una nota de dos párrafos, sin datos y sin un segundo público,
-  gana poco con un sistema de construcción.
+  gana poco con un sistema que la reconstruya.
 - **Diseño y coedición en una startup.** Una presentación para inversionistas diseñada a mano,
   un sitio de marketing y un plan que el equipo fundador comenta en Google Docs o Notion pueden
   quedarse en esas herramientas. El método rinde donde cambian los números de una startup, como
@@ -352,7 +352,7 @@ una línea de comandos y algo de preparación. Ese trato no siempre conviene:
 ::: practice
 Una prueba útil: ¿este documento se va a construir una segunda vez? Si los datos van a cambiar,
 si un segundo público lo va a necesitar en otro formato o si alguien va a preguntar "¿de dónde
-salió este número?", el flujo en texto plano se paga solo rápidamente. Si nada de eso es
+salió este número?", el flujo en texto plano compensa muy pronto. Si nada de eso es
 probable, usa lo que sea más rápido.
 :::
 
@@ -375,8 +375,8 @@ probable, usa lo que sea más rápido.
 :::
 
 Pero Quarto solo renderiza lo que le dan. En este libro esas fuentes las escribe un agente de
-programación, y lo que produce varía de una ejecución a otra y puede estar equivocado con total
-seguridad. ¿Cómo le pides trabajo a un programa así, y cómo revisas lo que te devuelve antes de
+programación, y lo que produce varía de una ejecución a otra y puede equivocarse y sonar totalmente
+seguro. ¿Cómo le pides trabajo a un programa así, y cómo revisas lo que te devuelve antes de
 que se publique nada? El @sec-assistant lo responde.
 
 ## Lecturas adicionales {.unnumbered}

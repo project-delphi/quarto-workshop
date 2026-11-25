@@ -136,20 +136,20 @@ incluido (@fig-publish-flow).
 
 Hay dos formas de llevar un sitio a un servicio de alojamiento. O renderizas en tu propia
 computadora y subes el resultado, como hace `quarto publish` para GitHub Pages y Netlify, o el
-servicio construye el sitio a partir de tu repositorio en cada push, en un *trabajo de CI*, una
-construcción que ejecuta por ti. La segunda solo funciona si
-la construcción instala Quarto, Python y cada paquete que necesita el proyecto, o si la salida
+servicio construye el sitio a partir de tu repositorio en cada push, en un *trabajo de CI*, un
+build que ejecuta por ti. La segunda solo funciona si
+el build instala Quarto, Python y cada paquete que necesita el proyecto, o si la salida
 renderizada está en el repositorio. El repositorio de Londres deja afuera su carpeta renderizada
-`_site/`, así que un servicio que construye no produciría nada hasta que se configure la
-construcción.
+`_site/`, así que un servicio que construye no produciría nada hasta que se configure el
+build.
 
 ::: think
 Conectas `london-guide` a un servicio que construye desde Git, y publica un sitio vacío. ¿Por
 qué?
 
 El repositorio no contiene ningún sitio renderizado, porque `.gitignore` deja afuera `_site/`, y
-la construcción del servicio no tiene Quarto, Python ni paquetes salvo que los instales en ella.
-O renderizas en tu computadora y subes el resultado, o configuras la construcción.
+el build del servicio no tiene Quarto, Python ni paquetes salvo que los instales en él.
+O renderizas en tu computadora y subes el resultado, o configuras el build.
 :::
 
 La @tbl-hosts ordena los servicios según la ruta. Sus planes gratuitos cambian, así que
@@ -164,7 +164,7 @@ con la fecha en que se consultaron: léelos antes de elegir.
 
 : Dos rutas hacia un servicio de alojamiento: renderizar y subir, o dejar que el servicio construya. {#tbl-hosts}
 
-El plugin de construcción de Quarto para Netlify no ejecuta Python, así que, para este proyecto,
+El plugin de build de Quarto para Netlify no ejecuta Python, así que, para este proyecto,
 renderiza y sube.
 
 ## Una carpeta, un sitio web {#sec-london-website}
@@ -183,7 +183,7 @@ escribe 2 archivos · agrega una línea a `.gitignore` · `uv run quarto render`
 luego, en la pestaña de la vista previa: Ctrl+C, y `uv run quarto preview`
 :::
 
-Un archivo `_quarto.yml` en la parte de arriba de la carpeta la convierte en un *proyecto*.
+Un archivo `_quarto.yml` en la raíz de la carpeta la convierte en un *proyecto*.
 `quarto render` sin nombre de archivo construye entonces cada página de la lista en `_site/`, con
 navegación compartida, y `quarto preview` sin nombre de archivo muestra la vista previa del sitio
 entero. El dashboard se vuelve una de sus páginas:
@@ -317,11 +317,11 @@ problemas de push.
 :::
 
 ::: practice
-Publicar desde tu propia computadora es simple y mantiene la construcción donde está tu entorno.
+Publicar desde tu propia computadora es simple y mantiene el build donde está tu entorno.
 La alternativa, una GitHub Action que renderiza en cada push (`quarto-dev/quarto-actions`, de
 Quarto), necesita Python y los paquetes del proyecto instalados en el trabajo, o `freeze`
 configurado para que se reutilicen los resultados guardados en el repositorio, y la guía de
-Quarto igual pide un primer `quarto publish gh-pages` en tu computadora.
+Quarto de todos modos pide un primer `quarto publish gh-pages` en tu computadora.
 :::
 
 ::: tryit
@@ -414,11 +414,11 @@ atracción más visitada con `attractions["visits_2025"].idxmax()` y el total co
 en cada una la Tower of London pasa a ser la atracción más visitada y el total sube. El anuncio
 cuadrado usa solo la primera llamada, así que también nombra a la Tower.
 
-El documento técnico no nombra ninguna atracción más visitada, y sus sumas por tipo de entrada
+El documento técnico (white paper) no nombra ninguna atracción más visitada, y sus sumas por tipo de entrada
 cambian. Su tabla también copia la columna `rank_uk` de ALVA del archivo, así que después del
 cambio mostraría a la Tower con la mayor cantidad de visitas de las diez, pero todavía en el
 `{python} ORDINALS[tower_rank_uk]` puesto del Reino Unido. Una columna copiada también queda
-vieja. Aun así, la corrección llega a `{python} word(n_outputs_attr)` archivos con un solo
+desactualizada. Aun así, la corrección llega a `{python} word(n_outputs_attr)` archivos con un solo
 comando, y nadie tiene que salir a buscarlos.
 
 Las copias merecen una segunda mirada. El folleto no carga ningún dato, y las tablas de atracciones
@@ -432,7 +432,7 @@ copia.
 ¿Por qué se vuelve a calcular cada página, incluso las que no cambiaron su fuente? El proyecto
 conserva el comportamiento por defecto de Quarto, `freeze: false`, así que cada renderizado vuelve
 a ejecutar el código de cada página; con el caché activado, una página cuya fuente no cambió
-conservaría sus números viejos (@sec-publish-many).
+conservaría sus números desactualizados (@sec-publish-many).
 :::
 
 Hay dos cosas más que no cambian: el sitio en vivo, hasta que vuelvas a publicar
@@ -440,7 +440,7 @@ Hay dos cosas más que no cambian: el sitio en vivo, hasta que vuelvas a publica
 respuestas modelo, con las preguntas de seguimiento que vale la pena hacerse, están en
 el @sec-checkpoints.
 
-## Un documento técnico (opcional) {#sec-london-whitepaper}
+## Un white paper (opcional) {#sec-london-whitepaper}
 
 Los mismos datos también se pueden convertir en un artículo académico: un resumen, secciones
 numeradas, resultados calculados y una lista de referencias, con la tipografía que usan los
@@ -448,7 +448,7 @@ documentos de LaTeX, sin instalar LaTeX.
 
 ::: {.prompt}
 ```default
-Crea london-whitepaper.qmd, white paper A4 de Typst en inglés y "New Computer Modern": resumen (sin código en línea); Introduction, Methods, Results y Conclusions numeradas; `#set bibliography(title: [References])` para References, con references.bib desde `url`. Analiza data/visits.csv frente a 2019 y data/attractions.csv por `admission`. Súmalo a `render` y al menú "Downloads"; renderiza; revisa las citas. Figuras vectoriales: `fig-format: svg`; comprueba que `figure-typst/` solo tenga .svg.
+Crea london-whitepaper.qmd, white paper A4 de Typst, en inglés, fuente "New Computer Modern": resumen sin código en línea; Introduction, Methods, Results y Conclusions numeradas; `#set bibliography(title: [References])` para References (references.bib desde `url`). Analiza data/visits.csv frente a 2019 y data/attractions.csv por `admission`. Súmalo a `render` y al menú "Downloads"; renderiza; revisa las citas. Figuras vectoriales: `fig-format: svg`; comprueba que `figure-typst/` solo tenga .svg.
 ```
 :::
 
@@ -470,7 +470,7 @@ format:
 4. Las figuras vectoriales se ven nítidas con cualquier zoom; la comprobación del prompt se asegura
    de que de verdad sean vectoriales.
 
-![La página 1 del documento técnico de Londres terminado.](../media/figures/london-whitepaper-p1.png){#fig-whitepaper width=75% .on-light fig-alt="La primera página de un documento A4 en inglés, con una tipografía de estilo LaTeX: el título Visits to London's leading ALVA member attractions, 2015 to 2025, el subtítulo Pandemic loss and recovery: a descriptive analysis, el autor London Tourism Office, un resumen y las secciones 1, Introduction, y 2, Methods, con citas numeradas entre corchetes."}
+![La página 1 del white paper de Londres terminado.](../media/figures/london-whitepaper-p1.png){#fig-whitepaper width=75% .on-light fig-alt="La primera página de un documento A4 en inglés, con una tipografía de estilo LaTeX: el título Visits to London's leading ALVA member attractions, 2015 to 2025, el subtítulo Pandemic loss and recovery: a descriptive analysis, el autor London Tourism Office, un resumen y las secciones 1, Introduction, y 2, Methods, con citas numeradas entre corchetes."}
 
 La configuración del documento necesita Quarto 1.10 o más reciente. Al construir el ejemplo
 aparecieron otras dos trampas (@tbl-whitepaper-traps).
@@ -480,7 +480,7 @@ aparecieron otras dos trampas (@tbl-whitepaper-traps).
 | el código en línea del `abstract` del YAML falla | se ejecuta antes de la celda de preparación | escribe el resumen en el cuerpo, en un bloque de Typst sin procesar |
 | un título "Bibliography" encima de las referencias | Typst imprime ahí su propio título | `#set bibliography(title: [References])`, y ningún título propio |
 
-: Dos trampas encontradas al construir el documento técnico. {#tbl-whitepaper-traps}
+: Dos trampas encontradas al construir el white paper. {#tbl-whitepaper-traps}
 
 También hay disponible un PDF de LaTeX auténtico, como `format: pdf`, pero necesita una
 distribución de TeX, por ejemplo `quarto install tinytex`. Para la mayoría de los informes, Typst
@@ -502,7 +502,7 @@ es más rápido y más simple.
 Con eso se completa una guía para muchos públicos. Los ejercicios que siguen dejan afuera los
 prompts, y esconden un número desactualizado para que lo encuentres. Después de ellos, la Parte III
 lleva un solo conjunto de resultados a los documentos que se le piden a una empresa: una ficha del
-modelo (model card), una presentación, un sitio y un documento técnico (white paper).
+modelo (model card), una presentación, un sitio y un white paper.
 
 ## Lecturas adicionales {.unnumbered}
 

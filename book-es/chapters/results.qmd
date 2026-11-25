@@ -59,7 +59,7 @@ una sola vez, y todos los documentos los leen**, así que la ficha, el informe y
 después citan la misma ejecución.
 
 ::: opener
-- Explicar por qué cada resultado se calcula una sola vez, y qué atrapan las pruebas, las guardas
+- Explicar por qué cada resultado se calcula una sola vez, y qué detectan las pruebas, las guardas
   y el renderizado.
 - Pedirle a un agente una ficha del modelo como una sola tarea más grande, con un plan primero,
   y juzgarla por sus comprobaciones.
@@ -107,23 +107,23 @@ lista: el *recall*, la proporción de quienes se suscriben a la que llegan las l
 (llamar al azar al `{python} ev.percent(S["top_share"], 0)` superior llegaría al
 `{python} ev.percent(S["top_share"], 0)` de esas personas); la *precisión*, la proporción de
 llamadas que llegan a una de esas personas; y el *lift*, la precisión dividida por la *tasa
-base*, la proporción de todos los contactos que se suscriben. El *intervalo bootstrap* de una métrica es el rango que
-contiene el `{python} ev.percent(S["confidence"], 0)` central de sus valores cuando el conjunto
-de prueba se vuelve a sortear, con reemplazo, muchas veces. Tres tipos de comprobación protegen
+base*, la proporción de todos los contactos que se suscriben. El *intervalo bootstrap* de una
+métrica abarca el `{python} ev.percent(S["confidence"], 0)` central de sus valores cuando el conjunto
+de prueba se vuelve a sortear, con reposición, muchas veces. Tres tipos de comprobación protegen
 cosas distintas, y un repositorio necesita los tres:
 
-| Comprobación | Se ejecuta | Atrapa |
+| Comprobación | Se ejecuta | Detecta |
 |---|---|---|
 | **Pruebas** (`uv run pytest`) | sobre el código y los datos | un archivo de datos cambiado (su suma de verificación); una fuga |
 | **Guardas** (`claim(…)` en un documento) | al renderizar un documento | una oración que los resultados ya no respaldan |
 | **El renderizado** | en cada documento, en cada formato | una referencia que no se resuelve; una celda que falla |
 
-: Tres tipos de comprobación, y lo que atrapa cada uno. {#tbl-results-check-kinds}
+: Tres tipos de comprobación, y lo que detecta cada uno. {#tbl-results-check-kinds}
 
 Una *suma de verificación* (checksum) es la huella de un archivo: cambia un byte de los datos y
 deja de coincidir. Una prueba no lee la prosa, y una guarda no prueba el código; ninguna nota una
 etiqueta escrita a mano que quedó desactualizada, algo que solo notan quien lee o una predicción
-puesta a prueba con una reconstrucción (la @sec-results-change).
+puesta a prueba con una reconstrucción (@sec-results-change).
 
 ::: think
 Los datos tienen una columna, `duration`, la duración de cada llamada en segundos. La propia
@@ -140,11 +140,11 @@ repositorio la tiene.
 ## Una ficha del modelo, como una tarea más grande {#sec-model-card}
 
 Una *ficha del modelo* es un documento breve que acompaña a un modelo: qué es, para qué sirve y
-para qué no, cómo se desempeña en general y en los grupos a los que afecta, y qué saben quienes
-lo hicieron que está mal en él. Mitchell y colegas propusieron el formato en 2019, con una lista
+para qué no, cómo se desempeña en general y en los grupos a los que afecta, y qué limitaciones le
+conocen quienes lo hicieron. Mitchell y colegas propusieron el formato en 2019, con una lista
 fija de secciones, que es el vocabulario para pedirla.
 
-La ficha es un buen ejemplo de una tarea para entregar entera (la @sec-step-or-task): puedes
+La ficha es un buen ejemplo de una tarea para entregar entera (@sec-step-or-task): puedes
 enunciar el resultado (esas secciones, a partir de esos archivos), y sus comprobaciones se
 ejecutan sin ti (las guardas, las referencias, el renderizado). Así que pide primero un plan,
 léelo, y solo entonces deja que el agente trabaje. Empieza una rama para ella, como para
@@ -178,11 +178,11 @@ DataFrame.to_markdown necesita tabulate; usó to_html en su lugar. -->
 El artículo, "Model Cards for Model Reporting", tiene nueve secciones: detalles del modelo, uso
 previsto, factores, métricas, datos de evaluación, datos de entrenamiento, análisis
 cuantitativos, consideraciones éticas, y advertencias y recomendaciones.
-**Lee el plan** contra ellas, como lo haría quien revisa. Un buen plan enumera las secciones en
+**Compara el plan** con ellas, como lo haría quien revisa. Un buen plan enumera las secciones en
 orden, dice de dónde sale cada número, nombra los *subgrupos* (los resultados de cada franja de
 edad y de cada ocupación) y la figura, dice cómo va a revisar las referencias, y calcula
 etiquetas como "top `{python} top`" a partir de `outputs/` en lugar de escribirlas a mano. Si al
-plan le falta algo, dilo antes de que empiece. Luego responde `Go ahead.` (adelante).
+plan le falta algo, dilo antes de que empiece. Luego responde: `Adelante.`
 
 Cuando termina, las comprobaciones son las que pidió el prompt:
 
@@ -227,7 +227,7 @@ print("\n".join(lines))
 |---|---|
 | El primer renderizado se detiene: las tablas con estilo de pandas (`df.style`) necesitan `jinja2` | escribir la tabla de otra manera, en lugar de agregar una dependencia |
 | El PDF cita con otro estilo, con una segunda página "Bibliography" | `citeproc: true` bajo `typst:` |
-| Un `model-card.html` viejo tras un renderizado fallido | leer las últimas líneas del renderizado antes de abrir el archivo |
+| Un `model-card.html` desactualizado tras un renderizado fallido | leer las últimas líneas del renderizado antes de abrir el archivo |
 
 : Lo encontrado al probar la ficha, el 2026-11-18. {#tbl-results-traps}
 

@@ -164,7 +164,7 @@ distintas (@tbl-sub-agents).
 |---|---|
 | Claude Code | en paralelo, si se le piden |
 | Codex | si se le piden (activos por defecto); su documentación advierte que las ediciones en paralelo "pueden crear conflictos" |
-| Antigravity | en paralelo, pero puede hacerlas por su cuenta |
+| Antigravity | en paralelo, pero puede hacer las tareas él mismo |
 | OpenCode | en segundo plano: antes de renderizar, comprueba cada archivo |
 
 : Cómo ejecuta subagentes cada agente, según su documentación. {#tbl-sub-agents}
@@ -180,7 +180,7 @@ aplicando a su trabajo.
 A dos ayudantes se les pide una página a cada uno, en la misma carpeta. Terminan y renderizan a la
 vez. Cada renderizado escribe sus archivos de trabajo con los mismos nombres, así que uno falla,
 con un mensaje sobre un archivo que su informe no menciona. La sesión principal, ante dos
-resúmenes confiados, solo ve que falta una salida. Las dos páginas estaban bien: la carpeta era
+resúmenes que aseguran que todo salió bien, solo ve que falta una salida. Las dos páginas estaban bien: la carpeta era
 compartida y los renderizados no se turnaron. Deja el renderizado a la sesión principal, un
 archivo a la vez.
 :::
@@ -190,7 +190,8 @@ Usa subagentes cuando las tareas sean independientes, sustanciales y escriban ar
 No los uses para tareas en las que una necesita el resultado de otra, para varias ediciones del
 mismo archivo ni para tareas pequeñas en las que el costo de iniciar e instruir a un subagente
 supera al trabajo. Un prompt que podría ejecutarse sin subagentes debería decir qué hacer en ese
-caso: el prompt de abajo termina su primera oración con "¿no hay? haz los elementos uno tras otro".
+caso: el prompt de abajo termina su primera oración con "si no puedes usar subagentes, haz los elementos uno tras
+otro".
 :::
 
 ::: think
@@ -211,7 +212,7 @@ uno por recuadro. Primero, las instrucciones para la sesión principal:
 
 ::: {.prompt}
 ```default
-Ejecuta tres subagentes en paralelo, uno por elemento de mis próximos tres mensajes (¿no hay? haz los elementos uno tras otro). Cada uno lee london.qmd, data/ e images/, oculta el código, sigue AGENTS.md y solo escribe sus propios archivos: nada de renderizar. Los textos de las salidas, en inglés. Luego renderiza tú los tres archivos .qmd, uno por uno, y revisa cada uno. Empieza cuando hayan llegado los tres elementos.
+Ejecuta tres subagentes en paralelo, uno por elemento de mis próximos tres mensajes (si no puedes usar subagentes, haz los elementos uno tras otro). Cada uno lee london.qmd, data/ e images/, oculta el código, sigue AGENTS.md y solo escribe sus propios archivos: nada de renderizar. Los textos de las salidas, en inglés. Luego renderiza tú los tres archivos .qmd, uno por uno, y revisa cada uno. Empieza cuando hayan llegado los tres elementos.
 ```
 :::
 
@@ -251,7 +252,7 @@ Tras el mensaje de la sesión principal y tras los elementos 1 y 2, cada uno dij
 no había empezado nada; cada uno empezó solo al llegar el elemento 3. Ninguno pudo iniciar
 subagentes propios, así que los dos siguieron la alternativa del prompt e hicieron los elementos
 uno tras otro; la vía en paralelo no se probó. Los dos renderizaron los tres archivos uno por
-uno: un tablero con tres cuadros de valor y dos gráficos de Plotly, un informe de Word cuyas
+uno: un dashboard con tres cuadros de valor y dos gráficos de Plotly, un informe de Word cuyas
 cifras coinciden con data/ y un folleto A5 de una página (el de Haiku cupo al tercer
 renderizado). data/ e images/ no cambiaron. Una versión anterior enviaba los tres elementos
 como un solo mensaje; pegar tres recuadros antes de un solo Enter resultó propenso a errores,
@@ -287,7 +288,7 @@ lector y, si los lectores de un dashboard usan teléfonos, pide los totales gran
 corta, como millones.
 :::
 
-![El dashboard en un teléfono: la última cifra del total queda en parte cortada.](../media/figures/london-dashboard-phone.png){#fig-london-dashboard-phone width=50% fig-alt="Tres cuadros de valor en inglés, uno encima de otro, como muestra el dashboard un teléfono. Azul: Most visited: Natural History Museum, con sus visitas de 2025. Morado: Visits to the top 10 (ALVA members), 2025, cuyo total se sale del borde derecho del cuadro, así que su última cifra queda en parte cortada. Verde: Top 10 with free entry, con cuántas de las diez son gratuitas."}
+![El dashboard en un teléfono: la última cifra del total queda en parte cortada.](../media/figures/london-dashboard-phone.png){#fig-london-dashboard-phone width=50% fig-alt="Tres cuadros de valor en inglés, uno encima de otro, como los muestra el dashboard en un teléfono. Azul: Most visited: Natural History Museum, con sus visitas de 2025. Morado: Visits to the top 10 (ALVA members), 2025, cuyo total se sale del borde derecho del cuadro, así que su última cifra queda en parte cortada. Verde: Top 10 with free entry, con cuántas de las diez son gratuitas."}
 
 Cuando pasen las tres revisiones, `git add .` y haz commit con un mensaje que diga por qué.
 
@@ -407,7 +408,7 @@ con el resultado, y revisa los números:
 
 ::: {.prompt}
 ```default
-Crea visits-3d.html con `three.js` desde una CDN: una barra 3-D con etiqueta por cada `attraction` de data/visits.csv, tan alta como sus `visits` en el `year` más reciente, que pueda arrastrar para girarla. Pon los números dentro de la página para que se abra con doble clic, y luego compruébalos contra el CSV.
+Crea visits-3d.html con `three.js` desde una CDN: una barra 3-D con etiqueta por cada `attraction` de data/visits.csv, tan alta como sus `visits` en el `year` más reciente, que pueda arrastrar para girarla. Pon los números dentro de la página para que se abra con doble clic, y luego compáralos con el CSV.
 ```
 :::
 

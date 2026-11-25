@@ -15,8 +15,11 @@ Conventions that apply everywhere:
 - The reader's gender is never assumed: "ya puedes renderizar", not "ya estás listo".
 - A numbered reference is capitalised, as Quarto writes its own cross-references: "el
   Capítulo 3", "la Figura 1.1", "la Sección 3.2", "el Apéndice A", "la Parte II". Plurals are
-  not: "los capítulos 2 y 3", "las partes II y III". A cross-reference takes the article of
-  its noun: "la @sec-…" for a section, "el @sec-…" for a chapter or appendix.
+  not: "los capítulos 2 y 3", "las partes II y III". A cross-reference used as a noun in a
+  sentence takes the article of its noun: "la @sec-…" for a section, "el @sec-…" for a chapter
+  or appendix ("como muestra la Sección 2.5", "la Sección 1.5 tiene la lista", "el Capítulo 20
+  explica"). A parenthetical pointer stays bare, like a table or figure: "(Sección 17.2)",
+  "(Capítulo 20)", "(secciones 17.2 y 17.3)", written `(secciones [-@sec-a] y [-@sec-b])`.
 - Colombian data terms use the official Spanish names from the sources (DANE, INS, Resolución
   2115 de 2007), since that is what the data call them.
 
@@ -281,7 +284,7 @@ Conventions that apply everywhere:
 | partner brief; covering email | informe para socios; correo de presentación | | Chapter 6's Word brief and the plain email sent with it |
 | flyer; walk-ins | folleto; quienes entran de la calle | | Chapter 6's A5 audience, gender-neutral |
 | Git, Agent and Preview tabs | pestañas de Git, del agente y de vista previa | | Chapter 4's three terminal tabs; labels **Git**, **Agente**, **Vista previa** |
-| a number out of date (the planted value) | un número con un año de atraso; desactualizado | | Part II's exercises; "stale" is "desactualizado" or "queda viejo" |
+| a number out of date (the planted value) | un número con un año de atraso; desactualizado | | Part II's exercises; "stale" is "desactualizado" (never "viejo", "queda viejo") |
 
 ## The 2026-11 revision (professional and start-up readers)
 
@@ -406,6 +409,43 @@ its names, files, columns, labels and quoted page text are literals.
 | checksum | suma de verificación (en inglés, *checksum*) | | `results.qmd` uses it |
 | managed settings | configuración administrada (en inglés, *managed settings*) | | `at-work.qmd` uses it |
 | stand-in (synthetic) | sustituto sintético | | the label SYNTHETIC stays |
+
+## Decisions after the native-speaker reads (2026-11)
+
+Two native-speaker editors read the whole Spanish edition. These replace any earlier choice
+above and apply in every file; use judgement where a word also has another, correct meaning
+("atrapados en notebooks", *trapped*; "contra un cielo azul"; "en contra de la regla").
+
+| English | Spanish | Not | Note |
+|---|---|---|---|
+| to catch (an error) | detectar | atrapar | "ahorra tecleo y evita errores" for Tab completion |
+| check/compare X against Y | comparar con, contrastar con, cotejar con | … contra … | |
+| whereas | mientras que | donde | |
+| the project's root, at the top of the folder | la raíz de la carpeta | la parte de arriba de la carpeta | "la parte de arriba de la página" stays for the top of a page |
+| build on | partir de, trabajar con | construir sobre | |
+| a Markdown construct | elemento de Markdown | construcción de Markdown | "un elemento a la vez" |
+| get stuck | atascarse ("Cuando te atasques") | trabarse | in Colombia "trabarse" also means getting high |
+| one at a time | una a la vez, uno por uno | de a una, de a uno | |
+| press (a key) | presiona | pulsa | |
+| tap water | agua de la llave | agua del grifo | |
+| an assignment's brief | el enunciado, las instrucciones del trabajo | la consigna | |
+| out of date, stale | desactualizado; desactualizarse | viejo, quedar viejo | "older" (a copy, a commit) → "anterior", "más antiguo" |
+| a CI build; build log; build plugin | el build; el registro del build; el plugin de build | construcción, compilación | "build system" is rephrased ("un sistema que la reconstruya") |
+| tracked / untracked file | con seguimiento / sin seguimiento | seguido, no rastreado | |
+| typing | tecleo | tipeo | "error de tecleo" |
+| notebook | notebook | cuaderno de Jupyter | |
+| with replacement | con reposición | con reemplazo | |
+| render list | lista de renderizado | lista render | the option itself stays `render` in backticks |
+| failure | falla | fallo | "una falla saltaría a la vista / pasaría inadvertida" |
+| rank / range (statistics) | rango (rank) / amplitud (range) | rango for both | "rango de precio" (a price range) stays; a bootstrap interval "abarca" its central share |
+| white paper / academic paper | white paper (first use in a chapter: "documento técnico (white paper)") / artículo académico | mixing them for one deliverable | the London white paper is "white paper" too |
+| dashboard | dashboard | tablero | |
+| backtick | comilla invertida | acento grave | |
+| a cluster's name in prose | «…», lower case after the opening guillemet unless a proper noun | “…”, mixed capitals | |
+| positive deviance | desviación positiva; casos de desviación positiva | desviados positivos | |
+| anyway, still (adverb) | de todos modos, aun así | igual ("Igual lee…") | |
+| an English sentence quoted in a box | describe it in Spanish ("En español, la oración dice…") | a template with the values removed ("esa atracción, esas visitas") | inline `{python}` values cannot repeat (compare.py) |
+| what was not tested (link) | [qué no se probó en esta edición](…) | [lo que no se probó] as a bare tag | |
 
 ## Titles
 
