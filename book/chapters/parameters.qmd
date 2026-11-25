@@ -8,7 +8,7 @@ import csv
 import re
 
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
+from scripts.prose import alt_text_holds, number_words, text_holds
 
 ROOT = ev.PROJECT.parents[1]
 CHECKPOINT = ROOT / "checkpoints" / "19-eval-params"
@@ -34,22 +34,74 @@ n_files = 3 * (len(months) + len(bands))
 text_holds(update.get("month") == "latest", "update.qmd's default month, \"latest\"")
 MIN_STUDENTS = int(re.search(r"^MIN_STUDENTS = (\d+)", (FEEDBACK / "feedback.qmd").read_text(), re.M).group(1))
 FEW = int(re.search(r"^FEW_SUBSCRIBERS = (\d+)", (CHECKPOINT / "src" / "acme_eval" / "params.py").read_text(), re.M).group(1))
+# The months the prompts and the text type: one in the data, one outside it.
+text_holds("2026-06" in months and "2027-01" not in months, "the months 2026-06 and 2027-01")
+
+# The update as rendered for the last two months, by media/capture/eval_outputs.py (step
+# update), which saved the pictures and each month's sentences: if stale, rerun it.
+import difflib
+import json
+from pathlib import Path
+
+captured = json.loads((Path(ev.__file__).resolve().parents[1] / "media" / "figures"
+                       / "eval-update-sentences.json").read_text(encoding="utf-8"))
+first_month, last_month = captured["months"]
+text_holds([first_month, last_month] == months[-2:], "the update's two months, the data's last two")
+A, B = (captured["sentences"][m] for m in (first_month, last_month))
+FIGURES = ("Paying customers", "Pilots", "Monthly recurring revenue", "Contacts ranked")
+alt_text_holds(all(sum(s.startswith(f) and "(synthetic)" in s and " from " in s for s in month) == 1
+                   for f in FIGURES for month in (A, B)), "fig-params-update-a and -b")
+MONTH_NAMES = "January|February|March|April|May|June|July|August|September|October|November|December"
+
+
+def wording(s: str) -> str:
+    """A sentence without its months and numbers: what is left is its wording."""
+    return re.sub(r"\d[\d,.-]*", "#", re.sub(rf"\b({MONTH_NAMES}) \d{{4}}", "M", s))
+
+
+# Pair the two months' sentences by their wording: the same words (identical, or only their
+# figures and months differ), changed words, or a sentence in one month only.
+same, refigured, reworded, only_first = [], [], [], []
+for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, [wording(s) for s in A],
+                                                  [wording(s) for s in B]).get_opcodes():
+    if op == "equal":
+        for x, y in zip(A[i1:i2], B[j1:j2]):
+            (same if x == y else refigured).append(x)
+    elif op == "replace" and i2 - i1 == j2 - j1:
+        reworded += list(zip(A[i1:i2], B[j1:j2]))
+    elif op == "delete":
+        only_first += A[i1:i2]
+    else:
+        raise ValueError("the update's two months no longer pair as the think box says: rewrite it")
+text_holds(len(reworded) == 1 and same and refigured and len(only_first) == 2
+           and any("new this month" in s for s in only_first)
+           and any("invented for teaching" in s for s in same)
+           and any(s.startswith("The model’s figures are real") for s in same),
+           "the think box on the update's two months")
+customers = next(s for s in B if s.startswith("Paying customers"))
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5), in copies of
-# checkpoint 18 and of the feedback example's data, on 2026-11-18; the pitfalls are the ones
-# those runs, and the build of the finished documents, met.
+# checkpoint 18 and of the feedback example's data, on 2026-11-18; the traps in
+# @tbl-params-traps are the ones those runs, and the build of the finished documents, met.
+# On 2026-11-25 (D3) the update prompt was split into two turns; the lead dry-runs them.
 ```
 
 Much of what an organisation publishes is the same document with different numbers: the
-monthly update for investors, one report per customer, region, team or model, a feedback sheet
-for every class. Built by hand, each copy is a chance to paste last month's figure into this
-month's file. Built from one source with a *parameter*, a value given at render time, each
+monthly update for investors, one report per customer, region or team. Built by hand, each
+copy starts as last month's file, and each is a chance to leave one of last month's figures in
+it. Built from one source with a parameter, a value given when the document is rendered, each
 copy is the same tested document run on a different value, and a script can make every one of
 them and check it.
 
-This chapter makes three: Acme's monthly investor update, a one-page report for each customer
-segment, and, for teachers, a feedback sheet for each section of a course. The update carries
-the company's business figures, which in this book are synthetic and labelled so on every
-number; the model's figures beside them are the real evaluation's.
+::: {.story .illustration}
+A founder writes this month's update the usual way: open last month's, save it under a new
+name, change the figures. Revenue, changed. Customers, changed. The sentence in the third
+paragraph that says the month was the best so far is not a figure, so it is not changed.
+It goes to every investor. Nobody lied, and nothing in the file was able to object.
+:::
+
+This chapter makes Acme's monthly update and a report per customer segment. The update's
+business figures are synthetic, and say so on every number; the model's figures beside them
+are the real evaluation's.
 
 ::: opener
 - Explain what a parameter is, where its default lives, and how a value is passed at render
@@ -61,8 +113,8 @@ number; the model's figures beside them are the real evaluation's.
 
 Start from
 : your `acme-eval` repository at the end of @sec-white-papers, or
-  `checkpoints/18-eval-whitepaper/`; for the educator's case, `examples/feedback/` without its
-  `feedback.qmd`.
+  `checkpoints/18-eval-whitepaper/`; for the teachers' section, `examples/feedback/` without
+  its `feedback.qmd`.
 
 You build
 : `update.qmd`, `segment.qmd` and a script that renders every month and segment; a feedback
@@ -72,42 +124,60 @@ Checkpoint
 : `checkpoints/19-eval-params/`, and `examples/feedback/`
 :::
 
+::: payoff
+![The finished update for the second-to-last month in its data, at a phone's width: every business figure is marked synthetic.](../media/figures/eval-update-a.png){#fig-params-update-a width=85% fig-alt="The top of a web page at a phone's width: the sentence saying which month the update covers; then, after a dashed line marking a cut, its four business figures, paying customers, pilots, monthly recurring revenue and contacts ranked, each marked (synthetic) and set against the month before."}
+
+![The same update, rendered for the last month.](../media/figures/eval-update-b.png){#fig-params-update-b width=85% fig-alt="The same part of the update for the following month: the month it covers, then the same four business figures, each marked (synthetic) and set against the month before."}
+:::
+
 ## One document, many values {#sec-params-vocab}
 
-| Ask for | Quarto calls it | Check |
-|---|---|---|
-| a value set at render time, with a default | a cell tagged `parameters`, `#| tags: [parameters]` | the defaults render on their own |
-| this value, now | `quarto render update.qmd -P month:2026-06` | the output shows that month |
-| many values from a file | `--execute-params params.yml` | each value reaches the document |
-| an output named by its value | `-M output-file:update-2026-06` | one file per value, none overwritten |
-| the engine that injects the values | papermill, in the project's environment | without it the render stops |
+A *parameter* is a value a document is given when it is rendered. Its default lives in the
+document, in a cell tagged `parameters`: the finished update's `month` defaults to
+"`{python} update["month"]`", which it reads as the last month in its data, so its default
+never goes stale. The segment report defaults to `{python} segment["factor"]`
+`{python} segment["segment"]`, and the feedback sheet to section `{python} sheet["section"]`.
+
+`quarto render update.qmd -P month:2026-06` replaces the default for one render: Quarto adds
+a cell after the parameters cell that sets the new value, and the document runs as before.
+That cell is executed through *papermill*, a Python package the project must have: without
+it, a render with `-P` stops with "The papermill package is required for processing
+--execute-params".
+
+| Ask for | Quarto calls it |
+|---|---|
+| a value set at render time, with a default | a cell tagged `parameters`: `#| tags: [parameters]` |
+| this value, now | `quarto render update.qmd -P month:2026-06` |
+| many values from a file | `--execute-params params.yml` |
+| an output named by its value | `-M output-file:update-2026-06` |
 
 : Parameters, and what each is called (Quarto 1.10.20, Jupyter engine). {#tbl-params-vocab}
 
-The defaults are part of the document: the finished update's `month` defaults to
-"`{python} update["month"]`", which it reads as the last month in its data, so its default
-never goes stale; the segment report defaults to `{python} segment["factor"]` `{python} segment["segment"]`,
-and the feedback sheet to section `{python} sheet["section"]`. Passing `-P month:2026-06`
-replaces a default for one render: Quarto adds a cell after the parameters cell that sets the
-new value, and the document runs as before. That cell is executed through *papermill*, a
-Python package the project must have: without it, a render with `-P` stops with "The
-papermill package is required for processing --execute-params".
+Two rules make a parameterised document safe:
 
-Two rules make a parameterised document safe. **Validate the value**: a month or a segment that
-is not in the data should stop the render with a message that lists the valid ones, not
-produce a report about nothing. **Let code choose every word that depends on the value**, from the
-numbers as they are printed: "up" or "down", "above" or "below", "the first month in the data,
-so no change". Chosen from the printed numbers, the word cannot disagree with them; guard what
-code cannot choose, such as a typed caption, and check that the printed text agrees, as the
-finished update does. A guard that repeats the comparison that chose the word can never fail,
-and protects nothing. A document rendered for a dozen values is a dozen chances for a typed
-word to be wrong.
+::: cards
+Validate the value
+: A month or a segment that is not in the data stops the render with a message listing the
+  valid ones, rather than producing a report about nothing.
+
+Let code choose the words
+: "Up" or "down", "above" or "below", "the first month, so no change": chosen by code from the
+  numbers as printed, a word cannot disagree with them. Guard what code cannot choose, such as
+  a typed caption.
+:::
+
+A guard that repeats the comparison that chose the word can never fail, and protects nothing.
+The finished update's guard checks the printed figures instead. A document rendered for a
+dozen values is a dozen chances for a typed word to be wrong.
 
 ## The investor update {#sec-params-update}
 
+The update comes in two turns: first the document and its parameter, then the sentence that
+compares one month with the month before, whose wording code must choose.
+
 ::: {.prompt .long}
 ```default
-Add papermill with `uv add papermill`, then create update.qmd, a monthly investor update parameterised by `month` (a cell tagged `parameters` whose default is "latest", meaning the last month in data/synthetic_business.csv): that month's business figures, each labelled synthetic, the release live that month and its real model metrics from outputs/, and the change from the month before with its wording chosen by code and guarded. Stop with a clear message if the month is not in the data. Formats html, docx and typst; render it for 2026-06 with `-P month:2026-06` and tell me where the files went.
+Run `uv add papermill`, then create update.qmd, a monthly investor update parameterised by `month` (a cell tagged `parameters` whose default is "latest", meaning the last month in data/synthetic_business.csv): that month's business figures, each labelled synthetic, and the release live that month with its real model metrics from outputs/. Stop with a clear message if the month is not in the data. Formats html, docx and typst; render it with `-P month:2026-06` and tell me where the files went.
 ```
 :::
 
@@ -115,19 +185,78 @@ Add papermill with `uv add papermill`, then create update.qmd, a monthly investo
 `uv add papermill` · writes `update.qmd` · `uv run quarto render update.qmd -P month:2026-06`
 :::
 
+::: {.prompt}
+```default
+In update.qmd, add the change from the month before, its wording chosen by code from the printed numbers and guarded; the first month says there is no earlier one. Render 2026-06 and the first month in the data, and show me both sentences.
+```
+:::
+
+::: {.agent}
+edits `update.qmd` · renders it twice, with `-P month:…`
+:::
+
+<!-- Dry-run 2026-11-25, both turns verbatim, in a copy of checkpoint 18-eval-whitepaper with
+outputs/ computed: a Claude Code sub-agent on Sonnet 5.5 and one on Haiku 5.5. Both added
+papermill with uv, wrote update.qmd with a parameters cell, stopped on a month not in the data,
+and rendered 2026-06 to the project's root (the update is not in the site's render list). In
+the second turn both compared monthly recurring revenue, chose rose, fell or unchanged by code
+with a claim guard, and printed the no earlier month sentence for 2026-01. -->
+
 Check it as an investor would, and as an auditor would. Every business figure says it is
 synthetic, here; in your own update, every figure names its source. The model's figures come
 from `outputs/` and are the real evaluation's. A month before the first release says so, rather
 than inventing a model figure. And a month that is not in the data stops the render: try
 `-P month:2027-01`.
 
+::: think
+The finished update was rendered for its last two months, `{python} first_month` and
+`{python} last_month`, from one source. Between the two, which sentences should differ: the
+figures, the change from the month before, the release that was live? Which must not?
+
+`{python} WORD[len(refigured)].capitalize()` differ only in their figures and months. One
+changes its words: "`{python} reworded[0][0].rstrip(".")`" becomes
+"`{python} reworded[0][1].rstrip(".")`". `{python} WORD[len(only_first)].capitalize()` appear
+only in `{python} first_month`, when its release was new. `{python} WORD[len(same)].capitalize()`
+are word for word the same, the synthetic label and the method note among them: if those
+differed, a parameter would have leaked into text it should not reach.
+:::
+
+Here is the mechanism, in the finished update. Its parameters cell:
+
+```{python}
+#| label: params-mechanism
+#| output: asis
+# The finished update's own lines, printed from checkpoint 19's update.qmd (never retyped): its
+# parameters cell, and the lines of change() that choose "up" or "down" and guard the choice.
+source = (CHECKPOINT / "update.qmd").read_text()
+cell = re.search(r"```\{python\}\n(#\| tags: \[parameters\]\n.*?)```", source, re.S).group(1)
+chooser = re.search(r"\n( +printed_now, printed_before = .*?\n)\n", source, re.S).group(1)
+chooser = "\n".join(line[4:] for line in chooser.splitlines())
+text_holds(len(cell.splitlines()) <= 10 and len(chooser.splitlines()) <= 10
+           and "params.direction" in chooser and "claim(" in chooser
+           and all(f'return "{w}"' in (CHECKPOINT / "src" / "acme_eval" / "params.py").read_text()
+                   for w in ("up", "down", "unchanged")), "the update's printed lines")
+# Its comments' alignment spaces are collapsed, which a phone cannot wrap.
+print("```python\n" + re.sub(r"(?<=\S) {3,}", "  ", cell) + "```")
+```
+
+And the lines of its `change()` that choose the word for one figure, from the two figures as
+printed, and guard the choice:
+
+```{python}
+#| output: asis
+print(f"```python\n{chooser}\n```")
+```
+
+`params.direction()` compares the two printed numbers and returns "up", "down" or
+"unchanged"; the guard then checks the printed text, so a word and the figures beside it can
+never disagree. The update writes the word into its sentence, and a month with no month before
+it says so instead. For `{python} last_month`, it wrote "`{python} customers.rstrip(".")`".
+
 ::: pitfall
-Where the files went is the trap. The project is a website, but the update is not in its
-`render` list, and should not be: a site page shows one value, and an investor update is not a
-public page. So Quarto renders it as a single file, beside its source, not in `_site/`, and
-the site's post-render steps do not run for it. In the test run, `--output-dir reports` was
-refused for such a file, and `--output` accepted a file name but not a folder, so the script
-below moves each file into `reports/` itself.
+The update is not in the site's `render` list, and should not be: it is not a public page. So
+Quarto renders it beside its source, not in `_site/`, and the batch script moves each file
+into `reports/`.
 :::
 
 ## One report per segment {#sec-params-segment}
@@ -160,32 +289,12 @@ named by its value and each checked for it. The check is what makes a batch trus
 file that silently shows the default month, because a value was not passed, would otherwise
 go out with the rest.
 
-::: pitfall
-From the test run: a PDF check for the age band "18-29" failed, because the PDF's text gave the
-hyphen back as a soft hyphen; the finished script strips soft hyphens and treats every kind of
-dash as a hyphen before it compares. And self-contained HTML, which carries its libraries
-inside it, is far larger than the same report as a PDF; send the PDF, and keep the HTML for the
-site.
-:::
+| What you see | The fix |
+|---|---|
+| The PDF check for the age band "18-29" fails | the PDF gives the hyphen back as a soft hyphen: normalise dashes before comparing |
+| Self-contained HTML is far larger than the PDF | send the PDF, and keep the HTML for the site |
 
-## The educator's case: a sheet per section {#sec-params-feedback}
-
-The same method serves a teacher with several sections of one course: one feedback sheet per
-section, comparing the section with the course, from one gradebook. The example's gradebook is
-synthetic, generated with a fixed seed, `{python} WORD[len(sections)]` sections of students
-identified only by number.
-
-::: {.prompt .long}
-```default
-Create feedback.qmd: one feedback sheet per section of data/gradebook.csv, parameterised by `section`, with that section's mean and spread for each assignment against the course, a chart with alt text, every sentence labelled synthetic and its wording guarded, and no student identifiers. Then write scripts/render_sections.py to render feedback-<section>.pdf for every section and check each one. Run it.
-```
-:::
-
-Marks are personal data, so the sheet shows section totals only, never a student, and never a
-group so small that a reader could work out who it is; the finished sheet stops if any group
-it describes, each assignment's submissions included, has fewer than `{python} MIN_STUDENTS`. With real marks, the rules of @sec-ai-policy and your institution's data
-policy come first: build the document on a synthetic gradebook with the same columns, as this
-one is, and render the real one yourself.
+: Met while testing the batch, 2026-11-18. {#tbl-params-traps}
 
 ::: catchup
 ```default
@@ -194,8 +303,7 @@ Catch me up: follow ../quarto-workshop/checkpoints/19-eval-params/README.md
 :::
 
 ::: tryit
-Make the update, the segment report and the batch script; and, if you teach, the feedback
-sheets.
+Make the update, the segment report and the batch script.
 
 ::: done
 `render_params.py` reports every file present and showing its value, a month outside the data
@@ -203,6 +311,23 @@ stops the update with a list of valid months, and every business figure in the u
 where it comes from.
 :::
 :::
+
+## For teachers: a sheet per section (optional) {#sec-params-feedback}
+
+The same method serves a teacher with several sections of one course: one feedback sheet per
+section, from one gradebook. The example's gradebook is synthetic,
+`{python} WORD[len(sections)]` sections of students identified only by number.
+
+::: {.prompt .long}
+```default
+Create feedback.qmd: one feedback sheet per section of data/gradebook.csv, parameterised by `section`, with that section's mean and spread for each assignment against the course, a chart with alt text, every sentence labelled synthetic and its wording guarded, and no student identifiers. Then write scripts/render_sections.py to render feedback-<section>.pdf for every section and check each one. Run it.
+```
+:::
+
+Marks are personal data, so the sheet shows section totals only, and stops if any group it
+describes has fewer than `{python} MIN_STUDENTS`. With real marks, @sec-ai-policy and
+your institution's data policy come first: build on a synthetic gradebook with the same
+columns, and render the real one yourself.
 
 ## Summary {.unnumbered}
 
