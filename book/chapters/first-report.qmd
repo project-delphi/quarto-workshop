@@ -128,11 +128,32 @@ text_holds(changed_text != csv_text, "the Tate Modern row of the data")
 ```{python}
 #| label: first-show-file
 #| include: false
-def show_file(path: Path, lang: str = "markdown") -> str:
-    """A file's text, as it is, in a fence longer than any run of backticks inside it."""
+def show_file(path: Path, lang: str = "markdown", lines: tuple[int, int] | None = None) -> str:
+    """A file's text, as it is, or its lines first to last (counted from 1), in a fence longer
+    than any run of backticks inside it."""
     text = path.read_text()
+    if lines:
+        text = "".join(text.splitlines(keepends=True)[lines[0] - 1:lines[1]])
     ticks = "`" * max(4, 1 + max(map(len, re.findall("`+", text)), default=0))
     return f"{ticks}{lang}\n{text}{ticks}"
+
+
+# `cat report.qmd` is shown in three parts, split at its blank lines: the settings (lines
+# 1-4), the cell (6-16) and the sentences (18-26). Stop if the starter changes.
+qmd_lines = report.splitlines()
+SETTINGS, CELL, SENTENCES = (1, 4), (6, 16), (18, len(qmd_lines))
+text_holds(len(qmd_lines) == 26 and qmd_lines[3] == "---" and qmd_lines[4] == ""
+           and qmd_lines[5] == "```{python}" and qmd_lines[15] == "```" and qmd_lines[16] == ""
+           and qmd_lines[17].startswith("Five of London"),
+           "the starter's report.qmd, split at its blank lines (lines 1-4, 6-16 and 18-26)")
+
+
+def trimmed(hunks: list[str], keep: int = 1) -> list[str]:
+    """Hunks as git_hunks gives them, with only `keep` unchanged lines on each side of a change
+    (the @@ lines stay as Git prints them)."""
+    changed = [i for i, line in enumerate(hunks) if line[:1] in "+-"]
+    return [line for i, line in enumerate(hunks)
+            if line.startswith("@@") or any(abs(i - j) <= keep for j in changed)]
 ```
 
 Somewhere in this chapter's report is a wrong number. The report renders without a single
@@ -219,38 +240,8 @@ If you have not yet, copy the starter and go into it with `cd ~/first-report`.
 :::
 :::
 
-### A name with a space {.unnumbered}
-
-The terminal splits what you type at each space, so a folder name with a space in it needs
-care. Try it once, from your home folder. In the terminal:
-
-```bash
-cd ~
-mkdir "my reports"
-cd my reports
-```
-
-`cd` complains, in words that depend on your shell:
-
-::: transcript
-```text
-bash: cd: too many arguments            (Ubuntu)
-cd: string not in pwd: my               (Mac)
-```
-:::
-
-`cd` was given two names, `my` and `reports`. Keep the name in one piece with quotes,
-`cd "my reports"`, or with a backslash before the space, `cd my\ reports`. Tab completion
-types the backslash for you: type `cd my` and press Tab. Then tidy up and go back:
-
-```bash
-cd ~
-rmdir "my reports"
-cd ~/first-report
-```
-
-The folders in this book have no spaces in their names, and yours need not either: a hyphen,
-as in `first-report`, does the same job.
+The folders in this book have no spaces in their names;
+[Paths](../appendices/b-terminal.qmd#sec-keys-paths) shows what a space does.
 
 ## Render it yourself {#sec-first-render}
 
@@ -361,18 +352,38 @@ The report's source says where each number comes from. In the terminal:
 cat report.qmd
 ```
 
+It prints the whole file, shown here in three parts. First come the settings, between the
+`---` lines:
+
 ::: transcript
 ```{python}
 #| output: asis
-print(show_file(START / "report.qmd", "text"))
+print(show_file(START / "report.qmd", "text", SETTINGS))
 ```
 :::
 
-You met these parts in @sec-what-quarto: the settings between the `---` lines, a code cell
-that reads `data/visits.csv` and computes `total`, `top` and `free`, and inline code, the
-`` `{{python}} …` `` pieces, which Quarto replaces with computed values. @sec-compute explains
-every line. For now, notice what is computed and what is not. Every other number on the page
-is inline code that reads the data; that sentence was typed.
+Then a code cell that reads `data/visits.csv` and computes `total`, `top` and `free`:
+
+::: transcript
+```{python}
+#| output: asis
+print(show_file(START / "report.qmd", "text", CELL))
+```
+:::
+
+Then the sentences. The `` `{{python}} …` `` pieces are inline code, which Quarto replaces
+with computed values:
+
+::: transcript
+```{python}
+#| output: asis
+print(show_file(START / "report.qmd", "text", SENTENCES))
+```
+:::
+
+You met these parts in @sec-what-quarto, and @sec-compute explains every line. For now,
+notice what is computed and what is not. Every other number on the page is inline code that
+reads the data; the Tate Modern sentence was typed.
 
 ::: why
 A typed number is a copy, made once by a person, and nothing connects it to the data
@@ -480,11 +491,10 @@ as the last commit recorded them. `git log --oneline` lists the commits, newest 
 `(HEAD -> main)` marks the commit your files are at now.
 
 ::: pitfall
-If `git commit` says "Author identity unknown", Git does not know your name yet (Step 5 of
-@sec-setup sets it). Run the two `git config --global` lines it prints, with your own name and
-email, then commit again. If you leave out `-m "…"`, Git opens an editor for the message:
-leave it without saving (in nano, Ctrl+X; in Vim, Esc, then `:q!` and Enter) and run the
-command again with `-m`.
+If `git commit` says "Author identity unknown", run the two `git config --global` lines it
+prints, with your own name and email (Step 5 of @sec-setup sets them), then commit again.
+Without `-m "…"`, Git opens an editor for the message: leave it without saving (in nano,
+Ctrl+X; in Vim, Esc, then `:q!` and Enter) and run the command again with `-m`.
 :::
 
 ::: tryit
@@ -511,11 +521,13 @@ after the first digit of `{python} code(tate)`, press Backspace to delete the
 `{python} code(first_old)`, and type `{python} code(first_new)`, so that the number reads
 `{python} code(trial)`. Save with Ctrl+O, then Enter; leave with Ctrl+X.
 
+<!-- nano opening Pico: seen on macOS 26, 2026-11-12. -->
+
 ::: pitfall
 In nano, Ctrl+O ("write Out") asks for the file name: press Enter to keep it. Ctrl+X leaves;
 if you have not saved, nano asks first: Y then Enter saves, N throws the changes away. The
 keys are listed along the bottom of the screen, where `^` means Ctrl. On a Mac, `nano` opens
-Pico, which uses the same keys (checked on macOS 26, 2026-11-12).
+Pico, which uses the same keys.
 :::
 
 Before you render, ask Git what you changed:
@@ -541,17 +553,17 @@ no changes added to commit (use "git add" and/or "git commit -a")
 ```
 :::
 
-A *diff* is the lines a change removed and added. The real lines are long, so
-here each is cut short where you see …:
+A *diff* is the lines a change removed and added. Here it is trimmed: the real lines are
+long, so each is cut short where you see …, and only one unchanged line is kept on each side
+of the change, without the `index` line Git prints second:
 
 ::: transcript
 ```{python}
 #| output: asis
 screen(["diff --git a/data/visits.csv b/data/visits.csv",
-        f"index {blob(csv_text)}..{blob(changed_text)} 100644",
         "--- a/data/visits.csv", "+++ b/data/visits.csv"]
        + [line if line.startswith("@@") else short(line)
-          for line in git_hunks(csv_text.splitlines(), changed_text.splitlines())])
+          for line in trimmed(git_hunks(csv_text.splitlines(), changed_text.splitlines()))])
 ```
 :::
 
@@ -773,21 +785,22 @@ commit it, and one after. Here they are, applied to this one:
 
 | Check | Asks | Here |
 |---|---|---|
-| Scope | Did only the files I meant change? | `git status` lists `report.qmd` alone; `git diff` shows the lines |
-| Correctness | Does one number match its source row? | the page's Tate Modern figure against its row in `cut -d, -f1,2 data/visits.csv` |
-| Rebuild | Does what you committed build on its own? | render a fresh clone of the repository (below) |
+| Scope | Did only the files I meant change? | `git status` lists `report.qmd` alone |
+| Correctness | Does one number match its source row? | the page's Tate Modern figure against its row |
+| Rebuild | Does what you committed build on its own? | a fresh clone renders (below) |
 
 : The three checks, applied to the agent's first edit. {#tbl-three-checks}
 
 **Scope.** `git status` should list one modified file, `report.qmd`. If `data/visits.csv` is
 listed too, the agent broke the project's rule: `git restore data/visits.csv` undoes that
-part. The diff will look something like this one, from a version written by hand to test the
-step (trimmed at the …); an agent's will differ in detail:
+part. The diff will look something like the two parts below, from a version written by hand
+to test the step; an agent's will differ in detail. It is trimmed: the `diff --git` and
+`index` lines are left out, and one unchanged line is kept on each side of a change. The
+first change adds two lines to the cell:
 
-::: transcript
 ```{python}
-#| output: asis
-# The tested hand-made fix, applied to the starter's own report.qmd.
+#| include: false
+# The tested hand-made fix, applied to the starter's own report.qmd, as Git's two hunks.
 src = report.splitlines()
 i_free = next(i for i, line in enumerate(src) if line.startswith("free = "))
 fixed = (src[:i_free + 1]
@@ -798,15 +811,29 @@ fixed = [line.replace(typed.group(0),
                       'Tate Modern, on the South Bank, had `{python} f"{tate:,}"` visits.')
          for line in fixed]
 text_holds(fixed != src, "the hand-made fix to report.qmd")
-old_qmd, new_qmd = report, "\n".join(fixed) + "\n"
-screen(["diff --git a/report.qmd b/report.qmd",
-        f"index {blob(old_qmd)}..{blob(new_qmd)} 100644",
-        "--- a/report.qmd", "+++ b/report.qmd"]
-       + [line if line[:1] in "+-" else short(line, 44) for line in git_hunks(src, fixed)])
+fix_lines = [line if line[:1] in "+-" else short(line, 44) for line in trimmed(git_hunks(src, fixed))]
+at = [i for i, line in enumerate(fix_lines) if line.startswith("@@")]
+text_holds(len(at) == 2, "the fix's two hunks: the cell, then the sentence")
+cell_hunk, sentence_hunk = fix_lines[at[0]:at[1]], fix_lines[at[1]:]
+text_holds(sum(l.startswith("+") for l in cell_hunk) == 2 and not any(l.startswith("-") for l in cell_hunk),
+           "the first hunk adds the cell's two lines")
+```
+
+::: transcript
+```{python}
+#| output: asis
+screen(["--- a/report.qmd", "+++ b/report.qmd"] + cell_hunk)
 ```
 :::
 
-The typed number has gone, and in its place is inline code that looks Tate Modern up in the data.
+The second replaces the typed number with inline code that looks Tate Modern up in the data:
+
+::: transcript
+```{python}
+#| output: asis
+screen(sentence_hunk)
+```
+:::
 
 **Correctness.** Reload `report.html`: the sentence should now say
 `{python} f"{tate:,}"`, which is `{python} tate` in the `Tate Modern` row of the `cut` output
