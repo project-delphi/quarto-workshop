@@ -7,8 +7,9 @@
 import yaml
 
 from scripts import evaluation as ev
-from scripts.prose import number_words, text_holds
-from scripts.wcag import contrast
+from scripts.facts import checked, fact
+from scripts.prose import alt_text_holds, number_words, text_holds
+from scripts.wcag import contrast, scss_variables
 
 CHECKPOINT = ev.PROJECT.parents[1] / "checkpoints" / "17-eval-site"
 brand = yaml.safe_load((CHECKPOINT / "_brand.yml").read_text())
@@ -34,10 +35,10 @@ def resolve(name: str) -> str:
 typography = brand.get("typography", {})
 # The text roles the project's contrast test checks (acme_eval.brand.text_colours()).
 TEXT_ROLES = {
-    "texto del cuerpo": "foreground",
-    "títulos": typography.get("headings", {}).get("color", "foreground"),
-    "enlaces": typography.get("link", {}).get("color", "primary"),
-    "pies de figura, pie de página, números de diapositiva": "secondary" if "secondary" in brand["color"] else "foreground",
+    "body text": "foreground",
+    "headings": typography.get("headings", {}).get("color", "foreground"),
+    "links": typography.get("link", {}).get("color", "primary"),
+    "captions, footer, slide numbers": "secondary" if "secondary" in brand["color"] else "foreground",
 }
 text_colour = {use: resolve(role) for use, role in TEXT_ROLES.items()}
 background = resolve("background")
@@ -45,23 +46,42 @@ text_holds(all(contrast(c, background) >= 4.5 for c in text_colour.values()),
            "every text colour of the brand passes 4.5:1")
 text_holds(set(pages) == {"index.qmd", "about.qmd", "report.qmd", "model-card.qmd", "slides.qmd"},
            "the site's five pages")
+# "The brand's text colours are the theme's of @tbl-slides-contrast": the deck theme of
+# checkpoint 16, resolved as Chapter 11 resolves it, role by role, on the same background.
+theme = scss_variables((CHECKPOINT.parent / "16-eval-slides" / "acme.scss").read_text())
+THEME_VARS = {"body text": "$body-color", "headings": "$presentation-heading-color",
+              "links": "$link-color", "captions, footer, slide numbers": "$text-muted"}
+text_holds(all(text_colour[use].lower() == theme[var].lower() for use, var in THEME_VARS.items())
+           and background.lower() == theme["$body-bg"].lower(),
+           "the brand's text colours, the deck theme's, those of @tbl-slides-contrast")
+# The pictures (media/capture/eval_outputs.py, step site): the home page's title and first
+# listed document, and the navbar's `background: light` that the "after" crop shows.
+home = yaml.safe_load((CHECKPOINT / "index.qmd").read_text().split("---")[1])
+alt_text_holds(home["title"] == "Which release of the contact-ranking model should a call centre use?"
+               and home["listing"]["contents"][0] == "report.qmd", "fig-sites-home")
+alt_text_holds(site["website"]["navbar"].get("background") == "light", "fig-sites-navbar-after")
+# The "before" crop: the logo's tile in the bar's navy, its bars in paper, "Acme" in dark ink.
+import re
+
+logo, navy = (CHECKPOINT / "brand" / "logo.svg").read_text().lower(), resolve("primary").lower()
+ink = re.search(r'fill="(#\w+)"[^>]*>\s*acme', logo).group(1)
+alt_text_holds(f'fill="{navy}"' in logo and f'fill="{background.lower()}"' in logo
+               and contrast(ink, navy) < 1.5, "fig-sites-navbar-before")
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a copy of
-# checkpoint 16 on 2026-11-18; the pitfalls are the ones that run, and the build of the
-# finished site, met.
+# checkpoint 16 on 2026-11-18; the traps in @tbl-sites-traps and @sec-sites-templates (Quick
+# Look, .gitignore), the navbar story and the checker's findings are the ones that run, and the
+# build of the finished site, met.
+# @tbl-sites-brand was tested with Quarto 1.10.20 on 2026-11-18. On 2026-11-25 (D3) the brand
+# prompt's logo clause was shortened and the site prompt split into two turns; the lead
+# dry-runs both.
 ```
 
 La evaluación ya tiene un informe, una ficha del modelo y una presentación, en tres formatos de
 salida cada uno, repartidos por una carpeta. Inversionistas, el equipo de riesgos de un cliente y
 quien acaba de llegar al equipo querrán la versión más reciente, desde una sola dirección, y
-juzgarán el trabajo en parte por si parece salido de un solo lugar. Un equipo pequeño no tiene
-quien lo diseñe. Tiene un sitio, construido a partir de las mismas fuentes, y un archivo que dice
+juzgarán el trabajo en parte por si parece salido de un solo lugar. Un equipo pequeño no tiene a
+nadie que se encargue del diseño. Tiene un sitio, construido a partir de las mismas fuentes, y un archivo que dice
 cuáles son los colores, la tipografía y el logo de la empresa, y que cada formato sigue después.
-
-Este capítulo convierte la evaluación en un sitio web con una página de inicio, una página About y
-búsqueda, y le da una sola marca que llega al sitio, a la presentación y a los PDF, y, mediante
-plantillas, a Word y a PowerPoint. Termina con las revisiones que un sitio necesita y que una
-persona no puede hacer a ojo en cada página: texto alternativo, títulos de página, descripciones,
-orden de los títulos y contraste, escritas como código.
 
 ::: opener
 - Decir a qué llega un solo archivo de marca en Quarto, y cómo Word y PowerPoint obtienen el
@@ -69,11 +89,11 @@ orden de los títulos y contraste, escritas como código.
 - Pedir un sitio web a partir de un proyecto existente: una lista de renderizado, una barra de
   navegación, un pie de página, una página de inicio con un listado, una página About y
   tarjetas para redes sociales.
-- Revisar cada página de un sitio con un script: texto alternativo, títulos, descripciones, orden
+- Revisar con un script cada página de un sitio: texto alternativo, títulos, descripciones, orden
   de los títulos y contraste.
 - Decidir dónde se puede publicar un sitio con marca, y qué configurar antes de hacerlo.
 
-Partes de
+Punto de partida
 : tu repositorio `acme-eval` al final del @sec-slides, o `checkpoints/16-eval-slides/`.
 
 Construyes
@@ -84,23 +104,28 @@ Punto de control
 : `checkpoints/17-eval-site/`
 :::
 
+::: payoff
+![La página de inicio del sitio terminado al ancho de un teléfono, renderizada a partir de `checkpoints/17-eval-site/`.](../media/figures/eval-site-home.png){#fig-sites-home width=85% fig-alt="Una página web al ancho de un teléfono, sobre un fondo blanco hueso cálido: una barra de navegación con un botón de menú, el logo de Acme Signals y un ícono de búsqueda, y luego el título, Which release of the contact-ranking model should a call centre use? (¿qué versión del modelo que ordena contactos debería usar un centro de llamadas?), en azul marino y negrita. Tras una línea discontinua que marca un corte, el título The documents (los documentos) y la primera fila de una tabla: un enlace al informe de evaluación, junto a lo que contiene."}
+:::
+
 ## Una marca, todos los formatos {#sec-sites-brand-reach}
 
 Un *archivo de marca*, `_brand.yml`, declara una sola vez el aspecto de una empresa: una paleta de
 colores con nombre, los roles que cumplen (fondo, primer plano, primario), las fuentes y el logo.
-Quarto lo lee y lo aplica, pero no a todos los formatos. A qué formatos llega decide cómo
-construyes el resto:
+Quarto lo lee y lo aplica, pero no a todos los formatos. De los formatos a los que llega
+depende cómo construyes el resto:
 
-| Formato | ¿Le llega `_brand.yml`? | Cómo recibe la marca |
-|---|---|---|
-| Páginas y sitios web | sí | colores, fuentes y el logo en la barra de navegación |
-| Presentaciones de Reveal.js | sí | colores, fuentes y el logo en cada diapositiva |
-| PDF de Typst | sí | colores de página y de texto, fuentes de los títulos, el logo |
-| Dashboards | sí | colores y el logo |
-| Word | no | un *documento de referencia*, hecho a partir de la marca por un script |
-| PowerPoint | no | un documento de referencia, hecho de la misma manera |
+| Formato | Lo que le da `_brand.yml` |
+|---|---|
+| Páginas web, sitios y dashboards | colores, fuentes y el logo en una barra de navegación |
+| Presentaciones Reveal.js | colores, fuentes y el logo en cada diapositiva |
+| PDF de Typst | colores de página y de texto, fuentes de los títulos, el logo |
+| Word y PowerPoint | nada: reciben un *documento de referencia* que un script hace con la marca |
 
-: A dónde llega un solo archivo de marca, en Quarto 1.10.20 (probado el 2026-11-18). {#tbl-sites-brand}
+: A dónde llega un archivo de marca (Quarto 1.10.20). {#tbl-sites-brand}
+
+<!-- Dashboards re-tested 2026-11-25, Quarto 1.10.20: beside an HTML page, one got the same
+brand font and colours, and the logo in its navbar. -->
 
 Así que el plan es una sola fuente de verdad con dos salidas: Quarto aplica la marca donde
 puede, y un script corto convierte el mismo archivo en las dos plantillas donde no puede. Cambia
@@ -108,9 +133,12 @@ un color en `_brand.yml`, vuelve a ejecutar el script, renderiza, y todos los fo
 
 ## El archivo de marca {#sec-sites-brand}
 
+El archivo de marca parte del tema de la presentación, ahora en un solo lugar que leen todos los
+formatos.
+
 ::: {.prompt .long}
 ```default
-Agrega _brand.yml con los colores de Acme tomados de acme.scss como paleta y los roles primary, background y foreground, fuentes del sistema y un logo en brand/logo.svg (un logotipo de texto simple, marcado en un comentario como el de una empresa ficticia). Haz que slides.qmd lo use (theme: [default, acme.scss, brand]), saca todos los colores de acme.scss y haz que tests/test_deck_contrast.py lea los colores de _brand.yml. Renderiza la presentación y el informe, ejecuta las pruebas y dime dónde aparecen los colores de la marca en cada salida.
+Agrega _brand.yml: los colores de acme.scss como paleta, los roles primary, background y foreground, fuentes del sistema y un logo en brand/logo.svg (logotipo de texto; di en un comentario que la empresa es ficticia). Haz que slides.qmd lo use (theme: [default, acme.scss, brand]), saca todo color de acme.scss y que tests/test_deck_contrast.py lea los colores de _brand.yml. Renderiza la presentación y el informe, ejecuta las pruebas y dime dónde aparece la marca en cada salida.
 ```
 :::
 
@@ -118,37 +146,22 @@ Agrega _brand.yml con los colores de Acme tomados de acme.scss como paleta y los
 escribe `_brand.yml` y `brand/logo.svg` · edita `acme.scss`, `slides.qmd` y la prueba · renderiza · `uv run pytest`
 :::
 
-La paleta terminada, y el contraste de cada color de texto sobre el fondo,
-`{python} background`:
-
-```{python}
-#| output: asis
-lines = ["| Se usa para | Rol | Color | Contraste |", "|---|---|---|--:|"]
-for use, role in TEXT_ROLES.items():
-    lines.append(f"| {use} | `{role}` | `{text_colour[use]}` | {contrast(text_colour[use], background):.1f}:1 |")
-print("\n".join(lines))
-print("\n: Los colores de texto de la marca, resueltos a partir de los roles del `_brand.yml` terminado tal como los resuelve su prueba de contraste, con su contraste WCAG 2.2 sobre su fondo. {#tbl-sites-palette}")
-```
-
+Los colores de texto de la marca son los de la presentación, los de la @tbl-slides-contrast, y la
+misma prueba los comprueba, ahora leyendo `_brand.yml`, la fuente de verdad, y no una copia.
 Verifica dónde quedó la marca, como pide el prompt: en el CSS del sitio o de la presentación, los
-colores aparecen como variables; en un PDF de Typst, fijan la página y los títulos. Y haz que la
-prueba de contraste lea los colores de `_brand.yml`, para que la prueba revise el archivo que
-ahora es la fuente de verdad, no una copia de él.
+colores aparecen como variables; en un PDF de Typst, fijan la página y los títulos.
 
-::: pitfall
-Tres trampas encontradas al construir y probar este paso. El orden de los temas de la
-presentación importa: con `brand` en cualquier lugar que no sea el último, `acme.scss` no puede
-usar los colores de la marca, y Sass se detiene con "Undefined variable" (variable no definida);
-por eso el prompt pone `brand` al final. Una lista de fuentes que termina en el genérico
-`sans-serif`, inofensiva en una página web, hizo que Typst advirtiera "unknown font family"
-(familia de fuentes desconocida); nombra en la marca solo fuentes reales. Y las figuras que dibuja
-matplotlib no leen la marca: el proyecto terminado les da a sus gráficos la tinta y el papel de
-la marca con una pequeña función auxiliar que lee `_brand.yml`.
-:::
+| Lo que ves | La solución |
+|---|---|
+| Sass se detiene: "Undefined variable" | `brand` al final de la lista `theme:` de la presentación |
+| Typst advierte "unknown font family" | ningún `sans-serif` genérico en las fuentes de la marca |
+| Los gráficos ignoran la marca | una función auxiliar le da a matplotlib la tinta y el papel de la marca |
+
+: Lo encontrado al probar la marca, el 2026-11-18. {#tbl-sites-traps}
 
 ## Word y PowerPoint, en los mismos colores {#sec-sites-templates}
 
-Word y PowerPoint toman su aspecto de un documento de referencia (la @sec-slides-pptx). Haz los
+Word y PowerPoint toman su aspecto de un documento de referencia (@sec-slides-pptx). Haz los
 dos a partir de la marca con un solo script, para que un cambio de color también les llegue:
 
 ::: {.prompt .long}
@@ -157,54 +170,76 @@ Convierte scripts/make_pptx_reference.py en scripts/make_reference_docs.py, que 
 ```
 :::
 
-La revisión está en el propio archivo de Word, que es un zip de XML: los colores del tema y los
-de los estilos tienen que ser los de la marca. En la prueba, el documento de referencia
-predeterminado de Quarto coloreaba sus títulos con el primer color de acento del tema,
-oscurecido en un cuarto, sus enlaces con ese mismo acento, y su título principal con ninguno,
-así que el script escribió explícitamente los colores de la marca en esos estilos. Revisar el
-archivo, no el script, es lo que lo muestra.
-
-::: pitfall
-Dos más de la prueba. El `.gitignore` del proyecto ignoraba todo `*.docx`, como salida
-renderizada, así que no se pudo hacer commit de la nueva plantilla hasta exceptuarla
-(`!templates/*.docx`). Y la vista previa Quick Look de Apple mostraba el cuerpo en Times,
-ignorando la fuente del tema; el script terminado también nombra la fuente en el estilo Normal
-de Word, para visores como ese. Revisa un archivo de Word en Word, y en lo que sea que tus
-lectores usen para abrirlo.
-:::
+La revisión está en el archivo de Word, un zip de XML: los colores de su tema y de sus estilos
+tienen que ser los de la marca. El documento predeterminado de Quarto colorea los títulos y los
+enlaces con el acento de su propio tema, y el título principal con ninguno, así que el script
+escribe los colores de la marca en esos estilos. Revisa el archivo, no el script. Y revisa un
+archivo de Word en Word, y en lo que usen para abrirlo quienes lo reciban: la vista previa Quick
+Look de Apple mostraba el cuerpo en Times hasta que el script nombró también la fuente en el
+estilo Normal de Word. Por último, exceptúa la plantilla en `.gitignore`, que ignora todo
+`*.docx` renderizado: `!templates/*.docx`.
 
 ## Un sitio a partir del proyecto {#sec-sites-site}
 
 Un *sitio web* de Quarto es un proyecto cuyo `_quarto.yml` enumera sus páginas y cómo navegar
 entre ellas. Todo lo demás de un sitio moderno es vocabulario que puedes pedir:
 
-| Pide | Quarto lo llama | Revisa |
-|---|---|---|
-| exactamente estas páginas | una lista `render:` explícita | el README y los notebooks no se vuelven páginas |
-| un menú con el logo | `navbar:`, cuyo logo viene de la marca | el logo se ve sobre la barra de navegación |
-| una línea en cada página | `page-footer:` | el aviso y la licencia de los datos en cada página |
-| una página de inicio que enumere los documentos | un *listado*, `type: table`, `default` o `grid` | cada entrada muestra su descripción |
-| una página About | `about:` con una plantilla: `jolla`, `trestles`, `solana`, `marquee` o `broadside` | el logo y los enlaces se renderizan |
-| búsqueda | activada por defecto; `search.json` en `_site/` | una palabra del informe lo encuentra |
-| tarjetas cuando se comparte un enlace | `open-graph: true`, con `site-url` y una `description` en cada página | cada página tiene etiquetas `og:` |
-| los otros formatos de una página | los enlaces "Other formats" de Quarto (`format-links`) | los archivos de Word y PDF están a un clic |
+| Pide | Quarto lo llama |
+|---|---|
+| exactamente estas páginas | una lista `render:` explícita |
+| un menú con el logo | `navbar:`, cuyo logo viene de la marca |
+| una línea en cada página | `page-footer:` |
+| una página About | `about:` con una plantilla: `jolla`, `trestles`, `solana`, `marquee` o `broadside` |
 
-: El vocabulario de un sitio web, y cómo revisar cada elemento (Quarto 1.10.20). {#tbl-sites-vocab}
+: Las páginas de un sitio web y su navegación (Quarto 1.10.20). {#tbl-sites-vocab}
+
+| Pide | Quarto lo llama |
+|---|---|
+| una página de inicio con los documentos | un *listado*, `type: table`, `default` o `grid` |
+| búsqueda | activada por defecto; `search.json` en `_site/` |
+| tarjetas al compartir un enlace | *tarjetas para redes sociales*: `open-graph: true`, con `site-url` y una `description` por página |
+| los otros formatos de una página | los enlaces "Other formats" de Quarto (`format-links`) |
+
+: Cómo se encuentra y se comparte un sitio web. {#tbl-sites-find}
 
 ::: {.prompt .long}
 ```default
-Convierte esta carpeta en un sitio web de Quarto, con sus textos en inglés: _quarto.yml con una lista de renderizado explícita (index.qmd, about.qmd, report.qmd, model-card.qmd, slides.qmd), execute-dir project, una barra de navegación con el logo de la marca, un pie de página con el aviso de empresa ficticia y el crédito CC BY 4.0 de los datos, site-url https://example.org/acme-eval/, open-graph y una descripción en cada página. index.qmd: una primera oración que dé el resultado principal como código en línea con una guarda, y luego un listado en tabla de los tres documentos. about.qmd: una página About con la plantilla trestles. Renderiza el sitio y enumera las páginas y cualquier advertencia.
+Haz de esta carpeta un sitio web Quarto en inglés: _quarto.yml con lista de renderizado explícita (index.qmd, about.qmd, report.qmd, model-card.qmd, slides.qmd), execute-dir project, barra de navegación con el logo, pie de página con el aviso de empresa ficticia y el crédito CC BY 4.0 de los datos, site-url https://example.org/acme-eval/, open-graph y una descripción por página; index.qmd y about.qmd, esbozos (stubs) por ahora. Renderiza y enumera páginas y advertencias.
 ```
 :::
 
 ::: {.agent}
-escribe `_quarto.yml`, `index.qmd` y `about.qmd` · agrega descripciones · `uv run quarto render` → `_site/`
+escribe `_quarto.yml` · agrega descripciones · `uv run quarto render` → `_site/`
+:::
+
+::: {.prompt}
+```default
+Escribe index.qmd, en inglés: una primera oración que dé el resultado principal como código en línea con una guarda, y luego un listado en tabla de los tres documentos. Escribe about.qmd: una página About con la plantilla trestles. Renderiza el sitio y dime qué dice la primera oración de la página de inicio.
+```
+:::
+
+::: {.agent}
+escribe `index.qmd` y `about.qmd` · `uv run quarto render` → `_site/`
 :::
 
 ::: {.you}
 `uv run quarto preview` · abres la dirección que imprime, y el sitio en una ventana del tamaño de
 un teléfono
 :::
+
+<!-- Ejecución de prueba del 2026-11-25 (de los prompts en inglés), textual, en copias del punto
+de control 16-eval-slides con outputs/ calculado, el prompt de la marca y los dos turnos del sitio
+en orden: un subagente de Claude Code con Sonnet 5.5 y otro con Haiku 5.5. Las dos marcas se
+renderizaron y pasaron las pruebas (26), con la paleta y los roles en el HTML de la presentación y
+del informe; _brand.yml admite una familia de fuentes por rol, así que los dos reemplazaron la
+pila del sistema por una sola familia (Haiku después de que Typst advirtiera "unknown font family:
+sans-serif"). El primer turno del sitio nombraba index.qmd y about.qmd antes de que existieran:
+Quarto los omitió, escribió una redirección para la página de inicio y advirtió "Unable to resolve
+link target". El primer turno ahora pide esbozos. Repetido con "title-only stubs" desde una copia
+del punto de control 17-eval-site sin su _quarto.yml, index.qmd ni about.qmd, los dos modelos
+renderizaron cinco páginas sin ninguna advertencia de Quarto, les dieron a los esbozos una
+descripción, como necesita cada página, y los reemplazaron en el segundo turno; luego se quitó
+"title-only". -->
 
 La primera oración de la página de inicio es el resultado principal, calculado y protegido con
 una guarda como cualquier otro: en el sitio terminado, `{python} best` aparece como la versión
@@ -216,16 +251,34 @@ una descripción es parte del encabezado YAML y no puede calcular.
 
 `site-url` es un marcador de posición hasta que sepas dónde vivirá el sitio; configúralo antes de
 publicar, porque las tarjetas para redes sociales necesitan direcciones absolutas para sus
-imágenes.
+imágenes. Luego revisa lo que pediste:
+
+- **Lista de renderizado**: `README.md` y los notebooks no son páginas.
+- **Barra de navegación**: el logo se ve sobre ella.
+- **Pie de página**: el aviso y la licencia en cada página.
+- **Búsqueda**: una palabra del informe lo encuentra.
+- **Tarjetas para redes sociales**: etiquetas `og:` en cada página.
+- **Otros formatos**: Word y PDF, a un clic.
 
 ::: pitfall
 Una vez que la carpeta es un sitio web, cada renderizado escribe en `_site/`, también el de un
 solo archivo, así que los scripts que esperaban `slides.html` junto a la fuente tienen que buscar
-en `_site/`; en la prueba, los scripts del PDF y del texto alternativo fallaron hasta que lo
-hicieron. Y una barra de navegación en el color primario de la marca ocultaba un logo del mismo
-azul marino; `background: light` en la barra de navegación lo resolvió. Mira el sitio, no solo
-su registro de compilación.
+en `_site/`. Los scripts del PDF y del texto alternativo de la presentación fallaron hasta que lo
+hicieron.
 :::
+
+::: story
+<!-- source: book/chapters/sites.qmd lines 215-217 at 651db10 ("a navbar in the brand's
+primary colour hid a logo in the same navy; `background: light` in the navbar fixed it") -->
+En la ejecución de prueba de este capítulo, la barra de navegación tomó el color primario de la
+marca, un azul marino. El logo era del mismo azul, así que la barra lo ocultaba.
+`background: light` en la barra lo resolvió. Un registro del build informa lo que se
+escribió, no lo que se ve: mira el sitio, no solo su registro.
+:::
+
+![Sin `background: light`, la barra de navegación toma el azul marino de la marca, y el nombre del logo, dibujado en el mismo azul, casi desaparece.](../media/figures/eval-site-navbar-before.png){#fig-sites-navbar-before width=85% fig-alt="Una barra azul marino con un botón de menú, una pequeña marca blanca de gráfico de barras, la palabra Acme en un azul marino oscuro que apenas se ve sobre la barra, y un ícono de búsqueda."}
+
+![Con `background: light`, como lo tiene el sitio terminado, el logo se ve.](../media/figures/eval-site-navbar-after.png){#fig-sites-navbar-after width=85% fig-alt="La misma barra sobre un fondo blanco hueso cálido: el botón de menú, el logo de Acme Signals, un cuadrado azul marino con barras blancas junto al nombre de la empresa, y el ícono de búsqueda."}
 
 ## Revisiones para cada página {#sec-sites-checks}
 
@@ -238,18 +291,33 @@ Escribe scripts/check_site.py: después de un renderizado, revisa en cada págin
 ```
 :::
 
-En la prueba, la primera ejecución del script encontró dos problemas, ambos en la página de la
-presentación: Reveal.js mostraba el logo de la marca sin texto alternativo, hasta que se le dio
-uno en `_brand.yml`, y no escribía ninguna etiqueta de descripción, hasta que un filtro corto la
-agregó a partir de la `description` de la página. Ninguno de los dos se ve en la pantalla; los
-dos son justamente para lo que sirve el script. Cada revisión es una falla común con una razón.
-El texto alternativo es lo que un lector de pantalla anuncia en lugar de una imagen (la
-@sec-md-link-image). El idioma de la página le dice a un lector de pantalla cómo pronunciarla.
-Un título y una descripción son lo que muestran un resultado de búsqueda y un enlace compartido.
-Los títulos que se saltan un nivel confunden a quien navega por títulos, como lo hacen quienes
-usan lectores de pantalla. Y el contraste es la regla de la @sec-slides-theme, aplicada a toda la
-marca. El script no reemplaza mirar el sitio, ni una auditoría completa como la puntuación de
-accesibilidad de Lighthouse; atrapa las regresiones que una página nueva o un color nuevo
+::: think
+`check_site.py` pasa en todas las páginas. Nombra algo que haya demostrado en todas ellas, y algo
+que solo tus ojos pueden revisar.
+
+Demostrado: cada imagen tiene texto alternativo, cada página un título, una descripción y un
+idioma, y ningún nivel de título se salta. La comprobación de contraste demuestra que los colores
+de `_brand.yml` pasan 4.5:1, no las páginas. No demostrado: que las páginas usen solo esos
+colores, que el texto alternativo sea cierto, que el logo se vea sobre su barra. Un script revisa
+en cada página lo que se puede enunciar como regla; tú revisas una página para todo lo demás.
+:::
+
+La primera ejecución del script encontró dos problemas, los dos en la página de la presentación.
+Reveal.js mostraba el logo de la marca sin texto alternativo, hasta que `_brand.yml` le dio uno, y
+no escribía ninguna etiqueta de descripción, hasta que un filtro corto la agregó a partir de la
+`description` de la página. Ninguno se ve en la pantalla; para eso es el script. Cada revisión
+detecta una falla común:
+
+- **El texto alternativo** es lo que un lector de pantalla anuncia en lugar de una imagen
+  (@sec-md-link-image).
+- **Un idioma** le dice a un lector de pantalla cómo pronunciar la página.
+- **Un título y una descripción** son lo que muestran un resultado de búsqueda y un enlace
+  compartido.
+- **Los títulos que se saltan un nivel** confunden a quien navega por títulos.
+- **El contraste** es la regla de la @sec-slides-theme, aplicada a toda la marca.
+
+El script no reemplaza mirar el sitio, ni una auditoría completa como la puntuación de
+accesibilidad de Lighthouse; detecta las regresiones que una página nueva o un color nuevo
 colarían de otro modo.
 
 ::: catchup
@@ -260,13 +328,13 @@ Catch me up: follow ../quarto-workshop/checkpoints/17-eval-site/README.md
 
 ## A dónde puede ir un sitio con marca {#sec-sites-publish}
 
-El sitio son archivos estáticos en `_site/`, que se publican como los de la guía de Londres (la
-@sec-london-publish). Primero vienen dos decisiones. **Quién puede verlo.** Una evaluación
-pública de un conjunto de datos público puede ir en cualquier servicio de alojamiento público;
-una evaluación con los datos de un cliente, no. GitHub Pages sirve los sitios de repositorios
-privados solo en planes de pago, así que el trabajo privado necesita un servicio de alojamiento
-que tu organización apruebe. **Dónde vive**, para poder configurar `site-url` y que las tarjetas
-para redes sociales funcionen.
+El sitio son archivos estáticos en `_site/`, que se publican como los de la guía de Londres
+(@sec-london-publish), en cualquiera de los servicios de alojamiento de la @sec-hosting. Primero
+vienen dos decisiones. **Quién puede verlo.** Una evaluación pública de un conjunto de datos
+público puede ir en cualquier servicio de alojamiento público; una evaluación con los datos de un
+cliente, no: `{python} fact("github.pages_private")` (@sec-facts). El trabajo privado necesita
+un servicio de alojamiento que tu organización apruebe. **Dónde vive**, para poder configurar
+`site-url` y que las tarjetas para redes sociales funcionen.
 
 ::: tryit
 Construye la marca, las plantillas, el sitio y el script de revisión, y abre la vista previa del
@@ -312,3 +380,5 @@ revisar.
 - Quarto, [Word templates](https://quarto.org/docs/output-formats/ms-word-templates.html)
   (consultado el 2026-11-18).
 - W3C, [WCAG 2.2](https://www.w3.org/TR/WCAG22/) (consultado el 2026-11-18).
+- GitHub, [planes](https://docs.github.com/en/get-started/learning-about-github/githubs-plans),
+  sobre Pages para repositorios privados (consultado el `{python} checked("github.pages_private")`).

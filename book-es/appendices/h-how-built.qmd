@@ -31,19 +31,39 @@ la página, y las mismas etiquetas, referencias cruzadas y URL.
 
 ## Lo que necesitó el EPUB {#what-the-epub-needed .unnumbered}
 
-| Problema | Solución |
-|---|---|
-| Quarto 1.10.20 elimina del EPUB las partes de un libro, y el contenido de las páginas de las partes | En el EPUB, las páginas de las partes son capítulos comunes; un script posterior al renderizado anida los capítulos de cada parte debajo de ella en la tabla de contenidos |
-| La lista de capítulos de un perfil se suma a la lista base, no la reemplaza | Una sola lista maestra (`_chapters.yml`) genera una lista de capítulos para cada edición |
-| `when-format="html"` también coincide con el EPUB | El contenido solo para HTML usa `when-format="html:js"` |
-| Renderizar una edición vacía la carpeta de salida de la otra | Cada edición tiene su propia carpeta de salida |
-| El envoltorio de las figuras de Quarto lleva un atributo `alt` que el XHTML del EPUB prohíbe | El script posterior al renderizado lo quita (la imagen conserva su texto alternativo) |
-| No hay puntos de referencia (landmarks) para la página de derechos de autor ni para el comienzo del texto | Los agrega el script posterior al renderizado, que además pone la página de derechos de autor antes del prefacio |
-| Los títulos de los recuadros y el código tienen fondos claros fijos y texto oscuro, invisibles con el tema nocturno de un lector | La hoja de estilos deja pasar los colores del lector |
-| Las líneas de código no se ajustan en un teléfono, y las salidas de las celdas se desplazan de lado | La hoja de estilos hace que las líneas largas se ajusten y que las salidas quepan |
-| Los diagramas anchos son ilegibles en un teléfono | Los diagramas se dibujan en vertical, de 700 píxeles de ancho con texto de al menos 19 píxeles, y se entregan como PNG al doble de resolución |
+Problemas encontrados al construir la edición EPUB, y sus soluciones:
 
-: Problemas encontrados al construir la edición EPUB, y sus soluciones. {#tbl-epub-fixes}
+::: cards
+Quarto 1.10.20 elimina del EPUB las partes de un libro, y el contenido de las páginas de las partes
+:   En el EPUB, las páginas de las partes son capítulos comunes; un script posterior al
+    renderizado anida los capítulos de cada parte debajo de ella en la tabla de contenidos.
+
+La lista de capítulos de un perfil se suma a la lista base, no la reemplaza
+:   Una sola lista maestra (`_chapters.yml`) genera una lista de capítulos para cada edición.
+
+`when-format="html"` también coincide con el EPUB
+:   El contenido solo para HTML usa `when-format="html:js"`.
+
+Renderizar una edición vacía la carpeta de salida de la otra
+:   Cada edición tiene su propia carpeta de salida.
+
+El envoltorio de las figuras de Quarto lleva un atributo `alt` que el XHTML del EPUB prohíbe
+:   El script posterior al renderizado lo quita (la imagen conserva su texto alternativo).
+
+No hay puntos de referencia (landmarks) para la página de derechos de autor ni para el comienzo del texto
+:   Los agrega el script posterior al renderizado, que además pone la página de derechos de autor
+    antes del prefacio.
+
+Los títulos de los recuadros y el código tienen fondos claros fijos y texto oscuro, invisibles con el tema nocturno de una app de lectura
+:   La hoja de estilos deja pasar los colores del lector.
+
+Las líneas de código no se ajustan en un teléfono, y las salidas de las celdas se desplazan de lado
+:   La hoja de estilos hace que las líneas largas se ajusten y que las salidas quepan.
+
+Los diagramas anchos son ilegibles en un teléfono
+:   Los diagramas se dibujan en vertical, de 700 píxeles de ancho con texto de al menos 19
+    píxeles, y se entregan como PNG al doble de resolución.
+:::
 
 El EPUB terminado pasa EPUBCheck 5.4.0, el validador del W3C, sin errores y sin advertencias.
 
@@ -61,20 +81,58 @@ Todos los medios los reconstruye un solo script, `media/build.py`, que ejecuta `
   reales con una cuenta de demostración, para que no aparezca ninguna ruta personal; la sesión del agente
   es una ilustración con guion, porque las reglas del repositorio descartan las sesiones de agentes de
   pago para el material didáctico.
-- **Cada GIF abre en su último cuadro**, mantenido dos segundos, porque los lectores electrónicos que no
-  animan muestran el primer cuadro de un GIF. Cada uno tiene además un PNG fijo, que el sitio web muestra
+- **Cada GIF abre en su último cuadro**, mantenido dos segundos, porque las apps de lectura que no
+  animan imágenes muestran el primer cuadro de un GIF. Cada uno tiene además un PNG fijo, que el sitio web muestra
   a quienes le piden a su sistema movimiento reducido. Los GIF se mantienen por debajo de 2 MB.
+- **Las animaciones de Markdown** del @sec-markdown ponen lo que escribes, a la izquierda, junto a
+  lo que obtienes, a la derecha. El lado derecho no está dibujado: cada paso de la izquierda se
+  guardó en un archivo y lo renderizó Quarto 1.10.20, y la derecha muestra esa página, ampliada.
+  Cada una abre en su par terminado, que es todo lo que muestra una app de lectura sin animaciones, y luego
+  escribe la fuente desde el principio.
 
 ## Leer el EPUB {#reading-the-epub .unnumbered}
 
-| Función | Dónde funciona |
-|---|---|
-| GIF animados | los lectores que animan imágenes los reproducen; los demás muestran el primer cuadro, pensado como imagen fija |
-| Temas nocturno y sepia | la hoja de estilos no fija colores de página; las figuras dibujadas con tinta oscura van sobre un panel claro |
-| Matemáticas | escritas como MathML; los lectores sin soporte para MathML pueden mostrarlas como texto simple |
-| Escenas 3-D en vivo y exploradores | solo en la edición web, enlazados desde el EPUB; el mapa de Londres también tiene código QR |
+Cómo se comportan las funciones del EPUB en distintas apps de lectura:
 
-: Cómo se comportan las funciones del EPUB en distintos lectores. El `book/README.md` del repositorio registra qué lectores se probaron, y cuándo. {#tbl-reading}
+::: cards
+GIF animados
+:   Las apps de lectura que animan imágenes los reproducen; las demás muestran el primer cuadro, pensado
+    como imagen fija.
+
+Temas nocturno y sepia
+:   La hoja de estilos no fija colores de página; las figuras dibujadas con tinta oscura van sobre
+    un panel claro.
+
+Matemáticas
+:   Escritas como MathML; las apps de lectura sin soporte para MathML pueden mostrarlas como texto simple.
+
+Escenas 3-D en vivo y exploradores
+:   Solo en la edición web, enlazados desde el EPUB; el mapa de Londres también tiene código QR.
+:::
+
+El `book/README.md` del repositorio registra qué apps de lectura se probaron, y cuándo.
+
+## Lo que no se probó {#sec-not-tested .unnumbered}
+
+Tres cosas que el libro describe no se probaron por completo. Lo que se revisó, y lo que no:
+
+::: cards
+Las primeras pantallas de los agentes
+:   Las primeras pantallas de Claude Code y de Codex se capturaron el 2026-11-07 (@sec-setup);
+    las de Antigravity y OpenCode, no.
+
+El codespace
+:   Construido a partir del contenedor de desarrollo (dev container) del taller y revisado en una
+    computadora local: Quarto, uv, Git y `gh` presentes, y el primer informe y la prueba se
+    renderizan. No se ejecutó en las máquinas de GitHub (@sec-codespace).
+
+Los workflows del equipo
+:   El workflow de comprobación se ejecutó localmente con act (0.2.98, en Docker), en verde con el
+    cambio y en rojo con una guarda rota (@sec-team). El push, los pull requests, las ejecuciones
+    de *Publish* y *Monthly reports*, el caché de uv y la protección de rama necesitan un
+    repositorio de GitHub y no se ejecutaron para esta edición; sus acciones y configuraciones se
+    contrastaron con la documentación de GitHub el 2026-11-18.
+:::
 
 ## Construirlo {#building-it .unnumbered}
 

@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5ed9e4edf2048b6b9b588fc3d1daa128.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -650,7 +650,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#sec-team-red" id="toc-sec-team-red" class="nav-link" data-scroll-target="#sec-team-red"><span class="header-section-number">15.4</span> A red build</a></li>
   <li><a href="#sec-team-publish" id="toc-sec-team-publish" class="nav-link" data-scroll-target="#sec-team-publish"><span class="header-section-number">15.5</span> Publish from <code>main</code></a></li>
   <li><a href="#sec-team-schedule" id="toc-sec-team-schedule" class="nav-link" data-scroll-target="#sec-team-schedule"><span class="header-section-number">15.6</span> Reports on a schedule</a></li>
-  <li><a href="#what-was-not-tested" id="toc-what-was-not-tested" class="nav-link" data-scroll-target="#what-was-not-tested">What was not tested</a></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
   <li><a href="#further-reading" id="toc-further-reading" class="nav-link" data-scroll-target="#further-reading">Further reading</a></li>
   </ul>
@@ -685,8 +684,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p><a href="fast-path.html" class="quarto-xref"><span>Chapter 3</span></a> reviewed an agent’s change as a pull request and rebuilt it from a fresh clone by hand. That last check is the one a reviewer most often skips, because it takes time and a clean machine, and it is the one an agent’s fluent summary cannot replace. <a href="../appendices/j-glossary.html#gl-continuous-integration-ci" class="glossary-link"><em>Continuous integration</em></a>, CI, makes it automatic: on every pull request, a machine that has never seen the project clones it, installs the tools, computes the results, runs the tests and renders every page, and the pull request shows a green tick or a red cross. A guard that the results no longer support turns it red, naming the sentence.</p>
-<p>This chapter adds that to the Acme project, with the rules a team needs for agents’ changes: one change per pull request, nothing generated committed, and nothing called done until it has been rebuilt. It then publishes the site from <code>main</code> and renders the monthly reports on a schedule, both by the same build.</p>
+<p>The fast path reviewed an agent’s change as a pull request and rebuilt it from a fresh clone by hand (<a href="fast-path.html#sec-fast-pr" class="quarto-xref"><span>Section 3.7</span></a>). That last check is the one a reviewer most often skips, because it takes time and a clean machine, and it is the one an agent’s fluent summary cannot replace. Continuous integration, CI, makes it automatic: on every pull request, a machine that has never seen the project clones it, installs the tools, computes the results, runs the tests and renders every page, and the pull request shows a green tick or a red cross. A guard that the results no longer support turns it red, naming the sentence.</p>
+<p>This chapter adds that to the Acme project, with the rules a team needs for agents’ changes: one change per pull request, nothing generated committed, and nothing called done until it has been rebuilt. The same build then publishes the site and renders the monthly reports.</p>
 <div class="opener">
 <div class="box-label">
 <strong>In this chapter</strong>
@@ -703,8 +702,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><span class="meta-label"><strong>Checkpoint</strong></span><code>checkpoints/20-eval-ci/</code></p>
 </div>
 </div>
+<div class="payoff">
+<div class="box-label">
+<strong>What you will build</strong>
+</div>
+<p>A build that refuses a false sentence. Once one of the home page’s guards no longer holds, the render step stops, and its log names the sentence in the project’s own words:</p>
+<div class="transcript">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>ClaimError: The results no longer support this sentence: The release called best has the highest ROC AUC.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
 <section id="sec-team-vocab" class="level2" data-number="15.1">
 <h2 data-number="15.1" class="anchored" data-anchor-id="sec-team-vocab"><span class="header-section-number">15.1</span> What CI is made of</h2>
+<p><a href="../appendices/j-glossary.html#gl-continuous-integration-ci" class="glossary-link"><em>Continuous integration</em></a> is a build that runs by itself on every change. GitHub’s is called GitHub Actions, and its parts have names:</p>
 <div id="tbl-team-vocab" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-team-vocab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -716,70 +725,113 @@ Table&nbsp;15.1: CI’s parts, and what GitHub Actions calls them.
 <tr class="header">
 <th>Ask for</th>
 <th>GitHub Actions calls it</th>
-<th>Check</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>a build, written down</td>
-<td>a <a href="../appendices/j-glossary.html#gl-workflow" class="glossary-link"><em>workflow</em></a>, a YAML file in <code>.github/workflows/</code></td>
-<td>it appears under the repository’s <em>Actions</em> tab</td>
+<td>a <a href="../appendices/j-glossary.html#gl-workflow" class="glossary-link"><em>workflow</em></a>: YAML in <code>.github/workflows/</code></td>
 </tr>
 <tr class="even">
 <td>when it runs</td>
-<td><code>on:</code> a trigger: <code>pull_request</code>, <code>push</code>, <code>schedule</code>, <code>workflow_dispatch</code> (on demand)</td>
-<td>a run starts when the event happens</td>
+<td><code>on:</code>, a <a href="../appendices/j-glossary.html#gl-trigger-github-actions" class="glossary-link"><em>trigger</em></a>, such as <code>pull_request</code></td>
 </tr>
 <tr class="odd">
 <td>a clean machine</td>
-<td>a <a href="../appendices/j-glossary.html#gl-runner" class="glossary-link"><em>runner</em></a>, <code>runs-on: ubuntu-24.04</code></td>
-<td>the log shows it installing everything</td>
+<td>a <a href="../appendices/j-glossary.html#gl-runner" class="glossary-link"><em>runner</em></a>: <code>runs-on: ubuntu-24.04</code></td>
 </tr>
 <tr class="even">
-<td>one thing it does</td>
-<td>a step: an action (<code>uses:</code>) or a command (<code>run:</code>)</td>
-<td>each step is green or red in the log</td>
-</tr>
-<tr class="odd">
-<td>a result on the pull request</td>
+<td>a tick or a cross</td>
 <td>a <a href="../appendices/j-glossary.html#gl-status-check" class="glossary-link"><em>status check</em></a></td>
-<td>a tick or a cross beside the commit</td>
-</tr>
-<tr class="even">
-<td>a file the run made, kept</td>
-<td>an <a href="../appendices/j-glossary.html#gl-artifact" class="glossary-link"><em>artifact</em></a></td>
-<td>a download at the foot of the run’s page</td>
 </tr>
 <tr class="odd">
 <td>“nothing reaches <code>main</code> unbuilt”</td>
-<td>a <a href="../appendices/j-glossary.html#gl-protected-branch" class="glossary-link"><em>protected branch</em></a> with a required check</td>
-<td>the merge button waits for the tick</td>
+<td>a <a href="../appendices/j-glossary.html#gl-protected-branch" class="glossary-link"><em>protected branch</em></a></td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
+<p>A workflow’s <em>steps</em> run in order, each an action (<code>uses:</code>) or a command (<code>run:</code>), and the log shows each one green or red. A file a run keeps for you to download is an <a href="../appendices/j-glossary.html#gl-artifact" class="glossary-link"><em>artifact</em></a>.</p>
 <p>A workflow should run the commands you run, not new ones. The project’s <code>AGENTS.md</code> already lists its rebuild: compute the results, run the tests, render the site, check the pages. CI runs the same four, so a green tick means what “it builds on my machine” was meant to mean.</p>
 </section>
 <section id="sec-team-rules" class="level2" data-number="15.2">
 <h2 data-number="15.2" class="anchored" data-anchor-id="sec-team-rules"><span class="header-section-number">15.2</span> Rules for a team</h2>
-<p>A team’s agents need rules a lone author can keep in their head. Each agent session starts fresh, reads <code>AGENTS.md</code>, and does what it says, so the rules go there; each reviewer opens a pull request, so the checklist goes in its template.</p>
+<p>A team’s agents need rules a lone author can keep in their head. Each agent session starts fresh, reads <code>AGENTS.md</code>, and does what it says, so the rules go there; each reviewer opens a pull request, so the checklist goes in its template. Ask for them in two turns:</p>
 <div class="agent-box">
 <div class="prompt long" data-boxed="true">
 <div class="box-label">
 <strong>Ask your coding agent</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Add a section "Team rules" to AGENTS.md for working in a team: work on a branch, never push to `main` or merge; one coherent change per pull request; never commit outputs/, reports/, _site/ or rendered files; before saying a change is done, run the four rebuild commands (evaluate, tests, render, check_site) and say which passed; never weaken a test or a `claim` guard to make a step pass; report what you could not verify. Then create .github/pull_request_template.md: the three checks (scope, correctness, rebuild) as a checklist, saying what to look at for each in this project, and a line asking which agent made the change and what it did not verify. Do this on a new branch `team-rules` and commit it.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Add a section "Team rules" to AGENTS.md for working in a team: work on a branch, never push to `main` or merge; one coherent change per pull request; never commit outputs/, reports/, _site/ or rendered files; before saying a change is done, run the four rebuild commands (evaluate, tests, render, check_site) and say which passed; never weaken a test or a `claim` guard to make a step pass; report what you could not verify. Do this on a new branch `team-rules` and commit it.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="agent" data-boxed="true">
 <div class="box-label">
 <strong>Expect it to run</strong>
 </div>
-<p><code>git switch -c team-rules</code> · edits <code>AGENTS.md</code> · writes <code>.github/pull_request_template.md</code> · <code>git commit</code></p>
+<p><code>git switch -c team-rules</code> · edits <code>AGENTS.md</code> · <code>git commit</code></p>
+</div>
+<div class="prompt" data-boxed="true">
+<div class="box-label">
+<strong>Ask your coding agent</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Create .github/pull_request_template.md: the three checks (scope, correctness, rebuild) as a checklist, saying what to look at for each in this project, and a line asking which agent made the change and what it did not verify. Commit it on `team-rules`.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="agent" data-boxed="true">
+<div class="box-label">
+<strong>Expect it to run</strong>
+</div>
+<p>writes <code>.github/pull_request_template.md</code> · <code>git commit</code></p>
 </div>
 </div>
+<!-- Dry-run 2026-11-25, both turns verbatim, in a copy of checkpoint 19-eval-params with no
+remote: a Claude Code sub-agent on Sonnet 5.5 and one on Haiku 5.5. Both wrote the section on
+a new branch team-rules, took the four commands from AGENTS.md, ran them under their own new
+rule (all passed), and committed the template there as a second commit. -->
 <p>Read the diff as the reviewer of a rule book. Each rule should name this project’s files and commands, not general good practice: “never commit <code>outputs/</code>” is a rule an agent can check, “keep the repository clean” is not. The rule against weakening a guard matters most. An agent told to make a failing step pass has two routes, fixing the sentence or loosening its guard, and only one is right.</p>
+<p>A pull request changes one sentence of the model card, the second below. Its description says “wording only”.</p>
+<blockquote class="blockquote">
+<p>The call centre calls the top 10% of the list, so the business metric is recall in the top 10%: the share of all subscribers that those calls reach. For v3 it is 0.420 (95% interval 0.396 to 0.442), against a base rate of 11.7%.</p>
+</blockquote>
+<p>The file’s rows for that metric, <code>recall_top10</code>:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th><code>version</code></th>
+<th style="text-align: right;"><code>value</code></th>
+<th style="text-align: right;"><code>low</code>, <code>high</code> (the 95% interval)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>v2</td>
+<td style="text-align: right;">0.419818</td>
+<td style="text-align: right;">0.396294, 0.442398</td>
+</tr>
+<tr class="even">
+<td>v3</td>
+<td style="text-align: right;">0.435703</td>
+<td style="text-align: right;">0.413252, 0.459005</td>
+</tr>
+</tbody>
+</table>
+<div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Try it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Review the pull request against <code>outputs/metrics.csv</code>, as its template’s three checks ask; <a href="../appendices/e-checkpoints.html" class="quarto-xref"><span>Appendix E</span></a> has the answer.</p>
+<div class="done">
+<p><strong>You’re done when</strong> you can say which figure is wrong, whose it is, and which of the three checks found it.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="sec-team-check" class="level2" data-number="15.3">
 <h2 data-number="15.3" class="anchored" data-anchor-id="sec-team-check"><span class="header-section-number">15.3</span> A build on every pull request</h2>
@@ -788,45 +840,80 @@ Table&nbsp;15.1: CI’s parts, and what GitHub Actions calls them.
 <div class="box-label">
 <strong>Ask your coding agent</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Create .github/workflows/check.yml: on every pull request and every push to `main`, on `ubuntu-24.04` with read-only permissions, install Quarto 1.10.20 and uv 0.11.32 with its cache on, then run the four rebuild commands from AGENTS.md in order. Pin each action to its latest release, the major tag where it has one, looking the versions up rather than remembering them, and tell me what you chose and where you checked. Commit it on a new branch `ci` from `team-rules`.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Create .github/workflows/check.yml: on every pull request and every push to `main`, on `ubuntu-24.04` with read-only permissions, install Quarto 1.10.20 and uv 0.11.32 with its cache on, then run the four rebuild commands from AGENTS.md in order. Pin each action to its latest release, the major tag where it has one, looking the versions up rather than remembering them, and tell me what you chose and where you checked. Commit it on a new branch `ci` from `team-rules`.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>The finished workflows pin actions/checkout@v7, actions/deploy-pages@v5, actions/upload-artifact@v7, actions/upload-pages-artifact@v5, astral-sh/setup-uv@v10.3.3 and quarto-dev/quarto-actions/setup@v2, the latest releases on <span class="nowrap">2026-11-18</span>, and Quarto 1.10.20. Ask for the versions to be looked up: an agent’s memory of an action’s version is as old as its training, and an old major version can stop working when GitHub retires what it runs on. Name the versions of the tools as well: in the test run, a first version of this prompt that said only “uv” got whatever uv was newest that day, two minor versions ahead of the one the project was built with. It worked, but a build that installs whatever is newest is not the same build next month.</p>
+<p>The finished workflows pin actions/checkout@v7, actions/deploy-pages@v5, actions/upload-artifact@v7, actions/upload-pages-artifact@v5, astral-sh/setup-uv@v10.3.3 and quarto-dev/quarto-actions/setup@v2, the latest releases on <span class="nowrap">2026-11-18</span>, when this chapter was tested, and Quarto 1.10.20. Ask for the versions to be looked up: an agent’s memory of an action’s version is as old as its training, and an old major version can stop working when GitHub retires what it runs on. A major tag such as actions/checkout@v7 moves with each release; the strict pin, which GitHub’s guide to secure use recommends, is a commit’s full SHA. Name the tools’ versions too: a prompt that said only “uv” got that day’s newest, and a build that installs whatever is newest is not the same build next month.</p>
 <div class="agent-box">
 <div class="you" data-boxed="true">
 <div class="box-label">
 <strong>You do</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin team-rules</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr merge team-rules <span class="at">--merge</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin ci</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin team-rules</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>Review the first pull request against its own template’s three checks before you merge it. Merge it with a merge commit, <code>--merge</code>, as above: <code>ci</code> starts from <code>team-rules</code>, so once <code>team-rules</code> is on <code>main</code> unchanged, the second pull request shows only the workflow, one change as the rules ask. (Squashing the first would rewrite its commits, and the second would carry them again.) The second pull request runs the check; its <em>Checks</em> tab shows each step as it runs. The first run downloads Quarto and every package, which takes a few minutes; later runs restore uv’s downloads from a cache. Merge it when the check is green.</p>
-<p>What it costs: GitHub Actions’ standard runners are free in public repositories, and a free account’s private repositories get 12 US dollars of compute a month (checked <span class="nowrap">2026-11-18</span>; <a href="../appendices/k-facts.html" class="quarto-xref"><span>Appendix K</span></a>). A private repository’s check uses that allowance; a public one does not.</p>
+<p>Review it against its template’s three checks, and only then merge it, with a merge commit (<code>--merge</code>): <code>ci</code> starts from <code>team-rules</code>, so the second pull request then shows only the workflow. Squashing would put new commits on <code>main</code>, and the second would list the old ones again.</p>
+<div class="agent-box">
+<div class="you" data-boxed="true">
+<div class="box-label">
+<strong>You do</strong>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr merge team-rules <span class="at">--merge</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin ci</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p>The second pull request runs the check, step by step on its <em>Checks</em> tab. The first run downloads Quarto and every package, which takes a few minutes; later runs restore uv’s downloads from a cache. Merge it when it is green.</p>
+<p>What it costs: GitHub Actions’ standard runners are free in public repositories, and a free account’s private repositories get 12 US dollars of compute a month (<a href="../appendices/k-facts.html" class="quarto-xref"><span>Appendix K</span></a>). A private repository’s check uses that allowance; a public one does not.</p>
 </section>
 <section id="sec-team-red" class="level2" data-number="15.4">
 <h2 data-number="15.4" class="anchored" data-anchor-id="sec-team-red"><span class="header-section-number">15.4</span> A red build</h2>
-<p>A check that has never failed has not been tested. Break a guard on purpose, on a branch you will throw away:</p>
+<p>A check that has never failed has not been tested. Break a guard on purpose, on a branch you will throw away.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>You are about to break a guard on purpose. Before you push: which of the check’s four commands will fail, and why not the others?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>The render, the third: the results still compute and the tests still pass, because neither reads prose. The render runs the guard, and the <code>claim</code> quotes its sentence in the log. If the tests went red instead, the change broke more than a sentence.</p>
+</div>
+</div>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
 <div class="box-label">
 <strong>Ask your coding agent</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>This breaks a guard on purpose, to see CI fail. On a new branch `try-red` from `ci`, change the condition of one `claim` guard in index.qmd so that it no longer holds, without changing its sentence, commit it, and tell me which sentence CI should name.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>This breaks a guard on purpose, to see CI fail. On a new branch `try-red` from `ci`, change the condition of one `claim` guard in index.qmd so that it no longer holds, without changing its sentence, commit it, and tell me which sentence CI should name.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="you" data-boxed="true">
 <div class="box-label">
 <strong>You do</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin try-red</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span> <span class="at">--draft</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin try-red</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> pr create <span class="at">--base</span> main <span class="at">--fill</span> <span class="at">--draft</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>The check goes red at its render step, and the log names the sentence: in the test run, “ClaimError: The results no longer support this sentence”, followed by the home page’s sentence about the best release. That is what a teammate sees when a change to the data or the model makes a typed claim untrue: not a report that quietly says the wrong thing, but a pull request that cannot be merged with it. Close the pull request and delete the branch (<code>gh pr close --delete-branch</code>).</p>
-<p>To make “cannot be merged” literal, protect <code>main</code>: under the repository’s <em>Settings</em>, add a branch protection rule, or a ruleset, that requires a pull request and the <em>Check</em> job before merging. One limit: on a free GitHub account, protected branches and rulesets work in public repositories only; private repositories need GitHub Pro, Team or Enterprise (checked <span class="nowrap">2026-11-18</span>). On a free private repository the check still runs and still shows red; it is the team’s rule, not GitHub’s, that nothing red is merged.</p>
+<p>The check goes red at its render step, naming the sentence, as at the start of this chapter. That is what a teammate sees when a change to the data or the model makes a typed claim untrue: not a report that quietly says the wrong thing, but a pull request that cannot be merged with it. Close the pull request and delete the branch (<code>gh pr close --delete-branch</code>).</p>
+<p>To make “cannot be merged” literal, protect <code>main</code>: under the repository’s <em>Settings</em>, add a branch protection rule, or a ruleset, that requires a pull request and the <em>Check</em> job before merging. One limit: on a free GitHub account, protected branches and rulesets work in public repositories only; private repositories need GitHub Pro, Team or Enterprise. On a free private repository the check still runs and still shows red; it is the team’s rule, not GitHub’s, that nothing red is merged.</p>
+<div class="practice callout callout-style-default callout-tip callout-titled" title="In practice">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>In practice
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For this edition the check workflow was run on a local runner (act), green and then red; the steps that need GitHub (pushes, pull requests, the uv cache, publishing, the schedule and branch protection) were checked against GitHub’s documentation, not run (<a href="../appendices/h-how-built.html#sec-not-tested">what was not tested</a>).</p>
+</div>
+</div>
 </section>
 <section id="sec-team-publish" class="level2" data-number="15.5">
 <h2 data-number="15.5" class="anchored" data-anchor-id="sec-team-publish"><span class="header-section-number">15.5</span> Publish from <code>main</code></h2>
@@ -835,10 +922,10 @@ Table&nbsp;15.1: CI’s parts, and what GitHub Actions calls them.
 <div class="box-label">
 <strong>Ask your coding agent</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Create .github/workflows/publish.yml: on every push to `main`, and on demand, run the same build, then deploy _site/ to GitHub Pages with GitHub's own Pages actions (no `gh-pages` branch), with the permissions and environment they need, given only to the job that deploys. Tell me the one repository setting I must change before it first runs.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Create .github/workflows/publish.yml: on every push to `main`, and on demand, run the same build, then deploy _site/ to GitHub Pages with GitHub's own Pages actions (no `gh-pages` branch), with the permissions and environment they need, given only to the job that deploys. Tell me the one repository setting I must change before it first runs.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>The setting is the Pages source: <em>Settings</em>, <em>Pages</em>, <em>Build and deployment</em>, <em>Source</em>: <strong>GitHub Actions</strong>. Set the project’s <code>site-url</code> to the address it gives, so that the social cards of <a href="sites.html" class="quarto-xref"><span>Chapter 12</span></a> work. A page whose guard fails is never published, because publishing runs the same build first. The permission to deploy belongs to the deploy job alone: in the test run, a version of the prompt that did not say so gave it to the whole workflow, build included.</p>
+<p>The setting is the Pages source: <em>Settings</em>, <em>Pages</em>, <em>Build and deployment</em>, <em>Source</em>: <strong>GitHub Actions</strong>. Set the project’s <code>site-url</code> to the address it gives, so that the social cards of <a href="sites.html" class="quarto-xref"><span>Chapter 12</span></a> work. A page whose guard fails is never published, because publishing runs the same build first. The permission to deploy belongs to the deploy job alone; say so in the prompt: unprompted, an agent may give it to the whole workflow.</p>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -849,21 +936,32 @@ Table&nbsp;15.1: CI’s parts, and what GitHub Actions calls them.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Where it may go comes first (<a href="sites.html#sec-sites-publish" class="quarto-xref"><span>Section 12.6</span></a>): a free GitHub account publishes Pages from public repositories only; private repositories need a paid plan, and a site only your organisation can see needs GitHub Enterprise Cloud (checked <span class="nowrap">2026-11-18</span>). The Acme evaluation is of public data and could be public; a client’s evaluation could not, and publishing it needs a host your organisation approves, or no site at all, only the PDFs.</p>
+<p>Where it may go comes first (<a href="sites.html#sec-sites-publish" class="quarto-xref"><span>Section 12.6</span></a>): a free GitHub account publishes Pages from public repositories only; private repositories need a paid plan, and a site only your organisation can see needs GitHub Enterprise Cloud. A client’s evaluation needs a host your organisation approves, or no site at all, only the PDFs.</p>
 </div>
 </div>
 </section>
 <section id="sec-team-schedule" class="level2" data-number="15.6">
 <h2 data-number="15.6" class="anchored" data-anchor-id="sec-team-schedule"><span class="header-section-number">15.6</span> Reports on a schedule</h2>
+<p>The last workflow renders the monthly reports by itself, on a schedule, and keeps them for you to download:</p>
 <div class="agent-box">
 <div class="prompt" data-boxed="true">
 <div class="box-label">
 <strong>Ask your coding agent</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Create .github/workflows/monthly.yml: on the 2nd of every month at 06:17 UTC, and on demand, run the same build, then `uv run python scripts/render_params.py --formats pdf`, keep reports/ as a downloadable artifact for 90 days, failing if it is empty, and run scripts/check_refs.py last. Explain the schedule line in a comment, including its time zone and why the minute is not 0.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>Create .github/workflows/monthly.yml: on the 2nd of every month at 06:17 UTC, and on demand, run the same build, then `uv run python scripts/render_params.py --formats pdf`, keep reports/ as a downloadable artifact for 90 days, failing if it is empty, and run scripts/check_refs.py last. Explain the schedule line in a comment, including its time zone and why the minute is not 0.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>The finished schedule is the cron line “17 6 2 * *”: minute 17, hour 6, day 2 of every month. GitHub reads it in UTC unless a <code>timezone:</code> line beside it names one, such as <code>timezone: "Europe/London"</code>; it runs on the latest commit of <code>main</code>, and may start late, or in the worst case not at all, when Actions is busy, which it is at the top of each hour; hence minute 17, not 0 (all checked <span class="nowrap">2026-11-18</span>). The PDFs appear as an artifact at the foot of the run’s page, kept 90 days. The reference check runs last because it needs the network and can fail for reasons outside the project; placed last, it fails the run without losing the reports. <em>Run workflow</em>, on the workflow’s page under <em>Actions</em>, runs it now, which is how to test it without waiting a month.</p>
+<!-- The schedule's rules, the `timezone:` key among them, checked against GitHub's workflow
+syntax and events pages on 2026-11-25. -->
+<p>The finished schedule is the cron line “17 6 2 * *”: minute 17, hour 6, day 2 of every month. GitHub reads it in UTC unless a <code>timezone:</code> line beside it names one, such as <code>timezone: "Europe/London"</code>; it runs on the latest commit of <code>main</code>, and may start late, or in the worst case not at all, when Actions is busy, which it is at the top of each hour; hence minute 17, not 0. The PDFs appear as an artifact at the foot of the run’s page, kept 90 days. The reference check runs last because it needs the network and can fail for reasons outside the project; placed last, it fails the run without losing the reports. <em>Run workflow</em>, on the workflow’s page under <em>Actions</em>, runs it now, which is how to test it without waiting a month.</p>
+<div class="story">
+<div class="box-label">
+<strong>From the build log</strong>
+</div>
+<!-- source: book/chapters/team.qmd lines 225-227 at 651db10 ("a first comment said 06:00
+UTC was 07:00 in London in winter; it is 06:00, and 07:00 in summer. The agent caught it") -->
+<p>The schedule’s first comment said that 06:00 UTC is 07:00 in London in winter. It is 06:00; it is 07:00 in summer. The agent caught its own slip. A reviewer skimming a comment in a YAML file might not have. Check any time arithmetic an agent writes.</p>
+</div>
 <div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -874,16 +972,13 @@ Table&nbsp;15.1: CI’s parts, and what GitHub Actions calls them.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Check any time arithmetic an agent writes. In the test run, a first comment said 06:00 UTC was 07:00 in London in winter; it is 06:00, and 07:00 in summer. The agent caught it, and a reader skimming a comment might not. And GitHub turns scheduled workflows off in a public repository after sixty days with no activity (checked <span class="nowrap">2026-11-18</span>). A monthly report that matters needs someone who notices when it does not arrive.</p>
+<p>GitHub turns scheduled workflows off in a public repository after sixty days with no activity. A monthly report that matters needs someone who notices when it does not arrive.</p>
+<!-- source: GitHub, events that trigger workflows, schedule; checked 2026-11-25. -->
 </div>
 </div>
-</section>
-<section id="what-was-not-tested" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="what-was-not-tested">What was not tested</h2>
-<p>The check workflow was run locally with act, in Docker, green and then red as above. Pushing, pull requests, the <em>Publish</em> and <em>Monthly reports</em> runs, the uv cache and branch protection need a GitHub repository and were not run for this edition; the actions and settings they use were checked against GitHub’s documentation on <span class="nowrap">2026-11-18</span>.</p>
 <div class="catchup">
 <p><strong>Stuck for two minutes?</strong> Paste this into your agent. It backs up your work and brings the project to this point; then carry on from here.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/20-eval-ci/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Catch me up: follow ../quarto-workshop/checkpoints/20-eval-ci/README.md</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
 <div class="callout-header d-flex align-content-center">
@@ -917,7 +1012,8 @@ Table&nbsp;15.1: CI’s parts, and what GitHub Actions calls them.
 <section id="further-reading" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="further-reading">Further reading</h2>
 <ul>
-<li>GitHub, <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax">workflow syntax</a>, <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows">events that trigger workflows</a> and <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages">custom workflows for Pages</a> (checked <span class="nowrap">2026-11-18</span>).</li>
+<li>GitHub, <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax">workflow syntax</a>, <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows">events that trigger workflows</a> and <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages">custom workflows for Pages</a> (checked <span class="nowrap">2026-11-25</span>).</li>
+<li>GitHub, <a href="https://docs.github.com/en/actions/reference/security/secure-use">secure use reference</a>, on pinning actions to a commit SHA (checked <span class="nowrap">2026-11-25</span>).</li>
 <li>GitHub, <a href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches">about protected branches</a> (checked <span class="nowrap">2026-11-18</span>).</li>
 <li>Quarto, <a href="https://quarto.org/docs/publishing/github-pages.html#github-action">GitHub Actions</a> (checked <span class="nowrap">2026-11-18</span>).</li>
 <li>nektos, <a href="https://nektosact.com/">act</a>, to run a workflow on your own computer (checked <span class="nowrap">2026-11-18</span>).</li>

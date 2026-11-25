@@ -102,6 +102,8 @@ TERMS_ES = {
     "No IRCA": "Sin IRCA", "No risk": "Sin riesgo", "Low": "Bajo", "Medium": "Medio",
     "High": "Alto", "Unfit": "Inviable sanitariamente",
     "Share of rows (%)": "Proporción de filas (%)", "Median IRCA": "Mediana del IRCA",
+    "Infant mortality": "Mortalidad infantil", "reported as 0": "reportado como 0",
+    "2020: another source": "2020: otra fuente", "new method from 2017": "método nuevo desde 2017",
     "IRCA, utility-supplied": "IRCA de prestadores",
     "Aqueduct coverage (%)": "Cobertura de acueducto (%)", "new method": "método nuevo",
     "Infant mortality (per 1,000 live births)": "Mortalidad infantil (por 1,000 nacidos vivos)",

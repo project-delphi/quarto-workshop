@@ -15,8 +15,11 @@ Conventions that apply everywhere:
 - The reader's gender is never assumed: "ya puedes renderizar", not "ya estás listo".
 - A numbered reference is capitalised, as Quarto writes its own cross-references: "el
   Capítulo 3", "la Figura 1.1", "la Sección 3.2", "el Apéndice A", "la Parte II". Plurals are
-  not: "los capítulos 2 y 3", "las partes II y III". A cross-reference takes the article of
-  its noun: "la @sec-…" for a section, "el @sec-…" for a chapter or appendix.
+  not: "los capítulos 2 y 3", "las partes II y III". A cross-reference used as a noun in a
+  sentence takes the article of its noun: "la @sec-…" for a section, "el @sec-…" for a chapter
+  or appendix ("como muestra la Sección 2.5", "la Sección 1.5 tiene la lista", "el Capítulo 20
+  explica"). A parenthetical pointer stays bare, like a table or figure: "(Sección 17.2)",
+  "(Capítulo 20)", "(secciones 17.2 y 17.3)", written `(secciones [-@sec-a] y [-@sec-b])`.
 - Colombian data terms use the official Spanish names from the sources (DANE, INS, Resolución
   2115 de 2007), since that is what the data call them.
 
@@ -35,7 +38,7 @@ Conventions that apply everywhere:
 | Summary | Resumen | | `## Summary {.unnumbered}` |
 | Key ideas | Ideas clave | | |
 | In this chapter | En este capítulo | | `::: opener` label |
-| Start from / You build / Checkpoint | Partes de / Construyes / Punto de control | | opener terms |
+| Start from / You build / Checkpoint | Punto de partida / Construyes / Punto de control | | opener terms |
 | Pause and think / Answer | Detente y piensa / Respuesta | | `::: think` |
 | Why this works | Por qué funciona | | `::: why` |
 | Common pitfall | Error frecuente | | `::: pitfall` |
@@ -44,9 +47,15 @@ Conventions that apply everywhere:
 | Ask your coding agent | Pídele a tu agente | | `.prompt` box |
 | Expect it to run | Probablemente ejecute | | `.agent` box |
 | You do | Tú haces | | `.you` box |
-| You're done when | Terminaste cuando | | `::: done` |
+| You're done when | Has terminado si | | `::: done`; "si" takes the present indicative that follows |
 | Exercise | Ejercicio | | |
 | website edition / EPUB edition | edición web / edición EPUB | | |
+| story; From the build log | historia; De la bitácora del proyecto | | `::: story` label (`filters/book.lua`); "a story from the build log" → "una historia de la bitácora del proyecto" |
+| illustration; An illustration | ilustración; Una ilustración | | `.illustration` story label |
+| What you will build | Lo que vas a construir | | `::: payoff` label |
+| card (`::: cards`) | tarjeta | | "the cards below" → "las tarjetas que siguen" |
+| dry run (of a prompt) | prueba | | "a dry run by Claude Code" → "una prueba de Claude Code"; source comments say which language's prompt was run |
+| the lead's message; the items (a prompt in two messages) | el mensaje de la sesión principal; los elementos | | Chapter 6 |
 
 ## The loop and the agent
 
@@ -79,6 +88,7 @@ Conventions that apply everywhere:
 | three checks (scope, correctness, rebuild) | tres revisiones (alcance, corrección, reconstrucción) | | `sec-three-checks` |
 | starter (`starters/first-report/`) | punto de partida | | the folder name stays |
 | pre-work | trabajo previo | | |
+| test run (setup step 6) | la prueba | | "Paso 6: la prueba", as Chapter 3 titles it; kept apart from "setup check" |
 
 ## Quarto, Markdown and publishing
 
@@ -119,6 +129,8 @@ Conventions that apply everywhere:
 | preview | vista previa | | `quarto preview` stays |
 | Quarto project | proyecto de Quarto | | |
 | listing | listado | | |
+| navbar | barra de navegación | | the `navbar:` option stays |
+| drop-down (menu) | menú desplegable | | the `menu:` option stays (Appendix C) |
 | dashboard | dashboard | EN | *el* dashboard |
 | value box | cuadro de valor | | |
 | slides, deck | diapositivas; presentación | | |
@@ -169,6 +181,8 @@ Conventions that apply everywhere:
 | path; absolute path; relative path | ruta; ruta absoluta; ruta relativa | | |
 | stack trace | traza de la pila | | "traza de la pila (stack trace)" in the glossary; Quarto's `Stack trace:` stays |
 | Tab completion | completar con Tab | | |
+| keyboard shortcut; keybinds (a tool's docs page) | atajo de teclado | | OpenCode's "keybinds" page → "sus atajos de teclado" (Appendix C) |
+| dead key | tecla muerta | | Appendix B; italicised on first use, as in English |
 | caret (`^`) | acento circunflejo | | |
 | environment | entorno | | |
 | package | paquete | | |
@@ -193,6 +207,9 @@ Conventions that apply everywhere:
 | silhouette | silueta | | |
 | adjusted Rand index (ARI) | índice de Rand ajustado (ARI) | | |
 | bootstrap | bootstrap | EN | |
+| resample; with replacement | remuestra; con reposición | | the bootstrap's draws (fast path) |
+| held-out (contacts, rows) | reservados para la prueba | | "the held-out contacts" → "los contactos reservados para la prueba" |
+| checksum | suma de verificación | | the starter's data test |
 | hyperparameter | hiperparámetro | | |
 | random seed | semilla aleatoria | | |
 | Euclidean distance | distancia euclidiana | | |
@@ -264,6 +281,10 @@ Conventions that apply everywhere:
 | visitor guide | guía para visitantes | | |
 | attraction visits | visitas a atracciones | | |
 | WebGL | WebGL | EN | |
+| partner brief; covering email | informe para socios; correo de presentación | | Chapter 6's Word brief and the plain email sent with it |
+| flyer; walk-ins | folleto; quienes entran de la calle | | Chapter 6's A5 audience, gender-neutral |
+| Git, Agent and Preview tabs | pestañas de Git, del agente y de vista previa | | Chapter 4's three terminal tabs; labels **Git**, **Agente**, **Vista previa** |
+| a number out of date (the planted value) | un número con un año de atraso; desactualizado | | Part II's exercises; "stale" is "desactualizado" (never "viejo", "queda viejo") |
 
 ## The 2026-11 revision (professional and start-up readers)
 
@@ -343,6 +364,137 @@ its names, files, columns, labels and quoted page text are literals.
 | runway; burn | autonomía (runway); gasto mensual (burn) | | |
 | free allowances | cuotas gratuitas | | |
 | the water analysis (Part V) | el análisis del agua | | as the English now says instead of a part number |
+| base rate | tasa base | | the share of test contacts who subscribed |
+| bootstrap interval | intervalo bootstrap | | |
+| lift | lift | EN | as scikit-learn and marketing practice say it |
+| age band | franja de edad | | `age_band` stays |
+| checksum | suma de verificación (checksum) | | "(checksum)" on first use in a chapter |
+| protected characteristic | característica protegida | | the Equality Act 2010's term, translated |
+| navbar | barra de navegación | | `navbar:` stays |
+| wordmark (logo) | logotipo de texto | | |
+| stub (page) | esbozo (stub) | | "(stub)" kept in prompts, so the agent reads the usual word |
+| headline (result, title) | titular; resultado principal | | "titular" for a deck's title, "resultado principal" for a sentence |
+| personal plan; company plan | plan personal; plan de empresa | | the vendors' consumer and business plans |
+| managed settings (Claude Code) | managed settings (configuración administrada) | EN | Claude Code's own term, glossed once |
+| synthetic stand-in | sustituto sintético | | data made up to look like the real thing |
+| data room | sala de datos (data room) | | "(data room)" on first use |
+| registry (DOI) | agencia de registro | | Crossref, DataCite; "registro" stays the record itself |
+| section (of a course) | grupo | | a class group on the feedback sheet; the parameter `section` stays |
+| batch; batch script | lote; script por lotes | | |
+| statute (BibTeX entry) | ley | | the Equality Act's entry in `references.bib` |
+
+## The 2026-11 improvement (Part V, the afterword and the appendices)
+
+| English | Spanish | EN? | Note |
+|---|---|---|---|
+| Tunja ledger; "Tunja so far" | expediente de Tunja; `title="Tunja hasta aquí"` | | the `::: {.cards .ledger}` component; English prose never names it, so only the title is printed |
+| ledger card terms: On the table, Checked, Rows, Water, Not at face value, Kept, Filled, and flagged, Not flagged, Grouped, How firm, Its kind, Its rural water, What may be said | En la tabla, Revisado, Filas, Agua, No tomar al pie de la letra, Conservadas, Llenadas, y marcadas, Sin marcar, Agrupada, Qué tan firme, Su tipo, Su agua rural, Lo que se puede decir | | the same last term on every card |
+| council (municipal); councillor | concejo (municipal); alguien del concejo | | gender-neutral; "un concejal o una concejala" where a person is needed |
+| officials | funcionarios | | |
+| the analyst | quien hizo el análisis | | gender-neutral |
+| planted (error, sentence) | puesto a propósito; la oración puesta a propósito | | "oración", as the water text says for a sentence |
+| honest rewrite | versión honesta | | `w.council_claims()` writes it |
+| puzzle (spot the error) | acertijo | | the water exercises' opening |
+| typo; slip | errata; desliz | | Appendix E |
+| bullet (slide) | viñeta | | |
+| missing at random | faltantes aleatorios (*missing at random*) | | pairs with "faltantes no aleatorios"; the English term kept once, where the story is about the term |
+| local optimum | óptimo local | | k-means |
+| sampling noise | ruido de muestreo | | |
+| band (IRCA risk band) | nivel | | "nivel de riesgo alto", as the edition already says |
+| school-leaving exam (Saber 11) | examen de fin de la educación media | | |
+| Apple Books; e-reader app | la app Libros de Apple; app de lectura | | "lector" stays the person |
+| base rate | tasa base | | Appendix J; `results.qmd` uses it |
+| bootstrap interval | intervalo bootstrap | | |
+| Brier score | puntaje de Brier (en inglés, *Brier score*) | | like "puntaje z" |
+| checksum | suma de verificación (en inglés, *checksum*) | | `results.qmd` uses it |
+| managed settings | configuración administrada (en inglés, *managed settings*) | | `at-work.qmd` uses it |
+| stand-in (synthetic) | sustituto sintético | | the label SYNTHETIC stays |
+
+## Fix pass after the native-speaker reads: Part V, the afterword and the appendices
+
+The edition-wide decisions as applied in `part-3.qmd`, chapters 17 to 23, the water exercises, the
+afterword and the appendices, then the terms this pass decided. Where a row here differs from one
+above (for instance "stale … queda viejo"), this row wins.
+
+| English | Spanish | EN? | Note |
+|---|---|---|---|
+| catch (an error) | detectar | | never "atrapar"; a k-means start that gets stuck is "atascado" |
+| check / read X against Y | cotejar con, contrastar con, comparar con | | never "contra" in this sense; "frente a" stays for "against" as "versus" (43.7 frente a 7.4) |
+| whereas | mientras que | | |
+| the project's root | la raíz de la carpeta | | Appendix J's `AGENTS.md` and Quarto project entries |
+| build on | partir de, seguir trabajando con | | |
+| Markdown construct | elemento de Markdown | | Appendix E's first London checkpoint |
+| get stuck | atascarse | | "Si te atascas", the Windows appendix's heading (`sec-windows-stuck`); never "trabarse" |
+| one at a time | una a la vez, uno por uno | | "prueba las soluciones sugeridas una a la vez" |
+| press (a key) | presiona | | |
+| tap water | agua de la llave | | |
+| an assignment's brief | el enunciado del trabajo | | the afterword's coursework project; never "consigna" |
+| out of date, stale | desactualizado | | "números desactualizados", "un `.venv` desactualizado"; an older command or window is "anterior", "más antiguo" |
+| a CI build | build | | Appendix J's CI job and workflow entries; "rebuild" stays "reconstrucción" |
+| tracked / untracked file | con seguimiento / sin seguimiento | | |
+| typing; typo | tecleo; errata | | Appendix D's "Una errata en el nombre del comando" |
+| with replacement | con reposición | | the bootstrap, in chapters 20 and 22 and Appendix J |
+| render list | lista de renderizado | | |
+| failure | falla | | |
+| rank; range (statistics) | rango; amplitud | | "correlación de rangos", "orden de rango"; chapter 22's "**Amplitud.**"; a benchmark's spread of times is "la amplitud de los tiempos"; a bootstrap interval is "el tramo que contiene…" |
+| white paper (`whitepaper.qmd`) | white paper | EN | the London and water deliverables everywhere in these files; chapter 23 glosses it once, "un white paper, un documento técnico de estilo académico" |
+| dashboard | dashboard | EN | never "tablero" |
+| backtick | comilla invertida | | Appendix B's symbol list |
+| a cluster's name in prose | «…» | | typed names and name parts lower case after the guillemet («ciudades y pueblos grandes», «baja cobertura»); names printed from `w.names()` keep the capital the shared script gives them |
+| positive deviance | casos de desviación positiva | | chapter 23's stretch task and the water exercises |
+| cross-reference in parentheses | bare: "(Sección 17.2)", "(Capítulo 20)", "(Tabla 17.1)"; a pair or more as "(secciones [-@sec-a] y [-@sec-b])", "(tablas …)" | | as a noun in a sentence it takes the article: "la @sec-…", "el @sec-…" (the lead's rule, 2026-11-25) |
+| tested characteristic (IRCA, Resolución 2115) | parámetro analizado | | kept apart from "característica", a clustering feature |
+| rural zone (DANE) | centros poblados y área rural dispersa | | replaces "el campo disperso" (chapter 17, Appendix J) |
+| Compute once, publish many | Calcular una vez, publicar en muchos formatos | | chapter 17's heading and figure, the afterword's card ("Calcula una vez, publica en muchos formatos"), Appendix E |
+| change a setting (the water rebuild) | cambiar una opción | | chapter 23's `sec-water-change`, Exercise V.8, Appendix I; London's rebuild stays "cambiar un dato de entrada" |
+| standard deviations (SD) | desviaciones estándar (DE) | | "DE" expanded at its first use in each chapter that uses it |
+| a fair test; a fair title | una prueba válida; un título adecuado | | chapters 23 and 22 |
+| a loud failure; a quiet falsehood | una falla que salta a la vista; una falsedad que pasa inadvertida | | chapter 23's guard |
+| a bad turn (an agent's) | una respuesta equivocada del agente | | the afterword |
+| an early team | un equipo en etapa inicial | | the afterword's investor update |
+| it has company (Tunja's rural zone) | no es la única | | chapter 21 |
+| draft titles | borradores de título | | the water exercises, question 7 |
+| no restrictions on use (SRTM) | ninguna restricción de uso | | chapter 23, as `data/README.md` says; not "dominio público" |
+| acute diarrhoeal disease | enfermedad diarreica aguda (EDA) | | chapter 23's stretch task |
+| e-reader app | app de lectura | | Appendix H and chapter 23 ("apps de lectura de libros electrónicos") |
+| a stable (internet) connection | una conexión estable | | Appendix A |
+
+## Decisions after the native-speaker reads (2026-11)
+
+Two native-speaker editors read the whole Spanish edition. These replace any earlier choice
+above and apply in every file; use judgement where a word also has another, correct meaning
+("atrapados en notebooks", *trapped*; "contra un cielo azul"; "en contra de la regla").
+
+| English | Spanish | Not | Note |
+|---|---|---|---|
+| to catch (an error) | detectar | atrapar | "ahorra tecleo y evita errores" for Tab completion |
+| check/compare X against Y | comparar con, contrastar con, cotejar con | … contra … | |
+| whereas | mientras que | donde | |
+| the project's root, at the top of the folder | la raíz de la carpeta | la parte de arriba de la carpeta | "la parte de arriba de la página" stays for the top of a page |
+| build on | partir de, trabajar con | construir sobre | |
+| a Markdown construct | elemento de Markdown | construcción de Markdown | "un elemento a la vez" |
+| get stuck | atascarse ("Cuando te atasques") | trabarse | in Colombia "trabarse" also means getting high |
+| one at a time | una a la vez, uno por uno | de a una, de a uno | |
+| press (a key) | presiona | pulsa | |
+| tap water | agua de la llave | agua del grifo | |
+| an assignment's brief | el enunciado, las instrucciones del trabajo | la consigna | |
+| out of date, stale | desactualizado; desactualizarse | viejo, quedar viejo | "older" (a copy, a commit) → "anterior", "más antiguo" |
+| a CI build; build log; build plugin | el build; el registro del build; el plugin de build | construcción, compilación | "build system" is rephrased ("un sistema que la reconstruya") |
+| tracked / untracked file | con seguimiento / sin seguimiento | seguido, no rastreado | |
+| typing | tecleo | tipeo | "error de tecleo" |
+| notebook | notebook | cuaderno de Jupyter | |
+| with replacement | con reposición | con reemplazo | |
+| render list | lista de renderizado | lista render | the option itself stays `render` in backticks |
+| failure | falla | fallo | "una falla saltaría a la vista / pasaría inadvertida" |
+| rank / range (statistics) | rango (rank) / amplitud (range) | rango for both | "rango de precio" (a price range) stays; a bootstrap interval "abarca" its central share |
+| white paper / academic paper | white paper (first use in a chapter: "documento técnico (white paper)") / artículo académico | mixing them for one deliverable | the London white paper is "white paper" too |
+| dashboard | dashboard | tablero | |
+| backtick | comilla invertida | acento grave | |
+| a cluster's name in prose | «…», lower case after the opening guillemet unless a proper noun | “…”, mixed capitals | |
+| positive deviance | desviación positiva; casos de desviación positiva | desviados positivos | |
+| anyway, still (adverb) | de todos modos, aun así | igual ("Igual lee…") | |
+| an English sentence quoted in a box | describe it in Spanish ("En español, la oración dice…") | a template with the values removed ("esa atracción, esas visitas") | inline `{python}` values cannot repeat (compare.py) |
+| what was not tested (link) | [qué no se probó en esta edición](…) | [lo que no se probó] as a bare tag | |
 
 ## Titles
 

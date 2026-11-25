@@ -39,8 +39,8 @@ que ALVA publicó su tabla de `{python} y_now`, en cada copia, hasta que alguien
 
 Este capítulo hace que, en cambio, la guía calcule. El código lee los datos en cada renderizado,
 así que una tabla nueva corrige a la vez cada oración, el gráfico que se dibuja con ella y las
-versiones en Word y en PDF, sin copiar a mano un solo número. Esa es la promesa central del flujo
-de trabajo, y el resto del libro se construye sobre ella.
+versiones en Word y en PDF, sin copiar a mano un solo número. Esa es la promesa central del
+flujo de trabajo, y el resto del libro se apoya en ella.
 
 ::: opener
 - Escribir un encabezado YAML que fije el bloque del título y los formatos.
@@ -49,7 +49,7 @@ de trabajo, y el resto del libro se construye sobre ella.
 - Ponerle etiqueta, pie y descripción a una figura con opciones de celda.
 - Renderizar una sola fuente como HTML, Word y PDF, y decir por qué chocan los renderizados.
 
-Partes de
+Punto de partida
 : el final del @sec-markdown, con la vista previa corriendo
 
 Construyes
@@ -69,14 +69,18 @@ que sus números son reales:
 
 ```{python}
 #| label: ch5-toy-qmd
-#| output: asis
 import re
 from pathlib import Path
 
+TOY = Path("media/examples/toy.qmd")
 
-def show_file(path: str, lang: str = "markdown") -> str:
-    """A file's text, as it is, in a fence longer than any run of backticks inside it."""
-    text = Path(path).read_text()
+
+def show_file(path: Path, lang: str = "markdown", lines: tuple[int, int] | None = None) -> str:
+    """A file's text, as it is, in a fence longer than any run of backticks inside it; with
+    `lines` (first, last, counted from 1), only those lines."""
+    text = path.read_text()
+    if lines:
+        text = "".join(text.splitlines(keepends=True)[lines[0] - 1:lines[1]])
     ticks = "`" * max(4, 1 + max(map(len, re.findall("`+", text)), default=0))
     return f"{ticks}{lang}\n{text}{ticks}"
 
@@ -84,10 +88,19 @@ def show_file(path: str, lang: str = "markdown") -> str:
 # The screenshot's alt text below quotes the computed sentence: stop if the data change it.
 alt_text_holds(top_name == "Natural History Museum (South Kensington)"
                and top_visits == "7,116,929", "fig-toy-qmd")
-print(show_file("media/examples/toy.qmd"))
+# The file is shown in two halves: up to the fence that is only shown, then the cell onward.
+toy_lines = TOY.read_text().splitlines()
+cell = toy_lines.index("```{python}") + 1  # the cell's first line, counted from 1
+text_holds(toy_lines[cell - 2] == "" and toy_lines.index("```python") < cell,
+           "toy.qmd's halves: front matter, prose and the shown fence, then the cell")
 ```
 
-De arriba hacia abajo:
+Desde arriba: el encabezado YAML, una oración y un bloque de código:
+
+```{python}
+#| output: asis
+print(show_file(TOY, lines=(1, cell - 2)))
+```
 
 1. **Encabezado YAML.** El bloque entre las dos líneas `---` del principio contiene la
    configuración del documento, escrita en *YAML*, un formato de configuración en el que la
@@ -99,6 +112,14 @@ De arriba hacia abajo:
 3. **Un bloque que solo se muestra.** ```` ```python ```` nombra un lenguaje, así que el código se
    colorea como Python, pero Quarto nunca lo ejecuta. Si lo hiciera, `1 / 0` detendría el
    renderizado.
+
+Luego una celda de código y una oración que la usa:
+
+```{python}
+#| output: asis
+print(show_file(TOY, lines=(cell, len(toy_lines))))
+```
+
 4. **Una celda de código.** ```` ```{{python}} ````, con el lenguaje entre llaves, es un bloque
    cuyo código se ejecuta cuando se renderiza el documento. Sus primeras líneas, que empiezan con
    `#|`, son *opciones de celda*: `label` le pone nombre a la celda, y `echo: false` oculta su
@@ -135,6 +156,10 @@ ejecutar (@fig-pipeline): es de tu código, no del documento.
 
 ## La configuración del principio: el bloque del título {#sec-yaml}
 
+El prompt le deja el renderizado a tu vista previa, pero la vista previa sigue vigilando
+`london.md`, el archivo al que este paso le cambia el nombre. Cuando el agente termine, reiníciala
+con `london.qmd`, como dice "Tú haces" más abajo.
+
 ::: {.prompt}
 ```default
 Cambia el nombre de london.md a london.qmd. Reemplaza el título "# Visit London" por un encabezado YAML: title "Visit London", author "London Tourism Office", date today, format html. No renderices; mi vista previa lo reconstruye.
@@ -160,7 +185,7 @@ date: today                     # <2>
 format: html                    # <3>
 ---
 ```
-1. `title`, `author` y `date` forman el bloque del título, así que el viejo título
+1. `title`, `author` y `date` forman el bloque del título, así que el título anterior
    `# Visit London` ya no hace falta.
 2. `today` se completa cuando se renderiza el documento.
 3. `format` elige la salida; más adelante en este capítulo se convierte en una lista.
@@ -169,8 +194,7 @@ La página de la vista previa ahora abre con el título, el autor y la fecha de 
 
 ::: pitfall
 Borra `london.md` una vez que exista `london.qmd`. Los dos escribirían `london.html`, y gana el que
-se renderiza último, así que la página que ves puede no venir del archivo que editaste. Reinicia
-también la vista previa con el archivo nuevo: la anterior sigue vigilando `london.md`.
+se renderiza último, así que la página que ves puede no venir del archivo que editaste.
 :::
 
 Haz commit de este paso como antes (@sec-md-lists). `git status` muestra `london.md` borrado y
@@ -186,7 +210,7 @@ En london.qmd, agrega una celda de Python que lea data/attractions.csv y encuent
 ```
 :::
 
-El agente escribe una celda de código (@sec-qmd-basics) y una oración que usa sus resultados:
+El agente escribe una celda de código (@sec-qmd-basics):
 
 ````markdown
 ```{{python}}
@@ -197,20 +221,23 @@ top_name = top["attraction"]
 top_visits = f"{top['visits_2025']:,}"
 total_visits = f"{attractions['visits_2025'].sum():,}"
 ```
+````
 
+y, debajo, una oración que usa sus resultados:
+
+```markdown
 Most visited in 2025: the `{{python}} top_name`, with `{{python}} top_visits` visits.
 London's ten most visited ALVA member attractions drew `{{python}} total_visits` visits.
-````
+```
 
 No necesitas escribir Python para revisarlo, pero sí deberías poder leerlo. La celda hace cuatro
 cosas:
 
 1. `import pandas as pd` carga pandas, el paquete para tablas, con el nombre corto `pd`.
 2. `pd.read_csv(...)` lee el archivo CSV en una tabla, `attractions`, con una fila por atracción.
-3. `attractions["visits_2025"].idxmax()` encuentra la fila con más visitas en 2025, y `.loc[…]`
-   toma esa fila, así que `top["attraction"]` es su nombre.
-4. `.sum()` suma la columna, y `f"{…:,}"` escribe un número como texto con una coma entre los
-   miles, listo para una oración.
+3. `.idxmax()` encuentra la fila con más visitas en 2025, y `.loc[…]` toma esa fila, así que
+   `top["attraction"]` es su nombre.
+4. `.sum()` suma la columna; `f"{…:,}"` escribe un número con comas entre los miles.
 
 Cuando se renderiza el documento, la celda se ejecuta y sus variables se conservan, así que cada
 pieza de código en línea, `` `{{python}} name` ``, se reemplaza por el valor de `name`.
@@ -219,11 +246,8 @@ Renderizada en este libro a partir del mismo archivo de datos, la oración de la
 > Most visited in 2025: the `{python} top_name`, with `{python} top_visits` visits. London's
 > ten most visited ALVA member attractions drew `{python} total_visits` visits.
 
-(Es decir: la más visitada en 2025 fue esa atracción, con esas visitas, y las diez atracciones
-miembro de ALVA más visitadas de Londres sumaron ese total.) Quarto 1.4 introdujo esta sintaxis
-en línea, una para cada motor, Python incluido; quienes usan R ya escribían código en línea con
-`` `r x` `` de knitr, una sintaxis que Quarto todavía admite (notas de la versión 1.4 de Quarto,
-consultadas el 2026-11-12).
+(En español, la oración nombra la atracción más visitada en 2025 y da sus visitas, y luego el
+total de visitas de las diez atracciones miembro de ALVA más visitadas de Londres.)
 
 ::: think
 Si cambia `attractions.csv`, ¿qué valores de esas dos oraciones se actualizan?
@@ -371,11 +395,12 @@ pasa a ser `{python} new_total`. La barra de la Tower crece y, en un gráfico or
 como la @fig-ldn-top10, sube y deja atrás a `{python} passed_name`, que tiene
 `{python} passed_visits`. La primera mitad de la oración no cambia: `{python} tower_new_s` sigue
 siendo menos que las `{python} top_visits` del `{python} top_name`, así que `idxmax()` encuentra
-la misma fila. La palabra escrita a mano "ten" tampoco cambia. Para comprobar una predicción como
-esta, haz el cambio tú con `nano`, renderiza, mira, y luego devuelve el conteo real con
-`git restore data/attractions.csv`. La @sec-london-change le hace la misma pregunta a todo el
-proyecto publicado.
+la misma fila. La palabra escrita a mano "ten" tampoco cambia.
 :::
+
+Para comprobar una predicción como esta, haz el cambio tú con `nano`, renderiza, mira, y luego
+devuelve el conteo real con `git restore data/attractions.csv`. La @sec-london-change le hace la
+misma pregunta a todo el proyecto publicado.
 
 ::: why
 ¿Por qué ejecutar el código una vez por formato? Porque un formato puede cambiar lo que produce el
@@ -384,15 +409,6 @@ gráficos interactivos, solo tienen sentido en HTML. Volver a ejecutar es el pre
 formato reciba una salida hecha para él. Para un análisis lento, el remedio es calcular una vez en
 un script y hacer que cada formato lea los resultados, que es exactamente como está construido el
 análisis del agua (@sec-compute-once).
-:::
-
-::: think
-El gráfico de barras tiene que aparecer en el archivo de Word y en el PDF además de en la página
-web. ¿Por qué su prompt pide matplotlib, si el dashboard del capítulo siguiente usa Plotly?
-
-Matplotlib dibuja una imagen estática, que cualquier formato puede contener. Los gráficos de
-Plotly son JavaScript que se ejecuta en un navegador, así que sirven para la página web y el
-dashboard, pero no para Word ni para un PDF.
 :::
 
 ## Tres formatos más (opcional) {#sec-formats-more}
@@ -422,10 +438,9 @@ format:
 1. Las diapositivas de Reveal.js también son HTML, así que necesitan un nombre de archivo propio,
    o sobrescribirían `london.html`.
 
-En PowerPoint y en Reveal.js, cada título `##` se convierte en una diapositiva. El EPUB es un libro
-electrónico: ábrelo en un lector de libros electrónicos como Calibre (gratuito, para Windows, macOS
-y Linux) o Libros en una Mac. La edición EPUB de este libro se construye de la misma manera, con
-más opciones, que describe el @sec-how-built. La @fig-render-many muestra el renderizado.
+En PowerPoint y en Reveal.js, cada título `##` se convierte en una diapositiva. Abre el EPUB en un
+lector de libros electrónicos como Calibre (gratuito, para Windows, macOS y Linux) o Libros en una
+Mac. La @fig-render-many muestra el renderizado.
 
 ![Un renderizado, seis archivos: la lista `format` de `london.qmd`, un renderizado que ejecuta el código una vez por formato y las salidas que escribió. Una grabación real con una cuenta de demostración; se cortó la parte del medio del renderizado.](../media/gifs/render-many-formats.gif){#fig-render-many .anim fig-alt="Una terminal en la carpeta london-guide. grep muestra el bloque format de london.qmd: html con enlaces a los formatos, luego docx, typst, pptx, epub y revealjs con el archivo de salida london-slides.html. Se ejecuta uv run quarto render london.qmd, y un listado muestra seis salidas: london.docx, london.epub, london.html, london.pdf, london.pptx y london-slides.html."}
 
@@ -435,7 +450,7 @@ La @fig-pipeline de la @sec-what-quarto mostró los tres pasos de un renderizado
 documento, vale la pena mirar el primer paso más de cerca, porque explica la falla más común de
 este capítulo.
 
-Para ejecutar las celdas, Quarto escribe el documento como un cuaderno de Jupyter temporal, con
+Para ejecutar las celdas, Quarto escribe el documento como un notebook temporal de Jupyter, con
 el nombre del archivo (`london.quarto_ipynb`), inicia un *kernel* de Python (un proceso de Python
 en ejecución) desde el entorno del proyecto, le envía cada celda en orden y recoge los resultados.
 De ahí salen dos consecuencias. Las celdas comparten una sola sesión de Python, de arriba hacia
@@ -448,10 +463,8 @@ Cada renderizado vuelve a ejecutar todas las celdas. Ese es el comportamiento po
 Quarto (`freeze: false`), y los proyectos de este libro lo conservan a propósito, para que las
 salidas siempre coincidan con los datos. También significa que una celda lenta hace lento cada
 renderizado; el @sec-publish-many vuelve sobre esa disyuntiva y sobre `freeze: auto`, que guarda
-los resultados en caché y necesita una regla para saber cuándo descartarlos.
-
-Cada renderizado también imprime la advertencia inofensiva de `IPKernelApp` que describe
-la @sec-step-test.
+los resultados en caché y necesita una regla para saber cuándo descartarlos. (La advertencia de
+`IPKernelApp` que imprime cada renderizado es inofensiva: @sec-step-test.)
 
 ::: think
 Una celda posterior usa `attractions`, que crea una celda anterior. Mueves la celda posterior por
@@ -462,12 +475,11 @@ Python, así que `attractions` todavía no existe cuando se ejecuta la celda que
 :::
 
 ::: tryit
-Si todavía no lo hiciste, ejecuta los prompts de los formatos (@sec-formats y, si
-quieres, @sec-formats-more) con la vista previa detenida, y luego vuelve a iniciarla.
+Detén la vista previa, pega los prompts que falten (secciones [-@sec-formats] y
+[-@sec-formats-more]) y reiníciala.
 
 ::: done
-`london.docx` y `london.pdf` muestran la oración calculada y el gráfico, al igual que los formatos
-opcionales que hayas hecho.
+`london.docx` y `london.pdf` tienen la oración y el gráfico.
 :::
 
 ::: catchup
@@ -499,9 +511,8 @@ escribe un documento para cada uno de ellos a la vez.
 - Quarto, [Front Matter](https://quarto.org/docs/authoring/front-matter.html) y
   [Execution Options](https://quarto.org/docs/computations/execution-options.html) (consultados
   el 2026-11-12).
-- Quarto, [Inline Code](https://quarto.org/docs/computations/inline-code.html) y las
-  [notas de la versión 1.4](https://opensource.posit.co/blog/2024-01-24_1.4-release/)
-  (consultados el 2026-10-30 y el 2026-11-12).
+- Quarto, [Inline Code](https://quarto.org/docs/computations/inline-code.html) (consultado el
+  2026-10-30).
 - Quarto, [Cross References](https://quarto.org/docs/authoring/cross-references.html)
   (consultado el 2026-11-12).
 - Quarto, [HTML with multiple formats](https://quarto.org/docs/output-formats/html-multi-format.html),

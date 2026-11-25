@@ -51,8 +51,8 @@ local LABELS = {
     prompt = "Pídele a tu agente", agent = "Probablemente ejecute", you = "Tú haces",
     why = "Por qué funciona", pitfall = "Error frecuente", practice = "En la práctica", tryit = "Pruébalo",
     opener = "En este capítulo", think = "Detente y piensa", answer = "Respuesta",
-    done = "Terminaste cuando", stuck = "¿Dos minutos sin avanzar?",
-    catchup = "Pega esto en tu agente. Respalda tu trabajo y lleva el proyecto hasta "
+    done = "Has terminado si", stuck = "¿Dos minutos sin avanzar?",
+    catchup = "Pega esto en tu agente, que respalda tu trabajo y lleva el proyecto hasta "
       .. "este punto; luego sigue leyendo desde aquí.",
     catchup_again = "Pega esto en tu agente y luego sigue leyendo desde aquí.",
     story = "De la bitácora del proyecto", illustration = "Una ilustración",

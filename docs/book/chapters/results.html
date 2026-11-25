@@ -86,9 +86,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-d7990f04cce8dcdeb9f6ff0d20037a80.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-fedbb994704bba3a6fa555444c3cfbef.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5ed9e4edf2048b6b9b588fc3d1daa128.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-657ad668adce80e431b63eaad7cde22f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -682,14 +682,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>The fast path ended with one report. A real evaluation has more readers than that. The product team wants the headline and the table; a risk or compliance reviewer wants to know who the model treats differently and what it must not be used for; an investor wants one number that moved. The way to serve all of them without the numbers drifting apart is the design the repository already has: <strong>one script computes every result once, and every document reads them.</strong> This chapter adds the second document, a <a href="../appendices/j-glossary.html#gl-model-card" class="glossary-link"><em>model card</em></a>, and grows the report, and it shows how to hand an agent a larger task safely: by asking for a plan, then judging the result by its checks.</p>
-<p>It is the first chapter of this part, whose chapters each take one kind of output, a model card here and then slides, a site and a white paper, and teach it the same way: what it can do and what that is called, how to ask for it, and how to check it (<a href="02-assistant.html#sec-three-skills" class="quarto-xref"><span>Section 2.7</span></a>).</p>
+<p>The fast path ended with one report and one winner. This chapter asks a second question of the same results: whom does the winning release call? The answer is in a file the report never opened. The list the call centre would work from leans towards some ages: one group is called far more often than another. A report can leave that out. A model card cannot, and writing one is this chapter’s larger task: handed to the agent whole, with a plan first and its checks after.</p>
+<p>The design that answers it is the one the repository already has: <strong>one script computes every result once, and every document reads them</strong>, so the card, the report and everything after them quote the same run.</p>
 <div class="opener">
 <div class="box-label">
 <strong>In this chapter</strong>
 </div>
 <ul>
-<li>Explain why results are computed once and read by every document, and what each kind of check (tests, guards, the render) catches.</li>
+<li>Explain why every result is computed once, and what tests, guards and the render each catch.</li>
 <li>Ask an agent for a model card as one larger task, with a plan first, and judge it by its checks.</li>
 <li>Number sections and refer to them, to tables and to figures, so that every reference resolves in HTML, Word and PDF.</li>
 <li>Predict what a changed setting does to every document, then rebuild and check.</li>
@@ -700,9 +700,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><span class="meta-label"><strong>Checkpoint</strong></span><code>checkpoints/15-eval-results/</code></p>
 </div>
 </div>
+<div class="payoff">
+<div class="box-label">
+<strong>What you will build</strong>
+</div>
+<div id="fig-results-card" class="scaled screenshot quarto-float quarto-figure quarto-figure-center anchored" alt="The top of a web page at a phone's width: the title, Model card: contact-ranking model, and the subtitle, Acme Signals (a fictional company). After a dashed line marking a cut, section 2, Intended use, gives the primary use, ordering a bank's list of customers for a term-deposit campaign, the primary users, and what is out of scope, from decisions about credit to any version that uses duration.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-results-card-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../media/figures/eval-card-top.png" class="scaled screenshot img-fluid figure-img" style="width:85.0%" alt="The top of a web page at a phone's width: the title, Model card: contact-ranking model, and the subtitle, Acme Signals (a fictional company). After a dashed line marking a cut, section 2, Intended use, gives the primary use, ordering a bank's list of customers for a term-deposit campaign, the primary users, and what is out of scope, from decisions about credit to any version that uses duration.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-results-card-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10.1: The top of the finished model card, rendered from <code>checkpoints/15-eval-results/model-card.qmd</code>.
+</figcaption>
+</figure>
+</div>
+</div>
 <section id="sec-results-checks" class="level2" data-number="10.1">
 <h2 data-number="10.1" class="anchored" data-anchor-id="sec-results-checks"><span class="header-section-number">10.1</span> Compute once, check three ways</h2>
-<p><code>scripts/evaluate.py</code> is the only code in the repository that fits a model. It writes five plain files to <code>outputs/</code>, and they are the same bytes on every run, because every random choice, the split, the models and the bootstrap, has a fixed seed. For this book’s run:</p>
+<p><code>scripts/evaluate.py</code> is the only code in the repository that fits a model. It writes five plain files to <code>outputs/</code>, the same bytes on every run in the environment <code>uv.lock</code> pins, because every random choice, the split, the models and the bootstrap, has a fixed seed. In this book’s run the best release is v3, measured on 11,303 test contacts, of whom 11.7% subscribed (the <a href="../appendices/j-glossary.html#gl-base-rate" class="glossary-link"><em>base rate</em></a>):</p>
 <div id="tbl-results-outputs" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-outputs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -723,11 +738,11 @@ Table&nbsp;10.1: What the evaluation writes.
 <tbody>
 <tr class="odd">
 <td><code>summary.json</code></td>
-<td>the best release (v3), the test-set size (11,303), the base rate (11.7%), the seeds, the data’s checksum and the package versions</td>
+<td>the best release, test-set size, base rate, seeds and versions</td>
 </tr>
 <tr class="even">
 <td><code>metrics.csv</code></td>
-<td>each release’s metrics, with a 95% bootstrap interval</td>
+<td>each release’s metrics, with bootstrap intervals</td>
 </tr>
 <tr class="odd">
 <td><code>segments.csv</code></td>
@@ -739,14 +754,14 @@ Table&nbsp;10.1: What the evaluation writes.
 </tr>
 <tr class="odd">
 <td><code>curves.csv</code></td>
-<td>the points of the ROC and precision-recall curves</td>
+<td>the ROC and precision-recall curves</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Three kinds of check then guard different things, and a professional repository needs all three:</p>
+<p>The metrics are <a href="../appendices/j-glossary.html#gl-roc-auc" class="glossary-link"><em>ROC AUC</em></a>, the probability that a release ranks a random subscriber above a random non-subscriber, and three for the top of the list: <em>recall</em>, the share of subscribers the calls reach (calling the top 10% at random would reach 10% of them); <em>precision</em>, the share of calls that reach one; and <em>lift</em>, precision over the <em>base rate</em>, the share of all contacts who subscribe. A metric’s <a href="../appendices/j-glossary.html#gl-bootstrap-interval" class="glossary-link"><em>bootstrap interval</em></a> is the range that holds the middle 95% of its values when the test set is re-drawn, with replacement, many times. Three kinds of check guard different things, and a repository needs all three:</p>
 <div id="tbl-results-check-kinds" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-check-kinds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -770,28 +785,42 @@ Table&nbsp;10.2: Three kinds of check, and what each catches.
 <tr class="odd">
 <td><strong>Tests</strong> (<code>uv run pytest</code>)</td>
 <td>on the code and the data</td>
-<td>a changed data file (its checksum), a leak (no release may use <code>duration</code>, which is known only after the call), a wrong metric, outputs missing a column</td>
+<td>a changed data file (its checksum); a leak</td>
 </tr>
 <tr class="even">
 <td><strong>Guards</strong> (<code>claim(…)</code> in a document)</td>
 <td>when a document renders</td>
-<td>a sentence whose words the results no longer support: “best”, “most”, “within five points”</td>
+<td>a sentence the results no longer support</td>
 </tr>
 <tr class="odd">
 <td><strong>The render</strong></td>
 <td>on every document, in every format</td>
-<td>a reference that does not resolve, a missing file, a cell that fails</td>
+<td>a reference that does not resolve; a failed cell</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>A test does not read prose, and a guard does not test code; neither notices a stale typed label, which only a reader, or a prediction tested by a rebuild (<a href="#sec-results-change" class="quarto-xref"><span>Section 10.4</span></a>), will.</p>
+<p>A <a href="../appendices/j-glossary.html#gl-checksum" class="glossary-link"><em>checksum</em></a> is a fingerprint of a file: change one byte of the data, and it no longer matches. A test does not read prose, and a guard does not test code; neither notices a stale typed label, which only a reader, or a prediction tested by a rebuild (<a href="#sec-results-change" class="quarto-xref"><span>Section 10.4</span></a>), will.</p>
+<div class="think">
+<div class="box-label">
+<strong>Pause and think</strong>
+</div>
+<div class="think-question">
+<p>The data have a column, <code>duration</code>, the length of each call in seconds. The dataset’s own page, quoted in <code>data/README.md</code>, says it “highly affects the output target”. Should a release use it?</p>
+</div>
+<div class="think-answer">
+<div class="think-answer-label">
+<strong>Answer</strong>
+</div>
+<p>No.&nbsp;A call’s length is known only after the call, and the model’s job is to choose whom to call. A model given it would be evaluated on something it can never have in service: a <a href="../appendices/j-glossary.html#gl-leak-data-leakage" class="glossary-link"><em>leak</em></a>, a column that carries the answer into the evaluation. No render would notice; a test does (<code>tests/test_models.py</code>), which is why the repository has one.</p>
+</div>
+</div>
 </section>
 <section id="sec-model-card" class="level2" data-number="10.2">
 <h2 data-number="10.2" class="anchored" data-anchor-id="sec-model-card"><span class="header-section-number">10.2</span> A model card, as one larger task</h2>
-<p>A <em>model card</em> is a short document that travels with a model: what it is, what it is for and not for, how it performs overall and for the groups it affects, and what its makers know is wrong with it. Mitchell and colleagues proposed the form in 2019, with a fixed list of sections, which is the vocabulary to ask for.</p>
+<p>A <a href="../appendices/j-glossary.html#gl-model-card" class="glossary-link"><em>model card</em></a> is a short document that travels with a model: what it is, what it is for and not for, how it performs overall and for the groups it affects, and what its makers know is wrong with it. Mitchell and colleagues proposed the form in 2019, with a fixed list of sections, which is the vocabulary to ask for.</p>
 <p>The card is a good example of a task to hand over whole (<a href="02-assistant.html#sec-step-or-task" class="quarto-xref"><span>Section 2.8</span></a>): you can state the result (those sections, from those files), and its checks run without you (guards, the references, the render). So ask for a plan first, read it, and only then let the agent work. Start a branch for it, as for any change you will review:</p>
 <div class="agent-box">
 <div class="you" data-boxed="true">
@@ -804,7 +833,7 @@ Table&nbsp;10.2: Three kinds of check, and what each catches.
 <div class="box-label">
 <strong>Ask your coding agent</strong>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Plan first, and wait for my go-ahead: add model-card.qmd (html, docx and typst) for the best release, with the sections of Mitchell et al. (2019), "Model Cards for Model Reporting": model details, intended use, factors, metrics, evaluation data, training data, quantitative analyses, ethical considerations, and caveats and recommendations. Read only outputs/ and data/README.md. Slice metrics by age band and by job come from outputs/segments.csv, and calibration from outputs/calibration.csv. Cite the paper and the dataset from a new references.bib, opening each DOI first. Guard every sentence whose wording depends on the results with `claim`. Render all three formats, then list anything you could not verify.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Plan first, and wait for my go-ahead: add model-card.qmd for the best release, with the sections of Mitchell et al. (2019). Read only outputs/ and data/README.md; age and job slices come from outputs/segments.csv, calibration from outputs/calibration.csv. Cite the paper and the dataset from a new references.bib, opening each DOI first. Guard every sentence whose wording depends on the results with `claim`. Render it to html, docx and typst, then list what you could not verify.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="agent" data-boxed="true">
 <div class="box-label">
@@ -813,19 +842,26 @@ Table&nbsp;10.2: Three kinds of check, and what each catches.
 <p>replies with a plan · after your go-ahead: writes <code>references.bib</code> and <code>model-card.qmd</code> · <code>uv run quarto render model-card.qmd</code></p>
 </div>
 </div>
-<p><strong>Read the plan</strong> as a reviewer would. A good one lists the sections in order, says where each number comes from, names the slices and the figure, and says how it will check the references; in the test run it also promised to compute the “top 10%” label from <code>outputs/</code> rather than type it. If the plan misses something, say so before it starts; it is cheaper to change a plan than a file. Then reply <code>Go ahead.</code></p>
+<!-- Dry-run 2026-11-25, verbatim, in a copy of checkpoint 14-eval-start with outputs/
+computed, the go-ahead sent after the plan: a Claude Code sub-agent on Sonnet 5.5 and one on
+Haiku 5.5. Both plans named all nine sections of Mitchell et al., both cards have all nine,
+and all three formats rendered. Sonnet used 8 claim guards, two with typed values; Haiku 15.
+Both opened the DOIs through Crossref when the ACM and Elsevier pages refused them, and both
+also cited Moro et al. (2014). Sonnet's first render failed because DataFrame.to_markdown
+needs tabulate; it used to_html instead. -->
+<p>The paper, “Model Cards for Model Reporting”, has nine sections: model details, intended use, factors, metrics, evaluation data, training data, quantitative analyses, ethical considerations, and caveats and recommendations. <strong>Read the plan</strong> against them, as a reviewer would. A good plan lists the sections in order, says where each number comes from, names the <em>slices</em> (the results for each age band and each job) and the figure, says how it will check the references, and computes labels such as “top 10%” from <code>outputs/</code> rather than typing them. If the plan misses something, say so before it starts. Then reply <code>Go ahead.</code></p>
 <p>When it finishes, the checks are the ones the prompt asked for:</p>
 <ul>
 <li><strong>The guards.</strong> Read every <code>claim(…)</code> in the file: each should state a sentence of the card, and its condition should compute that sentence from <code>outputs/</code>. A guard whose condition can never be false, such as a name read from the results compared with itself, protects nothing.</li>
-<li><strong>The references.</strong> <code>references.bib</code> should hold Mitchell et al.&nbsp;and the dataset, each with a DOI you can open. In the test run, the dataset’s DOI record had its authors garbled, and the agent cited the dataset as the repository’s own page gives it: a reason to open DOIs, not only to collect them.</li>
-<li><strong>The list of what it could not verify.</strong> This is the most useful part of a larger task’s report. The test run’s list named how the split was made, how the calibration bins were formed, and that the intended-use and ethics text was its own framing. Each item is a question for you, not a defect to accept.</li>
+<li><strong>The references.</strong> <code>references.bib</code> should hold Mitchell et al.&nbsp;and the dataset, each with a DOI you can open. When this card was built, the dataset’s DOI record had its authors garbled, and the agent cited the dataset as the repository’s own page gives it: a reason to open DOIs, not only to collect them.</li>
+<li><strong>The list of what it could not verify</strong>, the most useful part of a larger task’s report: how the split was made, how the calibration bins were formed, that the ethics text is its own framing. Each item is a question for you, not a defect to accept.</li>
 <li><strong>The render.</strong> Open the three formats, and look at the slices as their subjects would.</li>
 </ul>
-<p>The finished card’s slices make the point of the exercise. Under v3, the called top 10% of the list holds 47.9% of the contacts aged 60+ but 5.0% of those aged 40-49: the model ranks by age, because in these data the 60+ band subscribes most often (38.8%). That is accurate, and it is exactly what a card must say, because age is a protected characteristic in UK law, and a bank deciding whom to call needs to know it before it relies on the ranking.</p>
+<p>The finished card’s slices make the point. Under v3, the called top 10% of the list holds 47.9% of the contacts aged 60+ but 5.0% of those aged 40-49. The ranking follows how often each band subscribes, and in these data the 60+ band subscribes most often (38.8%). That is accurate, and a card must say it. Age is a <em>protected characteristic</em> in UK law: the Equality Act 2010 protects people from discrimination because of it. The data are a Portuguese bank’s, but the card asks for legal review before any UK deployment. A bank must know before it relies on the ranking.</p>
 <div id="tbl-results-ages" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-ages-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;10.3: The best release’s slices by age band, from the evaluation’s outputs: the share of each band in the called list, the band’s subscription rate, and the share of its subscribers the calls reach.
+Table&nbsp;10.3: The best release’s slices by age band, from the evaluation’s outputs: the share of each band’s contacts in the called list, the band’s subscription rate, and the share of its subscribers the calls reach.
 </figcaption>
 <div aria-describedby="tbl-results-ages-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="cell caption-top table table-sm table-striped small">
@@ -879,18 +915,40 @@ Table&nbsp;10.3: The best release’s slices by age band, from the evaluation’
 </div>
 </figure>
 </div>
-<div class="pitfall callout callout-style-default callout-warning callout-titled" title="Common pitfall">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<div id="tbl-results-traps" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-traps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;10.4: Met while testing the card, <span class="nowrap">2026-11-18</span>.
+</figcaption>
+<div aria-describedby="tbl-results-traps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>What you see</th>
+<th>The fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>The first render stops: pandas’ styled tables (<code>df.style</code>) need <code>jinja2</code></td>
+<td>write the table another way, rather than add a dependency</td>
+</tr>
+<tr class="even">
+<td>The PDF cites in another style, with a second “Bibliography” page</td>
+<td><code>citeproc: true</code> under <code>typst:</code></td>
+</tr>
+<tr class="odd">
+<td>An old <code>model-card.html</code> after a failed render</td>
+<td>read the render’s last lines before you open the file</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span>Common pitfall
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Three traps met in the test run. Pandas’ styled tables (<code>df.style</code>) need the <code>jinja2</code> package, which the repository does not have, so the first render stopped; the agent wrote the table another way rather than add a dependency, which is the choice to prefer. Without a setting, the PDF’s citations came out in a different style from the HTML and Word, with an empty “References” heading and a second “Bibliography” page, because Quarto hands citations in a Typst PDF to Typst’s own processor; <code>citeproc: true</code> under <code>typst:</code> makes all three formats use the same one (<a href="#sec-results-sections" class="quarto-xref"><span>Section 10.3</span></a>). And a failed render leaves the previous <code>model-card.html</code> where it was, so read the render’s last lines before you open the file.</p>
-</div>
+</figure>
 </div>
 </section>
 <section id="sec-results-sections" class="level2" data-number="10.3">
@@ -899,7 +957,7 @@ Table&nbsp;10.3: The best release’s slices by age band, from the evaluation’
 <div id="tbl-results-refs" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-refs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;10.4: References in a document, and the setting behind each.
+Table&nbsp;10.5: References, and the setting behind each.
 </figcaption>
 <div aria-describedby="tbl-results-refs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -927,13 +985,13 @@ Table&nbsp;10.4: References in a document, and the setting behind each.
 <td>“Section 2”, a link</td>
 </tr>
 <tr class="odd">
-<td>a table or a figure referred to</td>
-<td>a cell labelled <code>tbl-…</code> or <code>fig-…</code>, and <code>@tbl-…</code></td>
+<td>a table or figure</td>
+<td>a <code>tbl-</code> or <code>fig-</code> label, then <code>@tbl-…</code></td>
 <td>“Table 2”, “Figure 2”</td>
 </tr>
 <tr class="even">
-<td>the same citation style in every format</td>
-<td><code>bibliography:</code>, and <code>citeproc: true</code> for <code>typst</code></td>
+<td>one citation style</td>
+<td><code>citeproc: true</code> for <code>typst</code></td>
 <td>“(Mitchell et al.&nbsp;2019)” in all three</td>
 </tr>
 </tbody>
@@ -941,6 +999,7 @@ Table&nbsp;10.4: References in a document, and the setting behind each.
 </div>
 </figure>
 </div>
+<p>The check is in the prompt: an unresolved reference renders as “??”, in every format.</p>
 <div class="agent-box">
 <div class="prompt long" data-boxed="true">
 <div class="box-label">
@@ -955,8 +1014,7 @@ Table&nbsp;10.4: References in a document, and the setting behind each.
 <p>edits <code>report.qmd</code> · <code>uv run quarto render report.qmd</code></p>
 </div>
 </div>
-<p>The check is in the prompt: an unresolved reference renders as “??”, in every format, so search each output for it. In the test run, the opening paragraph read the same in HTML, Word and PDF, ending “Section 2 shows who is called, by age band, and Section 3 whether the predicted probabilities match the rates observed.”</p>
-<p>Calibration asks whether a predicted probability can be read as a rate: of the contacts the model gives 20%, do about one in five subscribe? <a href="#fig-results-calibration" class="quarto-xref">Figure&nbsp;<span>10.1</span></a> draws it for the best release, from the same file the report reads.</p>
+<p>Calibration asks whether a predicted probability can be read as a rate: of the contacts the model gives 20%, do about one in five subscribe? <a href="#fig-results-calibration" class="quarto-xref">Figure&nbsp;<span>10.2</span></a> draws it for the best release.</p>
 <div id="cell-fig-results-calibration" class="cell on-light" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div id="fig-results-calibration" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Points joined by a line, observed rate against mean predicted probability, with a dashed diagonal. The points lie close to the diagonal, most of them at predicted probabilities below 0.25.">
@@ -965,13 +1023,13 @@ Table&nbsp;10.4: References in a document, and the setting behind each.
 <img src="results_files/figure-html/fig-results-calibration-output-1.svg" class="img-fluid figure-img" alt="Points joined by a line, observed rate against mean predicted probability, with a dashed diagonal. The points lie close to the diagonal, most of them at predicted probabilities below 0.25.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-results-calibration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.1: Calibration of the best release on the test contacts: the observed subscription rate against the mean predicted probability, in equal-sized bins. On the dashed diagonal, predictions equal rates.
+Figure&nbsp;10.2: Calibration of the best release on the test contacts: the observed subscription rate against the mean predicted probability, in equal-sized bins. On the dashed diagonal, predictions equal rates.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>For v3, no bin is more than 1.7 percentage points from the diagonal; for the oldest release, the largest gap is 5.7. The report says which release is best calibrated with a guard, because that word, unlike the numbers, does not follow the data by itself.</p>
+<p>For v3, no bin is more than 1.7 percentage points from the diagonal; for the oldest release, v1, the largest gap is 5.7. The report says which release is best calibrated with a guard, because that word, unlike the numbers, does not follow the data by itself.</p>
 <p>When both documents render, review the branch as in <a href="fast-path.html#sec-fast-pr" class="quarto-xref"><span>Section 3.7</span></a>: the scope (<code>model-card.qmd</code>, <code>references.bib</code>, <code>report.qmd</code>, perhaps <code>AGENTS.md</code>), one number against <code>outputs/</code>, and a fresh clone. Then commit.</p>
 <div class="catchup">
 <p><strong>Stuck for two minutes?</strong> Paste this into your agent. It backs up your work and brings the project to this point; then carry on from here.</p>
@@ -980,7 +1038,7 @@ Figure&nbsp;10.1: Calibration of the best release on the test contacts: the obse
 </section>
 <section id="sec-results-change" class="level2" data-number="10.4">
 <h2 data-number="10.4" class="anchored" data-anchor-id="sec-results-change"><span class="header-section-number">10.4</span> Change a setting, explain the rebuild</h2>
-<p>The call centre has room for more calls. No prompt is supplied: this is the test of the design, and you can do it by hand.</p>
+<p>The call centre has room for more calls, so <code>TOP_SHARE</code> in <code>src/acme_eval/metrics.py</code>, the share of the list that is called, can double. No prompt is supplied: this is the test of the design, and you can do it by hand.</p>
 <div class="tryit callout callout-style-default callout-important no-icon callout-titled" title="Try it">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -992,13 +1050,12 @@ Figure&nbsp;10.1: Calibration of the best release on the test contacts: the obse
 </div>
 <div class="callout-body-container callout-body">
 <ol type="1">
-<li><strong>Predict.</strong> The share of the list that is called is <code>TOP_SHARE</code> in <code>src/acme_eval/metrics.py</code>, now 0.1. Double it. Before you rebuild, write down which numbers in the report and the card will change, which will not, and whether anything will stop the render.</li>
-<li><strong>Rebuild</strong>: <code>uv run python scripts/evaluate.py</code>, then render both documents.</li>
-<li><strong>Explain</strong> what changed, what did not, and anything that stopped.</li>
-<li><strong>Undo</strong> with <code>git restore src/acme_eval/metrics.py</code>, and evaluate and render again.</li>
+<li><strong>Predict.</strong> Before you double <code>TOP_SHARE</code>, write down which numbers in the report and the card will change, which will not, and whether anything will stop the render.</li>
+<li><strong>Rebuild</strong>: double it, run <code>uv run python scripts/evaluate.py</code>, render both documents.</li>
+<li><strong>Undo</strong>: <code>git restore</code> the file, then evaluate and render again.</li>
 </ol>
 <div class="done">
-<p><strong>You’re done when</strong> you can name the outputs that changed, the ones that did not, and the line of code or the guard behind each.</p>
+<p><strong>You’re done when</strong> you can name what changed, what did not and what stopped.</p>
 </div>
 </div>
 </div>
@@ -1013,8 +1070,16 @@ Figure&nbsp;10.1: Calibration of the best release on the test contacts: the obse
 <div class="think-answer-label">
 <strong>Answer</strong>
 </div>
-<p>The number of calls (to 2,261), and with it every top-of-list metric: recall, precision, lift and each band’s share called. ROC AUC, average precision, the Brier score, the calibration and the best release do not change: they measure the whole ranking, not where it is cut. The trap is everything that names the share in words. In the test run, a report written without guards on them kept “top 10%” in a table caption and two row labels beside the new figures, and the metric names in <code>outputs/</code>, <code>recall_top10</code> among them, kept saying 10 too. In the finished project the labels compute the share, and each caption that names it, which cannot compute, has a guard: both documents stop with “The caption says top 10%, which a caption cannot compute.” Two unit tests in <code>tests/test_metrics.py</code> fail as well, because they pin the 10% rule; that is a test doing its job, and changing the share means updating them on purpose. In the test run, the agent’s own card also stopped on a guard about which jobs the calls reach least, the kind of sentence a doubled list really does change.</p>
+<p>The number of calls (to 2,261) and every top-of-list metric change: recall, precision, lift, each band’s share called. ROC AUC, the Brier score (the mean squared error of the probabilities) and the calibration do not: they describe the whole list, not where it is cut. The trap is the share named in words: a typed “top 10%” stays. In the finished project both documents stop on a caption’s guard, and two unit tests that pin the rule fail, on purpose.</p>
 </div>
+</div>
+<div class="story">
+<div class="box-label">
+<strong>From the build log</strong>
+</div>
+<!-- source: REVISION-PLAN.md line 475 (WP5) and results.qmd lines 272-277 at 651db10. They
+disagree on whose report it was, so the story says only what both record. -->
+<p>When this change was tested for the book, with the list doubled, “top 10%” was still typed in labels and a caption, beside the new figures. The numbers had moved and the words had not. The labels compute the share now, and each caption that names it has a guard. After you change a setting, search every output for its old value in words.</p>
 </div>
 </section>
 <section id="summary" class="level2 unnumbered">

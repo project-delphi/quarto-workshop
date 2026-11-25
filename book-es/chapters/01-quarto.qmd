@@ -28,27 +28,30 @@ def in_words(n: int) -> str:
     return WORDS.get(n, f"{n:,}")
 ```
 
-La mayoría de los informes se hacen a mano. Un analista ejecuta un script, copia un número en
-un documento de Word, pega un gráfico en una diapositiva, vuelve a escribir el mismo número en
-un correo y exporta un PDF para el sitio web. Quien trabaja en aprendizaje automático pega
-los puntajes de una evaluación en un informe, en una presentación para el equipo de producto y
-en una ficha del modelo (model card). Quien funda una startup copia las cifras de este mes en un
-informe para inversionistas. Cada copia es un pequeño acto de fe: que el número era correcto y
-que lo sigue siendo. Cuando los datos cambian, alguien tiene que encontrar cada copia, y nadie
-puede decir con certeza de dónde salió cada una.
+Una analista ejecuta un script y copia un número en un documento de Word. Pega un gráfico en
+una diapositiva, vuelve a escribir el número en un correo y exporta un PDF para el sitio web.
+Ahora existen cuatro copias, y el script no sabe de ninguna. Al mes siguiente se revisan los
+datos. El script se vuelve a ejecutar en un momento; las copias hay que encontrarlas una por
+una, y nadie puede decir si la del correo se corrigió alguna vez. Nada de esto fue un descuido.
+Cada copia fue un pequeño acto de fe en que el número era correcto y lo seguiría siendo, y la
+mayoría de los informes todavía se hacen así: a mano, por fe.
 
-Esa fe es el problema, porque la razón para publicar datos es que la gente se apoya en ellos.
-Un trabajo que se puede reproducir se gana la confianza: quien lo lee, lo revisa o lo dirige
-puede ver de dónde salió cada número y reconstruirlo. Justifica las decisiones, porque la
-evidencia detrás de una elección se puede mostrar, volver a revisar y defender más tarde. Y
-sirve de base para otros: alguien parte de tu fuente en lugar de empezar de cero, la amplía y la
-corrige, que es como mejoran la ciencia, la tecnología y el entendimiento. Un trabajo que no se
-puede reproducir no ofrece nada de esto; pide que lo aceptes por fe.
+::: story
+<!-- source: REVISION-PLAN.md line 474, WP3 ("roadmap alt text and Appendix I's agenda now
+computed (they had typed chapter numbers already out of date)"); book/PLAN.md lines 607–608
+(§15, item 5: the chapters renumbered, "the landing page and roadmaps follow from the
+sources") -->
+Este libro también lo hizo. Las descripciones de los mapas de sus partes, que los lectores de
+pantalla leen en voz alta, y la agenda de un apéndice nombraban los capítulos con números
+escritos a mano. La numeración cambió; los números escritos a mano no, en un libro sobre no
+escribir números a mano. Para el programa que lo imprime, un número escrito a mano nunca es un
+error. Ahora los dos se calculan a partir de la lista de capítulos, y no pueden quedarse atrás.
+:::
 
-La alternativa es **una sola fuente que reconstruye cada salida**, el paso *Publica* del ciclo
-de este libro. Cuanto más de ese trabajo hace un programa, menos lugares hay por donde se cuele
-un error, y mejor es la experiencia para todas las personas involucradas: las que hacen los
-documentos y las que leen documentos que coinciden entre sí y con los datos.
+La alternativa es **una sola fuente que reconstruye cada salida**, el paso Publica del ciclo de
+este libro. Cuanto más de ese trabajo hace un programa, menos lugares hay por donde se cuele un
+error, y cualquiera puede ver de dónde salió cada número y reconstruirlo. Quienes leen reciben
+documentos que coinciden entre sí y con los datos.
 
 ::: opener
 - Explicar por qué los números copiados a mano se desactualizan, y cómo una sola fuente que
@@ -66,31 +69,32 @@ documentos y las que leen documentos que coinciden entre sí y con los datos.
 La guía para visitantes de Londres que recorre la Parte II es un ejemplo pequeño de un problema
 común. La oficina de turismo publica los mismos datos para varios públicos: una guía web para
 los visitantes, un dashboard para la gerencia, un informe en Word para los socios, una tarjeta
-cuadrada para redes sociales y, más adelante, un documento técnico. En el proyecto terminado,
-`{python} in_words(n_pages)` páginas leen la misma tabla de visitas a atracciones, y entre todas
+cuadrada para redes sociales y, más adelante, un documento técnico (white paper). En el
+proyecto terminado, `{python} in_words(n_pages)` páginas leen la misma tabla de visitas a
+atracciones, contadas por la Association of Leading Visitor Attractions (ALVA), y entre todas
 escriben `{python} in_words(n_outputs)` archivos: solo la guía se convierte en una página web, un
 documento de Word, un PDF, una presentación de PowerPoint, un libro electrónico y una
 presentación que se ve en el navegador.
 
-Supón que la Association of Leading Visitor Attractions (ALVA), la fuente de esos conteos,
-corrige una cifra. En un flujo de copiar y pegar, esa corrección tiene que llegar a mano a
-`{python} in_words(n_outputs)` archivos. Suelen fallar tres cosas:
+Hechos a mano, esos `{python} in_words(n_outputs)` archivos serían
+`{python} in_words(n_outputs)` copias de los mismos conteos, y con las copias fallan tres
+cosas:
 
-- **Números viejos.** Se pasa por alto una copia, y el informe para los socios no coincide con
+- **Números desactualizados.** Se pasa por alto una copia, y el informe para los socios no coincide con
   el dashboard.
 - **Origen perdido.** Seis meses después, nadie puede decir qué versión de los datos produjo el
-  número del documento técnico.
+  número del white paper.
 - **Cambios lentos.** Como cada actualización es cara, se dejan de hacer, y los documentos
   envejecen sin que nadie lo note.
 
 Las mismas tres fallas aparecen dondequiera que los números se publiquen más de una vez: el
 informe mensual cuyo gráfico contradice su resumen, la evaluación cuya presentación cita el
 puntaje de la semana pasada, el informe para inversionistas que copia una cifra del mes
-equivocado. Nada de esto es falta de cuidado. Es lo que pasa cuando la *salida* se trata como lo
-que se edita. La solución es estructural: edita la fuente y deja que un programa reconstruya
-las salidas (@fig-drift).
+equivocado. Son lo que pasa cuando la *salida* se trata como lo que se edita. La solución es
+estructural: edita la fuente y deja que un programa reconstruya las salidas. La @fig-drift
+sigue una corrección de ALVA por los dos flujos de trabajo.
 
-![Una corrección, dos formas de trabajar. A mano, cada copia espera a que alguien la reescriba y algunas quedan viejas; desde una sola fuente, un solo renderizado actualiza cada salida.](../media/diagrams/drift){#fig-drift .on-light fig-alt="Dos maneras de publicar los conteos de atracciones de la guía de Londres después de que ALVA corrige una cifra en attractions.csv. A mano: cada número se copia en cada salida, una por una, así que la guía web y el dashboard reciben el número nuevo mientras el informe en Word, la tarjeta para redes sociales y el documento técnico siguen mostrando el viejo. Una sola fuente: las celdas de código de las páginas .qmd del proyecto leen attractions.csv, y un solo quarto render reconstruye la guía web, el dashboard, el informe en Word, la tarjeta para redes sociales y el documento técnico, todos con el número corregido."}
+![A mano, las copias se desactualizan; desde una sola fuente, un solo renderizado las actualiza todas.](../media/diagrams/drift){#fig-drift .on-light fig-alt="Dos maneras de publicar los conteos de atracciones de la guía de Londres después de que ALVA corrige una cifra en attractions.csv. A mano: cada número se copia en cada salida, una por una, así que la guía web y el dashboard reciben el número nuevo mientras el informe en Word, la tarjeta para redes sociales y el white paper siguen mostrando el viejo. Una sola fuente: las celdas de código de las páginas .qmd del proyecto leen attractions.csv, y un solo quarto render reconstruye la guía web, el dashboard, el informe en Word, la tarjeta para redes sociales y el white paper, todos con el número corregido."}
 
 ## Qué es Quarto {#sec-what-quarto}
 
@@ -132,19 +136,17 @@ escribe su valor en la oración. Cuando se construyó este libro, el mismo cálc
 *Renderizar* un documento es construir sus salidas a partir de su fuente, y `quarto render` lo
 hace en tres pasos (@fig-pipeline).
 
-![Lo que hace `quarto render`. Una sola fuente se convierte en Markdown con resultados, que Pandoc convierte a cada formato de salida; para el PDF, Typst compone el resultado.](../media/diagrams/render-pipeline){#fig-pipeline .on-light fig-alt="Un archivo fuente, london.qmd, con Markdown, YAML y celdas de código, pasa por tres pasos. Paso 1, ejecutar: Jupyter para Python o knitr para R ejecuta cada celda de código. El resultado es Markdown con los resultados en lugar del código. Paso 2, convertir: Pandoc convierte ese Markdown en html, docx, epub, pptx y revealjs. Paso 3, componer: para el PDF, Pandoc escribe fuente de Typst y Typst la compone en un pdf. Un solo comando, quarto render, ejecuta los tres pasos."}
-
-1. **Ejecutar.** Un motor de cálculo ejecuta las celdas de código: Jupyter para Python, knitr para
-   R. Los resultados (números, tablas, figuras) reemplazan al código en un archivo Markdown
-   intermedio. Las celdas se ejecutan una vez por formato, así que cada salida recibe resultados
-   hechos para ella (@sec-formats). Este libro usa solo Python.
+1. **Ejecutar.** Jupyter, un motor de cálculo, ejecuta las celdas de código. Los resultados
+   (números, tablas, figuras) reemplazan al código en un archivo Markdown intermedio. Las
+   celdas se ejecutan una vez por formato, así que cada salida recibe resultados hechos para
+   ella (@sec-formats).
 2. **Convertir.** Para cada formato, Pandoc, un conversor de documentos con larga trayectoria,
    lee ese Markdown y escribe la salida: HTML, Word (`docx`), EPUB, PowerPoint (`pptx`) o una
    presentación de Reveal.js.
 3. **Componer.** Para el PDF, Pandoc escribe fuente para Typst, un sistema de composición
-   tipográfica moderno que viene dentro de Quarto, y Typst produce el PDF. No hace falta instalar
-   LaTeX. (Quarto también puede hacer PDF a través de LaTeX, `format: pdf`, si instalas una
-   distribución de TeX.)
+   tipográfica moderno que viene dentro de Quarto, y Typst produce el PDF.
+
+![Lo que hace `quarto render`. Una sola fuente se convierte en Markdown con resultados, que Pandoc convierte a cada formato de salida; para el PDF, Typst compone el resultado.](../media/diagrams/render-pipeline){#fig-pipeline .on-light fig-alt="Un archivo fuente, london.qmd, con Markdown, YAML y celdas de código, pasa por tres pasos. Paso 1, ejecutar: Jupyter para Python o knitr para R ejecuta cada celda de código. El resultado es Markdown con los resultados en lugar del código. Paso 2, convertir: Pandoc convierte ese Markdown en html, docx, epub, pptx y revealjs. Paso 3, componer: para el PDF, Pandoc escribe fuente de Typst y Typst la compone en un pdf. Un solo comando, quarto render, ejecuta los tres pasos."}
 
 La separación importa en la práctica. Una falla en el paso 1 es una falla de *tu código*: un
 paquete que falta, un nombre de columna equivocado, una celda que lanza un error. Una falla en el
@@ -156,42 +158,59 @@ error te dice qué paso se detuvo, y eso te dice dónde buscar.
 Un renderizado de `london.qmd` se detiene con `KeyError: 'visits_2025'`. ¿Qué paso falló y dónde
 buscas primero?
 
-En el paso 1, ejecutar. Una celda de código le pidió a los datos una columna que no tienen, así
+En el paso 1, ejecutar. Una celda de código les pidió a los datos una columna que no tienen, así
 que compara la celda con los nombres de columna del archivo de datos. La configuración de los
 formatos no es el problema: Pandoc y Typst nunca llegaron a ejecutarse.
 :::
+
+<!-- Messages as Quarto 1.10.20 printed them, 2026-11-24: the moved cell of 05-compute.qmd, a
+missing image, the format:html of first-report.qmd. -->
+
+::: tryit
+Tres renderizados fallaron: ¿de qué paso vino cada mensaje, o no se ejecutó ninguno?
+
+1. `NameError: name 'attractions' is not defined`
+2. `[typst]: Compiling london.typ to london.pdf...error: file not found`
+3. `ERROR: YAMLException: can not read a block mapping entry`
+
+::: done
+nombraste un paso, o ninguno, para cada uno, y sabes si mirar el código o el documento.
+:::
+:::
+
+**Respuestas.** El primero es del paso 1: una celda usó un nombre que ninguna celda anterior
+había creado, así que mira el código. El segundo es del paso 3: Typst no encontró una imagen que
+nombra la página, así que mira el documento. El tercero es la trampa: no se ejecutó ningún paso,
+porque Quarto no pudo leer la configuración, que es lo primero que lee.
 
 ::: why
 Pandoc convierte entre muchos formatos leyendo cada entrada en un único modelo interno de
 documento y escribiendo cada salida desde ese modelo. Por eso un solo archivo de Markdown puede
 convertirse a la vez en un documento de Word y en una presentación: ninguna salida se deriva de
-la otra. Las dos salen del mismo tipo de intermedio estructurado, construido desde la misma
-fuente, así que un título es un título en todas partes.
+la otra, así que un título es un título en todas partes.
 :::
 
 ### Qué sale {#what-comes-out}
 
-La lista oficial de formatos es larga y está agrupada por tipo (Quarto, *All Formats*,
-consultada el 2026-11-12):
+La lista oficial de formatos de Quarto es larga y está agrupada por tipo. Este libro usa dos de
+esos tipos:
 
 | Tipo | Formatos que usa este libro | Otros |
 |---|---|---|
 | Documentos | HTML, PDF (Typst), Word, EPUB | OpenDocument, PDF a través de LaTeX |
 | Presentaciones | Reveal.js, PowerPoint | Beamer |
-| Markdown | | GitHub, CommonMark, Hugo y otros |
-| Wikis | | MediaWiki, DokuWiki y otros |
-| Más formatos | | Jupyter, JATS, AsciiDoc y muchos más |
 
-: Los formatos de salida de Quarto, agrupados como en la lista oficial. {#tbl-formats}
+: Dos tipos de salida, agrupados como en la lista oficial de Quarto. {#tbl-formats}
 
-Los sitios web y los blogs son tipos de proyecto construidos con los mismos archivos `.qmd`; un
+Quarto también escribe dialectos de Markdown, formatos de wiki, notebooks de Jupyter y más. Los
+sitios web y los blogs son tipos de proyecto construidos con los mismos archivos `.qmd`; un
 dashboard es un formato propio, cuyos títulos organizan páginas y filas (@sec-audiences).
 
 ## Quarto no es IA {#sec-not-ai}
 
 Este libro combina Quarto con un agente de programación, y esa combinación se presta a un
 malentendido: que Quarto mismo es una herramienta de IA. No lo es. Quarto es software
-convencional. Con los mismos archivos fuente y los mismos datos, escribe las mismas salidas cada
+convencional: con los mismos archivos fuente y los mismos datos, escribe las mismas salidas cada
 vez. No genera texto, código ni figuras por su cuenta, y no le envía nada a ningún servicio de
 IA.
 
@@ -236,39 +255,58 @@ otra persona, o tú dentro de seis meses, puede reconstruir los mismos resultado
 mismos archivos con un solo comando, y puede ver de dónde salió cada número. Cuatro propiedades
 lo hacen posible:
 
-**Una sola fuente.** El texto, el código y los datos viven en archivos de texto plano en una
-sola carpeta. Nada importante existe solo dentro de una aplicación.
+::: cards
+Una sola fuente
+:   El texto, el código y los datos viven en archivos de texto plano en una sola carpeta. Nada
+    importante existe solo dentro de una aplicación.
 
-**Los números se calculan.** Cada figura, tabla y número dentro de una oración sale de una celda
-de código o de código en línea que lee los datos. Nada se escribe a mano ni se pega desde otro
-lado.
+Los números se calculan
+:   Cada figura, tabla y número dentro de una oración sale de una celda de código o de código
+    en línea que lee los datos. Nada se escribe a mano ni se pega desde otro lado.
 
-**Un solo comando.** `quarto render` lo reconstruye todo. No hay una secuencia de pasos
-manuales de exportación que recordar.
+Un solo comando
+:   `quarto render` lo reconstruye todo. No hay una secuencia de pasos manuales de exportación
+    que recordar.
 
-**Con versiones.** Git, la herramienta de control de versiones que se instala en el
-@sec-setup, es algo así como el control de cambios de Word para una carpeta entera, con un
-historial que perdura; una carpeta de proyecto con su historial es un *repositorio*. Cada estado
-de la fuente, los datos y la configuración que decides registrar se convierte en un *commit*,
-con un mensaje que dice por qué cambió. Cualquier estado anterior se puede restaurar, dos estados
-se pueden comparar y un resultado se puede atar a los archivos exactos que lo produjeron. Los
-paquetes de Python del proyecto también quedan fijados, en un archivo de bloqueo o lockfile
-(`uv.lock`, que se presenta en la @sec-environments), así que la computadora de un colega
-construye el mismo *entorno* que la tuya: la versión de Python y los paquetes con los que corre
-el código.
+Con versiones
+:   Git, la herramienta de control de versiones que se instala en el @sec-setup, es algo así
+    como el control de cambios de Word para una carpeta entera, con un historial que perdura;
+    una carpeta con su historial es un *repositorio*. Cada estado que decides registrar es un
+    *commit*, con un mensaje que dice por qué.
+:::
 
-La promesa tiene condiciones, y vale la pena conocerlas desde el principio: el mismo resultado
-sale de las mismas *entradas*, el mismo entorno declarado y la misma configuración. Tres cosas
-la rompen sin avisar. Los datos que se leen en vivo desde un sitio web pueden cambiar entre dos
-renderizados, así que un proyecto guarda en su carpeta una copia fechada de sus datos. Todo lo
-aleatorio, como los puntos de partida de un método de agrupamiento, da la misma respuesta solo
-cuando su *semilla*, el número que inicia la secuencia aleatoria, está fijada. Y un caché, del
-que se habla más abajo, puede servir un resultado viejo.
+Con Git, cualquier estado anterior se puede restaurar, dos estados se pueden comparar y un
+resultado se puede vincular a los archivos exactos que lo produjeron. Los paquetes de Python del
+proyecto también quedan fijados, en un archivo de bloqueo o lockfile (`uv.lock`, que se
+presenta en la @sec-environments), así que la computadora de alguien de tu equipo construye el
+mismo *entorno* que la tuya: la versión de Python y los paquetes con los que corre el código.
 
-Juntas, estas propiedades le dan la vuelta al problema de la desactualización. Corrige un valor
-en los datos, renderiza, y la tabla, el gráfico y la oración que lo citan se actualizan juntos,
-en todos los formatos. La @sec-first-change te hace hacer exactamente eso, con un archivo de
-cinco filas, en tu primer capítulo práctico.
+La promesa tiene condiciones: el mismo resultado sale de las mismas *entradas*, el mismo entorno
+declarado y la misma configuración. Tres cosas la rompen sin avisar:
+
+- **Datos en vivo.** Los datos que se leen desde un sitio web pueden cambiar entre dos
+  renderizados, así que un proyecto guarda en su carpeta una copia fechada de sus datos.
+- **Una semilla aleatoria sin fijar.** Todo lo aleatorio, como los puntos de partida de un
+  método de agrupamiento, se repite solo cuando su *semilla*, el número que inicia la secuencia
+  aleatoria, está fijada.
+- **Un caché.** Quarto puede guardar los resultados calculados para ahorrar tiempo (`freeze`).
+  Una página congelada se vuelve a ejecutar cuando cambia su fuente, no cuando cambian sus
+  datos, así que puede servir un resultado desactualizado; el @sec-publish-many muestra cómo vaciarlo de
+  forma segura.
+
+```{python}
+#| label: ch1-first-rows
+# Rows in the first report's data.
+import csv
+
+with open("../starters/first-report/data/visits.csv", newline="") as f:
+    n_first_rows = sum(1 for _ in csv.DictReader(f))
+```
+
+Juntas, estas propiedades le dan la vuelta al problema de la desactualización: corrige un valor
+en los datos, renderiza, y cada tabla, gráfico y oración que lo cita se actualiza, en todos los
+formatos. La @sec-first-change te hace hacer exactamente eso, con un archivo de
+`{python} in_words(n_first_rows)` filas.
 
 ::: think
 Corriges un número en los datos. ¿Qué vuelves a escribir en el informe?
@@ -282,17 +320,10 @@ hay que corregir.
 Reproducible no significa correcto. Un análisis equivocado se reproduce a la perfección: el mismo
 número equivocado aparece en cada formato, cada vez. La reproducibilidad hace que los errores se
 puedan *encontrar*, porque cualquiera puede rastrear un número hasta su código y sus datos, pero
-igual tienes que revisar los resultados contra sus fuentes. El @sec-causation es un ejemplo
+de todos modos tienes que contrastar los resultados con sus fuentes. El @sec-causation es un ejemplo
 extenso de un resultado que se reproduce sin problemas y que aun así no se debe leer como parece
 a primera vista.
 :::
-
-Hay una sutileza más, que importa cuando los proyectos crecen. Renderizar cada página desde cero
-puede ser lento, así que Quarto puede guardar en caché los resultados con una opción llamada
-`freeze`. Un caché vale lo que vale su regla para descartar resultados, y Quarto vuelve a
-ejecutar una página congelada cuando cambia *la fuente de esa página*, no cuando cambia un
-archivo de datos que lee. El @sec-publish-many muestra cómo usar el caché de forma segura. Este
-mismo libro usa uno, con una forma documentada de vaciarlo (@sec-how-built).
 
 ## Cuándo Quarto no es la herramienta adecuada {#sec-wrong-tool}
 
@@ -300,31 +331,28 @@ Quarto se gana su lugar cuando el mismo contenido se reconstruye, ya sea porque 
 o porque el contenido va a varios públicos. A cambio te pide un flujo de trabajo en texto plano,
 una línea de comandos y algo de preparación. Ese trato no siempre conviene:
 
-- **Colaboradores que editan en Word.** Si las personas que revisan el documento trabajan en un
-  procesador de texto con control de cambios, pueden comentar la salida en Word, pero sus
-  ediciones hay que llevarlas a mano de vuelta a la fuente. Para documentos cuyo trabajo
-  principal es la edición línea por línea entre varias personas, un procesador de texto
-  compartido puede encajar mejor, sin más.
+- **Colaboradores que editan en Word.** Si las personas que revisan el documento trabajan con
+  control de cambios, pueden comentar la salida en Word, pero sus ediciones hay que llevarlas a
+  mano de vuelta a la fuente. Para la edición línea por línea entre varias personas, un
+  procesador de texto compartido puede encajar mejor, sin más.
 - **Diseños maquetados.** Quarto produce documentos estructurados: títulos, párrafos, figuras,
   tablas. Typst y CSS pueden llevar el aspecto bastante lejos, pero un póster o un folleto muy
   cargado de marca y maquetado al milímetro es más fácil en una herramienta de diseño.
-- **La fidelidad de los formatos en los bordes.** Cada formato solo puede llevar lo que admite.
-  Pandoc escribe buenos archivos de Word y PowerPoint, pero una tabla de PowerPoint no puede
-  contener imágenes, por ejemplo, así que la tabla de fotos de la guía de Londres muestra en su
-  versión `pptx` el texto alternativo de cada foto. Revisa cada formato que prometas entregar.
+- **Los límites de cada formato.** Cada formato solo puede llevar lo que admite:
+  en la salida de PowerPoint de Quarto una tabla no puede contener imágenes, así que la tabla de
+  fotos de la guía de Londres muestra en su versión `pptx` el texto alternativo de cada foto.
+  Revisa cada formato que prometas entregar.
 - **Documentos de una sola vez.** Una nota de dos párrafos, sin datos y sin un segundo público,
-  gana poco con un sistema de construcción.
-- **Diseño y coedición en una startup.** Una presentación para inversionistas con cada
-  diapositiva diseñada, un sitio de marketing y un plan que el equipo fundador comenta en
-  Google Docs o Notion se van a quedar en esas herramientas, y un equipo que recién empieza
-  puede, con razón, poner la velocidad primero. El método rinde donde cambian los números de una
-  startup: el informe mensual para inversionistas, el documento técnico (white paper) de un
-  benchmark, el informe por cliente y el sitio de documentación del proyecto.
+  gana poco con un sistema que la reconstruya.
+- **Diseño y coedición en una startup.** Una presentación para inversionistas diseñada a mano,
+  un sitio de marketing y un plan que el equipo fundador comenta en Google Docs o Notion pueden
+  quedarse en esas herramientas. El método rinde donde cambian los números de una startup, como
+  en el informe mensual para inversionistas (la @sec-at-work-startup tiene el caso completo).
 
 ::: practice
 Una prueba útil: ¿este documento se va a construir una segunda vez? Si los datos van a cambiar,
 si un segundo público lo va a necesitar en otro formato o si alguien va a preguntar "¿de dónde
-salió este número?", el flujo en texto plano se paga solo rápidamente. Si nada de eso es
+salió este número?", el flujo en texto plano compensa muy pronto. Si nada de eso es
 probable, usa lo que sea más rápido.
 :::
 
@@ -333,24 +361,22 @@ probable, usa lo que sea más rápido.
 ::: keyideas
 - Los informes se desactualizan cuando sus salidas se editan a mano; editar una sola fuente y
   dejar que un programa reconstruya cada salida elimina las copias.
-- `quarto render` ejecuta las celdas de código, convierte el resultado con Pandoc y, para el
-  PDF, lo compone con Typst; el paso que se detiene te dice dónde buscar.
-- Quarto es software convencional, no IA: la misma fuente y los mismos datos dan las mismas
-  salidas, así que revisas el trabajo del agente una vez y cualquiera puede reconstruir el
-  tuyo sin tener que confiar en él.
-- El trabajo reproducible se gana la confianza, justifica decisiones y sirve de base para otros.
-  Significa una sola fuente, números calculados, un solo comando y archivos con versiones, y hace
-  que los errores se puedan encontrar, no que desaparezcan.
-- Un caché como `freeze` vuelve a ejecutar una página cuando cambia su fuente, no cuando cambian
-  sus datos, así que necesita una regla para vaciarlo.
-- Quarto conviene para documentos que se van a construir de nuevo, como los informes
-  mensuales, las evaluaciones y los informes para inversionistas, y no es la herramienta
-  adecuada para coeditar, para diseños maquetados ni para notas de una sola vez.
+- `quarto render` ejecuta las celdas, convierte con Pandoc y, para el PDF, compone con Typst;
+  el paso que se detiene te dice dónde buscar.
+- Quarto no es IA: la misma fuente y los mismos datos dan las mismas salidas. Revisa el trabajo
+  del agente una vez; cualquiera puede reconstruir el tuyo sin confiar en él.
+- Reproducible significa una sola fuente, números calculados, un solo comando y archivos con
+  versiones. Se gana la confianza y hace que los errores se puedan encontrar, no que desaparezcan.
+- Los datos en vivo, una semilla sin fijar y un caché rompen la promesa sin avisar: una página
+  congelada se vuelve a ejecutar cuando cambia su fuente, no sus datos.
+- Quarto conviene para documentos que se construyen de nuevo, como los informes mensuales y los
+  informes para inversionistas; no sirve para coeditar, para diseños maquetados ni para notas de
+  una sola vez.
 :::
 
 Pero Quarto solo renderiza lo que le dan. En este libro esas fuentes las escribe un agente de
-programación, y lo que produce varía de una ejecución a otra y puede estar equivocado con total
-seguridad. ¿Cómo le pides trabajo a un programa así, y cómo revisas lo que te devuelve antes de
+programación, y lo que produce varía de una ejecución a otra y puede equivocarse y sonar totalmente
+seguro. ¿Cómo le pides trabajo a un programa así, y cómo revisas lo que te devuelve antes de
 que se publique nada? El @sec-assistant lo responde.
 
 ## Lecturas adicionales {.unnumbered}

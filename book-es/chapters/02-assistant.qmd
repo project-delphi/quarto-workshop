@@ -2,18 +2,34 @@
 
 ```{python}
 #| label: ch2-setup
-from scripts.facts import checked, fact, table
-from scripts.prose import alt_text_holds
-# The pelican experiment's costs, from the deck's record of Simon Willison's runs.
+from scripts.facts import checked_span, fact, table
+from scripts.prose import alt_text_holds, number_words, text_holds
+# The pelican experiment's costs, from the deck's record of Simon Willison's runs: each
+# reply's tokens at the API list prices checked on 2026-11-06 (assets/pelicans/README.md).
 import re
 from pathlib import Path
 
 readme = Path("../assets/pelicans/README.md").read_text()
-pelican_cost = {m.group(1): float(m.group(2)) for m in re.finditer(
-    r"\| `([a-z]+-[a-z]+)\.svg` \|.*\| ([\d.]+) \|\s*$", readme, re.M)}
+# Per cell: input and output tokens, input and output dollars per million tokens, cents.
+runs = {m.group(1): [float(g.replace(",", "")) for g in m.groups()[1:]] for m in re.finditer(
+    r"^\| `([a-z]+-[a-z]+)\.svg` \| [^|]+ \| [a-z]+ \| ([\d,]+) \| ([\d,]+) \| ([\d.]+) \| "
+    r"([\d.]+) \| ([\d.]+) \|\s*$", readme, re.M)}
+pelican_cost = {k: r[4] for k, r in runs.items()}
+exact = {k: (r[0] * r[2] + r[1] * r[3]) / 10_000 for k, r in runs.items()}  # cents, unrounded
+text_holds(all(abs(exact[k] - pelican_cost[k]) < 0.0051 for k in runs), "the README's costs")
 cheapest_ok = pelican_cost["haiku-medium"]
 dearest = max(pelican_cost.values())
-ratio = dearest / cheapest_ok
+# The ratio of the unrounded costs, so that rounding the printed cents cannot move it.
+ratio = exact[max(exact, key=exact.get)] / exact["haiku-medium"]
+fable_in, fable_out = runs["fable-medium"][2:4]
+text_holds(all(runs[k][2:4] == [fable_in, fable_out] for k in runs if k.startswith("fable")),
+           "one list price for the Fable row")
+outs = [runs[f"{m}-medium"][3] for m in ("haiku", "sonnet", "opus", "fable")]
+text_holds(outs == sorted(set(outs)), "the price per token rising down the rows")
+text_holds(pelican_cost["fable-medium"] < pelican_cost["fable-low"],
+           "Fable on medium effort costing less than Fable on low")
+text_holds(max(v for k, v in pelican_cost.items() if k.startswith("haiku")) < 1 and dearest > 10,
+           "costs from fractions of a cent to more than ten cents")
 
 # The grid (@fig-pelicans) is a Markdown table in HTML and a picture in the EPUB, so its cell
 # costs and its alt text are typed. Stop the render if they no longer match the README.
@@ -29,6 +45,7 @@ alt_text_holds(pelican_cost == QUOTED_CENTS, "fig-pelicans")
 prices = table("models", "prices")
 out_lo = min(r["output"] for r in prices["rows"])
 out_hi = max(r["output"] for r in prices["rows"])
+WORD = number_words()
 
 
 def dollars(x: float) -> str:
@@ -36,14 +53,35 @@ def dollars(x: float) -> str:
     return f"{x:g}" if x == int(x) else f"{x:.2f}"
 ```
 
-Simon Willison, un desarrollador, les ha hecho a casi todos los modelos nuevos importantes la
-misma pregunta desde 2024: "Generate an SVG of a pelican riding a bicycle" ("genera un SVG de un
-pelícano en bicicleta"; un SVG es un dibujo escrito como texto, así que un modelo lo escribe
-igual que escribe código). Cuatro modelos de Claude, cada uno con tres niveles de *esfuerzo*
-(cuánto razona el modelo antes de responder), le respondieron con `{python} len(pelican_cost)`
-dibujos, y en todos se reconoce un pelícano en bicicleta. El más caro costó
-`{python} f"{dearest:.2f}"` centavos de dólar, unas `{python} f"{ratio:.0f}"` veces lo que costó
-el más barato que fue suficiente, de `{python} f"{cheapest_ok:.2f}"` centavos (@fig-pelicans).
+Desde 2024, el desarrollador Simon Willison les hace una misma petición a los modelos de IA
+nuevos: "Generate an SVG of a pelican riding a bicycle" (genera un SVG de un pelícano en
+bicicleta). Un SVG es un dibujo escrito como texto, así que un modelo lo escribe igual que
+escribe código. Abajo hay `{python} WORD[len(pelican_cost)]` respuestas, de cuatro modelos. En
+todas se reconoce un pelícano en bicicleta, y no costaron lo mismo. Antes de mirar los precios,
+adivina: ¿cuántas veces más costó el más caro que el más barato que fue suficiente?
+
+::: {.content-visible when-format="html:js"}
+::: {#fig-pelicans}
+
+| Modelo | esfuerzo bajo | esfuerzo medio | esfuerzo alto |
+|---|---|---|---|
+| **Haiku 5.5** | ![Haiku con esfuerzo bajo: pelícano blanco con una pata naranja en una bicicleta roja sencilla, pasto verde brillante, sol amarillo.](../media/deck/pelicans/haiku-low.svg){width=160} 0.09¢ | ![Haiku con esfuerzo medio: pelícano de alas grises en una bicicleta roja con un cuadro bien hecho y líneas de velocidad.](../media/deck/pelicans/haiku-medium.svg){width=160} 0.14¢, suficiente | ![Haiku con esfuerzo alto: pelícano inclinado hacia adelante en una bicicleta roja, dos patas naranjas, sol amarillo.](../media/deck/pelicans/haiku-high.svg){width=160} 0.25¢ |
+| **Sonnet 5.5** | ![Sonnet con esfuerzo bajo: pelícano blanco con un ala que llega al manubrio de una bicicleta roja, sol amarillo.](../media/deck/pelicans/sonnet-low.svg){width=160} 1.63¢ | ![Sonnet con esfuerzo medio: pelícano blanco en una bicicleta roja delgada, con las patas dobladas hacia los pedales, sol amarillo.](../media/deck/pelicans/sonnet-medium.svg){width=160} 1.80¢, suficiente | ![Sonnet con esfuerzo alto: pelícano de cuello curvo y ala emplumada en una bicicleta roja con sombra en el suelo.](../media/deck/pelicans/sonnet-high.svg){width=160} 2.34¢ |
+| **Opus 5.5** | ![Opus con esfuerzo bajo: pelícano blanco en una bicicleta roja con líneas de velocidad y un sol amarillo.](../media/deck/pelicans/opus-low.svg){width=160} 3.79¢ | ![Opus con esfuerzo medio: pelícano con cresta y una bolsa grande en una bicicleta roja con plato, sol amarillo.](../media/deck/pelicans/opus-medium.svg){width=160} 5.89¢ | ![Opus con esfuerzo alto: pelícano con cresta en una bicicleta roja pequeña con plato, nubes y líneas de velocidad.](../media/deck/pelicans/opus-high.svg){width=160} 6.74¢ |
+| **Fable 5.1** | ![Fable con esfuerzo bajo: pelícano de contorno negro en una bicicleta negra con líneas de velocidad, fondo claro.](../media/deck/pelicans/fable-low.svg){width=160} 10.02¢ | ![Fable con esfuerzo medio: pelícano blanco en una bicicleta roja con ruedas negras, cielo claro.](../media/deck/pelicans/fable-medium.svg){width=160} 9.91¢ | ![Fable con esfuerzo alto: pelícano blanco con un ala larga en una bicicleta negra, en un camino con líneas discontinuas.](../media/deck/pelicans/fable-high.svg){width=160} 13.09¢ |
+
+Un prompt, cuatro modelos, tres esfuerzos: "Generate an SVG of a pelican riding a bicycle". Imágenes de la serie de pelícanos de Simon Willison, una ejecución por celda; el costo son los tokens de cada respuesta a precios de lista de la API.
+:::
+:::
+
+::: {.content-visible when-format="epub"}
+![Un prompt, cuatro modelos, tres esfuerzos: "Generate an SVG of a pelican riding a bicycle". Imágenes de la serie de pelícanos de Simon Willison, una ejecución por celda; el costo son los tokens de cada respuesta a precios de lista de la API.](../media/figures/pelican-grid.png){#fig-pelicans .on-light fig-alt="Una cuadrícula de doce dibujos de un pelícano en bicicleta: una fila por modelo (Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.1) y una columna por esfuerzo (low, medium, high), cada uno con su costo. En cada celda se reconoce un pelícano en bicicleta. Los costos suben de 0.09 centavos para Haiku con esfuerzo bajo a 13.09 centavos para Fable con esfuerzo alto. Haiku y Sonnet con esfuerzo medio, a 0.14 y 1.80 centavos, están marcados como suficientes (enough)."}
+:::
+
+Cada fila es un modelo y cada columna un nivel de *esfuerzo*, cuánto razona el modelo antes de
+responder. El más caro costó `{python} f"{dearest:.2f}"` centavos de dólar, unas
+`{python} f"{ratio:.0f}"` veces lo que costó el más barato que fue suficiente, de
+`{python} f"{cheapest_ok:.2f}"` centavos.
 
 Elegir entre esos dibujos es el primero de muchos criterios que enseña este capítulo. Un
 *agente de programación* es un programa que escribe y edita archivos y ejecuta comandos cuando
@@ -63,15 +101,18 @@ engañar por lo segundo?
   dimensionar una tarea más grande según cómo se puede revisar.
 :::
 
+Si ya usas un agente todos los días, lee de la @sec-three-skills a la @sec-boxes y hojea el
+resto.
+
 ::: tryit
 No hace falta instalar nada. Pega el prompt de Simon Willison,
 `Generate an SVG of a pelican riding a bicycle`, en un chat web en tu navegador
-(`{python} fact("chats.free_chats")`; consultado el `{python} checked("chats.free_chats")`), luego
-pégalo otra vez en una conversación nueva y compara las respuestas.
+(`{python} fact("chats.free_chats")`, según el @sec-facts), pégalo otra vez en una conversación
+nueva y compara las respuestas.
 
 ::: done
-las dos respuestas son distintas, aunque el prompt fue el mismo. Quarto, con la misma fuente,
-nunca hace eso (@sec-not-ai).
+las respuestas difieren, aunque el prompt fue el mismo. Quarto, con la misma fuente, datos y
+paquetes, no hace eso (@sec-not-ai).
 :::
 :::
 
@@ -85,15 +126,13 @@ con una solicitud estructurada para usar una herramienta: "lee este archivo", "e
 comando".
 
 El **harness** es el programa en tu computadora que envuelve al modelo. Claude Code, Codex,
-Antigravity y OpenCode son harnesses. El harness le da al modelo sus herramientas (leer y escribir archivos,
-ejecutar comandos, buscar), lleva a cabo las solicitudes de herramientas del modelo, te pregunta
-antes de hacer cualquier cosa con consecuencias y le devuelve los resultados al modelo. Ese ciclo
-se repite hasta que el modelo responde con una respuesta en lugar de otra solicitud. Ese ciclo,
-sobre tus propios archivos y comandos, es lo que lo convierte en un *agente*: actúa en la carpeta
-de tu proyecto, una solicitud de herramienta tras otra, hasta terminar el paso, donde un chat web
-te entrega texto para copiar.
-
-![Cómo funciona un agente de programación. El harness en tu computadora le pasa al modelo la conversación y los resultados de cada herramienta, y el modelo responde con texto o con una solicitud para usar una herramienta; el harness actúa en la carpeta del proyecto y te pregunta antes de ejecutar comandos (OpenCode, por defecto, no).](../media/diagrams/agent-loop){#fig-agent-loop .on-light fig-alt="Tú le das un prompt al harness, y este te muestra los resultados y te pide aprobar comandos. El harness (Claude Code, Codex o Antigravity) le envía la conversación y los resultados de las herramientas al modelo (Claude, GPT o Gemini), que corre en los servidores del proveedor y responde con texto o con una solicitud para usar una herramienta. El harness lleva a cabo las solicitudes de herramientas en la carpeta del proyecto, su raíz: primero lee AGENTS.md y luego lee y edita archivos y ejecuta comandos ahí. El modelo decide, el harness hace, y tú diriges y revisas."}
+Antigravity y OpenCode son harnesses. El harness le da al modelo sus herramientas (leer y
+escribir archivos, ejecutar comandos, buscar), lleva a cabo las solicitudes de herramientas del
+modelo, te pregunta antes de hacer cualquier cosa con consecuencias y le devuelve los
+resultados al modelo. Ese ciclo se repite hasta que el modelo devuelve una respuesta en lugar de
+otra solicitud, y es lo que convierte al par en un *agente*: actúa en la carpeta de tu
+proyecto, una solicitud de herramienta tras otra, hasta terminar el paso, mientras que un chat
+web te entrega texto para copiar.
 
 Una forma corta de recordar la división: **el modelo decide, el harness hace, tú diriges y
 revisas.** Tiene una consecuencia práctica. Muchos harnesses pueden usar varios modelos, así que
@@ -101,6 +140,8 @@ el mismo harness se comporta distinto con otro modelo, y el mismo modelo se comp
 dentro de otro harness. Cuando un agente te decepciona, la causa puede ser cualquiera de las
 dos mitades, y el arreglo es distinto: un modelo más fuerte si el razonamiento se queda corto,
 mejores reglas o permisos si el harness hace lo que no debe.
+
+![Cómo funciona un agente de programación: el harness lleva a cabo las solicitudes del modelo en la carpeta de tu proyecto, y te pregunta antes de ejecutar un comando (OpenCode, por defecto, no).](../media/diagrams/agent-loop){#fig-agent-loop .on-light fig-alt="Tú le das un prompt al harness, y este te muestra los resultados y te pide aprobar comandos. El harness (Claude Code, Codex o Antigravity) le envía la conversación y los resultados de las herramientas al modelo (Claude, GPT o Gemini), que corre en los servidores del proveedor y responde con texto o con una solicitud para usar una herramienta. El harness lleva a cabo las solicitudes de herramientas en la carpeta del proyecto, su raíz: primero lee AGENTS.md y luego lee y edita archivos y ejecuta comandos ahí. El modelo decide, el harness hace, y tú diriges y revisas."}
 
 ::: why
 El modelo no puede tocar tu computadora. Todo lo que "hace" es una solicitud que lleva a cabo el
@@ -114,26 +155,20 @@ de que cambian.
 Este libro cubre cuatro agentes. Los tres primeros vienen de la misma empresa que sus modelos
 por defecto; OpenCode, un harness de código abierto, usa el modelo que le conectes:
 
-| Agente | Escribes | Lo hace | Modelos por defecto |
-|---|---|---|---|
-| Claude Code | `claude` | Anthropic | Claude |
-| Codex | `codex` | OpenAI | GPT |
-| Antigravity | `agy` | Google | Gemini |
-| OpenCode | `opencode` | un proyecto de código abierto (licencia MIT) | el que conectes |
+| Agente | Escribes | Modelos por defecto |
+|---|---|---|
+| Claude Code, de Anthropic | `claude` | Claude |
+| Codex, de OpenAI | `codex` | GPT |
+| Antigravity, de Google | `agy` | Gemini |
+| OpenCode, un proyecto de código abierto | `opencode` | el que conectes |
 
-: Los agentes que cubre este libro. Antigravity reemplazó a Gemini CLI para los usuarios del nivel gratuito y de Google One el 18 de junio de 2026 (página de instalación de Gemini CLI, consultada el 2026-11-12). La licencia de OpenCode está en su repositorio de GitHub, y sus proveedores en su documentación (ambos consultados el 2026-11-20). {#tbl-assistants}
+: Los agentes que cubre este libro. {#tbl-assistants}
 
-Lo que significa "cubre" no es igual para los cuatro. Para los cuatro, el comando de instalación, la
-cuenta que necesita y cómo lee las reglas del proyecto se revisaron contra la documentación del
-proveedor (con fecha en el @sec-setup y en la @sec-agents-md). Las primeras pantallas de Claude
-Code y de Codex se capturaron para el taller el 2026-11-07; las de Antigravity y OpenCode, no. Existen
-otros agentes; este libro no los revisa, así que no los enumera. Cada prompt del libro está
-escrito para funcionar en cualquiera de los cuatro. OpenCode se distingue en algo que importa
-para la seguridad: `{python} fact("agents.opencode_permissions")` (consultado el
-`{python} checked("agents.opencode_permissions")`), así que el hábito de aprobar cada
-comando (@sec-root-folder) necesita primero esas reglas. La combinación de harness y modelo de un mismo
-proveedor es la más fácil de configurar, pero no es automáticamente la que mejor se ajusta a una
-tarea: el harness y el modelo son elecciones separadas.
+Cada prompt del libro está escrito para funcionar en los cuatro, y el comando de instalación, la
+cuenta y el archivo de reglas de cada uno se cotejaron con su documentación. La combinación de
+harness y modelo de un mismo proveedor es la más fácil de configurar, pero no es
+automáticamente la que mejor se ajusta a una tarea: el harness y el modelo son elecciones
+separadas.
 
 ### Elige un modelo por la tarea, no por el ranking {#pick-a-model-by-task-not-by-rank}
 
@@ -142,23 +177,17 @@ simplemente versiones mejores y peores de una misma cosa. Los modelos más grand
 suelen seguir mejor instrucciones largas, planear trabajo de varios pasos y recuperarse de sus
 propios errores. Los modelos pequeños son más rápidos y baratos, y a menudo bastan para ediciones
 cortas y bien especificadas, como corregir una errata o reformatear una tabla. Unir dos conjuntos
-de datos o depurar un renderizado fallido recompensa al modelo más fuerte.
+de datos o depurar un renderizado fallido es donde rinde el modelo más fuerte.
 
-Los prompts de este libro son cortos y específicos, así que basta un modelo mediano con un
-esfuerzo moderado: `{python} fact("models.everyday_models")` (consultado el
-`{python} checked("models.everyday_models")`). Para trabajo difícil y desconocido, los propios
-proveedores recomiendan empezar más arriba: `{python} fact("models.vendor_starting_points")`.
-Los nombres cambian cada pocos meses, y el @sec-facts reúne los actuales; el consejo, no.
-Empieza por lo pequeño y sube solo cuando una tarea siga fallando.
+Los prompts de este libro son cortos y específicos, así que basta un modelo mediano con
+esfuerzo medio: `{python} fact("models.everyday_models")`. Para trabajo difícil y desconocido,
+los propios proveedores recomiendan empezar más arriba:
+`{python} fact("models.vendor_starting_points")`. Los nombres cambian cada pocos meses, y el
+@sec-facts reúne los actuales; el consejo, no. Empieza por ahí y sube solo cuando una tarea siga
+fallando.
 
-**Modelos gratuitos.** Los modelos gratuitos podrían bastar para los prompts de este libro, que
-son cortos, piden una sola tarea cada uno y terminan en una comprobación que muestra cuándo un
-modelo se queda corto. Dos rutas no cuestan nada:
-`{python} fact("agents.antigravity_free")` (consultado el `{python} checked("agents.antigravity_free")`),
-y `{python} fact("agents.opencode_free")` (consultado el `{python} checked("agents.opencode_free")`).
-Ninguno se probó con los prompts del libro, así que toma "podrían bastar" como una expectativa.
-Lee las condiciones de un modelo gratuito antes de usarlo (@sec-at-work-flow): algunos guardan lo
-que envías, así que dales solo datos públicos, como los de este libro.
+Algunas rutas a un modelo no cuestan nada; la @sec-before-setup las da, junto con lo que debes
+revisar antes de usar una.
 
 Los modelos se cobran por *token*, un fragmento de texto de unos pocos caracteres, con una tarifa
 para el texto que se le envía al modelo (entrada) y otra para el texto que escribe (salida). Los
@@ -167,67 +196,46 @@ solicitudes al modelo directamente, a través de la interfaz de programación de
 API), en lugar de hacerlo con una suscripción mensual.
 
 ::: practice
-**Los precios cambian cada mes; el principio, no.** El `{python} prices["checked"]`, los precios
-de lista de los ocho modelos de la @tbl-prices iban de \$`{python} dollars(out_lo)` a
-\$`{python} dollars(out_hi)` por millón de tokens de salida, una diferencia de
-`{python} f"{out_hi / out_lo:.0f}"` veces entre el más pequeño y el más grande. Esa tabla, con sus
-fuentes, está en el @sec-facts, el único lugar donde este libro reúne los datos que cambian;
-léela como una foto de la diferencia entre modelos, no como números para planificar. Las
+**Los precios cambian cada mes; el principio, no.** En la última consulta, los precios de lista
+de los `{python} WORD[len(prices["rows"])]` modelos de la @tbl-prices iban de
+\$`{python} dollars(out_lo)` a \$`{python} dollars(out_hi)` por millón de tokens de salida, una
+diferencia de `{python} f"{out_hi / out_lo:.0f}"` veces entre el más pequeño y el más grande. Esa
+tabla, con sus fuentes, está en el @sec-facts, el único lugar donde este libro reúne los datos
+que cambian; léela como una foto de la diferencia, no como números para planificar. Las
 suscripciones cuentan el uso de otra manera, y los modelos que puedes elegir dependen de tu plan
 y de la versión del agente.
 :::
 
-Las pruebas de los pelícanos de más abajo usaron el predecesor de Fable 5.2, Fable 5.1, con un
-precio de lista de 10 / 50 dólares por millón de tokens cuando se hicieron.
+El precio de un nivel fijo de capacidad ha bajado rápido, aunque quizá no en los modelos de punta (los
+estudios están en Lecturas adicionales), así que elige por lo que necesita la tarea, no por el
+precio de hoy.
 
-El costo de un nivel fijo de capacidad ha bajado rápido. Midiendo el modelo más barato que
-alcanza un puntaje dado en un benchmark, la firma de capital de riesgo a16z encontró que el precio
-bajaba unas diez veces por año, mil veces en los tres años desde noviembre de 2021, y Epoch AI
-encontró caídas de entre 9 y 900 veces por año según el benchmark (ambos consultados el
-2026-11-07). Los dos advierten que el ritmo puede bajar, y ninguno mide la frontera, donde el
-precio del trabajo más capaz puede bajar más despacio. La lección práctica es la misma en
-cualquier caso: elige por lo que necesita la tarea, no por el precio de hoy.
+Los nombres y precios de los modelos de arriba se consultaron el
+`{python} checked_span("models.everyday_models", "models.vendor_starting_points", tables=(prices,))`;
+el @sec-facts tiene la fuente de cada uno.
 
 ### Un prompt, cuatro modelos, tres esfuerzos {#one-prompt-four-models-three-efforts}
 
-Los pelícanos con los que empezó este capítulo hacen concreta la disyuntiva. La @fig-pelicans
-muestra una ejecución de cada uno de cuatro modelos de Claude con tres niveles de esfuerzo, con el
-costo de cada respuesta a precios de lista de la API.
+Los pelícanos con los que empezó este capítulo hacen concreta la disyuntiva: una ejecución de
+cada uno de cuatro modelos de Claude con tres niveles de esfuerzo, con cada respuesta a precios
+de lista de la API (@fig-pelicans). La fila de Fable es Fable 5.1, el predecesor de Fable 5.2, a
+su precio de lista de \$`{python} dollars(fable_in)` por millón de tokens de entrada y
+\$`{python} dollars(fable_out)` por millón de tokens de salida. Lee la cuadrícula en dos
+direcciones. Hacia abajo, el modelo crece y sube el precio por token, así que los costos van de
+fracciones de centavo a más de diez centavos. De izquierda a derecha, sube el esfuerzo: el
+modelo razona más y escribe más, así que el costo suele subir mientras el dibujo gana detalles
+en lugar de volverse correcto. Haiku con esfuerzo bajo tiene el cuadro más débil; de esfuerzo
+medio para arriba, los cuadros son sólidos, lo que concuerda con el consejo del libro de usar
+esfuerzo medio, aunque no lo demuestra.
 
-::: {.content-visible when-format="html:js"}
-::: {#fig-pelicans}
-
-| Modelo | esfuerzo bajo | esfuerzo medio | esfuerzo alto |
-|---|---|---|---|
-| **Haiku 5.5** | ![Haiku con esfuerzo bajo: pelícano blanco con una pata naranja en una bicicleta roja sencilla, pasto verde brillante, sol amarillo.](../media/deck/pelicans/haiku-low.svg){width=160} 0.09¢ | ![Haiku con esfuerzo medio: pelícano de alas grises en una bicicleta roja con un cuadro bien hecho y líneas de velocidad.](../media/deck/pelicans/haiku-medium.svg){width=160} 0.14¢, suficiente | ![Haiku con esfuerzo alto: pelícano inclinado hacia adelante en una bicicleta roja, dos patas naranjas, sol amarillo.](../media/deck/pelicans/haiku-high.svg){width=160} 0.25¢ |
-| **Sonnet 5.5** | ![Sonnet con esfuerzo bajo: pelícano blanco con un ala que llega al manubrio de una bicicleta roja, sol amarillo.](../media/deck/pelicans/sonnet-low.svg){width=160} 1.63¢ | ![Sonnet con esfuerzo medio: pelícano blanco en una bicicleta roja delgada, con las patas dobladas hacia los pedales, sol amarillo.](../media/deck/pelicans/sonnet-medium.svg){width=160} 1.80¢, suficiente | ![Sonnet con esfuerzo alto: pelícano de cuello curvo y ala emplumada en una bicicleta roja con sombra en el suelo.](../media/deck/pelicans/sonnet-high.svg){width=160} 2.34¢ |
-| **Opus 5.5** | ![Opus con esfuerzo bajo: pelícano blanco en una bicicleta roja con líneas de velocidad y un sol amarillo.](../media/deck/pelicans/opus-low.svg){width=160} 3.79¢ | ![Opus con esfuerzo medio: pelícano con cresta y una bolsa grande en una bicicleta roja con plato, sol amarillo.](../media/deck/pelicans/opus-medium.svg){width=160} 5.89¢ | ![Opus con esfuerzo alto: pelícano con cresta en una bicicleta roja pequeña con plato, nubes y líneas de velocidad.](../media/deck/pelicans/opus-high.svg){width=160} 6.74¢ |
-| **Fable 5.1** | ![Fable con esfuerzo bajo: pelícano de contorno negro en una bicicleta negra con líneas de velocidad, fondo claro.](../media/deck/pelicans/fable-low.svg){width=160} 10.02¢ | ![Fable con esfuerzo medio: pelícano blanco en una bicicleta roja con ruedas negras, cielo claro.](../media/deck/pelicans/fable-medium.svg){width=160} 9.91¢ | ![Fable con esfuerzo alto: pelícano blanco con un ala larga en una bicicleta negra, en un camino con líneas discontinuas.](../media/deck/pelicans/fable-high.svg){width=160} 13.09¢ |
-
-Un prompt, cuatro modelos, tres esfuerzos: "Generate an SVG of a pelican riding a bicycle". Imágenes de la serie de pelícanos de Simon Willison, una ejecución por celda; el costo son los tokens de cada respuesta a precios de lista de la API (consultados el 2026-11-06).
-:::
-:::
-
-::: {.content-visible when-format="epub"}
-![Un prompt, cuatro modelos, tres esfuerzos: "Generate an SVG of a pelican riding a bicycle". Imágenes de la serie de pelícanos de Simon Willison, una ejecución por celda; el costo son los tokens de cada respuesta a precios de lista de la API (consultados el 2026-11-06).](../media/figures/pelican-grid.png){#fig-pelicans .on-light fig-alt="Una cuadrícula de doce dibujos de un pelícano en bicicleta: una fila por modelo (Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.1) y una columna por esfuerzo (low, medium, high), cada uno con su costo. En cada celda se reconoce un pelícano en bicicleta. Los costos suben de 0.09 centavos para Haiku con esfuerzo bajo a 13.09 centavos para Fable con esfuerzo alto. Haiku y Sonnet con esfuerzo medio, a 0.14 y 1.80 centavos, están marcados como suficientes (enough)."}
-:::
-
-Lee la cuadrícula en dos direcciones. Hacia abajo, el modelo crece y sube el precio por token,
-así que los costos van de fracciones de centavo a más de diez centavos. De izquierda a derecha,
-sube el esfuerzo: el modelo razona más y escribe más, así que el costo suele subir mientras el
-dibujo gana detalles en lugar de volverse correcto. Haiku con esfuerzo bajo tiene el cuadro más
-débil; de esfuerzo medio para arriba, los cuadros son sólidos, lo que concuerda con el consejo
-del libro de usar esfuerzo medio, aunque no lo demuestra.
-
-Mantén la evidencia en proporción. Es una ejecución por celda de una tarea pequeña y autónoma,
+No le des a esta prueba más peso del que tiene. Es una ejecución por celda de una tarea pequeña y autónoma,
 no un benchmark: si lo vuelves a ejecutar obtienes otros pájaros, y Fable con esfuerzo medio
 incluso costó menos que Fable con esfuerzo bajo. Más esfuerzo tampoco es siempre mejor: con su
-esfuerzo máximo, Sonnet 5.5 y Opus 5.5 gastaron cada uno 128,000 tokens razonando, el límite de
-salida de los modelos, y no devolvieron ningún dibujo (transcripciones de Simon Willison,
-consultadas el 2026-11-12). Un dibujo dice poco de un trabajo largo que une conjuntos de datos y
-se recupera de errores, que es donde los modelos más fuertes se ganan su precio. Si una
-diferencia de `{python} f"{ratio:.0f}"` veces en el precio vale la pena depende por completo de
-la tarea.
+esfuerzo máximo, Sonnet 5.5 y Opus 5.5 gastaron cada uno razonando todo su límite de salida, de
+128,000 tokens, y no devolvieron ningún dibujo. Un dibujo dice poco de un trabajo largo que une
+conjuntos de datos y se recupera de errores, que es donde los modelos más fuertes se ganan su
+precio. Si vale la pena pagar una diferencia de `{python} f"{ratio:.0f}"` veces en el precio
+depende por completo de la tarea.
 
 ## Cuánto cuesta una conversación {#sec-cost}
 
@@ -243,23 +251,21 @@ sesión:
    proyecto) es el *contexto* del modelo. El caché de prompts abarata la parte repetida, pero no
    la hace gratis, y los cachés vencen.
 
-Los hábitos que siguen son simples: un modelo mediano con esfuerzo moderado, una tarea por
+Los hábitos que siguen son simples: un modelo mediano con esfuerzo medio, una tarea por
 conversación y una conversación nueva en cuanto termina una tarea. Tres comandos, que se escriben
 en el propio agente y no se ejecutan en la terminal (@sec-two-places), los cubren:
 
-| Comando | Claude Code | Codex | Úsalo cuando |
-|---|---|---|---|
-| `/model` | cambia el modelo; las flechas ajustan el nivel de esfuerzo si el modelo lo admite | elige el modelo y el esfuerzo de razonamiento | un prompt sigue fallando (sube) o el trabajo es rutinario (baja) |
-| `/clear` | empieza una conversación nueva con el contexto vacío; la anterior se puede retomar | limpia la terminal y empieza un chat nuevo | terminó una tarea y empieza otra sin relación |
-| `/exit` | sale; `/quit` hace lo mismo | sale; `/quit` hace lo mismo | terminaste, o necesitas pasar a otra carpeta |
+| Comando | Úsalo cuando |
+|---|---|
+| `/model` | otro modelo o nivel de esfuerzo: cuando un prompt sigue fallando (sube) o el trabajo es rutinario (baja) |
+| `/clear` | una conversación nueva con el contexto vacío, cuando termina una tarea y empieza otra sin relación |
+| `/exit` | sale del agente, cuando terminaste o necesitas otra carpeta |
 
-: Tres comandos que controlan el costo y el contexto (referencia de comandos de Claude Code y referencia de Codex CLI, consultadas el 2026-11-12). Escribe `/` solo para ver la lista de comandos de tu agente. {#tbl-slash}
+: Tres comandos que controlan el costo y el contexto; la redacción varía según el agente, así que escribe `/` para ver los del tuyo. {#tbl-slash}
 
-OpenCode les da otros nombres: `/models` elige el modelo, `/new` empieza una sesión nueva en lugar
-de `/clear` y, como no tiene `/exit`, Ctrl+C con el prompt vacío lo cierra (documentación de la
-TUI y de los atajos de teclado de OpenCode, consultada el 2026-11-20).
+OpenCode usa otros nombres, y el @sec-cheatsheet los enumera.
 
-`/clear` importa tanto para la calidad como para el costo. Las instrucciones viejas y los
+`/clear` importa tanto para la calidad como para el costo. Las instrucciones anteriores y los
 archivos leídos antes siguen orientando al modelo mientras estén en la conversación; una
 conversación nueva los descarta. Nada cambia en el disco, y el archivo de reglas del proyecto se
 vuelve a leer.
@@ -274,13 +280,16 @@ reglas del proyecto se vuelve a leer.
 
 ## La carpeta raíz es el mundo del agente {#sec-root-folder}
 
+<!-- The two trust prompts as Claude Code 2.1.319 and Codex 0.167.0 printed them, captured
+2026-11-07 (03-setup.qmd, Step 3). -->
+
 Un agente trata la carpeta en la que lo inicias como su *raíz*: lee y edita archivos ahí y en
 las carpetas de abajo, y ejecuta comandos desde ahí. La primera vez que inicias uno en una carpeta
-nueva, te pregunta si confías en ella. El aviso de Claude Code, capturado el 2026-11-07, advierte
-que "Claude Code'll be able to read, edit, and execute files here" (Claude Code podrá leer, editar
-y ejecutar archivos aquí); Codex hace la misma pregunta en una carpeta que es un repositorio de
-Git, y dice que puede leer, editar y ejecutar archivos "subject to your permission settings"
-(según tu configuración de permisos).
+nueva, te pregunta si confías en ella. El aviso de Claude Code advierte que "Claude Code'll be
+able to read, edit, and execute files here" (Claude Code podrá leer, editar y ejecutar archivos
+aquí); Codex hace la misma pregunta en una carpeta que es un repositorio de Git, y dice que puede
+leer, editar y ejecutar archivos "subject to your permission settings" (según tu configuración
+de permisos).
 
 Esa pregunta merece una respuesta de verdad. Confía solo en una carpeta que creaste para el
 trabajo. Nunca inicies un agente en tu carpeta personal, en Documentos ni en ningún lugar que
@@ -288,15 +297,13 @@ contenga proyectos de otras personas, documentos privados o claves (como `~/.ssh
 instrucciones de proyecto de una carpeta de confianza también se leen y se siguen, lo que es otra
 razón para confiar solo en tus propias carpetas.
 
-OpenCode no hace esa pregunta, y por defecto tampoco pregunta antes de actuar:
-`{python} fact("agents.opencode_permissions")` (@sec-choose; la @sec-step-assistant explica
-cómo hacer que pregunte). Con él, una carpeta pequeña creada para el trabajo, y una mirada a
-`git diff` después de cada paso, importan todavía más.
+OpenCode, por defecto, no hace ninguna de las dos preguntas: ni si confías en la carpeta, ni
+antes de actuar. La @sec-step-assistant muestra cómo hacer que pregunte.
 
 Empezar en una carpeta de proyecto pequeña tiene tres ventajas prácticas. Las rutas de los
 prompts quedan cortas (`data/attractions.csv`), se encuentra el archivo de reglas del proyecto y
 un error queda dentro de una sola carpeta que puedes restaurar. Pero no es una frontera
-garantizada: un comando igual puede nombrar una ruta fuera de la carpeta, así que lee cada
+garantizada: de todos modos, un comando puede nombrar una ruta fuera de la carpeta, así que lee cada
 comando antes de aprobarlo.
 
 ::: pitfall
@@ -309,7 +316,7 @@ proyecto, sal con `/exit`, cambia de carpeta e inicia el agente otra vez ahí.
 
 Todo lo que le dices a un agente en la conversación se olvida cuando la conversación termina.
 Las reglas que deben valer en cada sesión van en un archivo: `AGENTS.md`, un archivo de Markdown
-simple en la parte de arriba de la carpeta del proyecto que el agente lee al comienzo de cada
+simple en la raíz de la carpeta del proyecto que el agente lee al comienzo de cada
 sesión. Uno bueno tiene tres partes:
 
 - **Alcance:** qué es el proyecto y qué no es.
@@ -317,18 +324,13 @@ sesión. Uno bueno tiene tres partes:
   cada número sale de un archivo citado en `data/`).
 - **Comandos:** cómo construir y revisar el proyecto.
 
-Los cuatro agentes de este libro lo leen (consultado el 2026-10-30 y el 2026-11-20). Codex lee los archivos
-`AGENTS.md` antes de hacer cualquier trabajo. Antigravity lee `AGENTS.md` o `GEMINI.md` en las
-carpetas del proyecto. OpenCode lee cada `AGENTS.md` desde la carpeta de trabajo hacia arriba, y
-`CLAUDE.md` en una carpeta que no lo tenga. Claude Code lee `AGENTS.md` cuando no hay un `CLAUDE.md` en la carpeta de
-trabajo ni más arriba, desde la versión 2.1.277; un `CLAUDE.md` que contenga la línea
-`@AGENTS.md` lo importa, así que un solo archivo puede servirles a los cuatro (documentación de
-memoria de Claude Code, consultada el 2026-11-12). El repositorio detrás de este libro funciona
-exactamente así: su `CLAUDE.md` importa su `AGENTS.md`.
+Los cuatro agentes lo leen. Claude Code lo lee cuando no hay un `CLAUDE.md`, o a través de un
+`CLAUDE.md` de una línea que lo importa (`@AGENTS.md`), como hace el repositorio detrás de este
+libro; el @sec-facts indica dónde lo busca cada agente.
 
 ::: pitfall
 `AGENTS.md` es contexto, no una imposición. El agente lee las reglas y suele seguirlas, pero
-igual puede equivocarse. Escribe reglas lo bastante concretas como para revisarlas ("call ALVA
+aun así puede equivocarse. Escribe reglas lo bastante concretas como para revisarlas ("call ALVA
 counts 'ALVA member attractions'": llama a los conteos de ALVA "ALVA member attractions"), y
 revísalas.
 :::
@@ -361,13 +363,12 @@ revisarlo, y te dice qué paso se rompió cuando algo se rompe.
 "renderízalo y dime qué archivo escribió", "comprueba que el PDF tenga una página". Un agente
 que verifica su propio trabajo detecta muchos de sus propios errores.
 
-**Revisa lo que cambió.** La responsabilidad por el resultado es tuya. Lee los archivos que cambiaron
-(la mayoría de los agentes pueden mostrarte un *diff*, las líneas agregadas y eliminadas)
-antes de seguir.
+**Revisa lo que cambió.** La responsabilidad por el resultado es tuya. Lee los archivos que
+cambiaron (la mayoría de los agentes pueden mostrarte un *diff*, las líneas agregadas y
+eliminadas) antes de seguir.
 
-Los prompts de este libro se diseñaron con ayuda de IA y se afinaron para reducir errores, pero
-no son magia, y los agentes varían. Cuando un prompt menciona algo que no entiendes (una clave
-de YAML, una construcción de Markdown, una llamada de Python), pregunta antes de pegarlo:
+Cuando un prompt menciona algo que no entiendes (una clave de YAML, un elemento de
+Markdown, una llamada de Python), pregunta antes de pegarlo:
 
 ::: {.prompt}
 ```default
@@ -395,15 +396,13 @@ proveedor: nada de contraseñas, claves, datos sin publicar ni información pers
 
 ## Vocabulario, especificación, verificación {#sec-three-skills}
 
-Con un agente que teclea por ti, rara vez vas a escribir a mano la hoja de estilos de un tema,
-las opciones de una presentación o una plantilla de PDF. Lo que necesitas, en cambio, son tres
-habilidades, y cada capítulo de aquí en adelante enseña un formato de salida a través de ellas y
-no de su sintaxis:
+Con un agente que teclea por ti, necesitas tres habilidades, y cada capítulo de aquí en adelante
+enseña un formato de salida a través de ellas y no de su sintaxis:
 
 1. **Vocabulario**: saber qué es posible y cómo se llama, para poder pedirlo. "Notas de
    presentación", "una referencia cruzada", "un documento de referencia para Word", "un
    parámetro": un agente puede producir cualquiera de ellos, pero solo si sabes pedirlo, y un
-   nombre te da la función real donde una descripción te da una improvisación.
+   nombre te da la función real, mientras que una descripción te da una improvisación.
 2. **Especificación**: escribir una solicitud que el agente pueda llevar a cabo y que tú puedas
    revisar. Nombra los archivos, las opciones y el resultado, y termina con una comprobación.
    Las reglas que deben cumplirse en cada sesión, como "cada número sale de `outputs/`", van en
@@ -429,14 +428,14 @@ revisa rápido. Quienes ya tienen experiencia pronto van a querer darle a un age
 grande: "agrega una ficha del modelo (model card)", no cinco prompts que la construyan.
 Dimensiona el trabajo por cómo se va a revisar, no por cuánto tecleo te ahorra.
 
-| Dale una tarea más grande cuando | Mantente en pasos sueltos cuando |
+| Dale una tarea más grande cuando | Ve paso a paso cuando |
 |---|---|
-| puedes describir el resultado terminado y cómo revisarlo | solo vas a saber que está bien cuando lo veas |
-| las comprobaciones corren sin ti: pruebas, guardas, un renderizado | cada paso necesita tu criterio antes del siguiente |
-| el trabajo está en una rama, así que deshacerlo es un solo comando | el cambio toca datos, la publicación o el trabajo de otras personas |
-| una falla sería ruidosa: una prueba en rojo, un renderizado detenido | una falla sería silenciosa: una oración plausible y equivocada |
+| puedes describir el resultado terminado y cómo revisarlo | solo sabrás que está bien cuando lo veas |
+| lo revisan sin ti: pruebas, guardas, un renderizado | cada paso necesita tu criterio antes del siguiente |
+| el trabajo está en una rama: deshacerlo es un comando | el cambio toca datos, la publicación o el trabajo de otros |
+| una falla saltaría a la vista: prueba en rojo, renderizado detenido | una falla pasaría inadvertida: una oración plausible y falsa |
 
-: Cuándo darle a un agente una tarea más grande. {#tbl-step-or-task}
+: Cuándo dar una tarea más grande. {#tbl-step-or-task}
 
 Una tarea más grande necesita una revisión más grande. Pide primero un plan corto y léelo antes
 de que el agente empiece; haz que trabaje en una rama; exígele que ejecute las pruebas y
@@ -484,7 +483,7 @@ carpeta (@sec-two-places).
 Juntos, los recuadros son una vuelta del ciclo del título del libro. **Pídele a tu agente** es
 el paso *Pide*. **Probablemente ejecute** y **Tú haces** son donde *revisas*: reconoces cada
 comando antes de aprobarlo y abres el resultado por tu cuenta. El renderizado es el paso *Publica*.
-Cada ejercicio cierra el ciclo con **Terminaste cuando**: la comprobación, escrita de manera que
+Cada ejercicio cierra el ciclo con **Has terminado si**: la comprobación, escrita de manera que
 puedas ver si se cumplió.
 
 ::: pitfall
@@ -495,20 +494,19 @@ Detente y pregúntale al agente qué hace un comando antes de aprobar uno que bo
 el prompt no nombró.
 :::
 
-Los prompts son ejemplos, no transcripciones. Los agentes varían de una versión a otra y de
-una ejecución a otra, así que los archivos que escriban van a diferir en detalles de los que se
-muestran. Lo que no debería variar es el resultado que revisas. La @fig-agent-session muestra cómo
-se ve una sesión.
-
 ![Cómo se ve la ejecución del primer prompt: el agente escribe el archivo, pregunta antes de ejecutar un comando, renderiza e informa. Una ilustración (una reproducción guionada de una sesión típica), no una grabación: las pantallas de tu agente se verán distintas. La animación está en inglés.](../media/gifs/agent-session.gif){#fig-agent-session .anim fig-alt="La reproducción en una terminal de una sesión con un agente de programación, en inglés y marcada como ilustración. El prompt pide london.md con un título de nivel 1 Visit London y un párrafo de bienvenida. El agente dice que va a crear el archivo y muestra las líneas que escribe: el título y una oración de bienvenida sobre museos gratuitos, historia de la realeza y paseos junto al río. Dice que va a renderizar el archivo para comprobarlo, muestra el comando quarto render london.md y pregunta Allow this command (permitir este comando), con Yes seleccionado. La salida dice Output created: london.html, y el agente informa que london.md tiene el título y un párrafo de bienvenida y que el renderizado no tuvo errores."}
+
+La @fig-agent-session muestra cómo se ve una sesión. Los prompts son ejemplos, no
+transcripciones: los agentes varían de una versión a otra y de una ejecución a otra, así que los
+archivos que escriban van a diferir en detalles de los que se muestran. Lo que no debería variar
+es el resultado que revisas.
 
 ## Usar IA en una investigación: decláralo y hazte cargo {#sec-ai-policy}
 
 Si tu trabajo es de investigación, usar un agente trae obligaciones que van más allá de que el
 código esté bien. Las revistas y los financiadores difieren en los detalles, así que lee la
 política de tu revista, pero el International Committee of Medical Journal Editors (ICMJE), cuyas
-recomendaciones siguen muchas revistas, plantea un núcleo común (consultado el 2026-11-12; citas
-traducidas del inglés):
+recomendaciones siguen muchas revistas, plantea un núcleo común (citas traducidas del inglés):
 
 - **Una herramienta de IA nunca es autora.** Los chatbots y otras herramientas asistidas por IA
   "no deben figurar como autores porque no pueden ser responsables de la exactitud, la
@@ -545,9 +543,9 @@ recomendaciones del ICMJE no hacen ninguna excepción para ella, así que, ante 
 ::: keyideas
 - El modelo decide, el harness hace, y tú diriges y revisas; cuando un agente decepciona,
   cualquiera de las dos mitades puede ser la causa.
-- Elige un modelo por la tarea, no por el ranking: un modelo más barato con esfuerzo medio
-  suele bastar para un paso pequeño, y como la conversación entera se vuelve a enviar en cada
-  turno, empieza una nueva para cada tarea sin relación.
+- Elige un modelo por la tarea, no por el ranking: un modelo mediano con esfuerzo medio basta
+  para un paso pequeño, y como la conversación entera se vuelve a enviar en cada turno, empieza
+  una nueva para cada tarea sin relación.
 - Inicia un agente solo en una carpeta que creaste para el trabajo, y lee cada comando antes
   de aprobarlo.
 - Las reglas que deben durar van en `AGENTS.md`, que es contexto, no una imposición, así que
@@ -558,8 +556,9 @@ recomendaciones del ICMJE no hacen ninguna excepción para ella, así que, ante 
   agente una tarea más grande solo cuando sus comprobaciones puedan correr sin ti.
 :::
 
-Todo esto da por sentado una computadora en la que un agente, Quarto y Python están instalados
-y funcionan juntos. ¿La tuya lo está? El @sec-setup la deja así en seis pasos revisados.
+Todo esto da por sentado una computadora en la que un agente, Quarto y Python funcionan juntos.
+Si ya usas a diario una terminal y Git, el @sec-fast-path es el siguiente. Si no, el @sec-setup
+deja lista tu computadora en seis pasos revisados.
 
 ## Lecturas adicionales {.unnumbered}
 
@@ -586,6 +585,7 @@ y funcionan juntos. ¿La tuya lo está? El @sec-setup la deja así en seis pasos
   2024; Epoch AI, [LLM inference price trends](https://epoch.ai/data-insights/llm-inference-price-trends),
   2025 (consultados el 2026-11-07).
 - Simon Willison, serie [pelican riding a bicycle](https://simonwillison.net/tags/pelican-riding-a-bicycle/)
-  (consultada el 2026-11-06).
+  (consultada el 2026-11-06), y las transcripciones de sus ejecuciones con esfuerzo máximo
+  (consultadas el 2026-11-12).
 - ICMJE, [Use of AI by authors](https://www.icmje.org/recommendations/browse/artificial-intelligence/ai-use-by-authors.html)
   (consultado el 2026-11-12).

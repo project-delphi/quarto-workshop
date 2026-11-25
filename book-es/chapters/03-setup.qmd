@@ -2,10 +2,16 @@
 
 ```{python}
 #| label: ch3-setup
-# What each agent's account must be, from facts.yml (Appendix K), with the date it was checked.
-from scripts.facts import checked, fact
+# Facts that change (costs, free routes, spending caps), from facts.yml (Appendix K), with the
+# dates they were checked.
+from scripts.facts import checked, checked_span, fact
 
-accounts_checked = max(checked(f"agents.{k}_accounts") for k in ("claude_code", "codex", "antigravity", "opencode"))
+
+def installer(agent: str) -> str:
+    """Step 3's line for one agent: its installer as facts.yml (Appendix K) gives it, in a
+    bash fence, so the chapter and the appendix cannot disagree."""
+    command = fact(f"agents.install_{agent}").split("`")[1]
+    return f"```bash\n{command}\n```"
 ```
 
 Este capítulo termina con un número: 42, impreso en una página web y en un PDF que construyó tu
@@ -28,60 +34,83 @@ versión de Linux, dentro de Windows con WSL, el Subsistema de Windows para Linu
 - Ejecutar la comprobación de la preparación y leer su informe.
 - Renderizar un documento de prueba en HTML y en PDF, y confirmar que los dos dicen 42.
 
-Partes de
-: una computadora en la que puedes instalar software, una buena conexión y las cuentas que
-  enumera la @sec-before-setup; en Windows, Ubuntu preparado con el @sec-windows.
+Punto de partida
+: una computadora en la que puedas instalar software, buena conexión y las cuentas de la
+  @sec-before-setup; en Windows, Ubuntu según el @sec-windows.
 
 Construyes
-: las herramientas, instaladas y con la sesión iniciada; `~/quarto-workshop`, los archivos del
-  taller con sus puntos de control; y una carpeta desechable, `~/quarto-test`, cuyos
-  `hello.html` y `hello.pdf` dicen 42.
+: las herramientas, instaladas y con sesión iniciada; `~/quarto-workshop`, los archivos del
+  taller y sus puntos de control; y `~/quarto-test`, desechable, cuyos `hello.html` y
+  `hello.pdf` dicen 42.
 
 Punto de control
-: ninguno, porque la preparación no construye ningún proyecto con el que ponerse al día. Los
-  archivos del taller llegan en el paso 5, con los puntos de control y el informe inicial que
-  abre el @sec-first-report: un informe real que puedes leer.
+: ninguno: la preparación no construye un proyecto. El paso 5 trae los archivos del taller,
+  con los puntos de control y el informe que abre el @sec-first-report.
+:::
+
+::: payoff
+![Lo que deja el paso 6: una página web y un PDF, construidos en tu computadora.](../media/figures/hello-42.png){#fig-hello-42 width=85% fig-alt="Dos recortes, uno encima del otro, separados por una línea discontinua. Arriba, la página web hello.html con el ancho de un teléfono: el título Hello, el código answer = 6 * 7 en un recuadro gris y la oración The answer is 42 (la respuesta es 42). Abajo, la parte izquierda de la primera página de hello.pdf, compuesta, bajo su título: el mismo código y la misma oración, con el recuadro gris desvaneciéndose a la derecha."}
 :::
 
 ## Antes de empezar {#sec-before-setup}
 
-**Una conexión estable y rápida.** Casi cada paso descarga algo: en Windows, la imagen de Ubuntu
-(varios cientos de megabytes), y luego Quarto, uv (que administra Python para cada proyecto) y
-los paquetes de Python, el agente mismo y los proyectos de ejemplo con sus datos. El agente
-además le envía cada solicitud a su modelo por internet, así que una conexión débil se nota como
-pausas largas, tiempos de espera agotados e instalaciones a medias, que es fácil confundir con
-errores tuyos. Usa una conexión por cable o un Wi-Fi fuerte, y evita una *VPN* (una red privada
-virtual, que envía tu tráfico a través de otra red) cuando puedas. En una red de empresa, cuenta
-con que un *proxy*, un servidor por el que debe pasar todo el tráfico web, bloquee algunas
-descargas; una conexión personal lo evita.
+Seis pasos, y cada uno termina con una comprobación que puedes ver:
 
-**Dos cuentas.** Una [cuenta gratuita de GitHub](https://github.com/signup), que se usa para
-publicar en las partes prácticas, y una cuenta con acceso a un agente de programación.
-`{python} fact("agents.claude_code_accounts")`; `{python} fact("agents.codex_accounts")` (para
-facturación por uso, @sec-choose); `{python} fact("agents.antigravity_accounts")`;
-`{python} fact("agents.opencode_accounts")` (consultado el
-`{python} accounts_checked`; el @sec-facts reúne la lista actual). Una *clave de API* es una
-cadena secreta larga que identifica tu cuenta ante la interfaz de programación del proveedor, que
-cobra cada solicitud; mantenla fuera de los archivos que compartes. El registro y la verificación
-del correo pueden tardar horas, así que hazlos primero.
+| Paso | Funcionó cuando |
+|------------|--------|
+| [1. Deja lista la computadora](#sec-step-ready) | `git --version` imprime una versión |
+| [2. Muévete por la terminal](#sec-step-terminal) | tras `cd ~`, el indicador muestra `~` |
+| [3. Instala un agente de programación](#sec-step-assistant) | responde, con sesión iniciada |
+| [4. El agente instala las herramientas](#sec-step-tools) | imprime todas las versiones |
+| [5. Ejecuta la comprobación](#sec-step-check) | cada comprobación informa OK |
+| [6. Haz la prueba](#sec-step-test) | el PDF dice 42 |
 
-**La ruta de bajo costo.** El libro necesita un agente, no el más caro. Dos rutas mantienen bajo
-el costo. La primera no cuesta nada: `{python} fact("agents.antigravity_free")` (consultado el
-`{python} checked("agents.antigravity_free")`), y `{python} fact("agents.opencode_free")`
-(consultado el `{python} checked("agents.opencode_free")`). Los modelos gratuitos podrían bastar
-para estos prompts cortos y comprobados, aunque ninguno se probó con ellos; lee antes sus
-condiciones, porque algunos guardan lo que envías (@sec-at-work-flow). Cada prompt del libro está
-escrito para funcionar también en Antigravity y en OpenCode, aunque sus pantallas no se
-capturaron (@sec-choose). La segunda
-es pagar solo lo que usas, con una clave de API, después de fijar un tope mensual en el sitio del
-proveedor: `{python} fact("agents.claude_spend_limit")`, y `{python} fact("agents.openai_spend_limit")`
-(los dos consultados el `{python} checked("agents.openai_spend_limit")`). Con cualquiera de las
-dos, elige un modelo pequeño con esfuerzo medio (@sec-cost) y empieza una conversación nueva para
-cada tarea.
+: Los pasos y sus comprobaciones. {#tbl-setup-map}
 
-**¿No puedes instalar programas?** Si no puedes instalar software, en una laptop de trabajo
-bloqueada o en una computadora con Windows donde no se permite WSL, usa en tu navegador el
-entorno ya preparado del taller (@sec-codespace) y sáltate los pasos 1 y 4.
+Antes del paso 1, asegúrate de esto:
+
+::: cards
+Una buena conexión
+
+:   Casi cada paso descarga algo, y el agente le envía cada solicitud a su modelo por
+    internet, así que una conexión débil se nota como pausas, tiempos de espera agotados e
+    instalaciones a medias que parecen errores tuyos. Usa una conexión por cable o un Wi-Fi
+    fuerte. Evita una *VPN*, una red privada virtual que envía tu tráfico a través de otra
+    red, cuando puedas; en una red de empresa, un *proxy*, un servidor por el que debe pasar
+    todo el tráfico web, puede bloquear las descargas.
+
+Dos cuentas
+
+:   Una [cuenta gratuita de GitHub](https://github.com/signup), para publicar en las partes
+    prácticas, y una cuenta con un agente de programación, que puede no ser gratuita:
+    `{python} fact("agents.claude_code_cost")`. El @sec-facts enumera lo que acepta cada
+    agente. El registro y la verificación del correo pueden tardar horas, así que hazlos
+    primero.
+
+Puede no costar nada
+
+:   `{python} fact("agents.antigravity_free", capital=True)`, y
+    `{python} fact("agents.opencode_free")`. Ninguna de estas rutas se probó con los prompts
+    de este libro; lee antes las condiciones de cada una, porque algunas guardan lo que envías
+    (@sec-at-work-flow).
+
+O paga lo que usas, con un límite
+
+:   Una *clave de API* es una cadena secreta que identifica tu cuenta ante la interfaz de
+    programación del proveedor, que cobra cada solicitud; mantenla fuera de los archivos que
+    compartes. Fija primero un límite mensual: `{python} fact("agents.claude_spend_limit")`, y
+    `{python} fact("agents.openai_spend_limit")`.
+
+¿Sin permisos para instalar?
+
+:   En una laptop de trabajo bloqueada, o en una computadora con Windows donde no se permite
+    WSL, usa en su lugar el entorno ya preparado del taller en tu navegador (@sec-codespace) y
+    sáltate los pasos 1 y 4.
+
+:::
+
+Con cualquier ruta, elige un modelo mediano con esfuerzo medio (@sec-choose), y empieza una
+conversación nueva para cada tarea (@sec-cost).
 
 **Un plan para cuando un paso falle.** Los errores durante la preparación son normales: cada paso
 depende de tu sistema, de tu red y de las versiones de esa semana, así que un error no significa
@@ -89,35 +118,25 @@ que hayas fallado. Te dice qué corregir:
 
 1. Busca el mensaje en el @sec-troubleshooting, cuya tabla de la preparación enumera fallas
    vistas en la práctica, con soluciones probadas.
-2. Si no está ahí, pregúntale a un chat web en tu navegador (`{python} fact("chats.free_chats")`;
-   consultado el `{python} checked("chats.free_chats")`), no al agente: las instalaciones
-   pueden fallar antes de que funcione, y a veces lo que falla es el agente. Pega el comando
-   que ejecutaste y el mensaje de error *completo*, con una oración que diga tu sistema ("Mac", o
-   "Windows con Ubuntu en WSL") y en qué paso estás.
+2. Si no está ahí, pregúntale a un chat web en tu navegador (`{python} fact("chats.free_chats")`),
+   no al agente, que puede ser lo que falló. Pega el comando, el mensaje de error *completo*,
+   tu sistema ("Mac", o "Windows con Ubuntu en WSL") y el paso en el que estás.
 3. Prueba una solución sugerida a la vez, y lee cada comando sugerido antes de ejecutarlo. Nunca
    pegues contraseñas, claves ni datos privados.
 4. Si fallan dos sugerencias, pregúntale a una persona: el canal de ayuda de tu grupo o alguien
    de tu equipo.
 
-Los seis pasos, y cómo sabes que cada uno funcionó:
-
-| Paso | Haz esto | Funcionó cuando |
-|:-:|---|---|
-| 1 | Deja lista la computadora (@sec-step-ready) | `git --version` imprime una versión |
-| 2 | Muévete por la terminal (@sec-step-terminal) | después de `cd ~`, el indicador muestra `~` |
-| 3 | Instala un agente de programación (@sec-step-assistant) | arranca, con la sesión iniciada, y responde |
-| 4 | Deja que el agente instale las herramientas (@sec-step-tools) | imprime todas las versiones |
-| 5 | Ejecuta la comprobación de la preparación (@sec-step-check) | cada comprobación informa OK |
-| 6 | Haz la prueba (@sec-step-test) | `hello.pdf` dice 42 |
-
-: Los pasos de la preparación y sus comprobaciones. {#tbl-setup-map}
+Los costos, las rutas gratuitas, los límites de gasto y los chats web gratuitos de arriba se
+consultaron en el periodo
+`{python} checked_span("agents.claude_code_cost", "agents.antigravity_free", "agents.opencode_free", "agents.claude_spend_limit", "agents.openai_spend_limit", "chats.free_chats")`;
+el @sec-facts tiene la fuente de cada uno.
 
 ## Paso 1: deja lista la computadora {#sec-step-ready}
 
 Los pasos siguientes dan por sentado dos programas pequeños: `git`, para el control de versiones,
-y `curl`, que descarga un archivo desde una dirección web. Abre una terminal, la ventana para escribir comandos que explica el
-paso 2 (en una Mac: Comando-Espacio, escribe `Terminal`, Enter; en Ubuntu: Ctrl+Alt+T), y
-ejecuta la línea de tu sistema.
+y `curl`, que descarga un archivo desde una dirección web. Abre una terminal, la ventana para
+escribir comandos que explica el paso 2 (en una Mac: Comando-Espacio, escribe `Terminal`, Enter;
+en Ubuntu: Ctrl+Alt+T), y ejecuta la línea de tu sistema.
 
 En una **Mac**, instala las Command Line Tools de Apple, que incluyen `git`:
 
@@ -165,32 +184,34 @@ ana@laptop:~/demo$
 
 `ana` es el usuario, `laptop` la computadora y `~/demo` la carpeta actual: `~` es tu *carpeta
 personal*, así que esta es una carpeta llamada `demo` dentro de ella. Ocho comandos bastan para
-moverte:
+moverte (`pwd` es la abreviatura de *print working directory*, imprimir el directorio de
+trabajo):
 
 | Comando | Hace |
 |---|---|
-| `pwd` | imprime la carpeta en la que estás (*print working directory*) |
+| `pwd` | imprime la carpeta actual |
 | `date` | imprime la fecha y la hora |
-| `ls` | enumera lo que hay en esta carpeta |
+| `ls` | enumera esta carpeta |
 | `mkdir name` | crea una carpeta |
 | `cd name` | entra en una carpeta |
 | `cd ..` | sube una carpeta |
-| `cd ~` | va directo a tu carpeta personal, desde cualquier lugar |
-| `rmdir name` | elimina una carpeta vacía (se niega si hay algo adentro) |
+| `cd ~` | va a tu carpeta personal, desde donde sea |
+| `rmdir name` | elimina una carpeta vacía |
 
 : Moverse por la terminal. {#tbl-terminal}
+
+![Moverse por la terminal: cada comando y lo que responde la terminal. Una grabación real, hecha con una cuenta de demostración cuya carpeta personal es `/tmp/home/ana`; la tuya es `/home/<you>` en Linux y Windows, o `/Users/<you>` en una Mac.](../media/gifs/terminal-basics.gif){#fig-terminal-basics .anim fig-alt="Una sesión de terminal con el indicador ana@laptop. pwd imprime la carpeta personal. date imprime la fecha y la hora. mkdir demo crea una carpeta, y ls la muestra. cd demo entra, y el indicador ahora termina en virgulilla barra demo. mkdir notes y cd notes bajan una carpeta más, y pwd imprime la ruta completa que termina en demo barra notes. cd punto punto sube un nivel, cd virgulilla va directo a la carpeta personal y rmdir demo barra notes demo elimina las dos carpetas vacías."}
 
 La @fig-terminal-basics los ejecuta en orden. Escríbelos tú en lugar de pegarlos: las manos
 recuerdan.
 
-![Moverse por la terminal: cada comando y lo que responde la terminal. Una grabación real, hecha con una cuenta de demostración cuya carpeta personal es `/tmp/home/ana`; la tuya es `/home/<you>` en Linux y Windows, o `/Users/<you>` en una Mac.](../media/gifs/terminal-basics.gif){#fig-terminal-basics .anim fig-alt="Una sesión de terminal con el indicador ana@laptop. pwd imprime la carpeta personal. date imprime la fecha y la hora. mkdir demo crea una carpeta, y ls la muestra. cd demo entra, y el indicador ahora termina en virgulilla barra demo. mkdir notes y cd notes bajan una carpeta más, y pwd imprime la ruta completa que termina en demo barra notes. cd punto punto sube un nivel, cd virgulilla va directo a la carpeta personal y rmdir demo barra notes demo elimina las dos carpetas vacías."}
-
-Dos teclas evitan la mayoría de los errores de tipeo: **Tab** completa el nombre de un archivo o
+Dos teclas evitan la mayoría de los errores de tecleo: **Tab** completa el nombre de un archivo o
 de una carpeta, y la **flecha hacia arriba** trae de vuelta el comando anterior. Copiar y pegar
 funciona distinto en una terminal: selecciona el texto, y luego **Ctrl+Shift+C** copia y
 **Ctrl+Shift+V** pega (Comando-C y Comando-V en una Mac), porque **Ctrl+C** solo detiene el
-programa que está corriendo (@tbl-terminal-keys). Dos comandos inician la mayoría de los
-proyectos de este libro, una línea cada uno:
+programa que está corriendo
+([Teclas de la terminal](../appendices/b-terminal.qmd#sec-keys-terminal)). Dos comandos inician
+la mayoría de los proyectos de este libro, una línea cada uno:
 
 ```bash
 mkdir -p london-guide
@@ -219,31 +240,35 @@ la @fig-terminal-basics.
 
 ## Paso 3: instala un agente de programación {#sec-step-assistant}
 
-Elige un agente y ejecuta su instalador, el comando documentado por el propio proveedor
-(consultado el 2026-10-30). Ejecuta solo la línea de tu agente.
+Elige un agente y ejecuta su instalador, el comando que documenta su proveedor (Lecturas
+adicionales enlaza cada página). Ejecuta solo la línea de tu agente.
 
 **Claude Code:**
 
-```bash
-curl -fsSL https://claude.ai/install.sh | bash
+```{python}
+#| output: asis
+print(installer("claude_code"))
 ```
 
 **Codex:**
 
-```bash
-curl -fsSL https://chatgpt.com/codex/install.sh | sh
+```{python}
+#| output: asis
+print(installer("codex"))
 ```
 
 **Antigravity:**
 
-```bash
-curl -fsSL https://antigravity.google/cli/install.sh | bash
+```{python}
+#| output: asis
+print(installer("antigravity"))
 ```
 
-**OpenCode** (consultado el 2026-11-20):
+**OpenCode:**
 
-```bash
-curl -fsSL https://opencode.ai/v2/install | bash
+```{python}
+#| output: asis
+print(installer("opencode"))
 ```
 
 `curl … | bash` descarga un pequeño script de instalación y lo ejecuta de inmediato. Es lo normal
@@ -256,9 +281,7 @@ a partir de su *PATH*, la lista de carpetas en las que busca programas, así que
 uno que se instaló hace un momento, que es la causa habitual de `command not found` justo después
 de una instalación. En una Mac, una pestaña nueva no alcanza para Claude Code: su instalador lo
 pone en `~/.local/bin`, una carpeta que el PATH no incluye, e imprime la solución bajo "Setup
-notes". Pega esa solución en la terminal, presiona Enter y luego abre la pestaña nueva (Claude
-Code, [solución de problemas de instalación](https://code.claude.com/docs/en/troubleshoot-install),
-consultado el 2026-11-06).
+notes". Pega esa solución en la terminal, presiona Enter y luego abre la pestaña nueva.
 
 Inicia el agente en una carpeta nueva. Escribe las tres líneas una por una: crea la carpeta
 `setup` en tu carpeta personal (`-p`: sin quejas si ya existe), entra en ella e inicia el
@@ -272,23 +295,37 @@ claude
 
 Esa última línea inicia Claude Code; escribe `codex` para Codex, `agy` para Antigravity u
 `opencode` para OpenCode. OpenCode no te pide iniciar sesión: escribe `/connect` dentro de él y
-elige un proveedor. A diferencia de los otros tres, no pregunta antes de editar archivos ni de
-ejecutar comandos (@sec-root-folder). Para que pregunte, agrega a `opencode.jsonc` reglas con el
-efecto `ask` para sus acciones `edit` y `shell`, como muestra su
-[documentación de permisos](https://opencode.ai/docs/permissions/) (consultada el 2026-11-20).
+elige un proveedor. Por defecto, no pregunta antes de editar archivos ni de ejecutar comandos
+(@sec-root-folder). Para que pregunte, agrega a `opencode.jsonc` reglas con el efecto `ask` para
+sus acciones `edit` y `shell`, como muestra su
+[documentación de permisos](https://opencode.ai/docs/permissions/).
 
-El primer arranque pasa por tres pantallas. Las de Claude Code se muestran abajo tal como se
-capturaron el 2026-11-07 (versión 2.1.319, en una carpeta vacía, con los nombres de carpeta
-cambiados); las pantallas cambian entre versiones, así que las tuyas pueden decir otra cosa. Antes
-de ellas, Claude Code te pide un estilo de texto: presiona Enter para quedarte con el
-seleccionado. Las pantallas están en inglés.
+::: {.story .illustration}
+<!-- The rule: book/PLAN.md lines 602–603 (§15, item 4: "no alternatives as inline # comments
+in copyable commands (zsh passes them as arguments)"). zsh 5.9 with its default options
+(zsh -f -i) printed "a # b c" for "echo a # b c", 2026-11-25; macOS's /etc/zshrc does not
+set interactivecomments. -->
+Una página ofrece la elección dentro del comando: `claude # or codex`. En un script, todo lo
+que va después de `#` es un comentario. Escrito en zsh, la shell predeterminada de la Mac, no
+lo es: zsh le pasa `#`, `or` y `codex` a `claude` como argumentos. Por eso cada comando de este
+libro va solo en su línea, y una elección, de sistema o de agente, se hace en la oración que lo
+acompaña.
+:::
+
+<!-- The three screens as Claude Code 2.1.319 printed them on 2026-11-07, in an empty folder,
+with folder names changed; Codex 0.167.0 the same day. -->
+
+El primer arranque pasa por tres pantallas, que se muestran abajo tal como se capturaron de
+Claude Code 2.1.319 en noviembre de 2026; la redacción cambia entre versiones. Antes de ellas,
+Claude Code te pide un estilo de texto: presiona Enter para quedarte con el seleccionado. Las
+pantallas están en inglés.
 
 **Inicia sesión.** Elige la opción de tu cuenta: la primera para una suscripción, la segunda para
 una cuenta de Anthropic Console que se factura por uso de la API. El agente abre tu navegador;
 donde no hay uno, como en WSL, imprime un enlace para copiar en tu navegador, y luego un código
-para pegar de vuelta en la terminal. La primera pantalla de Codex (versión 0.167.0, capturada el
-mismo día) ofrece "Sign in with ChatGPT", que funciona igual, y "Sign in with Device Code", un
-código de un solo uso para cuando falla el inicio de sesión en el navegador.
+para pegar de vuelta en la terminal. La primera pantalla de Codex ofrece "Sign in with ChatGPT",
+que funciona igual, y "Sign in with Device Code", un código de un solo uso para cuando falla el
+inicio de sesión en el navegador.
 
 ::: transcript
 ```text
@@ -301,9 +338,10 @@ código de un solo uso para cuando falla el inicio de sesión en el navegador.
 :::
 
 **Confía en la carpeta.** El cursor empieza en "No, exit", así que si presionas Enter de
-inmediato, sales. Presiona primero la flecha hacia abajo, hasta "Yes, I trust this folder". Salir
-por error no hace daño: vuelve a escribir `claude`. Codex no pregunta nada en una carpeta simple
-como `~/setup`; hace la misma pregunta más adelante, en un proyecto que es un repositorio de Git.
+inmediato, sales. Presiona primero la flecha hacia abajo. Salir por error no hace daño: vuelve a
+escribir `claude`. Codex no pregunta nada en una carpeta simple como `~/setup`; hace la misma
+pregunta más adelante, en un proyecto que es un repositorio de Git. La pantalla de abajo está
+recortada en el …, donde explica en quién confiar.
 
 ::: transcript
 ```text
@@ -312,8 +350,7 @@ como `~/setup`; hace la misma pregunta más adelante, en un proyecto que es un r
  /home/ana/setup
 
  Quick safety check: Is this a project you created or one you trust?
- (Like your own code, a well-known open source project, or work from
- your team). If not, take a moment to review what's in this folder first.
+ …
 
  Claude Code'll be able to read, edit, and execute files here.
 
@@ -346,7 +383,7 @@ Instala un agente, inícialo en `~/setup`, inicia sesión y confía en la carpet
 escribe `/connect` y elige un proveedor: no pregunta nada sobre la carpeta).
 
 ::: done
-el agente responde cuando escribes `hello`. Luego escribe `/exit` (en OpenCode, pulsa Ctrl+C
+el agente te contesta al escribir `hello`. Luego escribe `/exit` (en OpenCode, presiona Ctrl+C
 con el prompt vacío).
 :::
 :::
@@ -361,14 +398,14 @@ ana@laptop:~/setup$ pwd                  <- the terminal: commands
 ❯ Which tools are missing?                <- the agent: requests in plain language
 ```
 
-La primera línea es la terminal, donde van los comandos; la segunda es el agente, donde van
-las solicitudes en lenguaje natural. El agente toma el control de la pestaña de la terminal en
-la que corre: lo que escribes ahí le llega al agente, no a la *shell*, el programa detrás de
-la terminal que ejecuta tus comandos, hasta que sales con `/exit`. OpenCode no tiene `/exit`: donde este libro diga `/exit`, pulsa Ctrl+C
-con el prompt vacío de OpenCode. Los comandos de los recuadros
-**Tú haces** de este libro, como `quarto preview`, van en la terminal; los prompts de los
-recuadros **Pídele a tu agente** van al agente. Cuando el agente está ocupado y
-necesitas la terminal, abre una segunda pestaña, como después de la instalación.
+La primera línea es la terminal, donde van los comandos; la segunda, el agente, donde van las
+solicitudes en lenguaje natural. El agente toma el control de la pestaña de la terminal en la
+que corre: lo que escribes ahí le llega al agente, no a la *shell*, el programa detrás de la
+terminal que ejecuta tus comandos, hasta que sales con `/exit` (en OpenCode, que no lo tiene,
+Ctrl+C con su prompt vacío). Los comandos de los recuadros **Tú haces** de este libro, como
+`quarto preview`, van en la terminal; los prompts de los recuadros **Pídele a tu agente** van al
+agente. Cuando el agente está ocupado y necesitas la terminal, abre una segunda pestaña, como
+después de la instalación.
 
 Escribir en el lugar equivocado suele ser inofensivo: un prompt escrito después de `$` da
 `command not found`, y un comando escrito en el agente se lee como una solicitud. Mira en qué
@@ -385,11 +422,12 @@ también funciona, pero termina la conversación.
 
 ## Paso 4: deja que el agente instale las herramientas {#sec-step-tools}
 
-Las herramientas que faltan son el propio Quarto, uv, Git y la herramienta de línea de comandos de
-GitHub, `gh`. Cada una tiene su propio método oficial de instalación para cada sistema, que es
-exactamente el tipo de detalle que un agente maneja bien. Inícialo otra vez en la carpeta de la
-preparación, ahora en una sola línea unida con `&&` (con `codex`, `agy` u `opencode` en lugar de `claude` si
-ese es tu agente, aquí y en los pasos siguientes):
+Las herramientas que faltan son el propio Quarto, uv y la herramienta de línea de comandos de
+GitHub, `gh`; el prompt vuelve a revisar `git` y `curl`, del paso 1. Cada una tiene su propio
+método oficial de instalación para cada sistema, que es exactamente el tipo de detalle que un
+agente maneja bien. Inícialo otra vez en la carpeta de la preparación, ahora en una sola línea
+unida con `&&` (con `codex`, `agy` u `opencode` en lugar de `claude` si ese es tu agente, aquí y
+en los pasos siguientes):
 
 ::: {.you}
 ```bash
@@ -423,7 +461,7 @@ Quarto no tiene un paquete de Ubuntu en los repositorios estándar, y GitHub des
 paquete `gh` propio de Ubuntu, así que un `apt install` genérico instalaría mal una herramienta y
 le faltaría la otra. La frase del prompt "el método oficial de cada herramienta" manda al
 agente a la fuente correcta para cada una (la página de descarga de Quarto y las instrucciones
-de instalación de GitHub para Linux, consultadas el 2026-10-30).
+de instalación de GitHub para Linux).
 :::
 
 ::: think
@@ -517,36 +555,8 @@ Ejecuta `uv init --bare` y `uv add ipykernel nbclient nbformat pyyaml`. Crea hel
 `/exit`, luego abre la carpeta: `open .` (Mac), `xdg-open .` (Linux) o `explorer.exe .` (WSL), y abre los dos archivos
 :::
 
-La prueba usa, a propósito, tres cosas que enseñan los capítulos siguientes: es una comprobación
-de que las herramientas funcionan juntas, no una lección, así que no necesitas entender el archivo
-para pasarla. Su archivo se va a parecer mucho a este, aunque el del agente puede diferir en
-detalles:
-
-````markdown
----
-title: "Hello"
-format:
-  html: default
-  typst: default
----
-
-```{{python}}
-answer = 6 * 7
-```
-
-The answer is `{{python}} answer`.
-````
-
-Leído de arriba abajo, con dónde se explica cada parte:
-
-1. **La configuración**, entre las dos líneas `---`: un título y dos formatos de salida, una
-   página web y un PDF. Está escrita en *YAML* (@sec-what-quarto; completa, en la @sec-yaml).
-2. **Una celda de código**, el bloque delimitado cuyo lenguaje va entre llaves: Python que se
-   ejecuta cuando se renderiza el archivo (@sec-qmd-basics).
-3. **El código en línea**, `` `{{python}} answer` ``: el resultado de la celda, escrito dentro
-   de la oración, así que el 42 se calcula, no se teclea (@sec-code-cells).
-
-Luego el @sec-first-report abre un informe real del mismo tipo, que lees y renderizas tú.
+Su archivo es el que mostró la @sec-what-quarto. La prueba es una comprobación de que las
+herramientas funcionan juntas, no una lección: no necesitas entender el archivo para pasarla.
 
 ::: pitfall
 Cada renderizado imprime una línea como `[IPKernelApp] WARNING | Kernel is running over TCP
@@ -560,8 +570,8 @@ Haz la prueba y abre las dos salidas.
 
 ::: done
 `hello.html` y `hello.pdf` dicen 42. La carpeta es desechable: borra `~/quarto-test`
-después. Si falta un archivo o dice otra cosa, mira la tabla de Python y Jupyter
-del @sec-troubleshooting.
+después. Si falta un archivo o dice otra cosa, la tabla de Python y Jupyter del
+@sec-troubleshooting tiene las soluciones.
 :::
 :::
 
@@ -577,23 +587,31 @@ la CLI de GitHub. Así que, en un codespace, los pasos 1 y 4 ya están hechos.
 en github.com/project-delphi/quarto-workshop: **Code** → **Codespaces** → **Create codespace on main** · espera mientras se construye · luego, en su terminal, `cd ~`
 :::
 
-El repositorio aparece en tu carpeta personal como `~/quarto-workshop`, así que cada ruta de este
-libro funciona sin cambios. Desde ahí, sigue en la terminal del codespace el paso 2, el paso 3
-con el comando de Linux del agente, el paso 5 y el paso 6. Tres cosas cambian respecto de una
-computadora propia:
+<!-- GitHub Docs, "Deep dive into GitHub Codespaces": "your repository is cloned into the
+/workspaces directory in your codespace" (checked 2026-11-25); the link is the
+postCreateCommand in .devcontainer/devcontainer.json. -->
+
+GitHub clona el repositorio en la carpeta `/workspaces` del codespace, y el archivo del
+contenedor de desarrollo lo enlaza en tu carpeta personal como `~/quarto-workshop`, así que cada
+ruta de este libro funciona sin cambios. Desde ahí, sigue en la terminal del codespace el paso 2,
+el paso 3 con el comando de Linux del agente, el paso 5 y el paso 6. Tres cosas cambian respecto
+de una computadora propia:
 
 - **Las vistas previas.** Inícialas con `quarto preview --port 4848 --host 0.0.0.0 --no-browser`;
   el codespace ofrece abrir la página en una pestaña nueva del navegador.
 - **El inicio de sesión en GitHub.** Si `gh auth login` dice que `GITHUB_TOKEN` está en uso,
   ejecuta primero `unset GITHUB_TOKEN`: el token propio del codespace solo llega al repositorio
   del taller, no a los repositorios que crees tú.
-- **El costo.** `{python} fact("github.codespaces_free", capital=True)` (consultado el
-  `{python} checked("github.codespaces_free")`). Detén el codespace cuando termines (la página
-  **Codespaces** lo enumera), porque uno en ejecución consume la cuota.
+- **El costo.** `{python} fact("github.codespaces_free", capital=True)`. Detén el codespace
+  cuando termines (la página **Codespaces** lo enumera), porque uno en ejecución consume la
+  cuota.
 
 El entorno se construyó a partir de su archivo de contenedor de desarrollo y se revisó en una
-computadora local (Quarto, uv, Git y la CLI de GitHub presentes; el primer informe y la prueba se
-renderizaron); un codespace en las computadoras de GitHub no se probó para esta edición.
+computadora local; no se probó en un codespace de GitHub
+([qué no se probó en esta edición](../appendices/h-how-built.qmd#sec-not-tested)).
+
+La cuota del codespace se consultó el `{python} checked("github.codespaces_free")`; el
+@sec-facts tiene la fuente.
 
 ## Resumen {.unnumbered}
 
@@ -613,12 +631,9 @@ renderizaron); un codespace en las computadoras de GitHub no se probó para esta
 
 La prueba fue una caja negra: un archivo que no escribiste, una configuración que todavía no
 conoces, código que no leíste. El @sec-first-report pone en tus manos un informe real antes que
-en las de cualquier agente: lo copias, lo renderizas tú, comparas sus números con sus datos y
-encuentras el equivocado, y lo registras con Git, para que cada cambio posterior se pueda ver y
-deshacer. Solo entonces el agente hace su primera edición, y tú la revisas. Luego la Parte II
-explica lo que había en la caja: desde una carpeta vacía, escribes la guía de Londres para la
-oficina de turismo, una construcción de Markdown a la vez, y al final del @sec-markdown es una
-página web con reglas escritas para el agente.
+en las de cualquier agente: lo renderizas tú, encuentras su número equivocado y lo registras con
+Git. Luego la Parte II explica lo que había en la caja, y construye la guía de Londres un
+elemento de Markdown a la vez.
 
 ## Lecturas adicionales {.unnumbered}
 
@@ -632,7 +647,12 @@ página web con reglas escritas para el agente.
 - [Preparación de Claude Code](https://code.claude.com/docs/en/setup),
   [Codex CLI](https://learn.chatgpt.com/docs/codex/cli) y
   [Antigravity CLI](https://antigravity.google/docs/getting-started?tab=cli) (consultados el
-  2026-10-30), y [OpenCode](https://opencode.ai/docs/) (consultado el 2026-11-20).
+  2026-10-30), y [OpenCode](https://opencode.ai/docs/) (consultado el 2026-11-20): el comando de
+  instalación de cada agente.
+- Claude Code, [solución de problemas de instalación](https://code.claude.com/docs/en/troubleshoot-install),
+  sobre el PATH de la Mac (consultado el 2026-11-06).
+- OpenCode, [permisos](https://opencode.ai/docs/permissions/): las reglas que hacen que pregunte
+  antes de actuar (consultado el 2026-11-20).
 - Scott Chacon y Ben Straub, *Pro Git*,
   [Installing Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (consultado el
   2026-11-06).

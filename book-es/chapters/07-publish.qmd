@@ -2,7 +2,8 @@
 
 ```{python}
 #| label: ch7-setup
-from scripts.prose import number_words
+from scripts.facts import checked, fact
+from scripts.prose import number_words, text_holds
 # Which page of the finished London project reads which data file, and which files it writes.
 # Read from the sources: a page "reads" a file only if its code calls read_csv on it.
 import re
@@ -46,6 +47,12 @@ assert finds_top - sums == {"london-social.qmd"}
 assert keeps_rank - finds_top == {"london-whitepaper.qmd"}
 att = pd.read_csv(ldn / "data/attractions.csv")
 tower_rank_uk = int(att.loc[att["attraction"] == "Tower of London", "rank_uk"].iloc[0])
+# The change task types 8000000 for the Tower: the text says it makes the Tower the most visited
+# of the ten, and that the copied rank_uk column would then still rank it lower than first.
+from scripts.london import TOWER_NEW as NEW_TOWER
+others_top = att.loc[att["attraction"] != "Tower of London", "visits_2025"].max()
+text_holds(len(att) == 10 and NEW_TOWER > others_top and tower_rank_uk != 1,
+           "the Tower becoming the most visited of the ten, with a stale rank_uk")
 WORDS = number_words()
 ORDINALS = ["cero", "primer", "segundo", "tercer", "cuarto", "quinto", "sexto", "séptimo",
             "octavo", "noveno", "décimo"]
@@ -57,12 +64,9 @@ def word(n: int) -> str:
 ```
 
 La guía está terminada y nadie más que tú puede verla: cada salida está en una carpeta de tu
-computadora. Este capítulo la pone en la web, donde cualquiera puede abrirla en el teléfono, con
-GitHub para guardar una copia del historial que vienes registrando con tus commits y GitHub Pages
-para servir el resultado. Luego hace la
-pregunta que todo el flujo de trabajo está construido para responder: si cambia un dato de
-entrada, ¿qué salidas cambian con él, y cómo lo sabes? Esa pregunta no trae prompt. Pone a prueba
-si puedes predecir lo que hará una reconstrucción, y luego comprobarlo.
+computadora. Este capítulo la pone en la web, donde cualquiera puede abrirla en el teléfono. Luego
+hace una pregunta que no trae prompt: cambia un dato de entrada; ¿qué salidas cambian con él, y
+cómo lo sabes? Primero vas a predecir, luego a reconstruir y luego a comprobar.
 
 ::: opener
 - Explicar qué agregan el push, las ramas y los pull requests a los commits que ya haces.
@@ -70,7 +74,7 @@ si puedes predecir lo que hará una reconstrucción, y luego comprobarlo.
 - Elegir entre servicios de alojamiento que reciben tus archivos y servicios que construyen.
 - Predecir, reconstruir y explicar hasta dónde llega un dato de entrada que cambia.
 
-Partes de
+Punto de partida
 : el final del @sec-audiences, con la sesión de `gh` iniciada
 
 Construyes
@@ -80,20 +84,20 @@ Punto de control
 : ninguno; para ponerte al día se copia `examples/london/`
 :::
 
+::: payoff
+![La guía tal como la muestra el teléfono de un visitante. Renderizada desde `examples/london`.](../media/figures/london-live-phone.png){#fig-london-live-phone width=50% fig-alt="La página web de la guía, en inglés, al ancho de un teléfono: una barra con un botón de menú, Visit London y un ícono de búsqueda; el título Visit London, su autoría, London Tourism Office, y la fecha de publicación; la oración de bienvenida, con London en negrita; y el comienzo de la lista Five sights to start with: British Museum, Natural History Museum."}
+:::
+
 ## Git: cada cambio, con seguridad {#sec-git}
 
-La @sec-reproducible comparó Git con el control de cambios de Word para una carpeta entera, con
-un historial que perdura, y desde el primer informe (@sec-first-git) llevas uno tú: `git status` y
-`git diff` antes de cada commit, un mensaje que dice por qué, y `git restore` para un cambio que no
-querías. Eso es lo que hace Git dentro de una carpeta, y ya conserva cada versión anterior de la
-guía, cada una con una nota que dice por qué cambió. Publicar necesita lo que hace Git más allá de
-la carpeta: una copia del historial a la que otros puedan llegar, y una forma de que otra persona
-lea un cambio y lo apruebe antes de que cuente.
+Desde el primer informe (@sec-first-git) llevas un historial tú: `git status` y `git diff` antes
+de cada commit, un mensaje que dice por qué, y `git restore` para un cambio que no querías.
+Publicar necesita lo que hace Git más allá de la carpeta: una copia del historial a la que otros
+puedan llegar, y una forma de que otra persona lea un cambio y lo apruebe antes de que cuente.
 
-El vocabulario para eso es corto (@fig-git-cycle; Pro Git y la documentación de GitHub,
-consultados el 2026-10-31). Tu carpeta ya es un *repositorio*, una carpeta de proyecto con su
-historial, y cada uno de tus commits es una instantánea de cada archivo con seguimiento, con su
-mensaje. Las palabras nuevas tienen que ver con compartirlos.
+El vocabulario para eso es corto (@fig-git-cycle). Tu carpeta ya es un *repositorio*, una carpeta
+de proyecto con su historial, y cada uno de tus commits es una instantánea de cada archivo con
+seguimiento, con su mensaje. Las palabras nuevas tienen que ver con compartirlos.
 
 ![Cada cambio, con seguridad. Un equipo lleva cada cambio por todo el ciclo; si trabajas sin equipo, como en este libro, haces commit en la línea principal y haces push.](../media/diagrams/git-cycle){#fig-git-cycle .on-light fig-alt="Seis pasos. Rama: trabaja en una rama, para que main quede intacta. Commit: guarda una instantánea de los archivos con un mensaje que diga por qué. Push: copia los commits a GitHub. Pull request: propone el cambio y muestra la diferencia. Revisión: alguien lee la diferencia y comenta, aprueba o pide cambios. Merge: los commits se suman a main. Si trabajas sin equipo, haces commit en main y push; en un equipo, cada cambio recorre el ciclo entero."}
 
@@ -124,54 +128,44 @@ haya cambiado nada en `data/` ni en `images/` y que el mensaje diga por qué.
 Un sitio web de Quarto renderizado es *estático*: una carpeta de HTML, CSS, JavaScript, imágenes
 y documentos, sin ningún programa corriendo en un servidor. Cualquier servidor web puede servirlo,
 así que publicar significa copiar esa carpeta a un servicio de alojamiento. **GitHub Pages** es el
-que usa este libro, porque el repositorio ya está en GitHub y `quarto publish gh-pages` viene
+que usa este libro: GitHub guarda una copia del historial que vienes registrando con tus commits,
+GitHub Pages sirve el sitio a partir de ella, y `quarto publish gh-pages` viene
 incluido (@fig-publish-flow).
 
 ![Publicar en GitHub Pages. La fuente va a la rama `main` con Git; `quarto publish gh-pages` renderiza el sitio en tu computadora y sube solo el HTML renderizado a una rama aparte, que GitHub sirve.](../media/diagrams/publish-flow){#fig-publish-flow .on-light fig-alt="La carpeta de tu proyecto contiene la fuente, que git sube a la rama main de un repositorio de GitHub. quarto publish gh-pages renderiza el sitio en tu computadora y sube solo el HTML renderizado a una rama aparte, gh-pages. GitHub Pages sirve esa rama en https://user.github.io/repo/. Cualquiera que tenga la dirección puede leer el sitio."}
 
 Hay dos formas de llevar un sitio a un servicio de alojamiento. O renderizas en tu propia
 computadora y subes el resultado, como hace `quarto publish` para GitHub Pages y Netlify, o el
-servicio construye el sitio a partir de tu repositorio en cada push. La segunda solo funciona si
-la construcción instala Quarto, Python y cada paquete que necesita el proyecto, o si la salida
+servicio construye el sitio a partir de tu repositorio en cada push, en un *trabajo de CI*, un
+build que ejecuta por ti. La segunda solo funciona si
+el build instala Quarto, Python y cada paquete que necesita el proyecto, o si la salida
 renderizada está en el repositorio. El repositorio de Londres deja afuera su carpeta renderizada
-`_site/`, así que un servicio que construye no produciría nada hasta que se configure la
-construcción.
+`_site/`, así que un servicio que construye no produciría nada hasta que se configure el
+build.
 
 ::: think
 Conectas `london-guide` a un servicio que construye desde Git, y publica un sitio vacío. ¿Por
 qué?
 
 El repositorio no contiene ningún sitio renderizado, porque `.gitignore` deja afuera `_site/`, y
-la construcción del servicio no tiene Quarto, Python ni paquetes salvo que los instales en ella.
-O renderizas en tu computadora y subes el resultado, o configuras la construcción.
+el build del servicio no tiene Quarto, Python ni paquetes salvo que los instales en él.
+O renderizas en tu computadora y subes el resultado, o configuras el build.
 :::
 
-Seis servicios con planes gratuitos para sitios estáticos muestran las dos rutas
-(@tbl-hosts-upload, @tbl-hosts-build). Sus planes gratuitos cambian, así que la @tbl-hosts-free
-del @sec-facts enumera los límites vigentes de cada uno, con la fecha en que se consultaron:
-léelos antes de elegir.
+La @tbl-hosts ordena los servicios según la ruta. Sus planes gratuitos cambian, así que
+la @tbl-hosts-free del @sec-facts enumera los límites vigentes de cada uno, y los de Cloudflare,
+con la fecha en que se consultaron: léelos antes de elegir.
 
-| Servicio | Subir con |
+| Servicio | Cómo llega el sitio |
 |---|---|
-| [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html) | `quarto publish gh-pages`, la ruta de este libro |
-| [Netlify](https://quarto.org/docs/publishing/netlify.html) | `quarto publish netlify` |
-| [Cloudflare](https://developers.cloudflare.com/workers/static-assets/) | `wrangler deploy` |
+| [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html) | `quarto publish gh-pages` lo renderiza y lo sube: la ruta de este libro |
+| [Netlify](https://quarto.org/docs/publishing/netlify.html) | `quarto publish netlify` lo renderiza y lo sube |
+| un servicio que construye: [Vercel](https://vercel.com/docs/plans/hobby), [GitLab Pages](https://docs.gitlab.com/user/project/pages/), [Render](https://render.com/docs/static-sites) | construye el sitio a partir del repositorio en cada push |
 
-: Servicios para los que renderizas y a los que subes. {#tbl-hosts-upload}
+: Dos rutas hacia un servicio de alojamiento: renderizar y subir, o dejar que el servicio construya. {#tbl-hosts}
 
-| Servicio | Cómo construye |
-|---|---|
-| [Vercel](https://vercel.com/docs/plans/hobby) | desde el repositorio, en cada push |
-| [GitLab Pages](https://docs.gitlab.com/user/project/pages/) | publica una carpeta `public` desde un trabajo de CI |
-| [Render](https://render.com/docs/static-sites) | reconstruye en cada push |
-
-: Servicios que construyen el sitio a partir de tu repositorio. {#tbl-hosts-build}
-
-Dos detalles importan para este proyecto. El plugin de construcción de Quarto para Netlify no
-ejecuta Python, así que renderiza en tu computadora y sube el resultado. GitLab construye en un
-*trabajo de CI*, una construcción que ejecuta en cada push: fija `output-dir: public` e instala
-Quarto y Python en el trabajo. Quarto Pub, el servicio gratuito propio de Quarto, está siendo
-[reemplazado por Posit Connect Cloud](https://quarto.org/docs/publishing/quarto-pub.html).
+El plugin de build de Quarto para Netlify no ejecuta Python, así que, para este proyecto,
+renderiza y sube.
 
 ## Una carpeta, un sitio web {#sec-london-website}
 
@@ -189,7 +183,7 @@ escribe 2 archivos · agrega una línea a `.gitignore` · `uv run quarto render`
 luego, en la pestaña de la vista previa: Ctrl+C, y `uv run quarto preview`
 :::
 
-Un archivo `_quarto.yml` en la parte de arriba de la carpeta la convierte en un *proyecto*.
+Un archivo `_quarto.yml` en la raíz de la carpeta la convierte en un *proyecto*.
 `quarto render` sin nombre de archivo construye entonces cada página de la lista en `_site/`, con
 navegación compartida, y `quarto preview` sin nombre de archivo muestra la vista previa del sitio
 entero. El dashboard se vuelve una de sus páginas:
@@ -231,57 +225,103 @@ Downloads abre su archivo.
 
 ## Publicar {#sec-london-publish}
 
-Antes de pegar el prompt siguiente, reemplaza `<your-github-username>` por tu nombre de usuario de
-GitHub (el agente puede averiguarlo con `gh api user` si se lo pides).
+Publicar lleva dos prompts y un comando tuyo. Antes de pegar los prompts, reemplaza en ellos
+`<your-github-username>` por tu nombre de usuario de GitHub (el agente puede averiguarlo con
+`gh api user` si se lo pides). El primero prepara la carpeta; si todavía no tiene `README.md`,
+porque nunca te pusiste al día, el agente crea uno:
 
 ::: {.prompt}
 ```default
-Si esta carpeta aún no es un repositorio de Git, ejecuta `git init -b main`; comprueba que .gitignore cubra _site/, .quarto/, .venv/, *_files/, *.quarto_ipynb, london*.html, *.docx, *.pdf, *.pptx y *.epub. Reemplaza el README.md de esta carpeta por uno corto, en inglés, que enlace a https://<your-github-username>.github.io/london-guide/ y enumere los archivos del menú Downloads del sitio. Haz commit de él junto con el trabajo que aún no tenga commit (nada de lo que .gitignore deja afuera), luego crea con gh un repositorio público de GitHub llamado `london-guide` y haz push de `main` a él. Fija el sitio web del repositorio en la misma URL con `gh repo edit --homepage`. Muéstrame el README y la URL que configuraste.
+Comprueba que .gitignore cubra _site/, .quarto/, .venv/, *_files/, *.quarto_ipynb, london*.html, *.docx, *.pdf, *.pptx y *.epub. Reemplaza README.md por uno corto, en inglés, que enlace a https://<your-github-username>.github.io/london-guide/ y enumere los archivos del menú Downloads del sitio. Haz commit de él junto con el trabajo que aún no tenga commit. Muéstrame el README y `git status`.
 ```
 :::
 
 ::: {.agent}
-`git status` · `git commit` · `gh repo create london-guide …` · `gh repo edit --homepage …`
+lee `.gitignore` · escribe `README.md` · `git add` · `git commit` · `git status`
 :::
 
 ::: {.you}
-apruebas `gh` · en la pestaña de la vista previa: Ctrl+C, luego `uv run quarto publish gh-pages` y Enter · abres la dirección en tu teléfono
+apruebas sus comandos · lees el README · compruebas que `git status` diga `nothing to commit, working tree clean`
 :::
+
+El segundo pone la carpeta en GitHub:
+
+::: {.prompt}
+```default
+Crea con gh un repositorio público de GitHub llamado `london-guide` y haz push de `main` a él. Fija el sitio web del repositorio en https://<your-github-username>.github.io/london-guide/ con `gh repo edit --homepage`. Muéstrame la URL del repositorio y la URL del sitio web que configuraste.
+```
+:::
+
+::: {.agent}
+`gh repo create london-guide …` · `gh repo edit --homepage …`
+:::
+
+::: {.you}
+apruebas `gh` · luego, en la pestaña de la vista previa, Ctrl+C, y escribe:
+
+```bash
+uv run quarto publish gh-pages
+```
+
+Enter responde su pregunta · abres la dirección en tu teléfono
+:::
+
+<!-- Prueba del 2026-11-25 de la versión en inglés del primer prompt, literal con su marcador, en
+una copia de examples/london con historial de Git: un subagente de Claude Code con Sonnet 5.5 y
+otro con Haiku 5.5 encontraron cada patrón ya en .gitignore (cuatro de ellos anclados a la raíz,
+como /_site/), reemplazaron README.md por uno con el enlace al sitio y los nueve archivos del menú
+Downloads de _quarto.yml, hicieron commit y mostraron un git status limpio. El segundo prompt
+necesita una cuenta de GitHub y no se ejecutó; las opciones en las que se apoya (gh repo create
+con public, source y push; gh repo edit con homepage) se revisaron contra la ayuda de gh 2.69.0 el
+2026-11-25. -->
 
 El agente crea el repositorio en GitHub a partir de tu carpeta con
 `gh repo create london-guide --public --source=. --push`, que también sube los commits, usando la
 sesión iniciada en la comprobación de la preparación. Con ellos va cada commit que hiciste desde
 que empezaste la carpeta, así que el repositorio en GitHub abre con todo el historial de la guía,
 un paso revisado a la vez. Su README es lo primero que ven quienes
-visitan el repositorio, y su enlace los lleva al sitio en vivo.
+visitan el repositorio, y su enlace los lleva al sitio en vivo. El repositorio es público porque
+`{python} fact("github.pages_private")` (consultado el `{python} checked("github.pages_private")`).
 
-La primera publicación es tuya, escrita en la terminal. Detén antes la vista previa: la
-publicación renderiza el sitio entero, y dos renderizados en una carpeta chocan. Hace una sola
-pregunta, "Publish site … (Y/n)", que Enter responde que sí; luego renderiza el sitio, crea la
-rama `gh-pages`, sube el sitio renderizado y lo abre. La guía de GitHub Pages de Quarto dice que
-ejecutes `quarto publish gh-pages` en tu computadora, una vez, antes de configurar una GitHub
-Action para publicar (consultada el 2026-11-12). Haz también interactiva esa primera ejecución: en
-una prueba con Quarto 1.6.40, `--no-prompt` detuvo la primera publicación con "the remote origin
-does not have a branch named gh-pages" (el remoto origin no tiene una rama llamada gh-pages). Eso
-se observó con 1.6.40 y no se volvió a probar con 1.10.20. Una vez que existe la rama, el agente
-puede actualizar el sitio con `uv run quarto publish gh-pages --no-prompt`.
+<!-- GitHub, Creating a GitHub Pages site,
+https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site,
+leído el 2026-11-25: "If the account that owns the repository uses GitHub Free or GitHub Free for
+organizations, the repository must be public." -->
 
-En esa prueba, la primera publicación de cada sitio tardó entre un minuto y medio y dos minutos, y
-luego GitHub Pages lo construyó en 20 a 35 segundos, así que una página 404 en el primer minuto
-suele significar que el sitio todavía se está desplegando.
+<!-- La guía de GitHub Pages de Quarto, https://quarto.org/docs/publishing/github-pages.html, leída
+el 2026-11-25: "Before configuring the publishing action, it's important that you run quarto
+publish gh-pages locally, once." La publicación "will confirm that you want to publish, render
+your content, copy the output to a special gh-pages branch, push that branch to GitHub, and
+then open a browser". En la prueba del taller del 2026-11-01 (Apéndice I), la primera publicación
+de cada sitio tardó entre un minuto y medio y dos minutos, y luego GitHub Pages lo construyó en 20
+a 35 segundos. -->
+
+La primera publicación es tuya, escrita en la terminal, porque la guía de GitHub Pages de Quarto
+pide un `quarto publish gh-pages` local antes de cualquiera automatizado. Detén antes la vista
+previa: la publicación renderiza el sitio entero, y dos renderizados en una carpeta chocan. Hace
+una sola pregunta, "Publish site … (Y/n)", que Enter responde que sí; luego renderiza el sitio, crea
+la rama `gh-pages`, sube el sitio renderizado y lo abre. Una página 404 en el primer minuto suele
+significar que el sitio todavía se está desplegando. Una vez que existe la rama, el agente puede
+actualizar el sitio con `uv run quarto publish gh-pages --no-prompt`.
 
 ::: pitfall
-Un push que falla con `HTTP 400` ("RPC failed", "the remote end hung up unexpectedly") se vio con
-sitios más grandes, como dashboards con mapas incrustados. Aumenta el búfer de Git para este
-repositorio con `git config http.postBuffer 524288000` y vuelve a hacer push.
+<!-- source: TROUBLESHOOTING.md e INSTRUCTOR.md del taller (un push que fallaba con HTTP 400 en
+dashboards de Plotly con mapas GeoJSON, resuelto aumentando http.postBuffer); la documentación de
+git-config de Git, http.postBuffer, leída el 2026-11-25: aumentarlo "is not, in general, an
+effective solution for most push problems". -->
+Un push que falla con `HTTP 400` ("RPC failed", "the remote end hung up unexpectedly") se vio en el
+taller con sitios más grandes, como dashboards con mapas incrustados. Ahí lo resolvió aumentar el
+búfer de Git para el repositorio, `git config http.postBuffer 524288000`, y volver a hacer push,
+aunque la documentación de Git advierte que un búfer más grande no resuelve la mayoría de los
+problemas de push.
 :::
 
 ::: practice
-Publicar desde tu propia computadora es simple y mantiene la construcción donde está tu entorno.
+Publicar desde tu propia computadora es simple y mantiene el build donde está tu entorno.
 La alternativa, una GitHub Action que renderiza en cada push (`quarto-dev/quarto-actions`, de
 Quarto), necesita Python y los paquetes del proyecto instalados en el trabajo, o `freeze`
 configurado para que se reutilicen los resultados guardados en el repositorio, y la guía de
-Quarto igual pide un primer `quarto publish gh-pages` en tu computadora.
+Quarto de todos modos pide un primer `quarto publish gh-pages` en tu computadora.
 :::
 
 ::: tryit
@@ -301,9 +341,9 @@ Catch me up: follow ../quarto-workshop/examples/london/README.md
 
 ## Cambia un dato de entrada, explica la reconstrucción {#sec-london-change}
 
-El @sec-quarto empezó con una corrección (@sec-drift): ALVA revisa una cifra y, en un flujo de
-copiar y pegar, alguien tiene que llevarla a mano a cada archivo que la cita. Aquí está ese
-escenario de verdad, en un proyecto en el que nunca se copió ningún conteo de visitantes. Hiciste el
+La @sec-drift enumeró lo que sale mal cuando una corrección hay que llevarla a mano a cada archivo
+que la cita. Aquí está la corrección de verdad, en un proyecto en el que nunca se copió ningún
+conteo de visitantes. Hiciste el
 mismo movimiento a menor escala con el primer informe (@sec-first-change) y predijiste uno para
 los tres primeros formatos de la guía (@sec-formats); ahora abarca cada página. No viene
 ningún prompt: escribe el tuyo, o hazlo a mano. Haz tú la edición de los datos, por ejemplo con
@@ -311,15 +351,15 @@ ningún prompt: escribe el tuyo, o hazlo a mano. Haz tú la edición de los dato
 agente fuera de `data/`, que es justamente su propósito.
 
 ::: tryit
-1. **Predice.** Cambia el `visits_2025` de la Tower of London en `data/attractions.csv` a
-   `8000000`. ¿Qué salidas van a cambiar? Anótalo antes de seguir leyendo.
-2. **Reconstruye**: detén la vista previa y luego ejecuta `uv run quarto render`.
-3. **Explica** qué salidas cambiaron, cuáles no y por qué.
-4. **Deshaz** el cambio con `git restore data/attractions.csv`, y luego reconstruye.
+1. **Predice.** Pon el `visits_2025` de la Tower en `8000000`. ¿Qué salidas cambiarán?
+   Anótalo.
+2. **Reconstruye**: detén la vista previa, `uv run quarto render`.
+3. **Explica** qué cambió y qué no.
+4. **Deshaz**: `git restore data/attractions.csv`, reconstruye.
 
 ::: done
-puedes nombrar las salidas que cambiaron, las que no, y la línea de código que conecta cada salida
-que cambió con el dato de entrada.
+puedes nombrar qué cambió, qué no, y la línea de código que une cada salida cambiada con el dato
+de entrada.
 :::
 :::
 
@@ -337,22 +377,36 @@ como lectora de un archivo solo si su código lo carga.
 
 ```{python}
 #| label: tbl-london-deps
-#| tbl-cap: "Qué página del proyecto de Londres terminado (cada una, un archivo `.qmd`) lee qué archivo de `data/`, y los formatos que escribe. Calculado a partir de las fuentes: una marca significa que el código de la página carga el archivo."
+#| tbl-cap: "Qué página del proyecto de Londres terminado (cada una, un archivo `.qmd`) lee qué archivo de `data/`. Calculado a partir de las fuentes: una marca significa que el código de la página carga el archivo."
 #| output: asis
+lines = ["| Página | attrac­tions | visits | churches | sights |", "|---|:-:|:-:|:-:|:-:|"]
+for d in deps:
+    marks = " | ".join("●" if i in d["reads"] else "" for i in inputs)
+    lines.append(f"| {d['page'].removesuffix('.qmd')} | {marks} |")
+print("\n".join(lines))
+```
+
+```{python}
+#| label: ch7-formats
+# What each page writes, for the sentence under the table: the guide many formats, the rest one.
+from scripts.prose import text_holds
+
+
 def kind(out):  # a short name for each output file
     return "diapositivas" if out.endswith("-slides.html") else out.rsplit(".", 1)[1]
 
 
-lines = ["| Página | Escribe | attrac­tions | visits | churches | sights |", "|---|---|:-:|:-:|:-:|:-:|"]
-for d in deps:
-    marks = " | ".join("●" if i in d["reads"] else "" for i in inputs)
-    lines.append(f"| {d['page'].removesuffix('.qmd')} | {', '.join(kind(o) for o in d['outputs'])} | {marks} |")
-print("\n".join(lines))
+guide = next(d for d in deps if d["page"] == "london.qmd")
+guide_kinds = [kind(o) for o in guide["outputs"]]
+guide_kinds = ", ".join(guide_kinds[:-1]) + " y " + guide_kinds[-1]
+text_holds(all(len(d["outputs"]) == 1 for d in deps if d is not guide),
+           "every page but the guide writing one file")
 ```
 
-En total, `{python} word(len(readers))` páginas cargan `attractions.csv`, y entre todas escriben
-`{python} word(n_outputs_attr)` archivos, así que el cambio llega a todos ellos en el siguiente
-renderizado.
+La guía escribe `{python} word(len(guide["outputs"]))` archivos (`{python} guide_kinds`); cada una
+de las demás páginas escribe uno. En total, `{python} word(len(readers))` páginas cargan
+`attractions.csv`, y entre todas escriben `{python} word(n_outputs_attr)` archivos, así que el
+cambio llega a todos ellos en el siguiente renderizado.
 
 Lo que hace ahí depende del código de cada página. De esas páginas,
 `{python} word(len(top_and_total))` (la guía, el dashboard y el informe para socios) encuentran la
@@ -360,12 +414,12 @@ atracción más visitada con `attractions["visits_2025"].idxmax()` y el total co
 en cada una la Tower of London pasa a ser la atracción más visitada y el total sube. El anuncio
 cuadrado usa solo la primera llamada, así que también nombra a la Tower.
 
-El documento técnico no nombra ninguna atracción más visitada: sus sumas por tipo de entrada
-cambian, pero su tabla conserva la columna `rank_uk` de ALVA tomada del archivo, que seguiría
-ubicando a la Tower en el `{python} ORDINALS[tower_rank_uk]` puesto del Reino Unido al lado de
-la mayor cantidad de visitas de las diez. Una columna copiada también queda vieja. Aun así, eso
-responde la pregunta con la que empezó el @sec-quarto: la corrección llega a
-`{python} word(n_outputs_attr)` archivos con un solo comando, y nadie tiene que salir a buscarlos.
+El documento técnico (white paper) no nombra ninguna atracción más visitada, y sus sumas por tipo de entrada
+cambian. Su tabla también copia la columna `rank_uk` de ALVA del archivo, así que después del
+cambio mostraría a la Tower con la mayor cantidad de visitas de las diez, pero todavía en el
+`{python} ORDINALS[tower_rank_uk]` puesto del Reino Unido. Una columna copiada también queda
+desactualizada. Aun así, la corrección llega a `{python} word(n_outputs_attr)` archivos con un solo
+comando, y nadie tiene que salir a buscarlos.
 
 Las copias merecen una segunda mirada. El folleto no carga ningún dato, y las tablas de atracciones
 de la guía y del informe para socios están escritas a mano, aunque los créditos de la guía nombran
@@ -375,11 +429,10 @@ una corrección en `sights.csv` no actualiza ninguna de ellas. Una copia citada 
 copia.
 
 ::: why
-¿Por qué se vuelve a calcular cada página, incluso las que no cambiaron su fuente? Porque el
-proyecto conserva el comportamiento por defecto de Quarto, `freeze: false`: cada renderizado vuelve
-a ejecutar el código de cada página, lo que mantiene simple la respuesta de este ejercicio. Con el
-caché activado, una página cuya fuente no cambió conservaría sus números viejos, y la respuesta
-dependería del caché; el @sec-publish-many vuelve sobre esa disyuntiva.
+¿Por qué se vuelve a calcular cada página, incluso las que no cambiaron su fuente? El proyecto
+conserva el comportamiento por defecto de Quarto, `freeze: false`, así que cada renderizado vuelve
+a ejecutar el código de cada página; con el caché activado, una página cuya fuente no cambió
+conservaría sus números desactualizados (@sec-publish-many).
 :::
 
 Hay dos cosas más que no cambian: el sitio en vivo, hasta que vuelvas a publicar
@@ -387,7 +440,7 @@ Hay dos cosas más que no cambian: el sitio en vivo, hasta que vuelvas a publica
 respuestas modelo, con las preguntas de seguimiento que vale la pena hacerse, están en
 el @sec-checkpoints.
 
-## Un documento técnico (opcional) {#sec-london-whitepaper}
+## Un white paper (opcional) {#sec-london-whitepaper}
 
 Los mismos datos también se pueden convertir en un artículo académico: un resumen, secciones
 numeradas, resultados calculados y una lista de referencias, con la tipografía que usan los
@@ -395,7 +448,7 @@ documentos de LaTeX, sin instalar LaTeX.
 
 ::: {.prompt}
 ```default
-Crea london-whitepaper.qmd, un documento técnico A4 de Typst en inglés, con la tipografía "New Computer Modern": un resumen (sin código en línea), Introduction, Methods, Results y Conclusions numeradas, y luego References mediante `#set bibliography(title: [References])` (references.bib a partir de `url`). Analiza data/visits.csv frente a 2019 y data/attractions.csv según `admission`. Agrégalo a `render` y al menú "Downloads"; renderiza; revisa las citas. Las figuras tienen que ser vectoriales: fija `fig-format: svg` y comprueba que los archivos de `figure-typst/` terminen en .svg.
+Crea london-whitepaper.qmd, white paper A4 de Typst, en inglés, fuente "New Computer Modern": resumen sin código en línea; Introduction, Methods, Results y Conclusions numeradas; `#set bibliography(title: [References])` para References (references.bib desde `url`). Analiza data/visits.csv frente a 2019 y data/attractions.csv por `admission`. Súmalo a `render` y al menú "Downloads"; renderiza; revisa las citas. Figuras vectoriales: `fig-format: svg`; comprueba que `figure-typst/` solo tenga .svg.
 ```
 :::
 
@@ -417,17 +470,17 @@ format:
 4. Las figuras vectoriales se ven nítidas con cualquier zoom; la comprobación del prompt se asegura
    de que de verdad sean vectoriales.
 
-![La primera página del documento técnico de Londres terminado: título, resumen y secciones numeradas con citas. Renderizado desde `examples/london/london-whitepaper.qmd`.](../media/figures/london-whitepaper-p1.png){#fig-whitepaper width=75% .on-light fig-alt="La primera página de un documento A4 en inglés, con una tipografía de estilo LaTeX: el título Visits to London's leading ALVA member attractions, 2015 to 2025, el subtítulo Pandemic loss and recovery: a descriptive analysis, el autor London Tourism Office, un resumen y las secciones 1, Introduction, y 2, Methods, con citas numeradas entre corchetes."}
+![La página 1 del white paper de Londres terminado.](../media/figures/london-whitepaper-p1.png){#fig-whitepaper width=75% .on-light fig-alt="La primera página de un documento A4 en inglés, con una tipografía de estilo LaTeX: el título Visits to London's leading ALVA member attractions, 2015 to 2025, el subtítulo Pandemic loss and recovery: a descriptive analysis, el autor London Tourism Office, un resumen y las secciones 1, Introduction, y 2, Methods, con citas numeradas entre corchetes."}
 
-::: pitfall
-Tres trampas, todas encontradas al construir el ejemplo. La configuración del documento necesita
-Quarto 1.10 o más reciente: el Typst de Quarto 1.6.40 la rechaza con "unexpected argument:
-spacing". Una expresión en línea en un `abstract` del YAML se ejecuta antes de la celda de
-preparación y falla, así que el ejemplo terminado escribe su resumen en el cuerpo, en un bloque de
-Typst sin procesar. Y Typst imprime su propio título encima de la lista de referencias,
-"Bibliography" por defecto, que el prompt cambia con `#set bibliography(title: [References])` para
-que el documento no necesite un título References propio.
-:::
+La configuración del documento necesita Quarto 1.10 o más reciente. Al construir el ejemplo
+aparecieron otras dos trampas (@tbl-whitepaper-traps).
+
+| Ves | Porque | Haz |
+|---|---|---|
+| el código en línea del `abstract` del YAML falla | se ejecuta antes de la celda de preparación | escribe el resumen en el cuerpo, en un bloque de Typst sin procesar |
+| un título "Bibliography" encima de las referencias | Typst imprime ahí su propio título | `#set bibliography(title: [References])`, y ningún título propio |
+
+: Dos trampas encontradas al construir el white paper. {#tbl-whitepaper-traps}
 
 También hay disponible un PDF de LaTeX auténtico, como `format: pdf`, pero necesita una
 distribución de TeX, por ejemplo `quarto install tinytex`. Para la mayoría de los informes, Typst
@@ -446,11 +499,10 @@ es más rápido y más simple.
   vivo, no.
 :::
 
-Con eso se completa una guía para muchos públicos. En el análisis del agua, lo difícil es el
-análisis mismo: agrupar las zonas municipales de Colombia en tipos según la calidad del agua, los servicios
-y el contexto. Ese único análisis se publica luego como informe, diapositivas, entrada de blog y
-sitio web, todos leyendo los resultados de un solo script, y su prueba de reconstrucción cambia una
-opción del análisis en lugar de un número de una tabla.
+Con eso se completa una guía para muchos públicos. Los ejercicios que siguen dejan afuera los
+prompts, y esconden un número desactualizado para que lo encuentres. Después de ellos, la Parte III
+lleva un solo conjunto de resultados a los documentos que se le piden a una empresa: una ficha del
+modelo (model card), una presentación, un sitio y un white paper.
 
 ## Lecturas adicionales {.unnumbered}
 
@@ -459,10 +511,11 @@ opción del análisis en lugar de un número de una tabla.
   GitHub, [About pull requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests)
   (consultados el 2026-10-31).
 - Quarto, [Websites](https://quarto.org/docs/websites/),
-  [Publishing](https://quarto.org/docs/publishing/),
-  [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html) y
+  [Publishing](https://quarto.org/docs/publishing/) y
   [other services](https://quarto.org/docs/publishing/other.html) (consultados el 2026-11-01 y el
   2026-11-07).
+- Quarto, [GitHub Pages](https://quarto.org/docs/publishing/github-pages.html), que pide un
+  `quarto publish gh-pages` local antes de cualquiera automatizado (consultado el 2026-11-25).
 - GitHub CLI, [`gh repo create`](https://cli.github.com/manual/gh_repo_create) (consultado el
   2026-11-01).
 - Quarto, [Citations](https://quarto.org/docs/authoring/citations.html) y

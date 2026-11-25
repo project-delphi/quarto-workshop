@@ -28,7 +28,7 @@ Los precios, los planes, las cuentas y las cuotas gratuitas cambian de un mes a 
 este libro los guarda en un solo lugar: un archivo de su fuente, `book/facts.yml`, que este
 apéndice imprime completo. Los capítulos lo citan en lugar de escribir un precio o un plan, así
 que cuando un dato cambia, una sola edición y una reconstrucción actualizan cada página que lo
-menciona, y también esta lista. Cada dato lleva la fecha en que se revisó contra la página
+menciona, y también esta lista. Cada dato lleva la fecha en que se cotejó con la página
 oficial enlazada a su lado. Para cuando leas esto, algunos habrán cambiado: sigue el enlace, y
 confía en la página antes que en el libro.
 
@@ -51,15 +51,20 @@ for title, entries in sections.items():
 
 ```{python}
 #| output: asis
+# The prices as a table, which @tbl-prices names (Chapter 2), and what each vendor says its
+# model is for as cards: the quotations are sentences, too long for a table on a phone.
 prices = table("models", "prices")
-rows = ["| Modelo | Para qué sirve, según el proveedor | Entrada / salida, \\$ por millón de tokens |",
-        "|---|---|---|"]
+rows = ["| Modelo | Entrada / salida (\\$) |", "|---|---|"]
 for r in prices["rows"]:
-    rows.append(f"| {r['model']} | {cell(r['for'])} | {dollars(r['input'])} / {dollars(r['output'])} |")
+    rows.append(f"| {r['model']} | {dollars(r['input'])} / {dollars(r['output'])} |")
 print("\n".join(rows))
 print(f"\n: {prices['caption']}, consultados el {prices['checked']}. {{#tbl-prices}}")
-print(f"\n{cell(prices['note'])} Fuentes: las páginas de [precios]({prices['url']}) y "
-      f"de [modelos]({prices['also'][0]}) de Anthropic, y la de [modelos]({prices['also'][1]}) de OpenAI.")
+print(f"\n{cell(prices['note'])}\n\nPara qué sirve cada modelo, según su proveedor:\n\n::: cards")
+for r in prices["rows"]:
+    print(f"{r['model']}\n:   {cell(r['for'])}\n")
+print(":::")
+print(f"\nFuentes: las páginas de [precios]({prices['url']}) y de [modelos]({prices['also'][0]}) "
+      f"de Anthropic, y la de [modelos]({prices['also'][1]}) de OpenAI.")
 ```
 
 Estos son precios de *API*: lo que paga un programa por token cuando llama directamente al
@@ -74,7 +79,7 @@ hosts = table("hosting", "hosts")
 rows = ["| Servicio de alojamiento | Plan gratuito |", "|---|---|"]
 rows += [f"| [{h['host']}]({h['url']}) | {h['free']} |" for h in hosts["rows"]]
 print("\n".join(rows))
-print(f"\n: Planes gratuitos de seis servicios de alojamiento de sitios estáticos, consultados en sus páginas oficiales el {hosts['checked']}. {{#tbl-hosts-free}}")
+print(f"\n: Planes gratuitos de seis servicios de alojamiento estático, consultados en su web oficial el {hosts['checked']}. {{#tbl-hosts-free}}")
 ```
 
 La @sec-hosting explica las dos formas en que funcionan estos servicios: tú renderizas y subes

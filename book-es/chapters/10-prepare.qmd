@@ -24,6 +24,7 @@ n_capitals = int(raw.drop_duplicates("divipola")["department_capital"].sum())
 WATER = ["irca", "water_coverage", "sewer_coverage"]       # the water-safety and coverage features
 water_share = len(WATER) / len(A.FEATURES)
 r_cov = prepared["water_coverage"].corr(prepared["sewer_coverage"])
+text_holds(r_cov > 0.7, "the two coverages strongly correlated")
 sgp_vs_rain = prepared["sgp_water_pc"].var(ddof=0) / prepared["rainfall_mm"].var(ddof=0)
 by_year = prepared.groupby("year")["sgp_water_pc"]
 z_raw_sgp = (prepared["sgp_water_pc"] - by_year.transform("mean")) / by_year.transform(lambda v: v.std(ddof=0))
@@ -44,6 +45,20 @@ yr = prepared[prepared["year"] == tj_zero[0]]["water_coverage"]
 z_urban_median = (prepared.loc[(prepared["year"] == tj_zero[0]) & (prepared["zone"] == "urban"),
                                "water_coverage"].median() - yr.mean()) / yr.std(ddof=0)
 text_holds(tj_zero_row["z_water_coverage"] < -1 and z_urban_median > 0, "Tunja's zero as missing")
+# @tbl-tunja-steps: Tunja's piped-water coverage in the last year, as published and after each step.
+tj_pub = raw[(raw["divipola"] == "15001") & (raw["year"] == A.LAST_YEAR)].set_index("zone")
+tj_last = tjp[tjp["year"] == A.LAST_YEAR].set_index("zone")
+rural_med = prepared.loc[(prepared["year"] == A.LAST_YEAR) & (prepared["zone"] == "rural")
+                         & prepared["water_coverage_imputed"].eq(0), "water_coverage"].median()
+tj_total = tj_pub.loc["urban", "water_coverage_total"]
+text_holds(tj_pub["water_coverage"].isna().all() and tj_pub["water_coverage_total"].nunique() == 1
+           and tj_last.loc["urban", "water_coverage_from_total"] == 1
+           and tj_last.loc["urban", "water_coverage_imputed"] == 0
+           and tj_last.loc["rural", "water_coverage_imputed"] == 1
+           and tj_last.loc["rural", "water_coverage_from_total"] == 0
+           and np.isclose(tj_last.loc["urban", "water_coverage"], tj_total)
+           and np.isclose(tj_last.loc["rural", "water_coverage"], rural_med), "@tbl-tunja-steps")
+text_holds(tj_from_total == tj_imputed == n_window // 2, "Tunja's coverage filled the same way every year")
 
 # Why capitals' urban rows take the municipal total (step 2): most of a capital's people live
 # in its head town, and elsewhere the total usually exceeds the rural figure.
@@ -63,9 +78,9 @@ n_selected = s["municipality_rows"] - s["dropped_no_irca"]
 
 # A worked example for @sec-scaling: two capitals' urban zones in the last year, far apart in height.
 PAIR = {"15001": "Tunja", "13001": "Cartagena"}
-UNIT = {"irca": ("points", 1), "water_coverage": ("points", 1), "sewer_coverage": ("points", 1),
-        "ipm": ("points", 1), "rural_share": ("", 2), "altitude_m": ("m", 0),
-        "rainfall_mm": ("mm", 0), "mdm": ("points", 1), "log_sgp_water_pc": ("", 2)}
+UNIT = {"irca": ("pts.", 1), "water_coverage": ("pts.", 1), "sewer_coverage": ("pts.", 1),
+        "ipm": ("pts.", 1), "rural_share": ("", 2), "altitude_m": ("m", 0),
+        "rainfall_mm": ("mm", 0), "mdm": ("pts.", 1), "log_sgp_water_pc": ("", 2)}
 two = (prepared[(prepared["year"] == A.LAST_YEAR) & (prepared["zone"] == "urban")
                 & prepared["divipola"].isin(list(PAIR))].set_index("divipola").loc[list(PAIR)])
 diff = (two[A.FEATURES].iloc[0] - two[A.FEATURES].iloc[1]).abs()
@@ -73,25 +88,40 @@ Z = [f"z_{c}" for c in A.FEATURES]
 zdiff = (two[Z].iloc[0] - two[Z].iloc[1]).abs()
 zdiff.index = A.FEATURES
 share_raw, share_z = diff ** 2 / (diff ** 2).sum(), zdiff ** 2 / (zdiff ** 2).sum()
+# @tbl-two-rows leaves out the features under 1% of the distance both ways, and says which.
+two_shown = [c for c in A.FEATURES if max(share_raw[c], share_z[c]) >= 0.01]
+def label_in_text(c: str) -> str:
+    """A feature's short label inside a sentence: "rural share", but "IRCA" and "MDM" as they are."""
+    label = A.SHORT_LABELS[c]
+    return label if label[1:2].isupper() else label[0].lower() + label[1:]
+
+
+left = [label_in_text(c) for c in A.FEATURES if c not in two_shown]
+text_holds(bool(left), "the features @tbl-two-rows leaves out")
+two_left = ", ".join(left[:-1]) + " y " + left[-1] if len(left) > 1 else left[0]
 text_holds(len(two) == 2 and share_raw["altitude_m"] > 0.9 and share_raw["water_coverage"] < 0.01
            and share_z["water_coverage"] > 0.1 and share_z.idxmax() == "altitude_m"
            and two["altitude_m"].iloc[0] > two["altitude_m"].iloc[1], "Tunja and Cartagena")
 ```
 
-Un algoritmo de agrupamiento no lee una tabla como lo hace una persona. Ve números, mide distancias
-entre filas y agrupa las filas que están cerca. Todo en el resultado depende de qué filas ve, qué
-números, en qué escala, y qué recibe donde falta un número. *Preparar* los datos es el nombre de
-esas decisiones, y le dan forma a los clústeres tanto como el algoritmo. Hay cuatro entre la tabla
-del agua y el agrupamiento, y cada una tiene un precio, que se cuenta en filas y en conjeturas.
+Tunja está en lo alto de los Andes; Cartagena, en la costa del Caribe. Pon sus cabeceras lado a lado
+en la tabla del agua de `{python} A.LAST_YEAR` y pregunta qué tan lejos están. En las unidades de la
+tabla, la respuesta es casi toda altitud: los metros de altura forman el
+`{python} f"{share_raw['altitude_m']:.0%}"` de la distancia al cuadrado entre las dos filas (la
+diferencia en cada característica, al cuadrado, y luego sumada), y una brecha de
+`{python} f"{diff['water_coverage']:.0f}"` puntos en la cobertura de acueducto casi no se nota. Un
+algoritmo de agrupamiento no ve más que esas distancias. Así que, antes de que se ejecute, alguien
+decide qué filas ve, qué números, en qué escala, y qué ocupa el lugar de un número que falta. Esas
+decisiones son la preparación, y cada una tiene un precio.
 
 ::: opener
 - Explicar los cuatro pasos de la preparación y lo que cuesta cada uno.
 - Calcular un puntaje z dentro de un año y decir qué significa +1.
-- Explicar por qué la escala decide lo que pueden ver los clústeres, y por qué el peso igual es una
-  elección.
+- Explicar por qué la escala decide lo que pueden ver los clústeres, y por qué dar a todas las
+  características el mismo peso es una elección.
 - Revisar los conteos de `prepare()`, y seguir a un municipio a lo largo de cada paso.
 
-Partes de
+Punto de partida
 : El proyecto tal como lo dejó el @sec-explore.
 
 Construyes
@@ -103,33 +133,26 @@ Punto de control
 
 ## Cuatro pasos de la tabla a las características {#sec-prepare-steps}
 
-**1. Seleccionar.** Conserva los años de `{python} A.FIRST_YEAR` a `{python} A.LAST_YEAR`, porque el
-índice de desempeño municipal (MDM), una de las características, empieza en `{python} mdm_first`.
-Conserva solo los municipios: San Andrés no tiene ninguno de los valores del DNP y las áreas no
-municipalizadas están casi vacías. Conserva solo las filas con un valor de IRCA, ya que la calidad
-del agua es el punto del análisis. El IRCA es la única característica que nunca se llena: sus vacíos
-pueden depender del riesgo mismo (@sec-water-bands), así que un puntaje llenado sería una conjetura
-justo sobre aquello de lo que trata el análisis.
+Aquí la *preparación* lleva cuatro pasos, cada uno con un precio que se cuenta en filas o en
+conjeturas.
 
-**2. Transformar.** Las transferencias para agua por persona (SGP) son muy *asimétricas*: la mayoría
-son moderadas y unas pocas son muy grandes. Por eso el análisis usa su logaritmo, que mide razones y
-no diferencias: cada vez que una transferencia se duplica, suma lo mismo, y las pocas transferencias
-muy grandes ya no quedan lejos de todas las demás. Las capitales de departamento no tienen una
-separación urbana y rural para la cobertura, así que sus filas urbanas usan en su lugar la cobertura
-total del municipio, y una columna indicadora registra que lo hicieron. El total le sirve a la fila
-urbana porque la mayoría de la gente de una capital vive en su cabecera (el
-`{python} f"{cap_urban.median():.0%}"` en la capital mediana en `{python} A.LAST_YEAR`). No le
-serviría a la fila rural: en los demás municipios, el total supera a la cifra rural en el
-`{python} f"{total_above_rural:.0%}"` de las zonas-año rurales, así que las filas rurales de las
-capitales se llenan en el paso siguiente.
+**1. Seleccionar.** Conserva las filas de los municipios de `{python} A.FIRST_YEAR` a
+`{python} A.LAST_YEAR` que tienen IRCA: el índice de desempeño municipal (MDM) empieza en
+`{python} mdm_first`, San Andrés y las áreas no municipalizadas están casi vacías, y la calidad del
+agua es lo que se estudia. El IRCA nunca se llena, porque sus vacíos pueden depender del riesgo mismo
+(@sec-water-bands).
 
-**3. Imputar, con indicadores.** *Imputar* es llenar un valor faltante con una estimación. Descarta
-las filas a las que les faltan más de `{python} WORD[A.MAX_MISSING]` de las
-`{python} WORD[len(A.FEATURES)]` características. Llena los vacíos restantes con la mediana del mismo
-año y la misma zona, y agrega una columna indicadora, como `water_coverage_imputed`, que marca cada
-valor llenado. La mediana, porque unos pocos valores extremos no pueden arrastrarla; el mismo año y
-la misma zona, porque las zonas rurales y urbanas difieren (@sec-water-bands) y los años se
-desplazan.
+**2. Transformar.** Las transferencias para agua por persona (SGP) son *asimétricas*, la mayoría
+moderadas y unas pocas muy grandes, así que el análisis toma su logaritmo, con el que cada
+duplicación suma lo mismo. Las capitales de departamento no tienen separación urbana y rural de la
+cobertura, así que sus filas urbanas toman el total del municipio, marcado en una *columna
+indicadora*.
+
+**3. Imputar, con indicadores.** *Imputar* es llenar un valor faltante con una estimación: se
+descartan las filas a las que les faltan más de `{python} WORD[A.MAX_MISSING]` de las
+`{python} WORD[len(A.FEATURES)]` características, y el resto se llena con la mediana de su año y su
+zona, cada relleno marcado, como en `water_coverage_imputed`. La mediana, porque unos pocos valores
+extremos no pueden arrastrarla; el año y la zona, porque las zonas difieren y los años se desplazan.
 
 **4. Estandarizar dentro de cada año.** Reemplaza cada característica por su *puntaje z* dentro de
 su año:
@@ -143,23 +166,43 @@ de la característica. Un puntaje z de +1 significa una desviación estándar po
 ese año; un puntaje z no tiene unidad.
 
 ::: why
-¿Por qué dentro de cada año y no sobre todos los años? Por dos razones. El SGP está en pesos
-corrientes, no ajustados por inflación, así que sus valores suben con el tiempo por razones que no
-tienen que ver con ningún municipio. Y otras características se desplazan en bloque de un año a
-otro, como el IRCA rural en la @fig-wat-years. Estandarizar dentro de cada año elimina los dos
-desplazamientos. Una zona se compara solo con las demás zonas de ese año, así que un desplazamiento
-nacional, real o producto del muestreo, no la cambia de clúster, y un solo agrupamiento sobre todos
-los años da etiquetas que significan la misma posición relativa en cada año. El precio es que una
-mejora real compartida por todas las zonas también es invisible para los clústeres.
+¿Por qué dentro de cada año? El SGP está en pesos corrientes, no ajustados por inflación, así que
+sube por razones ajenas a cualquier municipio, y otras características se desplazan en bloque de un
+año a otro, como el IRCA rural en la @fig-wat-years. Dentro de su año, una zona se compara solo con
+las demás zonas de ese año, así que un desplazamiento nacional, real o producto del muestreo, no la
+cambia de clúster, y un clúster significa la misma posición relativa en cada año.
 :::
 
+El precio es que una mejora real compartida por todas las zonas también es invisible para los
+clústeres.
+
+La @tbl-tunja-steps sigue un valor a lo largo de los pasos: la cobertura de acueducto de Tunja en
+`{python} A.LAST_YEAR`, en sus dos zonas.
+
+```{python}
+#| label: tbl-tunja-steps
+#| tbl-cap: "La cobertura de acueducto (%) de Tunja en el último año: tal como se publicó, con el valor de cada zona vacío junto al total municipal, y después de cada paso que la cambia."
+#| output: asis
+u, r = tj_last.loc["urban"], tj_last.loc["rural"]
+zu, zr = (f"z = {v:+.2f}".replace("-", "−") for v in (u["z_water_coverage"], r["z_water_coverage"]))
+print("| Paso | Tunja, urbana | Tunja, rural |\n|---|---|---|")
+print(f"| Tal como se publicó | vacía; total {tj_total:.1f} | vacía; total {tj_total:.1f} |")
+print(f"| Transformar | toma el total, {u['water_coverage']:.1f}, marcado | sin cambios |")
+print(f"| Imputar | nada que llenar | {r['water_coverage']:.1f}, la mediana rural de su año, marcada |")
+print(f"| Estandarizar | {zu} | {zr} |")
+```
+
+El total le sirve a la fila urbana de una capital porque la mayoría de su gente vive en la cabecera
+(el `{python} f"{cap_urban.median():.0%}"` en la capital mediana en `{python} A.LAST_YEAR`). No le
+serviría a la fila rural, ya que en los demás municipios el total supera a la cifra rural en el
+`{python} f"{total_above_rural:.0%}"` de las zonas-año rurales, así que la fila rural de una capital
+espera al paso 3.
+
 ::: pitfall
-Cada relleno es una conjetura, y una conjetura sin indicador se vuelve imposible de distinguir de
-los datos. Los indicadores hacen que las conjeturas se puedan contar y revisar después: un clúster
-hecho sobre todo de valores imputados sería un clúster de medianas, no de lugares. El README de los
-datos lo dice sobre la cobertura de las capitales ("Do not do it silently": no lo hagas en
-silencio), y el `AGENTS.md` del proyecto, escrito a partir de ese README, le lleva sus advertencias
-al agente: nada se llena en silencio.
+Cada relleno es una conjetura, y una conjetura sin indicador ya no se distingue de los datos. Los
+indicadores permiten contar y revisar después las conjeturas: un clúster hecho sobre todo de valores
+imputados sería un clúster de medianas, no de lugares. El README de los datos lo dice sobre la
+cobertura de las capitales: "Do not do it silently" (no lo hagas en silencio).
 :::
 
 ## Lo que conservan los pasos {#sec-prepare-counts}
@@ -186,15 +229,12 @@ aparece en el capítulo siguiente describe solo los sistemas rurales *muestreado
 imputados son valores de cobertura: las filas rurales de las capitales y los municipios a los que les
 falta la separación en algunos años.
 
-Tunja muestra los dos tratamientos de una capital, y no pierde ninguna de sus `{python} n_window`
-zonas-año de `{python} A.FIRST_YEAR` a `{python} A.LAST_YEAR`. Sus `{python} tj_from_total` filas
-urbanas tomaron el total municipal para la cobertura, marcado en `water_coverage_from_total`, y sus
-`{python} tj_imputed` filas rurales tomaron la mediana rural de su año, marcada en
-`water_coverage_imputed`. La revisión también encuentra algo que los indicadores no marcan: el total
-que tomó la fila urbana de `{python} tj_zero[0]` es el 0 que la sección de Tunja (@sec-tunja) señaló
-como probablemente "no reportado". El análisis lo conserva tal como se publicó, como hace el README
-de los datos. Tratar esos ceros como faltantes sería un cambio defendible, pero un cambio que hay que
-hacer en `prepare()` e informar, nunca en silencio.
+Tunja no pierde ninguna de sus `{python} n_window` zonas-año, y cada año se llena como en
+la @tbl-tunja-steps. La revisión también encuentra algo que los indicadores no marcan: el total que
+tomó la fila urbana de `{python} tj_zero[0]` es el 0 que la @sec-tunja señaló como probablemente "no
+reportado". El análisis lo conserva tal como se publicó, como hace el README de los datos. Tratar esos
+ceros como faltantes sería un cambio defendible, pero un cambio que hay que hacer en `prepare()` e
+informar, nunca en silencio.
 
 ::: think
 Supón que `prepare()` tratara como faltante el 0 reportado de Tunja. ¿Qué le pasaría a esa fila, y a
@@ -210,9 +250,9 @@ común: un error sin marcar se volvería una conjetura marcada.
 ## ¿Por qué cambiar la escala? {#sec-scaling}
 
 k-means agrupa las filas por la distancia en línea recta, o *euclidiana*: la raíz cuadrada de la suma
-de las diferencias al cuadrado en todas las características. La proporción de la distancia al
-cuadrado esperada, entre dos filas tomadas al azar, que aporta una característica es proporcional a
-su *varianza*, el cuadrado de su desviación estándar. En unidades originales, las características que
+de las diferencias al cuadrado en todas las características. Lo que una característica aporta, en
+promedio, a la distancia al cuadrado entre dos filas al azar es proporcional a su *varianza*, el
+cuadrado de su desviación estándar. En unidades originales, las características que
 se miden en miles, como los milímetros de lluvia y los metros de altitud, opacan a las que se miden
 de 0 a 100 (@fig-wat-scale).
 
@@ -249,28 +289,25 @@ precipitación, así que dominaría incluso a la precipitación; después de los
 evita que unas pocas transferencias muy grandes queden lejos de todas las demás filas, y baja el
 puntaje z más grande de `{python} f"{z_max_raw:.1f}"` a `{python} f"{z_max_log:.1f}"`.
 
-Dos filas reales muestran lo que cambia la escala (@tbl-two-rows): las zonas urbanas de Tunja, en lo
-alto de los Andes, y de Cartagena, en la costa del Caribe, en `{python} A.LAST_YEAR`. Las dos son
-capitales, así que su cobertura es el total de cada municipio. En unidades originales, su diferencia
-de altitud forma el `{python} f"{share_raw['altitude_m']:.0%}"` de su distancia al cuadrado, y una
-brecha de `{python} f"{diff['water_coverage']:.0f}"` puntos en la cobertura de acueducto forma menos
-del 1%. En puntajes z, la cobertura cuenta un `{python} f"{share_z['water_coverage']:.0%}"`, y la
-altitud sigue a la cabeza, con un `{python} f"{share_z['altitude_m']:.0%}"`, porque la altura es donde
-más difieren de verdad las dos ciudades. Cambiar la escala no hace que todas las diferencias cuenten
-lo mismo; evita que las unidades decidan.
+Las dos filas con las que empezó el capítulo muestran lo que cambia la escala (@tbl-two-rows). Las
+dos son capitales, así que su cobertura es el total de cada municipio. En unidades originales, su
+brecha de cobertura forma menos del 1% de su distancia al cuadrado; en puntajes z, cuenta un
+`{python} f"{share_z['water_coverage']:.0%}"`, y la altitud sigue a la cabeza, con un
+`{python} f"{share_z['altitude_m']:.0%}"`, porque la altura es donde más difieren de verdad las dos
+ciudades. Cambiar la escala no hace que todas las diferencias cuenten lo mismo; evita que las
+unidades decidan. Quedan fuera de la tabla, por debajo del 1% en los dos casos: `{python} two_left`.
 
 ```{python}
 #| label: tbl-two-rows
-#| tbl-cap: "Las zonas urbanas de Tunja y Cartagena en el último año del análisis: qué tan lejos están en cada característica, en unidades originales (cobertura, pobreza, IRCA y MDM en puntos), y la proporción de su distancia al cuadrado que aporta cada característica, en unidades originales y en puntajes z. Calculado a partir de las filas preparadas."
+#| tbl-cap: "Las dos cabeceras en el último año: la diferencia en cada característica, en su unidad (pts.: puntos porcentuales o de índice; la proporción rural y el log del SGP no tienen), y su proporción de la distancia al cuadrado, original y en puntajes z."
 #| output: asis
 def pct(v: float) -> str:
     return "<1%" if 0 < v < 0.005 else f"{v:.0%}"
 
 
-lines = ["| Característica | Diferencia | Proporción, original | Proporción, z |", "|---|--:|--:|--:|"]
-for c in A.FEATURES:
-    unit, dp = UNIT[c]
-    d = f"{diff[c]:,.{dp}f}" + (f" {unit}" if unit in ("m", "mm") else "")
+lines = ["| Característica | Diferencia | Original | En z |", "|---|--:|--:|--:|"]
+for c in two_shown:
+    d = f"{diff[c]:,.{UNIT[c][1]}f} {UNIT[c][0]}".strip()  # units as in @sec-water-features
     lines.append(f"| {A.SHORT_LABELS[c]} | {d} | {pct(share_raw[c])} | {pct(share_z[c])} |")
 print("\n".join(lines))
 ```
@@ -285,16 +322,20 @@ nada: la unidad se cancela, porque un puntaje z divide una distancia a la media 
 estándar, las dos en la misma unidad.
 :::
 
+Con la escala cambiada quedan aún dos características que dicen casi lo mismo, y eso importa porque
+la distancia suma la diferencia de cada característica: lo que comparten dos de ellas cuenta dos
+veces. La cobertura de acueducto y la de alcantarillado están muy correlacionadas:
+r = `{python} f"{r_cov:.2f}"` sobre las filas conservadas, donde el coeficiente de correlación r va
+de −1 a 1, y 1 significaría que suben juntas a lo largo de una línea recta.
+
 ::: practice
-El peso igual es en sí una elección, no un valor por defecto neutral.
+Dar a todas las características el mismo peso es en sí una elección, no un valor por defecto neutral.
 `{python} WORD[len(A.FEATURES)].capitalize()` características en puntaje z cuentan lo mismo, así que
 las `{python} WORD[len(WATER)]` variables de calidad y cobertura del agua cuentan el
-`{python} f"{water_share:.0%}"` de la distancia y el contexto, el resto. Peso igual por
-característica tampoco es peso igual por idea: la cobertura de acueducto y la de alcantarillado están
-muy correlacionadas (r = `{python} f"{r_cov:.2f}"` sobre las filas conservadas, donde el coeficiente
-de correlación r va de −1 a 1, y 1 significaría que suben juntas a lo largo de una línea recta), así
-que lo que comparten cuenta dos veces. Si la calidad del agua debiera pesar más, esa es una decisión
-que hay que tomar explícitamente e informar, no dejarla a las unidades en las que vinieron los datos.
+`{python} f"{water_share:.0%}"` de la distancia y el contexto, el resto. Y el mismo peso por
+característica no es el mismo peso por idea, como muestran las dos coberturas. Si la calidad del
+agua debiera pesar más, decídelo explícitamente e infórmalo; no lo dejes a las unidades en las que
+vinieron los datos.
 :::
 
 ## Construir `prepare()` {#sec-prepare-do}
@@ -316,8 +357,8 @@ filas de municipios de `{python} years` que tienen un valor de IRCA, antes de de
 características faltantes. `department_capital`, en la que se apoya este prompt, marca las
 `{python} n_capitals` capitales de departamento. El script de construcción la escribe a partir de los
 códigos DIVIPOLA, donde cada capital lleva el número `001`, salvo que la capital de Cundinamarca es
-Bogotá, así que `25001` (Agua de Dios) no es una: un detalle que el agente solo puede hacer bien
-si lee el README de los datos.
+Bogotá, así que `25001` (Agua de Dios) no es capital: el agente solo acierta en ese detalle si lee
+el README de los datos.
 
 El segundo imputa y estandariza, y guarda el resultado:
 
@@ -331,8 +372,8 @@ En prepare(), descarta las filas a las que les faltan más de 2 características
 edita `prepare()` · `uv run python scripts/analysis.py`
 :::
 
-La versión del proyecto terminado de la imputación y el cambio de escala, un poco recortada, muestra
-el poco código que lleva cada decisión una vez que está clara:
+La imputación y el cambio de escala del proyecto terminado, un poco recortados, muestran el poco
+código que lleva cada decisión:
 
 ```python
 n_missing = d[FEATURES].isna().sum(axis=1)
@@ -369,6 +410,22 @@ Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md
 :::
 :::
 
+::: {.cards .ledger title="Tunja hasta aquí"}
+Conservadas
+: sus `{python} n_window` zonas-año, `{python} A.FIRST_YEAR`–`{python} A.LAST_YEAR`.
+
+Llenadas, y marcadas
+: `{python} tj_from_total` filas urbanas tomaron el total municipal para la cobertura;
+  `{python} tj_imputed` filas rurales, la mediana rural de su año.
+
+Sin marcar
+: el 0 reportado para `{python} tj_zero[0]`, conservado tal como se publicó.
+
+Lo que se puede decir
+: los mismos hechos, en la escala que comparten todos los lugares. Su cobertura rural ahora es una
+  conjetura.
+:::
+
 ## Resumen {.unnumbered}
 
 ::: keyideas
@@ -380,8 +437,8 @@ Catch me up: follow ../quarto-workshop/checkpoints/06-water-prepare/README.md
   indicador marca.
 - Los puntajes z dentro de cada año ponen las características en una sola escala y eliminan los
   desplazamientos nacionales.
-- Sin cambiar la escala, la precipitación y la altitud decidirían los clústeres; el peso igual es
-  en sí una elección.
+- Sin cambiar la escala, la precipitación y la altitud decidirían los clústeres; dar a todas las
+  características el mismo peso es en sí una elección.
 :::
 
 Lo que queda son `{python} w.fmt(s["kept"])` filas de `{python} WORD[len(A.FEATURES)]` puntajes z

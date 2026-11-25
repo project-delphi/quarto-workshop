@@ -4,8 +4,8 @@ Renders the chapter's hello.qmd (the file the agent writes in Step 6) in a tempo
 the book's own locked environment (uv run in book/, JUPYTER_PATH set to its kernels as the
 Makefile does), as both formats it names: hello.html and hello.pdf (Quarto's bundled Typst; no
 TeX). The picture stacks two crops, each showing "The answer is 42.": the web page at a 390 px
-viewport (drawn at twice the pixel density) and the left of the PDF's first page text (macOS Quick
-Look draws it, _pdf.py), with a dashed rule between them. The 42 is the file's own output.
+viewport (drawn at twice the pixel density) and the left of the PDF's first page below its title
+(macOS Quick Look draws it, _pdf.py), its right edge faded, with a dashed rule between them. The 42 is the file's own output.
 
 Run from book/media/capture (or CAPTURE_STEPS=hello; names another script owns are ignored):
     uv run --with playwright python hello_outputs.py [hello]
@@ -29,6 +29,7 @@ OUT = BOOK / "media" / "figures"
 PHONE, SCALE = 390, 2  # CSS pixels wide, and device pixels per CSS pixel
 PAD = 12  # CSS pixels kept round the web page's crop
 GAP = 16  # CSS pixels between the crops, with a dashed rule across the middle
+TITLE_GAP = 24  # blank rows (of the 2600 px page) that end the PDF's title
 
 # The file Chapter 4's Step 6 has the agent write, as Chapter 1 prints it (01-quarto.qmd); Chapter 4
 # points to that listing.
@@ -86,14 +87,35 @@ def pdf_crop(pdf: Path, width: int):
         png = Path(tmp) / "page.png"
         first_page_png(pdf, png, 2600)
         page = Image.open(png).convert("RGB")
-    # Keep the page's ink above its page number, cropped to the title (centred) and the text's
-    # left edge: the page's full width would draw the text too small for a phone.
+    # Keep the page's ink above its page number, below its title (the web page above shows the
+    # same title), from the text's left edge: the page's full width would draw the text too small
+    # for a phone. The code block's grey band runs on past the crop, so the right edge fades to
+    # white, a crop that says so.
     body = page.crop((0, 0, page.width, round(page.height * 0.85)))
-    box = Image.eval(body.convert("L"), lambda v: 255 if v < 200 else 0).getbbox()
-    if box is None:
+    ink = Image.eval(body.convert("L"), lambda v: 255 if v < 200 else 0)
+    if ink.getbbox() is None:
         raise SystemExit(f"{pdf.name}: the first page is blank")
-    left, top, right, bottom = box
-    page = page.crop((max(0, left - 40), max(0, top - 40), right + 40, bottom + 40))
+    rows = [any(ink.getpixel((x, y)) for x in range(0, ink.width, 4)) for y in range(ink.height)]
+    # The title is the first run of ink followed by a clear gap (TITLE_GAP blank rows, so a dotted
+    # letter or a second title line stays inside it); the crop starts after that gap.
+    first = rows.index(True)
+    after_title = next((y for y in range(first, len(rows) - TITLE_GAP)
+                        if not any(rows[y:y + TITLE_GAP])), None)
+    if after_title is None:
+        raise SystemExit(f"{pdf.name}: no gap after the title on the first page")
+    below = ink.crop((0, after_title, ink.width, ink.height)).getbbox()
+    if below is None:
+        raise SystemExit(f"{pdf.name}: nothing below the title on the first page")
+    left, top, right, bottom = below
+    top, bottom = top + after_title, bottom + after_title
+    right_edge = min(page.width, right + 120)
+    page = page.crop((max(0, left - 40), max(0, top - 60), right_edge, bottom + 40))
+    # Fade only the empty margin past the last ink, so no text is dimmed.
+    fade = min(round(page.width * 0.12), right_edge - right)
+    for i in range(fade):
+        a = (i + 1) / fade
+        col = page.crop((page.width - fade + i, 0, page.width - fade + i + 1, page.height))
+        page.paste(Image.blend(col, Image.new("RGB", col.size, "white"), a), (page.width - fade + i, 0))
     return page.resize((width, round(page.height * width / page.width)), Image.LANCZOS)
 
 
