@@ -19,6 +19,8 @@ n_tests = sum(1 for f in starter if f.startswith("tests/test_"))
 text_holds(not any(f.endswith(".qmd") or f == "AGENTS.md" for f in starter),
            "the starter has no Quarto file and no AGENTS.md")
 text_holds("notebooks/explore.ipynb" in starter, "the starter's notebook")
+# The report prompt asks for a "95% interval"; the script's intervals must be that wide.
+text_holds(S["confidence"] == 0.95, "the report prompt's 95% interval")
 # Every prompt in this chapter was dry-run, verbatim, by Claude Code (Opus 5.5) in a fresh
 # copy of starters/eval-repo on 2026-11-18: all four worked, the three formats showed the same
 # numbers, and a fresh clone rebuilt them; the pitfalls below are what that run met.
@@ -54,8 +56,7 @@ being true.
 print(f"> {PLANT['sentence']}")
 ```
 
-That sentence was written for this exercise; the repository's README does not hold it. Here
-is what the script wrote, each release with its ROC AUC, as
+Here is what the script wrote, each release with its ROC AUC, as
 `grep roc_auc outputs/metrics.csv | cut -d, -f1,3,4` prints it:
 
 ::: transcript
@@ -289,6 +290,11 @@ In the finished project the sentence reads:
 > `{python} f"{S['test_rows']:,}"` held-out contacts is
 > `{python} ev.interval(best, "roc_auc")`.
 
+The brackets hold its `{python} f"{S['confidence']:.0%}"` *bootstrap* interval: the script
+scores `{python} f"{S['n_bootstrap']:,}"` resamples of the held-out contacts, each drawn with
+replacement, and gives the range of the middle `{python} f"{S['confidence']:.0%}"` of their
+AUCs.
+
 **Compare it with the source**, without the report: `grep roc_auc outputs/metrics.csv`
 prints each version's value with its `low` and `high`, and the report's three formats must
 all agree with it.
@@ -300,6 +306,7 @@ was wrong, and whose is it?
 The ROC AUC. `{python} PLANT["wrong"]` is `{python} PLANT["rival"]`'s; `{python} best`'s is
 `{python} PLANT["right"]`. The name was right and the number was a copy from another row. The
 report cannot make that slip: its number is inline code, and the next section guards its name.
+(The sentence was planted for this exercise; the repository's README does not hold it.)
 :::
 
 <!-- Observed in the dry run of 2026-11-18 with Quarto 1.10.20 (this file's setup cell). -->
@@ -354,10 +361,10 @@ first anyway.
 <!-- source: book/chapters/fast-path.qmd lines 186–189 and 296–299 at 651db10; dry run of
 2026-11-18 noted at lines 20–22 -->
 In the test run of this chapter, the step that restores the notebook was skipped. Rendering
-with `--execute` had written several hundred lines of outputs into `notebooks/explore.ipynb`,
-and `git add -A` took them: a notebook full of outputs went into the commit that was meant to
-add a report. Nothing failed. `git status`, read before the commit, was the one place it
-showed.
+with `--execute` had changed hundreds of lines of `notebooks/explore.ipynb`, writing its
+outputs in, and `git add -A` took them: a notebook full of outputs went into the
+commit that was meant to add a report. `git status`, read before the commit, was the one place
+it showed.
 :::
 
 ::: catchup
