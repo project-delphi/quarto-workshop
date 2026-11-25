@@ -89,7 +89,15 @@ zdiff.index = A.FEATURES
 share_raw, share_z = diff ** 2 / (diff ** 2).sum(), zdiff ** 2 / (zdiff ** 2).sum()
 # @tbl-two-rows leaves out the features under 1% of the distance both ways, and says which.
 two_shown = [c for c in A.FEATURES if max(share_raw[c], share_z[c]) >= 0.01]
-two_left = " and ".join(A.SHORT_LABELS[c] for c in A.FEATURES if c not in two_shown)
+def label_in_text(c: str) -> str:
+    """A feature's short label inside a sentence: "rural share", but "IRCA" and "MDM" as they are."""
+    label = A.SHORT_LABELS[c]
+    return label if label[1:2].isupper() else label[0].lower() + label[1:]
+
+
+left = [label_in_text(c) for c in A.FEATURES if c not in two_shown]
+text_holds(bool(left), "the features @tbl-two-rows leaves out")
+two_left = ", ".join(left[:-1]) + " and " + left[-1] if len(left) > 1 else left[0]
 text_holds(len(two) == 2 and share_raw["altitude_m"] > 0.9 and share_raw["water_coverage"] < 0.01
            and share_z["water_coverage"] > 0.1 and share_z.idxmax() == "altitude_m"
            and two["altitude_m"].iloc[0] > two["altitude_m"].iloc[1], "Tunja and Cartagena")
@@ -275,7 +283,7 @@ units from deciding. The table leaves out `{python} two_left`, under 1% either w
 
 ```{python}
 #| label: tbl-two-rows
-#| tbl-cap: "The two head towns in the last year: each feature's difference, and its share of their squared distance."
+#| tbl-cap: "The two head towns in the last year: each feature's difference, in its unit (points are percentage points or index points; rural share and log SGP per person have none), and its share of their squared distance."
 #| output: asis
 def pct(v: float) -> str:
     return "<1%" if 0 < v < 0.005 else f"{v:.0%}"
@@ -283,7 +291,7 @@ def pct(v: float) -> str:
 
 lines = ["| Feature | Difference | Share, raw | Share, z |", "|---|--:|--:|--:|"]
 for c in two_shown:
-    d = f"{diff[c]:,.{UNIT[c][1]}f}"  # units as in @sec-water-features
+    d = f"{diff[c]:,.{UNIT[c][1]}f} {UNIT[c][0]}".strip()  # units as in @sec-water-features
     lines.append(f"| {A.SHORT_LABELS[c]} | {d} | {pct(share_raw[c])} | {pct(share_z[c])} |")
 print("\n".join(lines))
 ```

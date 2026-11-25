@@ -111,3 +111,46 @@ def names() -> dict[int, str]:
 
 def colors() -> dict[int, str]:
     return res()["profiles"]["color"].to_dict()
+
+
+# The water exercises' opening puzzle (D5-c; PLAN-improvement-briefs.md §2.1): three true
+# sentences about the kinds, read from cluster_profiles.csv, one of them given a causal verb.
+# The exercises print `planted`; Appendix E's answer prints `honest[CLAIM_PLANTED]`, from this
+# one function, so the answer cannot drift from the puzzle.
+CLAIM_CAUSAL = ("because", "causes", "leads to", "due to")  # words that claim a cause
+CLAIM_PLANTED = 2                                           # the third sentence claims one
+CLAIM_CAUSE = "because its water is less safe"
+
+
+def council_claims(out: dict) -> tuple[list[str], list[str]]:
+    """The three sentences as an honest analyst writes them, and as the draft prints them."""
+    if language() == "es":
+        raise ValueError("council_claims: the Spanish sentences come with the translation of "
+                         "exercises-water.qmd (translation/pending.yml)")
+    from scripts.prose import number_words, spans, text_holds
+
+    word = number_words()
+    prof = out["profiles"]
+    kind = {c: n.rsplit(", ", 1)[0] for c, n in prof["name"].items()}
+    worst = int(prof["irca_median"].idxmax())  # the least safe water
+    im = int(prof["infant_mortality_mean"].idxmax())
+    top = int(prof["saber11_mean_median"].idxmax())
+    sab = prof["saber11_mean_median"]
+    text_holds(sab[worst] < sab[top] and prof.loc[worst, "irca_median"] > prof.loc[top, "irca_median"],
+               "the planted comparison, true as a description")
+    first = (f'The "{kind[worst]}" kind had the highest median utility-supplied IRCA of the '
+             f'{word[len(prof)]}, {prof.loc[worst, "irca_median"]:.1f}.')
+    second = (f'Recorded infant mortality was highest, on average, in the "{kind[im]}" kind: '
+              f'{prof.loc[im, "infant_mortality_mean"]:.1f} deaths per 1,000 live births in '
+              f'{spans(A.OUTCOME_YEARS["infant_mortality"])}.')
+    third = (f'The median Saber 11 score was lower in the "{kind[worst]}" kind than in '
+             f'"{kind[top]}", {sab[worst]:.0f} against {sab[top]:.0f}')
+    honest = [first, second, third + ", and its utility-supplied water also scored worse; the "
+              "comparison describes the kinds and does not show that the water caused the gap."]
+    planted = [first, second, f"{third}, {CLAIM_CAUSE}."]
+    text_holds(0 <= CLAIM_PLANTED < len(planted) and CLAIM_CAUSE in planted[CLAIM_PLANTED]
+               and not any(v in t for t in honest for v in CLAIM_CAUSAL)
+               and not any(v in t for i, t in enumerate(planted) if i != CLAIM_PLANTED
+                           for v in CLAIM_CAUSAL),
+               "one planted causal claim")
+    return honest, planted

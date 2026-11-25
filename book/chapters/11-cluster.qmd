@@ -279,12 +279,12 @@ applies it row by row:
 
 ```{python}
 #| label: tbl-k-selection
-#| tbl-cap: "`choose_k()`'s rule, row by row, on the kept rows: how much one more cluster would cut inertia, and the verdict."
+#| tbl-cap: "`choose_k()`'s rule, row by row, on the kept rows: how much one more cluster would cut inertia, the silhouette, and the verdict."
 #| output: asis
-lines = ["| k | One more cluster cuts | Verdict |", "|--:|--:|---|"]
+lines = ["| k | One more cluster cuts | Silhouette | Verdict |", "|--:|--:|--:|---|"]
 for j in ktab.index:
     cut = f"{nxt[j]:.1%}" if j + 1 in ktab.index else "–"
-    row = f"| {j} | {cut} | {verdict(j)} |"
+    row = f"| {j} | {cut} | {ktab.loc[j, 'silhouette']:.3f} | {verdict(j)} |"
     lines.append(row.replace("| " + verdict(j), "| **" + verdict(j) + "**") if j == k else row)
 print("\n".join(lines))
 ```
