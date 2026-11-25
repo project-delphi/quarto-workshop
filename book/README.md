@@ -112,7 +112,9 @@ facts that change, Appendix K) when that file changes. Run `make book-fresh` aft
 - Three more components (`filters/book.lua`, styled in both editions):
   - `::: story` is a short incident a reader could meet in that chapter, after the opening
     paragraph, never before it. Labelled "From the build log", it is true, and a
-    `<!-- source: … -->` comment inside it says where it is recorded; with the class
+    `<!-- source: … -->` comment inside it says where it is recorded (an HTML comment reaches
+    the EPUB's XHTML, where `--` inside it is an error: write `uv add` with the dev flag, not
+    its spelling); with the class
     `.illustration` it is labelled "An illustration": a composite scene with no numbers or
     results except ones a cell computes.
   - `::: cards` holds a definition list; each term and its definitions become a card kept on

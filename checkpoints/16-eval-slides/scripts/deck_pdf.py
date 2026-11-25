@@ -1,13 +1,15 @@
-"""Print slides.html to slides.pdf with headless Chrome, one page per slide, and check it.
+"""Print slides.html to slides.pdf with Chrome, one page per slide, and check it.
 
 Run from the project root, after `quarto render slides.qmd`:
 
     uv run python scripts/deck_pdf.py
 
 Quarto has no PDF export for Reveal.js decks; Reveal's own print view (`?print-pdf`)
-printed by a browser is the documented route. Headless Chrome sometimes prints before the
-deck has laid itself out, giving blank pages, so each try is checked and retried, up to
-`TRIES` times:
+printed by a browser is the documented route. Reveal lays the print view out a frame after
+the deck is ready, and Chrome's command-line printer (`--headless --print-to-pdf`) can print
+before that frame, writing one blank page. So the script opens the deck with Playwright,
+waits until Reveal has laid out a print page for every slide, and only then prints. Each try
+is still checked, and retried up to `TRIES` times:
 
 - The page count must equal the number of slides. The slides are counted in slides.html:
   every `<section>` inside `<div class="slides">` with no `<section>` inside it (a vertical
@@ -16,20 +18,21 @@ deck has laid itself out, giving blank pages, so each try is checked and retried
 - Each page must contain the first words of its slide's title, so a blank page fails.
 
 Chrome is found from the CHROME environment variable, then the macOS default location,
-then `google-chrome`, `google-chrome-stable`, `chromium` or `chromium-browser` on PATH.
-It runs with a throwaway profile, so an open Chrome window is not disturbed. The print
-options (`pdf-separate-fragments`, `show-notes`) are set in slides.qmd's YAML.
+then `google-chrome`, `google-chrome-stable`, `chromium` or `chromium-browser` on PATH;
+Playwright drives that Chrome (it downloads no browser of its own) with a throwaway profile,
+so an open Chrome window is not disturbed. The print options (`pdf-separate-fragments`,
+`show-notes`) are set in slides.qmd's YAML.
 """
 
 import os
 import re
 import shutil
-import subprocess
 import sys
-import tempfile
 from html.parser import HTMLParser
 from pathlib import Path
 
+from playwright.sync_api import Error as PlaywrightError
+from playwright.sync_api import sync_playwright
 from pypdf import PdfReader
 
 DECK = Path("slides.html")
@@ -88,22 +91,24 @@ def find_chrome() -> str:
     sys.exit("No Chrome found: set CHROME to the path of Chrome or Chromium.")
 
 
-def print_pdf(chrome: str) -> str:
-    """Print the deck's print view to slides.pdf with a throwaway profile. Returns what went
-    wrong in Chrome itself (a hang, an error exit), or "" when it finished."""
+def print_pdf(chrome: str, slides: int) -> str:
+    """Print the deck's print view to slides.pdf once Reveal has laid out a print page for
+    each of the `slides`. Returns what went wrong in Chrome itself (it would not start, or
+    the print view never appeared within a minute), or "" when it printed."""
     url = f"{DECK.resolve().as_uri()}?print-pdf"
-    with tempfile.TemporaryDirectory() as profile:
-        try:
-            run = subprocess.run(
-                [chrome, "--headless", "--disable-gpu", f"--user-data-dir={profile}",
-                 "--no-pdf-header-footer", "--run-all-compositor-stages-before-draw",
-                 "--virtual-time-budget=20000", f"--print-to-pdf={PDF}", url],
-                check=False, capture_output=True, text=True, timeout=180)
-        except subprocess.TimeoutExpired:
-            return "Chrome did not finish within 180 s"
-    if run.returncode != 0:
-        last = (run.stderr.strip().splitlines() or ["no message"])[-1]
-        return f"Chrome exited with {run.returncode}: {last}"
+    try:
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(executable_path=chrome)
+            page = browser.new_page()
+            page.goto(url)
+            # Reveal builds one .pdf-page per slide a frame after it is ready, then fires
+            # its pdf-ready event; printing earlier gives one blank page.
+            page.wait_for_function(
+                f"document.querySelectorAll('.pdf-page').length >= {slides}", timeout=60_000)
+            page.pdf(path=str(PDF), prefer_css_page_size=True, print_background=True)
+            browser.close()
+    except PlaywrightError as error:
+        return f"Chrome could not print: {str(error).splitlines()[0]}"
     return ""
 
 
@@ -138,7 +143,7 @@ def main() -> int:
     chrome = find_chrome()
     for attempt in range(1, TRIES + 1):
         PDF.unlink(missing_ok=True)
-        chrome_problem = print_pdf(chrome)
+        chrome_problem = print_pdf(chrome, len(titles))
         found = ([chrome_problem] if chrome_problem else []) + problems(titles)
         if not found:
             print(f"Wrote {PDF}: {len(titles)} pages, one per slide (try {attempt} of {TRIES})")
