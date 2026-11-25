@@ -49,7 +49,7 @@ repositorio de este capítulo, y debajo, lo que calculó el propio script del re
 coinciden. Nadie mintió; una oración como esta se escribe una vez, después de una ejecución, y
 los resultados cambian sin ella. Al final de este capítulo el repositorio tiene un informe en
 HTML, Word y PDF que no puede hacer eso: cada número que contiene se lee de los resultados, y
-una guarda detiene la construcción cuando una oración deja de ser cierta.
+una guarda detiene el renderizado cuando una oración deja de ser cierta.
 
 ```{python}
 #| output: asis
@@ -220,8 +220,8 @@ Ejecuta `uv add ipykernel nbclient nbformat` y luego renderiza notebooks/explore
 Los tres paquetes son lo que Quarto necesita para ejecutar código de Python: un kernel y las
 bibliotecas que manejan un notebook. `--execute` importa. Un notebook se renderiza **tal como se
 guardó**: sin la opción, Quarto muestra las salidas guardadas en el archivo, o ninguna, y no
-ejecuta nada. Con ella, Quarto ejecuta primero cada celda y, como parte del vocabulario que hay
-que conocer, *escribe las salidas nuevas de vuelta en el notebook*.
+ejecuta nada. Con ella, Quarto ejecuta primero cada celda y (conviene saberlo) *escribe las salidas
+nuevas de vuelta en el notebook*.
 
 ::: think
 Después del renderizado, `git status` muestra `notebooks/explore.ipynb` como modificado, además de
@@ -295,11 +295,11 @@ oración dice:
 > `{python} f"{S['test_rows']:,}"` held-out contacts is
 > `{python} ev.interval(best, "roc_auc")`.
 
-Es decir: de las versiones, la que está en negrita es la mejor, con su ROC AUC sobre los
-contactos reservados para la prueba. Los corchetes contienen su intervalo *bootstrap* del
+En español, la oración dice cuál de las versiones es la mejor y cuál es su ROC AUC sobre los
+contactos reservados para la prueba. Entre paréntesis va su intervalo *bootstrap* del
 `{python} f"{S['confidence']:.0%}"`: el script evalúa `{python} f"{S['n_bootstrap']:,}"`
-remuestras de los contactos reservados, cada una extraída con reposición, y da el rango del
-`{python} f"{S['confidence']:.0%}"` central de sus AUC.
+remuestras de los contactos reservados, cada una extraída con reposición, y da el intervalo que
+contiene el `{python} f"{S['confidence']:.0%}"` central de sus AUC.
 
 **Compáralo con la fuente**, sin el informe: `grep roc_auc outputs/metrics.csv` imprime el valor
 de cada versión con su `low` y su `high`, y los tres formatos del informe tienen que coincidir
@@ -328,8 +328,8 @@ Word usa un lector de pantalla, agrega la descripción en Word.
 
 La primera oración del informe nombra a una ganadora. El código en línea mantiene sus números al
 día, pero la *palabra* "best" (la mejor), y el nombre que la acompaña, solo son ciertos mientras
-los datos lo digan. Una *guarda* es una línea de código al lado de una oración así que detiene el
-renderizado si la oración se vuelve falsa (@sec-water-website). Es Python común y corriente, así
+los datos lo digan. Una *guarda* es una línea de código, junto a una oración de ese tipo, que detiene
+el renderizado si la oración se vuelve falsa (@sec-water-website). Es Python común y corriente, así
 que encaja en el propio paquete del repositorio:
 
 ::: {.prompt}
@@ -341,7 +341,7 @@ Agrega src/acme_eval/claims.py con `claim(condition, sentence)`, que lanza un er
 La demostración es lo importante. Una guarda que nunca viste fallar es una guarda que no
 probaste, y el prompt hace que el agente la rompa a propósito y te muestre el mensaje. Para que
 pueda fallar, la versión de la oración tiene que estar escrita en algún lugar donde una persona
-pueda equivocarse, y comprobarse contra `outputs/`: un nombre leído directamente de los resultados
+pueda equivocarse, y cotejarse con `outputs/`: un nombre leído directamente de los resultados
 nunca podría contradecirlos. Cada agente redacta el mensaje a su manera; en el proyecto terminado
 dice:
 
@@ -350,10 +350,10 @@ ClaimError: The results no longer support this sentence: The best version named 
 report has the highest ROC AUC in metrics.csv.
 ```
 
-Es decir, que los resultados ya no sostienen la oración: la mejor versión que nombra el informe
-tiene que tener el ROC AUC más alto de metrics.csv. Revisa después que el error deliberado ya no
+Es decir: los resultados ya no respaldan la oración "la mejor versión que nombra este informe
+tiene el ROC AUC más alto de metrics.csv". Revisa después que el error deliberado ya no
 esté. Un renderizado fallido deja los `report.html`, `.docx` y `.pdf` anteriores donde estaban,
-así que un archivo viejo puede parecer un éxito: lee las últimas líneas del renderizado, y la
+así que un archivo desactualizado puede parecer un éxito: lee las últimas líneas del renderizado, y la
 oración en la fuente. Luego haz commit:
 
 ::: {.you}
@@ -365,8 +365,8 @@ git commit -m "Add a report that reads outputs/, with a guard"
 :::
 
 `.gitignore` ya deja afuera `outputs/`, `.venv/` y los archivos renderizados, así que
-`git add -A` toma solo fuentes: la regla nueva de `AGENTS.md`, `report.qmd` y `claims.py`. Igual
-lee antes `git status`.
+`git add -A` toma solo fuentes: la regla nueva de `AGENTS.md`, `report.qmd` y `claims.py`. De todos
+modos, lee antes `git status`.
 
 ::: story
 <!-- source: book/chapters/fast-path.qmd lines 186–189 and 296–299 at 651db10; dry run of
@@ -410,7 +410,7 @@ por sí solo.
 | Revisión | Aquí |
 |---|---|
 | Alcance | `AGENTS.md`, `report.qmd`, `claims.py`, `pyproject.toml` y `uv.lock`, nada más |
-| Corrección | el AUC del informe contra `outputs/metrics.csv` |
+| Corrección | el AUC del informe comparado con `outputs/metrics.csv` |
 | Reconstrucción | un clon nuevo renderiza el mismo informe (abajo) |
 
 : Tres revisiones para un pull request. {#tbl-fast-review}
@@ -434,7 +434,7 @@ El `report.html` del clon tiene que mostrar el mismo
 detiene con `FileNotFoundError` para `outputs/summary.json`: es el clon diciéndote, con razón, que
 los resultados se calculan, no se guardan. Si falla cualquier otra cosa, algo que el informe
 necesita vive solo en tu carpeta: haz commit de eso y vuelve a clonar. Cuando el clon coincida,
-haz merge del pull request. Un servicio de construcción puede ejecutar la misma comprobación con
+haz merge del pull request. Un servicio de CI puede ejecutar la misma comprobación con
 un clon nuevo en cada pull request, para que nadie tenga que acordarse de hacerla.
 
 ## En tu propio repositorio {#sec-fast-own}
